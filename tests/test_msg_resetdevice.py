@@ -56,7 +56,7 @@ class TestDeviceReset(common.TrezorTest):
         expected_mnemonic = Mnemonic('english').to_mnemonic(entropy)
 
         mnemonic = []
-        for _ in range(strength/32*3):
+        for _ in range((strength/32*3)/12):
             self.assertIsInstance(ret, proto.ButtonRequest)
             mnemonic.append(self.client.debug.read_reset_word())
             self.client.debug.press_yes()
@@ -67,16 +67,7 @@ class TestDeviceReset(common.TrezorTest):
         # Compare that device generated proper mnemonic for given entropies
         self.assertEqual(mnemonic, expected_mnemonic)
 
-        mnemonic = []
-        for _ in range(strength/32*3):
-            self.assertIsInstance(ret, proto.ButtonRequest)
-            mnemonic.append(self.client.debug.read_reset_word())
-            self.client.debug.press_yes()
-            resp = self.client.call_raw(proto.ButtonAck())
-
         self.assertIsInstance(resp, proto.Success)
-
-        mnemonic = ' '.join(mnemonic)
 
         # Compare that second pass printed out the same mnemonic once again
         self.assertEqual(mnemonic, expected_mnemonic)
@@ -130,7 +121,7 @@ class TestDeviceReset(common.TrezorTest):
         expected_mnemonic = Mnemonic('english').to_mnemonic(entropy)
 
         mnemonic = []
-        for _ in range(strength/32*3):
+        for _ in range((strength/32*3)/12):
             self.assertIsInstance(ret, proto.ButtonRequest)
             mnemonic.append(self.client.debug.read_reset_word())
             self.client.debug.press_yes()
@@ -141,16 +132,7 @@ class TestDeviceReset(common.TrezorTest):
         # Compare that device generated proper mnemonic for given entropies
         self.assertEqual(mnemonic, expected_mnemonic)
 
-        mnemonic = []
-        for _ in range(strength/32*3):
-            self.assertIsInstance(ret, proto.ButtonRequest)
-            mnemonic.append(self.client.debug.read_reset_word())
-            self.client.debug.press_yes()
-            resp = self.client.call_raw(proto.ButtonAck())
-
         self.assertIsInstance(resp, proto.Success)
-
-        mnemonic = ' '.join(mnemonic)
 
         # Compare that second pass printed out the same mnemonic once again
         self.assertEqual(mnemonic, expected_mnemonic)
