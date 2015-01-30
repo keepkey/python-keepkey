@@ -60,7 +60,7 @@ class TestDeviceReset(common.TrezorTest):
             self.assertIsInstance(ret, proto.ButtonRequest)
             mnemonic.append(self.client.debug.read_reset_word())
             self.client.debug.press_yes()
-            self.client.call_raw(proto.ButtonAck())
+            resp = self.client.call_raw(proto.ButtonAck())
 
         mnemonic = ' '.join(mnemonic)
 
@@ -125,7 +125,7 @@ class TestDeviceReset(common.TrezorTest):
             self.assertIsInstance(ret, proto.ButtonRequest)
             mnemonic.append(self.client.debug.read_reset_word())
             self.client.debug.press_yes()
-            self.client.call_raw(proto.ButtonAck())
+            resp = self.client.call_raw(proto.ButtonAck())
 
         mnemonic = ' '.join(mnemonic)
 
