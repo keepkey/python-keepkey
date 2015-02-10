@@ -96,14 +96,14 @@ class TestProtectCall(common.TrezorTest):
         self.client.setup_debuglink(button=True, pin_correct=False)
 
         def test_backoff(attempts, start):
-            expected = 0.2 * (2 ** attempts)
+            expected = (2 ** attempts) - 1
             got = time.time() - start
 
             msg = "Pin delay expected to be at least %s seconds, got %s" % (expected, got)
             print msg
             self.assertLessEqual(expected, got, msg)
 
-        for attempt in range(1, 6):
+        for attempt in range(0, 6):
             start = time.time()
             self.assertRaises(PinException, self._some_protected_call, False, True, False)
             test_backoff(attempt, start)
