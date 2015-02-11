@@ -103,7 +103,7 @@ class TestProtectCall(common.TrezorTest):
             print msg
             self.assertLessEqual(expected, got, msg)
 
-        for attempt in range(0, 6):
+        for attempt in range(0, 5):
             start = time.time()
             self.assertRaises(PinException, self._some_protected_call, False, True, False)
             test_backoff(attempt, start)
