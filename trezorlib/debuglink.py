@@ -70,6 +70,14 @@ class DebugLink(object):
         obj = self._call(proto.DebugLinkGetState())
         return (obj.recovery_fake_word, obj.recovery_word_pos)
 
+    def read_config_stor_count(self):
+        obj = self._call(proto.DebugLinkGetState())
+        return obj.config_stor_count
+
+    def read_config_stor(self):
+        obj = self._call(proto.DebugLinkGetState())
+        return obj.config_stor
+
     def read_reset_word(self):
         obj = self._call(proto.DebugLinkGetState())
         return obj.reset_word
