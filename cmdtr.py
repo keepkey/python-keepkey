@@ -189,7 +189,7 @@ class Commands(object):
         if not args.file:
             raise Exception("Must provide firmware filename")
         fp = open(args.file, 'r')
-        if fp.read(4) != 'TRZR':
+        if fp.read(4) != 'KPKY':
             raise Exception("Trezor firmware header expected")
 
         fp.seek(0)
