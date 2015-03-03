@@ -337,7 +337,6 @@ class DebugLinkMixin(object):
 
 class ProtocolMixin(object):
     PRIME_DERIVATION_FLAG = 0x80000000
-    VENDORS = ('bitcointrezor.com','keepkey.com',)
 
     def __init__(self, *args, **kwargs):
         super(ProtocolMixin, self).__init__(*args, **kwargs)
@@ -349,8 +348,6 @@ class ProtocolMixin(object):
 
     def init_device(self):
         self.features = expect(proto.Features)(self.call)(proto.Initialize())
-        if str(self.features.vendor) not in self.VENDORS:
-            raise Exception("Unsupported device")
 
     def _get_local_entropy(self):
         return os.urandom(32)
