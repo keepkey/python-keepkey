@@ -58,7 +58,7 @@ class TestStor(common.TrezorTest):
 
         self.setup_mnemonic_pin_passphrase()
 
-        for attempt in range (1, 262 - self.client.debug.read_config_stor_count()):
+        for attempt in range (1, 260 - self.client.debug.read_config_stor_count()):
           self.client.apply_settings(label='new label attempt %d' % (attempt))
 
         self.assertEqual(self.client.debug.read_config_stor_count(), 1)
