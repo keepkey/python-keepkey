@@ -15,11 +15,11 @@ class TestStor(common.TrezorTest):
 
         self.setup_mnemonic_nopin_nopassphrase()
 			
-        self.assertEqual(self.client.debug.read_config_stor_count(), 2)
+        self.assertEqual(self.client.debug.read_config_stor_count(), 1)
 
         self.client.apply_settings(label='new label')
         
-        self.assertEqual(self.client.debug.read_config_stor_count(), 3)
+        self.assertEqual(self.client.debug.read_config_stor_count(), 1)
 
     def test_stor_reset(self):
         self.client.wipe_device()
@@ -28,11 +28,11 @@ class TestStor(common.TrezorTest):
 
         self.setup_mnemonic_nopin_nopassphrase()
 			
-        self.assertEqual(self.client.debug.read_config_stor_count(), 2)
+        self.assertEqual(self.client.debug.read_config_stor_count(), 1)
 
         self.client.apply_settings(language='english')
         
-        self.assertEqual(self.client.debug.read_config_stor_count(), 3)
+        self.assertEqual(self.client.debug.read_config_stor_count(), 1)
         
         self.client.wipe_device()
 
@@ -58,10 +58,9 @@ class TestStor(common.TrezorTest):
 
         self.setup_mnemonic_pin_passphrase()
 
-        for attempt in range (1, 262 - self.client.debug.read_config_stor_count()):
+        for attempt in range (1, 260 - self.client.debug.read_config_stor_count()):
           self.client.apply_settings(label='new label attempt %d' % (attempt))
-
-        self.assertEqual(self.client.debug.read_config_stor_count(), 1)
+          self.assertEqual(self.client.debug.read_config_stor_count(), 1)
 
 if __name__ == '__main__':
     unittest.main()
