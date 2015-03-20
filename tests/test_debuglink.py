@@ -9,10 +9,6 @@ from trezorlib.client import PinException
 
 class TestDebugLink(common.TrezorTest):
 
-    def test_layout(self):
-        layout = self.client.debug.read_layout()
-        self.assertEqual(len(layout), 1024)
-
     def test_mnemonic(self):
         self.setup_mnemonic_nopin_nopassphrase()
         mnemonic = self.client.debug.read_mnemonic()
