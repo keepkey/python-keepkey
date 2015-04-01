@@ -49,6 +49,8 @@ also found in ``helloworld.py``
 How to install (Windows)
 ------------------------
 * Install Python 2.7 (http://python.org)
+* Install Cython (c:\python27\script\ > pip install cython 
+        OR
 * Install Cython (Windows binaries on http://cython.org/#download)
 * Install Microsoft Visual Studio 2008 Express
 * Add "C:\\Program Files (x86)\\Microsoft Visual Studio 9.0" to system PATH
