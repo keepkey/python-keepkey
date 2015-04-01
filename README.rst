@@ -49,10 +49,11 @@ also found in ``helloworld.py``
 How to install (Windows)
 ------------------------
 * Install Python 2.7 (http://python.org)
-* Install Cython (c:\python27\script\ > pip install cython 
-        OR
-* Install Cython (Windows binaries on http://cython.org/#download)
+* Install Cython
+*    OPTION#1 - Install Cython (c:\python27\script\ > pip install cython 
+*    OPTION#2 - Install Cython (Windows binaries on http://cython.org/#download)
 * Install Microsoft Visual Studio 2008 Express
+* Install Microsoft Windows SDK for Visual Studio 2008 Express Tools for .NET Framework
 * Add "C:\\Program Files (x86)\\Microsoft Visual Studio 9.0" to system PATH
 * Clone repository (using TortoiseGit) to local directory
 * Run C:\\python27\\python.exe setup.py install (or develop)
