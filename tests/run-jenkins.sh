@@ -24,5 +24,4 @@ python test_multisig_change.py
 #python test_multisig.py
 python test_protect_call.py
 #python test_protection_levels.py
-python test_stor.py
 python test_zerosig.py
