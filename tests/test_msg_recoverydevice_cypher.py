@@ -39,7 +39,7 @@ class TestDeviceRecovery(common.TrezorTest):
 
         # Send final ack
         self.assertIsInstance(ret, proto.CharacterRequest)
-        ret = self.client.call_raw(proto.CharacterFinalAck())
+        ret = self.client.call_raw(proto.CharacterAck(done=True))
 
         # Workflow succesfully ended
         self.assertIsInstance(ret, proto.Success)
@@ -85,7 +85,7 @@ class TestDeviceRecovery(common.TrezorTest):
 
         # Send final ack
         self.assertIsInstance(ret, proto.CharacterRequest)
-        ret = self.client.call_raw(proto.CharacterFinalAck())
+        ret = self.client.call_raw(proto.CharacterAck(done=True))
 
         # Workflow succesfully ended
         self.assertIsInstance(ret, proto.Success)
@@ -143,7 +143,7 @@ class TestDeviceRecovery(common.TrezorTest):
 
         for character in mnemonic:
             self.assertIsInstance(ret, proto.CharacterRequest)
-            ret = self.client.call_raw(proto.CharacterDeleteAck())
+            ret = self.client.call_raw(proto.CharacterAck(delete=True))
 
         for character in mnemonic:
             self.assertIsInstance(ret, proto.CharacterRequest)
@@ -159,7 +159,7 @@ class TestDeviceRecovery(common.TrezorTest):
 
         # Send final ack
         self.assertIsInstance(ret, proto.CharacterRequest)
-        ret = self.client.call_raw(proto.CharacterFinalAck())
+        ret = self.client.call_raw(proto.CharacterAck(done=True))
 
         # Workflow succesfully ended
         self.assertIsInstance(ret, proto.Success)
