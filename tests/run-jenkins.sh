@@ -31,6 +31,8 @@ echo "RUNNING TEST test_msg_ping.py"
 python test_msg_ping.py
 echo "RUNNING TEST test_msg_recoverydevice.py"
 python test_msg_recoverydevice.py
+echo "RUNNING TEST test_msg_recoverydevice_cypher.py"
+python test_msg_recoverydevice_cypher.py
 echo "RUNNING TEST test_msg_resetdevice.py"
 python test_msg_resetdevice.py
 echo "RUNNING TEST test_msg_signmessage.py"
