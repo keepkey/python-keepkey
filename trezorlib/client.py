@@ -166,7 +166,7 @@ class TextUIMixin(object):
 
     def callback_PinMatrixRequest(self, msg):
         if msg.type == 1:
-            desc = 'old PIN'
+            desc = 'current PIN'
         elif msg.type == 2:
             desc = 'new PIN'
         elif msg.type == 3:
@@ -452,6 +452,10 @@ class ProtocolMixin(object):
             pass # it was not UTF8 string
 
         return self.call(proto.SignMessage(coin_name=coin_name, address_n=n, message=message))
+
+    @expect(proto.SignedIdentity)
+    def sign_identity(self, identity, challenge_hidden, challenge_visual):
+        return self.call(proto.SignIdentity(identity=identity, challenge_hidden=challenge_hidden, challenge_visual=challenge_visual))
 
     def verify_message(self, address, signature, message):
         try:
