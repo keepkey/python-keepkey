@@ -15,7 +15,7 @@ import types_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages.proto',
   package='',
-  serialized_pb='\n\x0emessages.proto\x1a\x0btypes.proto\"\x0c\n\nInitialize\"\xcf\x02\n\x08\x46\x65\x61tures\x12\x0e\n\x06vendor\x18\x01 \x01(\t\x12\x15\n\rmajor_version\x18\x02 \x01(\r\x12\x15\n\rminor_version\x18\x03 \x01(\r\x12\x15\n\rpatch_version\x18\x04 \x01(\r\x12\x17\n\x0f\x62ootloader_mode\x18\x05 \x01(\x08\x12\x11\n\tdevice_id\x18\x06 \x01(\t\x12\x16\n\x0epin_protection\x18\x07 \x01(\x08\x12\x1d\n\x15passphrase_protection\x18\x08 \x01(\x08\x12\x10\n\x08language\x18\t \x01(\t\x12\r\n\x05label\x18\n \x01(\t\x12\x18\n\x05\x63oins\x18\x0b \x03(\x0b\x32\t.CoinType\x12\x13\n\x0binitialized\x18\x0c \x01(\x08\x12\x10\n\x08revision\x18\r \x01(\x0c\x12\x17\n\x0f\x62ootloader_hash\x18\x0e \x01(\x0c\x12\x10\n\x08imported\x18\x0f \x01(\x08\"\x0e\n\x0c\x43learSession\"H\n\rApplySettings\x12\x10\n\x08language\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\t\x12\x16\n\x0euse_passphrase\x18\x03 \x01(\x08\"\x1b\n\tChangePin\x12\x0e\n\x06remove\x18\x01 \x01(\x08\"i\n\x04Ping\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x19\n\x11\x62utton_protection\x18\x02 \x01(\x08\x12\x16\n\x0epin_protection\x18\x03 \x01(\x08\x12\x1d\n\x15passphrase_protection\x18\x04 \x01(\x08\"\x1a\n\x07Success\x12\x0f\n\x07message\x18\x01 \x01(\t\"6\n\x07\x46\x61ilure\x12\x1a\n\x04\x63ode\x18\x01 \x01(\x0e\x32\x0c.FailureType\x12\x0f\n\x07message\x18\x02 \x01(\t\"?\n\rButtonRequest\x12 \n\x04\x63ode\x18\x01 \x01(\x0e\x32\x12.ButtonRequestType\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"\x0b\n\tButtonAck\"7\n\x10PinMatrixRequest\x12#\n\x04type\x18\x01 \x01(\x0e\x32\x15.PinMatrixRequestType\"\x1b\n\x0cPinMatrixAck\x12\x0b\n\x03pin\x18\x01 \x02(\t\"\x08\n\x06\x43\x61ncel\"\x13\n\x11PassphraseRequest\"#\n\rPassphraseAck\x12\x12\n\npassphrase\x18\x01 \x02(\t\"\x1a\n\nGetEntropy\x12\x0c\n\x04size\x18\x01 \x02(\r\"\x1a\n\x07\x45ntropy\x12\x0f\n\x07\x65ntropy\x18\x01 \x02(\x0c\"!\n\x0cGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\"4\n\tPublicKey\x12\x19\n\x04node\x18\x01 \x02(\x0b\x32\x0b.HDNodeType\x12\x0c\n\x04xpub\x18\x02 \x01(\t\"~\n\nGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\tcoin_name\x18\x02 \x01(\t:\x07\x42itcoin\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\x12+\n\x08multisig\x18\x04 \x01(\x0b\x32\x19.MultisigRedeemScriptType\"\x1a\n\x07\x41\x64\x64ress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\"\x0c\n\nWipeDevice\"\xa6\x01\n\nLoadDevice\x12\x10\n\x08mnemonic\x18\x01 \x01(\t\x12\x19\n\x04node\x18\x02 \x01(\x0b\x32\x0b.HDNodeType\x12\x0b\n\x03pin\x18\x03 \x01(\t\x12\x1d\n\x15passphrase_protection\x18\x04 \x01(\x08\x12\x19\n\x08language\x18\x05 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x06 \x01(\t\x12\x15\n\rskip_checksum\x18\x07 \x01(\x08\"\x9d\x01\n\x0bResetDevice\x12\x16\n\x0e\x64isplay_random\x18\x01 \x01(\x08\x12\x15\n\x08strength\x18\x02 \x01(\r:\x03\x31\x32\x38\x12\x1d\n\x15passphrase_protection\x18\x03 \x01(\x08\x12\x16\n\x0epin_protection\x18\x04 \x01(\x08\x12\x19\n\x08language\x18\x05 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x06 \x01(\t\"\x10\n\x0e\x45ntropyRequest\"\x1d\n\nEntropyAck\x12\x0f\n\x07\x65ntropy\x18\x01 \x01(\x0c\"\xbd\x01\n\x0eRecoveryDevice\x12\x12\n\nword_count\x18\x01 \x01(\r\x12\x1d\n\x15passphrase_protection\x18\x02 \x01(\x08\x12\x16\n\x0epin_protection\x18\x03 \x01(\x08\x12\x19\n\x08language\x18\x04 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x05 \x01(\t\x12\x18\n\x10\x65nforce_wordlist\x18\x06 \x01(\x08\x12\x1c\n\x14use_character_cypher\x18\x07 \x01(\x08\"\r\n\x0bWordRequest\"\x17\n\x07WordAck\x12\x0c\n\x04word\x18\x01 \x02(\t\"\x12\n\x10\x43haracterRequest\"?\n\x0c\x43haracterAck\x12\x11\n\tcharacter\x18\x01 \x01(\t\x12\x0e\n\x06\x64\x65lete\x18\x02 \x01(\x08\x12\x0c\n\x04\x64one\x18\x03 \x01(\x08\"M\n\x0bSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\"D\n\rVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\"6\n\x10MessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"v\n\x0e\x45ncryptMessage\x12\x0e\n\x06pubkey\x18\x01 \x01(\x0c\x12\x0f\n\x07message\x18\x02 \x01(\x0c\x12\x14\n\x0c\x64isplay_only\x18\x03 \x01(\x08\x12\x11\n\taddress_n\x18\x04 \x03(\r\x12\x1a\n\tcoin_name\x18\x05 \x01(\t:\x07\x42itcoin\"@\n\x10\x45ncryptedMessage\x12\r\n\x05nonce\x18\x01 \x01(\x0c\x12\x0f\n\x07message\x18\x02 \x01(\x0c\x12\x0c\n\x04hmac\x18\x03 \x01(\x0c\"Q\n\x0e\x44\x65\x63ryptMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x0c\n\x04hmac\x18\x04 \x01(\x0c\"4\n\x10\x44\x65\x63ryptedMessage\x12\x0f\n\x07message\x18\x01 \x01(\x0c\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\"\x80\x01\n\x0e\x43ipherKeyValue\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x0c\x12\x0f\n\x07\x65ncrypt\x18\x04 \x01(\x08\x12\x16\n\x0e\x61sk_on_encrypt\x18\x05 \x01(\x08\x12\x16\n\x0e\x61sk_on_decrypt\x18\x06 \x01(\x08\"!\n\x10\x43ipheredKeyValue\x12\r\n\x05value\x18\x01 \x01(\x0c\"Y\n\x0e\x45stimateTxSize\x12\x15\n\routputs_count\x18\x01 \x02(\r\x12\x14\n\x0cinputs_count\x18\x02 \x02(\r\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\"\x19\n\x06TxSize\x12\x0f\n\x07tx_size\x18\x01 \x01(\r\"Q\n\x06SignTx\x12\x15\n\routputs_count\x18\x01 \x02(\r\x12\x14\n\x0cinputs_count\x18\x02 \x02(\r\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\"\x90\x01\n\x0cSimpleSignTx\x12\x1c\n\x06inputs\x18\x01 \x03(\x0b\x32\x0c.TxInputType\x12\x1e\n\x07outputs\x18\x02 \x03(\x0b\x32\r.TxOutputType\x12&\n\x0ctransactions\x18\x03 \x03(\x0b\x32\x10.TransactionType\x12\x1a\n\tcoin_name\x18\x04 \x01(\t:\x07\x42itcoin\"\x85\x01\n\tTxRequest\x12\"\n\x0crequest_type\x18\x01 \x01(\x0e\x32\x0c.RequestType\x12&\n\x07\x64\x65tails\x18\x02 \x01(\x0b\x32\x15.TxRequestDetailsType\x12,\n\nserialized\x18\x03 \x01(\x0b\x32\x18.TxRequestSerializedType\"%\n\x05TxAck\x12\x1c\n\x02tx\x18\x01 \x01(\x0b\x32\x10.TransactionType\"\x0f\n\rFirmwareErase\"!\n\x0e\x46irmwareUpload\x12\x0f\n\x07payload\x18\x01 \x02(\x0c\"#\n\x11\x44\x65\x62ugLinkDecision\x12\x0e\n\x06yes_no\x18\x01 \x02(\x08\"\x13\n\x11\x44\x65\x62ugLinkGetState\"\x84\x02\n\x0e\x44\x65\x62ugLinkState\x12\x0e\n\x06layout\x18\x01 \x01(\x0c\x12\x0b\n\x03pin\x18\x02 \x01(\t\x12\x0e\n\x06matrix\x18\x03 \x01(\t\x12\x10\n\x08mnemonic\x18\x04 \x01(\t\x12\x19\n\x04node\x18\x05 \x01(\x0b\x32\x0b.HDNodeType\x12\x1d\n\x15passphrase_protection\x18\x06 \x01(\x08\x12\x12\n\nreset_word\x18\x07 \x01(\t\x12\x15\n\rreset_entropy\x18\x08 \x01(\x0c\x12\x1a\n\x12recovery_fake_word\x18\t \x01(\t\x12\x19\n\x11recovery_word_pos\x18\n \x01(\r\x12\x17\n\x0frecovery_cypher\x18\x0b \x01(\t\"\x0f\n\rDebugLinkStop\";\n\x0c\x44\x65\x62ugLinkLog\x12\r\n\x05level\x18\x01 \x01(\r\x12\x0e\n\x06\x62ucket\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t*\xe5\x0e\n\x0bMessageType\x12 \n\x16MessageType_Initialize\x10\x00\x1a\x04\x90\xb5\x18\x01\x12\x1a\n\x10MessageType_Ping\x10\x01\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Success\x10\x02\x1a\x04\x98\xb5\x18\x01\x12\x1d\n\x13MessageType_Failure\x10\x03\x1a\x04\x98\xb5\x18\x01\x12\x1f\n\x15MessageType_ChangePin\x10\x04\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_WipeDevice\x10\x05\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_FirmwareErase\x10\x06\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_FirmwareUpload\x10\x07\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_GetEntropy\x10\t\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Entropy\x10\n\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_GetPublicKey\x10\x0b\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_PublicKey\x10\x0c\x1a\x04\x98\xb5\x18\x01\x12 \n\x16MessageType_LoadDevice\x10\r\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_ResetDevice\x10\x0e\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_SignTx\x10\x0f\x1a\x04\x90\xb5\x18\x01\x12\"\n\x18MessageType_SimpleSignTx\x10\x10\x1a\x04\x90\xb5\x18\x01\x12\x1e\n\x14MessageType_Features\x10\x11\x1a\x04\x98\xb5\x18\x01\x12&\n\x1cMessageType_PinMatrixRequest\x10\x12\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_PinMatrixAck\x10\x13\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_Cancel\x10\x14\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_TxRequest\x10\x15\x1a\x04\x98\xb5\x18\x01\x12\x1b\n\x11MessageType_TxAck\x10\x16\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_CipherKeyValue\x10\x17\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_CipheredKeyValue\x10\x30\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_ClearSession\x10\x18\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ApplySettings\x10\x19\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ButtonRequest\x10\x1a\x1a\x04\x98\xb5\x18\x01\x12\x1f\n\x15MessageType_ButtonAck\x10\x1b\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_GetAddress\x10\x1d\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Address\x10\x1e\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EntropyRequest\x10#\x1a\x04\x98\xb5\x18\x01\x12 \n\x16MessageType_EntropyAck\x10$\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_SignMessage\x10&\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_VerifyMessage\x10\'\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_MessageSignature\x10(\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EncryptMessage\x10\x31\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_EncryptedMessage\x10\x32\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_DecryptMessage\x10\x33\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_DecryptedMessage\x10\x34\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1dMessageType_PassphraseRequest\x10)\x1a\x04\x98\xb5\x18\x01\x12#\n\x19MessageType_PassphraseAck\x10*\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_EstimateTxSize\x10+\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_TxSize\x10,\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_RecoveryDevice\x10-\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_WordRequest\x10.\x1a\x04\x98\xb5\x18\x01\x12\x1d\n\x13MessageType_WordAck\x10/\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_CharacterRequest\x10\x35\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_CharacterAck\x10\x36\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1dMessageType_DebugLinkDecision\x10\x64\x1a\x04\xa0\xb5\x18\x01\x12\'\n\x1dMessageType_DebugLinkGetState\x10\x65\x1a\x04\xa0\xb5\x18\x01\x12$\n\x1aMessageType_DebugLinkState\x10\x66\x1a\x04\xa8\xb5\x18\x01\x12#\n\x19MessageType_DebugLinkStop\x10g\x1a\x04\xa0\xb5\x18\x01\x12\"\n\x18MessageType_DebugLinkLog\x10h\x1a\x04\xa8\xb5\x18\x01\x42\x30\n\x1f\x63om.satoshilabs.trezor.protobufB\rTrezorMessage')
+  serialized_pb='\n\x0emessages.proto\x1a\x0btypes.proto\"\x0c\n\nInitialize\"\r\n\x0bGetFeatures\"\xfe\x02\n\x08\x46\x65\x61tures\x12\x0e\n\x06vendor\x18\x01 \x01(\t\x12\x15\n\rmajor_version\x18\x02 \x01(\r\x12\x15\n\rminor_version\x18\x03 \x01(\r\x12\x15\n\rpatch_version\x18\x04 \x01(\r\x12\x17\n\x0f\x62ootloader_mode\x18\x05 \x01(\x08\x12\x11\n\tdevice_id\x18\x06 \x01(\t\x12\x16\n\x0epin_protection\x18\x07 \x01(\x08\x12\x1d\n\x15passphrase_protection\x18\x08 \x01(\x08\x12\x10\n\x08language\x18\t \x01(\t\x12\r\n\x05label\x18\n \x01(\t\x12\x18\n\x05\x63oins\x18\x0b \x03(\x0b\x32\t.CoinType\x12\x13\n\x0binitialized\x18\x0c \x01(\x08\x12\x10\n\x08revision\x18\r \x01(\x0c\x12\x17\n\x0f\x62ootloader_hash\x18\x0e \x01(\x0c\x12\x10\n\x08imported\x18\x0f \x01(\x08\x12\x12\n\npin_cached\x18\x10 \x01(\x08\x12\x19\n\x11passphrase_cached\x18\x11 \x01(\x08\"\x0e\n\x0c\x43learSession\"H\n\rApplySettings\x12\x10\n\x08language\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\t\x12\x16\n\x0euse_passphrase\x18\x03 \x01(\x08\"\x1b\n\tChangePin\x12\x0e\n\x06remove\x18\x01 \x01(\x08\"i\n\x04Ping\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x19\n\x11\x62utton_protection\x18\x02 \x01(\x08\x12\x16\n\x0epin_protection\x18\x03 \x01(\x08\x12\x1d\n\x15passphrase_protection\x18\x04 \x01(\x08\"\x1a\n\x07Success\x12\x0f\n\x07message\x18\x01 \x01(\t\"6\n\x07\x46\x61ilure\x12\x1a\n\x04\x63ode\x18\x01 \x01(\x0e\x32\x0c.FailureType\x12\x0f\n\x07message\x18\x02 \x01(\t\"?\n\rButtonRequest\x12 \n\x04\x63ode\x18\x01 \x01(\x0e\x32\x12.ButtonRequestType\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"\x0b\n\tButtonAck\"7\n\x10PinMatrixRequest\x12#\n\x04type\x18\x01 \x01(\x0e\x32\x15.PinMatrixRequestType\"\x1b\n\x0cPinMatrixAck\x12\x0b\n\x03pin\x18\x01 \x02(\t\"\x08\n\x06\x43\x61ncel\"\x13\n\x11PassphraseRequest\"#\n\rPassphraseAck\x12\x12\n\npassphrase\x18\x01 \x02(\t\"\x1a\n\nGetEntropy\x12\x0c\n\x04size\x18\x01 \x02(\r\"\x1a\n\x07\x45ntropy\x12\x0f\n\x07\x65ntropy\x18\x01 \x02(\x0c\"!\n\x0cGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\"4\n\tPublicKey\x12\x19\n\x04node\x18\x01 \x02(\x0b\x32\x0b.HDNodeType\x12\x0c\n\x04xpub\x18\x02 \x01(\t\"~\n\nGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\tcoin_name\x18\x02 \x01(\t:\x07\x42itcoin\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\x12+\n\x08multisig\x18\x04 \x01(\x0b\x32\x19.MultisigRedeemScriptType\"\x1a\n\x07\x41\x64\x64ress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\"\x0c\n\nWipeDevice\"\xa6\x01\n\nLoadDevice\x12\x10\n\x08mnemonic\x18\x01 \x01(\t\x12\x19\n\x04node\x18\x02 \x01(\x0b\x32\x0b.HDNodeType\x12\x0b\n\x03pin\x18\x03 \x01(\t\x12\x1d\n\x15passphrase_protection\x18\x04 \x01(\x08\x12\x19\n\x08language\x18\x05 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x06 \x01(\t\x12\x15\n\rskip_checksum\x18\x07 \x01(\x08\"\x9d\x01\n\x0bResetDevice\x12\x16\n\x0e\x64isplay_random\x18\x01 \x01(\x08\x12\x15\n\x08strength\x18\x02 \x01(\r:\x03\x31\x32\x38\x12\x1d\n\x15passphrase_protection\x18\x03 \x01(\x08\x12\x16\n\x0epin_protection\x18\x04 \x01(\x08\x12\x19\n\x08language\x18\x05 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x06 \x01(\t\"\x10\n\x0e\x45ntropyRequest\"\x1d\n\nEntropyAck\x12\x0f\n\x07\x65ntropy\x18\x01 \x01(\x0c\"\xbd\x01\n\x0eRecoveryDevice\x12\x12\n\nword_count\x18\x01 \x01(\r\x12\x1d\n\x15passphrase_protection\x18\x02 \x01(\x08\x12\x16\n\x0epin_protection\x18\x03 \x01(\x08\x12\x19\n\x08language\x18\x04 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x05 \x01(\t\x12\x18\n\x10\x65nforce_wordlist\x18\x06 \x01(\x08\x12\x1c\n\x14use_character_cypher\x18\x07 \x01(\x08\"\r\n\x0bWordRequest\"\x17\n\x07WordAck\x12\x0c\n\x04word\x18\x01 \x02(\t\"\x12\n\x10\x43haracterRequest\"?\n\x0c\x43haracterAck\x12\x11\n\tcharacter\x18\x01 \x01(\t\x12\x0e\n\x06\x64\x65lete\x18\x02 \x01(\x08\x12\x0c\n\x04\x64one\x18\x03 \x01(\x08\"M\n\x0bSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\"D\n\rVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\"6\n\x10MessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"v\n\x0e\x45ncryptMessage\x12\x0e\n\x06pubkey\x18\x01 \x01(\x0c\x12\x0f\n\x07message\x18\x02 \x01(\x0c\x12\x14\n\x0c\x64isplay_only\x18\x03 \x01(\x08\x12\x11\n\taddress_n\x18\x04 \x03(\r\x12\x1a\n\tcoin_name\x18\x05 \x01(\t:\x07\x42itcoin\"@\n\x10\x45ncryptedMessage\x12\r\n\x05nonce\x18\x01 \x01(\x0c\x12\x0f\n\x07message\x18\x02 \x01(\x0c\x12\x0c\n\x04hmac\x18\x03 \x01(\x0c\"Q\n\x0e\x44\x65\x63ryptMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x0c\n\x04hmac\x18\x04 \x01(\x0c\"4\n\x10\x44\x65\x63ryptedMessage\x12\x0f\n\x07message\x18\x01 \x01(\x0c\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\"\x80\x01\n\x0e\x43ipherKeyValue\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x0c\x12\x0f\n\x07\x65ncrypt\x18\x04 \x01(\x08\x12\x16\n\x0e\x61sk_on_encrypt\x18\x05 \x01(\x08\x12\x16\n\x0e\x61sk_on_decrypt\x18\x06 \x01(\x08\"!\n\x10\x43ipheredKeyValue\x12\r\n\x05value\x18\x01 \x01(\x0c\"Y\n\x0e\x45stimateTxSize\x12\x15\n\routputs_count\x18\x01 \x02(\r\x12\x14\n\x0cinputs_count\x18\x02 \x02(\r\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\"\x19\n\x06TxSize\x12\x0f\n\x07tx_size\x18\x01 \x01(\r\"Q\n\x06SignTx\x12\x15\n\routputs_count\x18\x01 \x02(\r\x12\x14\n\x0cinputs_count\x18\x02 \x02(\r\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\"\x90\x01\n\x0cSimpleSignTx\x12\x1c\n\x06inputs\x18\x01 \x03(\x0b\x32\x0c.TxInputType\x12\x1e\n\x07outputs\x18\x02 \x03(\x0b\x32\r.TxOutputType\x12&\n\x0ctransactions\x18\x03 \x03(\x0b\x32\x10.TransactionType\x12\x1a\n\tcoin_name\x18\x04 \x01(\t:\x07\x42itcoin\"\x85\x01\n\tTxRequest\x12\"\n\x0crequest_type\x18\x01 \x01(\x0e\x32\x0c.RequestType\x12&\n\x07\x64\x65tails\x18\x02 \x01(\x0b\x32\x15.TxRequestDetailsType\x12,\n\nserialized\x18\x03 \x01(\x0b\x32\x18.TxRequestSerializedType\"%\n\x05TxAck\x12\x1c\n\x02tx\x18\x01 \x01(\x0b\x32\x10.TransactionType\"c\n\x0cSignIdentity\x12\x1f\n\x08identity\x18\x01 \x01(\x0b\x32\r.IdentityType\x12\x18\n\x10\x63hallenge_hidden\x18\x02 \x01(\x0c\x12\x18\n\x10\x63hallenge_visual\x18\x03 \x01(\t\"H\n\x0eSignedIdentity\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x12\n\npublic_key\x18\x02 \x01(\x0c\x12\x11\n\tsignature\x18\x03 \x01(\x0c\"\x0f\n\rFirmwareErase\"!\n\x0e\x46irmwareUpload\x12\x0f\n\x07payload\x18\x01 \x02(\x0c\"#\n\x11\x44\x65\x62ugLinkDecision\x12\x0e\n\x06yes_no\x18\x01 \x02(\x08\"\x13\n\x11\x44\x65\x62ugLinkGetState\"\x84\x02\n\x0e\x44\x65\x62ugLinkState\x12\x0e\n\x06layout\x18\x01 \x01(\x0c\x12\x0b\n\x03pin\x18\x02 \x01(\t\x12\x0e\n\x06matrix\x18\x03 \x01(\t\x12\x10\n\x08mnemonic\x18\x04 \x01(\t\x12\x19\n\x04node\x18\x05 \x01(\x0b\x32\x0b.HDNodeType\x12\x1d\n\x15passphrase_protection\x18\x06 \x01(\x08\x12\x12\n\nreset_word\x18\x07 \x01(\t\x12\x15\n\rreset_entropy\x18\x08 \x01(\x0c\x12\x1a\n\x12recovery_fake_word\x18\t \x01(\t\x12\x19\n\x11recovery_word_pos\x18\n \x01(\r\x12\x17\n\x0frecovery_cypher\x18\x0b \x01(\t\"\x0f\n\rDebugLinkStop\";\n\x0c\x44\x65\x62ugLinkLog\x12\r\n\x05level\x18\x01 \x01(\r\x12\x0e\n\x06\x62ucket\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t*\xd2\x0f\n\x0bMessageType\x12 \n\x16MessageType_Initialize\x10\x00\x1a\x04\x90\xb5\x18\x01\x12\x1a\n\x10MessageType_Ping\x10\x01\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Success\x10\x02\x1a\x04\x98\xb5\x18\x01\x12\x1d\n\x13MessageType_Failure\x10\x03\x1a\x04\x98\xb5\x18\x01\x12\x1f\n\x15MessageType_ChangePin\x10\x04\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_WipeDevice\x10\x05\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_FirmwareErase\x10\x06\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_FirmwareUpload\x10\x07\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_GetEntropy\x10\t\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Entropy\x10\n\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_GetPublicKey\x10\x0b\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_PublicKey\x10\x0c\x1a\x04\x98\xb5\x18\x01\x12 \n\x16MessageType_LoadDevice\x10\r\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_ResetDevice\x10\x0e\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_SignTx\x10\x0f\x1a\x04\x90\xb5\x18\x01\x12\"\n\x18MessageType_SimpleSignTx\x10\x10\x1a\x04\x90\xb5\x18\x01\x12\x1e\n\x14MessageType_Features\x10\x11\x1a\x04\x98\xb5\x18\x01\x12&\n\x1cMessageType_PinMatrixRequest\x10\x12\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_PinMatrixAck\x10\x13\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_Cancel\x10\x14\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_TxRequest\x10\x15\x1a\x04\x98\xb5\x18\x01\x12\x1b\n\x11MessageType_TxAck\x10\x16\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_CipherKeyValue\x10\x17\x1a\x04\x90\xb5\x18\x01\x12\"\n\x18MessageType_ClearSession\x10\x18\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ApplySettings\x10\x19\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ButtonRequest\x10\x1a\x1a\x04\x98\xb5\x18\x01\x12\x1f\n\x15MessageType_ButtonAck\x10\x1b\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_GetAddress\x10\x1d\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Address\x10\x1e\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EntropyRequest\x10#\x1a\x04\x98\xb5\x18\x01\x12 \n\x16MessageType_EntropyAck\x10$\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_SignMessage\x10&\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_VerifyMessage\x10\'\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_MessageSignature\x10(\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1dMessageType_PassphraseRequest\x10)\x1a\x04\x98\xb5\x18\x01\x12#\n\x19MessageType_PassphraseAck\x10*\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_EstimateTxSize\x10+\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_TxSize\x10,\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_RecoveryDevice\x10-\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_WordRequest\x10.\x1a\x04\x98\xb5\x18\x01\x12\x1d\n\x13MessageType_WordAck\x10/\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_CipheredKeyValue\x10\x30\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EncryptMessage\x10\x31\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_EncryptedMessage\x10\x32\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_DecryptMessage\x10\x33\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_DecryptedMessage\x10\x34\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_SignIdentity\x10\x35\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_SignedIdentity\x10\x36\x1a\x04\x98\xb5\x18\x01\x12!\n\x17MessageType_GetFeatures\x10\x37\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_CharacterRequest\x10P\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_CharacterAck\x10Q\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1dMessageType_DebugLinkDecision\x10\x64\x1a\x04\xa0\xb5\x18\x01\x12\'\n\x1dMessageType_DebugLinkGetState\x10\x65\x1a\x04\xa0\xb5\x18\x01\x12$\n\x1aMessageType_DebugLinkState\x10\x66\x1a\x04\xa8\xb5\x18\x01\x12#\n\x19MessageType_DebugLinkStop\x10g\x1a\x04\xa0\xb5\x18\x01\x12\"\n\x18MessageType_DebugLinkLog\x10h\x1a\x04\xa8\xb5\x18\x01\x42\x30\n\x1f\x63om.satoshilabs.trezor.protobufB\rTrezorMessage')
 
 _MESSAGETYPE = _descriptor.EnumDescriptor(
   name='MessageType',
@@ -116,130 +116,142 @@ _MESSAGETYPE = _descriptor.EnumDescriptor(
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_CipheredKeyValue', index=23, number=48,
+      name='MessageType_ClearSession', index=23, number=24,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_ApplySettings', index=24, number=25,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_ButtonRequest', index=25, number=26,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_ClearSession', index=24, number=24,
+      name='MessageType_ButtonAck', index=26, number=27,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_ApplySettings', index=25, number=25,
+      name='MessageType_GetAddress', index=27, number=29,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_ButtonRequest', index=26, number=26,
+      name='MessageType_Address', index=28, number=30,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_ButtonAck', index=27, number=27,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='MessageType_GetAddress', index=28, number=29,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='MessageType_Address', index=29, number=30,
+      name='MessageType_EntropyRequest', index=29, number=35,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EntropyRequest', index=30, number=35,
+      name='MessageType_EntropyAck', index=30, number=36,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_SignMessage', index=31, number=38,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_VerifyMessage', index=32, number=39,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MessageSignature', index=33, number=40,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EntropyAck', index=31, number=36,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='MessageType_SignMessage', index=32, number=38,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='MessageType_VerifyMessage', index=33, number=39,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='MessageType_MessageSignature', index=34, number=40,
+      name='MessageType_PassphraseRequest', index=34, number=41,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EncryptMessage', index=35, number=49,
+      name='MessageType_PassphraseAck', index=35, number=42,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EncryptedMessage', index=36, number=50,
+      name='MessageType_EstimateTxSize', index=36, number=43,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_TxSize', index=37, number=44,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DecryptMessage', index=37, number=51,
+      name='MessageType_RecoveryDevice', index=38, number=45,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DecryptedMessage', index=38, number=52,
+      name='MessageType_WordRequest', index=39, number=46,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_PassphraseRequest', index=39, number=41,
+      name='MessageType_WordAck', index=40, number=47,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_CipheredKeyValue', index=41, number=48,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_PassphraseAck', index=40, number=42,
+      name='MessageType_EncryptMessage', index=42, number=49,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EstimateTxSize', index=41, number=43,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='MessageType_TxSize', index=42, number=44,
+      name='MessageType_EncryptedMessage', index=43, number=50,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_RecoveryDevice', index=43, number=45,
+      name='MessageType_DecryptMessage', index=44, number=51,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_WordRequest', index=44, number=46,
+      name='MessageType_DecryptedMessage', index=45, number=52,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_WordAck', index=45, number=47,
+      name='MessageType_SignIdentity', index=46, number=53,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_CharacterRequest', index=46, number=53,
+      name='MessageType_SignedIdentity', index=47, number=54,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_CharacterAck', index=47, number=54,
+      name='MessageType_GetFeatures', index=48, number=55,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkDecision', index=48, number=100,
+      name='MessageType_CharacterRequest', index=49, number=80,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_CharacterAck', index=50, number=81,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_DebugLinkDecision', index=51, number=100,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\240\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkGetState', index=49, number=101,
+      name='MessageType_DebugLinkGetState', index=52, number=101,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\240\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkState', index=50, number=102,
+      name='MessageType_DebugLinkState', index=53, number=102,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\250\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkStop', index=51, number=103,
+      name='MessageType_DebugLinkStop', index=54, number=103,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\240\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkLog', index=52, number=104,
+      name='MessageType_DebugLinkLog', index=55, number=104,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\250\265\030\001'),
       type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=3604,
-  serialized_end=5497,
+  serialized_start=3841,
+  serialized_end=5843,
 )
 
 MessageType = enum_type_wrapper.EnumTypeWrapper(_MESSAGETYPE)
@@ -266,7 +278,6 @@ MessageType_Cancel = 20
 MessageType_TxRequest = 21
 MessageType_TxAck = 22
 MessageType_CipherKeyValue = 23
-MessageType_CipheredKeyValue = 48
 MessageType_ClearSession = 24
 MessageType_ApplySettings = 25
 MessageType_ButtonRequest = 26
@@ -278,10 +289,6 @@ MessageType_EntropyAck = 36
 MessageType_SignMessage = 38
 MessageType_VerifyMessage = 39
 MessageType_MessageSignature = 40
-MessageType_EncryptMessage = 49
-MessageType_EncryptedMessage = 50
-MessageType_DecryptMessage = 51
-MessageType_DecryptedMessage = 52
 MessageType_PassphraseRequest = 41
 MessageType_PassphraseAck = 42
 MessageType_EstimateTxSize = 43
@@ -289,8 +296,16 @@ MessageType_TxSize = 44
 MessageType_RecoveryDevice = 45
 MessageType_WordRequest = 46
 MessageType_WordAck = 47
-MessageType_CharacterRequest = 53
-MessageType_CharacterAck = 54
+MessageType_CipheredKeyValue = 48
+MessageType_EncryptMessage = 49
+MessageType_EncryptedMessage = 50
+MessageType_DecryptMessage = 51
+MessageType_DecryptedMessage = 52
+MessageType_SignIdentity = 53
+MessageType_SignedIdentity = 54
+MessageType_GetFeatures = 55
+MessageType_CharacterRequest = 80
+MessageType_CharacterAck = 81
 MessageType_DebugLinkDecision = 100
 MessageType_DebugLinkGetState = 101
 MessageType_DebugLinkState = 102
@@ -317,6 +332,27 @@ _INITIALIZE = _descriptor.Descriptor(
   extension_ranges=[],
   serialized_start=31,
   serialized_end=43,
+)
+
+
+_GETFEATURES = _descriptor.Descriptor(
+  name='GetFeatures',
+  full_name='GetFeatures',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=45,
+  serialized_end=58,
 )
 
 
@@ -432,6 +468,20 @@ _FEATURES = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='pin_cached', full_name='Features.pin_cached', index=15,
+      number=16, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='passphrase_cached', full_name='Features.passphrase_cached', index=16,
+      number=17, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -441,8 +491,8 @@ _FEATURES = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=46,
-  serialized_end=381,
+  serialized_start=61,
+  serialized_end=443,
 )
 
 
@@ -462,8 +512,8 @@ _CLEARSESSION = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=383,
-  serialized_end=397,
+  serialized_start=445,
+  serialized_end=459,
 )
 
 
@@ -504,8 +554,8 @@ _APPLYSETTINGS = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=399,
-  serialized_end=471,
+  serialized_start=461,
+  serialized_end=533,
 )
 
 
@@ -532,8 +582,8 @@ _CHANGEPIN = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=473,
-  serialized_end=500,
+  serialized_start=535,
+  serialized_end=562,
 )
 
 
@@ -581,8 +631,8 @@ _PING = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=502,
-  serialized_end=607,
+  serialized_start=564,
+  serialized_end=669,
 )
 
 
@@ -609,8 +659,8 @@ _SUCCESS = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=609,
-  serialized_end=635,
+  serialized_start=671,
+  serialized_end=697,
 )
 
 
@@ -644,8 +694,8 @@ _FAILURE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=637,
-  serialized_end=691,
+  serialized_start=699,
+  serialized_end=753,
 )
 
 
@@ -679,8 +729,8 @@ _BUTTONREQUEST = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=693,
-  serialized_end=756,
+  serialized_start=755,
+  serialized_end=818,
 )
 
 
@@ -700,8 +750,8 @@ _BUTTONACK = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=758,
-  serialized_end=769,
+  serialized_start=820,
+  serialized_end=831,
 )
 
 
@@ -728,8 +778,8 @@ _PINMATRIXREQUEST = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=771,
-  serialized_end=826,
+  serialized_start=833,
+  serialized_end=888,
 )
 
 
@@ -756,8 +806,8 @@ _PINMATRIXACK = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=828,
-  serialized_end=855,
+  serialized_start=890,
+  serialized_end=917,
 )
 
 
@@ -777,8 +827,8 @@ _CANCEL = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=857,
-  serialized_end=865,
+  serialized_start=919,
+  serialized_end=927,
 )
 
 
@@ -798,8 +848,8 @@ _PASSPHRASEREQUEST = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=867,
-  serialized_end=886,
+  serialized_start=929,
+  serialized_end=948,
 )
 
 
@@ -826,8 +876,8 @@ _PASSPHRASEACK = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=888,
-  serialized_end=923,
+  serialized_start=950,
+  serialized_end=985,
 )
 
 
@@ -854,8 +904,8 @@ _GETENTROPY = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=925,
-  serialized_end=951,
+  serialized_start=987,
+  serialized_end=1013,
 )
 
 
@@ -882,8 +932,8 @@ _ENTROPY = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=953,
-  serialized_end=979,
+  serialized_start=1015,
+  serialized_end=1041,
 )
 
 
@@ -910,8 +960,8 @@ _GETPUBLICKEY = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=981,
-  serialized_end=1014,
+  serialized_start=1043,
+  serialized_end=1076,
 )
 
 
@@ -945,8 +995,8 @@ _PUBLICKEY = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1016,
-  serialized_end=1068,
+  serialized_start=1078,
+  serialized_end=1130,
 )
 
 
@@ -994,8 +1044,8 @@ _GETADDRESS = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1070,
-  serialized_end=1196,
+  serialized_start=1132,
+  serialized_end=1258,
 )
 
 
@@ -1022,8 +1072,8 @@ _ADDRESS = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1198,
-  serialized_end=1224,
+  serialized_start=1260,
+  serialized_end=1286,
 )
 
 
@@ -1043,8 +1093,8 @@ _WIPEDEVICE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1226,
-  serialized_end=1238,
+  serialized_start=1288,
+  serialized_end=1300,
 )
 
 
@@ -1113,8 +1163,8 @@ _LOADDEVICE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1241,
-  serialized_end=1407,
+  serialized_start=1303,
+  serialized_end=1469,
 )
 
 
@@ -1176,8 +1226,8 @@ _RESETDEVICE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1410,
-  serialized_end=1567,
+  serialized_start=1472,
+  serialized_end=1629,
 )
 
 
@@ -1197,8 +1247,8 @@ _ENTROPYREQUEST = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1569,
-  serialized_end=1585,
+  serialized_start=1631,
+  serialized_end=1647,
 )
 
 
@@ -1225,8 +1275,8 @@ _ENTROPYACK = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1587,
-  serialized_end=1616,
+  serialized_start=1649,
+  serialized_end=1678,
 )
 
 
@@ -1295,8 +1345,8 @@ _RECOVERYDEVICE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1619,
-  serialized_end=1808,
+  serialized_start=1681,
+  serialized_end=1870,
 )
 
 
@@ -1316,8 +1366,8 @@ _WORDREQUEST = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1810,
-  serialized_end=1823,
+  serialized_start=1872,
+  serialized_end=1885,
 )
 
 
@@ -1344,8 +1394,8 @@ _WORDACK = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1825,
-  serialized_end=1848,
+  serialized_start=1887,
+  serialized_end=1910,
 )
 
 
@@ -1365,8 +1415,8 @@ _CHARACTERREQUEST = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1850,
-  serialized_end=1868,
+  serialized_start=1912,
+  serialized_end=1930,
 )
 
 
@@ -1407,8 +1457,8 @@ _CHARACTERACK = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1870,
-  serialized_end=1933,
+  serialized_start=1932,
+  serialized_end=1995,
 )
 
 
@@ -1449,8 +1499,8 @@ _SIGNMESSAGE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1935,
-  serialized_end=2012,
+  serialized_start=1997,
+  serialized_end=2074,
 )
 
 
@@ -1491,8 +1541,8 @@ _VERIFYMESSAGE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2014,
-  serialized_end=2082,
+  serialized_start=2076,
+  serialized_end=2144,
 )
 
 
@@ -1526,8 +1576,8 @@ _MESSAGESIGNATURE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2084,
-  serialized_end=2138,
+  serialized_start=2146,
+  serialized_end=2200,
 )
 
 
@@ -1582,8 +1632,8 @@ _ENCRYPTMESSAGE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2140,
-  serialized_end=2258,
+  serialized_start=2202,
+  serialized_end=2320,
 )
 
 
@@ -1624,8 +1674,8 @@ _ENCRYPTEDMESSAGE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2260,
-  serialized_end=2324,
+  serialized_start=2322,
+  serialized_end=2386,
 )
 
 
@@ -1673,8 +1723,8 @@ _DECRYPTMESSAGE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2326,
-  serialized_end=2407,
+  serialized_start=2388,
+  serialized_end=2469,
 )
 
 
@@ -1708,8 +1758,8 @@ _DECRYPTEDMESSAGE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2409,
-  serialized_end=2461,
+  serialized_start=2471,
+  serialized_end=2523,
 )
 
 
@@ -1771,8 +1821,8 @@ _CIPHERKEYVALUE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2464,
-  serialized_end=2592,
+  serialized_start=2526,
+  serialized_end=2654,
 )
 
 
@@ -1799,8 +1849,8 @@ _CIPHEREDKEYVALUE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2594,
-  serialized_end=2627,
+  serialized_start=2656,
+  serialized_end=2689,
 )
 
 
@@ -1841,8 +1891,8 @@ _ESTIMATETXSIZE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2629,
-  serialized_end=2718,
+  serialized_start=2691,
+  serialized_end=2780,
 )
 
 
@@ -1869,8 +1919,8 @@ _TXSIZE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2720,
-  serialized_end=2745,
+  serialized_start=2782,
+  serialized_end=2807,
 )
 
 
@@ -1911,8 +1961,8 @@ _SIGNTX = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2747,
-  serialized_end=2828,
+  serialized_start=2809,
+  serialized_end=2890,
 )
 
 
@@ -1960,8 +2010,8 @@ _SIMPLESIGNTX = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2831,
-  serialized_end=2975,
+  serialized_start=2893,
+  serialized_end=3037,
 )
 
 
@@ -2002,8 +2052,8 @@ _TXREQUEST = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=2978,
-  serialized_end=3111,
+  serialized_start=3040,
+  serialized_end=3173,
 )
 
 
@@ -2030,8 +2080,92 @@ _TXACK = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=3113,
-  serialized_end=3150,
+  serialized_start=3175,
+  serialized_end=3212,
+)
+
+
+_SIGNIDENTITY = _descriptor.Descriptor(
+  name='SignIdentity',
+  full_name='SignIdentity',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='identity', full_name='SignIdentity.identity', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='challenge_hidden', full_name='SignIdentity.challenge_hidden', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value="",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='challenge_visual', full_name='SignIdentity.challenge_visual', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=3214,
+  serialized_end=3313,
+)
+
+
+_SIGNEDIDENTITY = _descriptor.Descriptor(
+  name='SignedIdentity',
+  full_name='SignedIdentity',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address', full_name='SignedIdentity.address', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='public_key', full_name='SignedIdentity.public_key', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value="",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='signature', full_name='SignedIdentity.signature', index=2,
+      number=3, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value="",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=3315,
+  serialized_end=3387,
 )
 
 
@@ -2051,8 +2185,8 @@ _FIRMWAREERASE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=3152,
-  serialized_end=3167,
+  serialized_start=3389,
+  serialized_end=3404,
 )
 
 
@@ -2079,8 +2213,8 @@ _FIRMWAREUPLOAD = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=3169,
-  serialized_end=3202,
+  serialized_start=3406,
+  serialized_end=3439,
 )
 
 
@@ -2107,8 +2241,8 @@ _DEBUGLINKDECISION = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=3204,
-  serialized_end=3239,
+  serialized_start=3441,
+  serialized_end=3476,
 )
 
 
@@ -2128,8 +2262,8 @@ _DEBUGLINKGETSTATE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=3241,
-  serialized_end=3260,
+  serialized_start=3478,
+  serialized_end=3497,
 )
 
 
@@ -2226,8 +2360,8 @@ _DEBUGLINKSTATE = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=3263,
-  serialized_end=3523,
+  serialized_start=3500,
+  serialized_end=3760,
 )
 
 
@@ -2247,8 +2381,8 @@ _DEBUGLINKSTOP = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=3525,
-  serialized_end=3540,
+  serialized_start=3762,
+  serialized_end=3777,
 )
 
 
@@ -2289,8 +2423,8 @@ _DEBUGLINKLOG = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=3542,
-  serialized_end=3601,
+  serialized_start=3779,
+  serialized_end=3838,
 )
 
 _FEATURES.fields_by_name['coins'].message_type = types_pb2._COINTYPE
@@ -2307,8 +2441,10 @@ _TXREQUEST.fields_by_name['request_type'].enum_type = types_pb2._REQUESTTYPE
 _TXREQUEST.fields_by_name['details'].message_type = types_pb2._TXREQUESTDETAILSTYPE
 _TXREQUEST.fields_by_name['serialized'].message_type = types_pb2._TXREQUESTSERIALIZEDTYPE
 _TXACK.fields_by_name['tx'].message_type = types_pb2._TRANSACTIONTYPE
+_SIGNIDENTITY.fields_by_name['identity'].message_type = types_pb2._IDENTITYTYPE
 _DEBUGLINKSTATE.fields_by_name['node'].message_type = types_pb2._HDNODETYPE
 DESCRIPTOR.message_types_by_name['Initialize'] = _INITIALIZE
+DESCRIPTOR.message_types_by_name['GetFeatures'] = _GETFEATURES
 DESCRIPTOR.message_types_by_name['Features'] = _FEATURES
 DESCRIPTOR.message_types_by_name['ClearSession'] = _CLEARSESSION
 DESCRIPTOR.message_types_by_name['ApplySettings'] = _APPLYSETTINGS
@@ -2354,6 +2490,8 @@ DESCRIPTOR.message_types_by_name['SignTx'] = _SIGNTX
 DESCRIPTOR.message_types_by_name['SimpleSignTx'] = _SIMPLESIGNTX
 DESCRIPTOR.message_types_by_name['TxRequest'] = _TXREQUEST
 DESCRIPTOR.message_types_by_name['TxAck'] = _TXACK
+DESCRIPTOR.message_types_by_name['SignIdentity'] = _SIGNIDENTITY
+DESCRIPTOR.message_types_by_name['SignedIdentity'] = _SIGNEDIDENTITY
 DESCRIPTOR.message_types_by_name['FirmwareErase'] = _FIRMWAREERASE
 DESCRIPTOR.message_types_by_name['FirmwareUpload'] = _FIRMWAREUPLOAD
 DESCRIPTOR.message_types_by_name['DebugLinkDecision'] = _DEBUGLINKDECISION
@@ -2367,6 +2505,12 @@ class Initialize(_message.Message):
   DESCRIPTOR = _INITIALIZE
 
   # @@protoc_insertion_point(class_scope:Initialize)
+
+class GetFeatures(_message.Message):
+  __metaclass__ = _reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _GETFEATURES
+
+  # @@protoc_insertion_point(class_scope:GetFeatures)
 
 class Features(_message.Message):
   __metaclass__ = _reflection.GeneratedProtocolMessageType
@@ -2638,6 +2782,18 @@ class TxAck(_message.Message):
 
   # @@protoc_insertion_point(class_scope:TxAck)
 
+class SignIdentity(_message.Message):
+  __metaclass__ = _reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _SIGNIDENTITY
+
+  # @@protoc_insertion_point(class_scope:SignIdentity)
+
+class SignedIdentity(_message.Message):
+  __metaclass__ = _reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _SIGNEDIDENTITY
+
+  # @@protoc_insertion_point(class_scope:SignedIdentity)
+
 class FirmwareErase(_message.Message):
   __metaclass__ = _reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _FIRMWAREERASE
@@ -2729,8 +2885,6 @@ _MESSAGETYPE.values_by_name["MessageType_TxAck"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_TxAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001')
 _MESSAGETYPE.values_by_name["MessageType_CipherKeyValue"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_CipherKeyValue"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001')
-_MESSAGETYPE.values_by_name["MessageType_CipheredKeyValue"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_CipheredKeyValue"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001')
 _MESSAGETYPE.values_by_name["MessageType_ClearSession"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_ClearSession"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001')
 _MESSAGETYPE.values_by_name["MessageType_ApplySettings"].has_options = True
@@ -2753,14 +2907,6 @@ _MESSAGETYPE.values_by_name["MessageType_VerifyMessage"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_VerifyMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001')
 _MESSAGETYPE.values_by_name["MessageType_MessageSignature"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_MessageSignature"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001')
-_MESSAGETYPE.values_by_name["MessageType_EncryptMessage"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EncryptMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001')
-_MESSAGETYPE.values_by_name["MessageType_EncryptedMessage"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EncryptedMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001')
-_MESSAGETYPE.values_by_name["MessageType_DecryptMessage"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_DecryptMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001')
-_MESSAGETYPE.values_by_name["MessageType_DecryptedMessage"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_DecryptedMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001')
 _MESSAGETYPE.values_by_name["MessageType_PassphraseRequest"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_PassphraseRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001')
 _MESSAGETYPE.values_by_name["MessageType_PassphraseAck"].has_options = True
@@ -2775,6 +2921,22 @@ _MESSAGETYPE.values_by_name["MessageType_WordRequest"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_WordRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001')
 _MESSAGETYPE.values_by_name["MessageType_WordAck"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_WordAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001')
+_MESSAGETYPE.values_by_name["MessageType_CipheredKeyValue"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_CipheredKeyValue"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001')
+_MESSAGETYPE.values_by_name["MessageType_EncryptMessage"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_EncryptMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001')
+_MESSAGETYPE.values_by_name["MessageType_EncryptedMessage"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_EncryptedMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001')
+_MESSAGETYPE.values_by_name["MessageType_DecryptMessage"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_DecryptMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001')
+_MESSAGETYPE.values_by_name["MessageType_DecryptedMessage"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_DecryptedMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001')
+_MESSAGETYPE.values_by_name["MessageType_SignIdentity"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_SignIdentity"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001')
+_MESSAGETYPE.values_by_name["MessageType_SignedIdentity"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_SignedIdentity"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001')
+_MESSAGETYPE.values_by_name["MessageType_GetFeatures"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_GetFeatures"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\220\265\030\001')
 _MESSAGETYPE.values_by_name["MessageType_CharacterRequest"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_CharacterRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), '\230\265\030\001')
 _MESSAGETYPE.values_by_name["MessageType_CharacterAck"].has_options = True
