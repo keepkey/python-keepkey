@@ -19,8 +19,8 @@ echo "RUNNING TEST test_msg_estimatetxsize.py"
 python test_msg_estimatetxsize.py
 echo "RUNNING TEST test_msg_getaddress.py"
 python test_msg_getaddress.py
-#echo "RUNNING TEST test_msg_getaddress_show.py"
-#python test_msg_getaddress_show.py
+echo "RUNNING TEST test_msg_getaddress_show.py"
+python test_msg_getaddress_show.py
 echo "RUNNING TEST test_msg_getentropy.py"
 python test_msg_getentropy.py
 echo "RUNNING TEST test_msg_getpublickey.py"
@@ -45,8 +45,8 @@ echo "RUNNING TEST test_msg_wipedevice.py"
 python test_msg_wipedevice.py
 echo "RUNNING TEST test_multisig_change.py"
 python test_multisig_change.py
-#echo "RUNNING TEST test_multisig.py"
-#python test_multisig.py
+echo "RUNNING TEST test_multisig.py"
+python test_multisig.py
 echo "RUNNING TEST test_protect_call.py"
 python test_protect_call.py
 #echo "RUNNING TEST test_protection_levels.py"
