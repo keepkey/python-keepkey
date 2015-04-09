@@ -70,9 +70,9 @@ class DebugLink(object):
         obj = self._call(proto.DebugLinkGetState())
         return (obj.recovery_fake_word, obj.recovery_word_pos)
 
-    def read_recovery_cypher(self):
+    def read_recovery_cipher(self):
         obj = self._call(proto.DebugLinkGetState())
-        return obj.recovery_cypher
+        return obj.recovery_cipher
 
     def read_reset_word(self):
         obj = self._call(proto.DebugLinkGetState())
