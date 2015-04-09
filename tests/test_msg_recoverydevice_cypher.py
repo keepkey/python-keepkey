@@ -12,7 +12,7 @@ class TestDeviceRecovery(common.TrezorTest):
                                    label='label',
                                    language='english',
                                    enforce_wordlist=True,
-                                   use_character_cypher=True))
+                                   use_character_cipher=True))
 
         self.assertIsInstance(ret, proto.PinMatrixRequest)
 
@@ -27,12 +27,12 @@ class TestDeviceRecovery(common.TrezorTest):
 
         for character in mnemonic:
             self.assertIsInstance(ret, proto.CharacterRequest)
-            cypher = self.client.debug.read_recovery_cypher()
+            cipher = self.client.debug.read_recovery_cipher()
 
             if character == ' ':
                 ret = self.client.call_raw(proto.CharacterAck(character=character))
             else:
-                encoded_character = cypher[ord(character) - 97]
+                encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
 
             print character
@@ -69,16 +69,16 @@ class TestDeviceRecovery(common.TrezorTest):
                                    label='label',
                                    language='english',
                                    enforce_wordlist=True,
-                                   use_character_cypher=True))
+                                   use_character_cipher=True))
 
         for character in mnemonic:
             self.assertIsInstance(ret, proto.CharacterRequest)
-            cypher = self.client.debug.read_recovery_cypher()
+            cipher = self.client.debug.read_recovery_cipher()
 
             if character == ' ':
                 ret = self.client.call_raw(proto.CharacterAck(character=character))
             else:
-                encoded_character = cypher[ord(character) - 97]
+                encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
 
             print character
@@ -112,7 +112,7 @@ class TestDeviceRecovery(common.TrezorTest):
                                    label='label',
                                    language='english',
                                    enforce_wordlist=True,
-                                   use_character_cypher=True))
+                                   use_character_cipher=True))
 
         self.assertIsInstance(ret, proto.CharacterRequest)
         ret = self.client.call_raw(proto.CharacterAck(character='1'))
@@ -126,16 +126,16 @@ class TestDeviceRecovery(common.TrezorTest):
                                    label='label',
                                    language='english',
                                    enforce_wordlist=True,
-                                   use_character_cypher=True))
+                                   use_character_cipher=True))
 
         for character in mnemonic:
             self.assertIsInstance(ret, proto.CharacterRequest)
-            cypher = self.client.debug.read_recovery_cypher()
+            cipher = self.client.debug.read_recovery_cipher()
 
             if character == ' ':
                 ret = self.client.call_raw(proto.CharacterAck(character=character))
             else:
-                encoded_character = cypher[ord(character) - 97]
+                encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
 
             print character
@@ -147,12 +147,12 @@ class TestDeviceRecovery(common.TrezorTest):
 
         for character in mnemonic:
             self.assertIsInstance(ret, proto.CharacterRequest)
-            cypher = self.client.debug.read_recovery_cypher()
+            cipher = self.client.debug.read_recovery_cipher()
 
             if character == ' ':
                 ret = self.client.call_raw(proto.CharacterAck(character=character))
             else:
-                encoded_character = cypher[ord(character) - 97]
+                encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
 
             print character
