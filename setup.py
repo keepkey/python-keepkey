@@ -28,7 +28,7 @@ setup(
     ],
     scripts = ['trezorctl'],
     test_suite='tests',
-    install_requires=['ecdsa>=0.9', 'protobuf==2.5.0', 'mnemonic>=0.8', 'hidapi>=0.7.99'],
+    install_requires=['ecdsa>=0.9', 'protobuf==2.5.0', 'mnemonic>=0.8', 'hidapi>=0.7.99', 'getch==1.0'],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
@@ -36,5 +36,8 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: MacOS :: MacOS X',
+    ],
+    dependency_links = [
+        "https://pypi.python.org/packages/source/g/getch/getch-1.0-python2.tar.gz#egg=getch-1.0"
     ],
 )

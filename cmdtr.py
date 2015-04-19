@@ -125,7 +125,7 @@ class Commands(object):
 
     def recovery_device(self, args):
         return self.client.recovery_device(args.words, args.passphrase_protection,
-                                    args.pin_protection, args.label, 'english')
+                                    args.pin_protection, args.label, 'english', args.use_character_cipher)
 
     def load_device(self, args):
         if not args.mnemonic and not args.xprv:
@@ -274,6 +274,7 @@ class Commands(object):
         (('-p', '--pin-protection'), {'action': 'store_true', 'default': False}),
         (('-r', '--passphrase-protection'), {'action': 'store_true', 'default': False}),
         (('-l', '--label'), {'type': str, 'default': ''}),
+        (('-c', '--use-character-cipher'), {'action': 'store_true', 'default': False}),
     )
 
     load_device.arguments = (
