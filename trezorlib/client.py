@@ -7,6 +7,7 @@ import unicodedata
 import mapping
 import json
 import getpass
+import getch
 
 import tools
 import messages_pb2 as proto
@@ -47,6 +48,27 @@ def pprint(msg):
 def log(msg):
     sys.stderr.write("%s\n" % msg)
     sys.stderr.flush()
+
+def log_cr(msg):
+    sys.stdout.write('\r%s' % msg)
+    sys.stdout.flush()
+
+def log_backspace(times):
+    for _ in range(times):
+        sys.stdout.write('\b')
+        sys.stdout.flush()
+
+def format_mnemonic(mnemonic):
+    words = mnemonic.split(' ')
+    formatted_words = []
+
+    for index, word in enumerate(words):
+        formatted_words.append("WORD %d: %s" % (index + 1, word))
+
+    return formatted_words[-1]
+
+def str_len_diff(str1, str2):
+    return len(str1) - len(str2)
 
 class CallException(Exception):
     def __init__(self, code, message):
@@ -160,6 +182,9 @@ class TextUIMixin(object):
     def __init__(self, *args, **kwargs):
         super(TextUIMixin, self).__init__(*args, **kwargs)
 
+        self.character_request_first_pass = True
+        self.character_request_mnemonic = ''
+
     def callback_ButtonRequest(self, msg):
         # log("Sending ButtonAck for %s " % get_buttonrequest_value(msg.code))
         return proto.ButtonAck()
@@ -193,6 +218,47 @@ class TextUIMixin(object):
         log("Enter one word of mnemonic: ")
         word = raw_input()
         return proto.WordAck(word=word)
+
+    def callback_CharacterRequest(self, msg):
+        if self.character_request_first_pass:
+            self.character_request_first_pass = False
+            log("Use recovery cipher on device to input mnemonic (spacebar to increment word): ")
+
+        # format mnemonic for console
+        formatted_console = format_mnemonic(self.character_request_mnemonic)
+
+        # clear the runway before we display formatted mnemonic
+        log_cr(' ' * 20)
+        log_cr(formatted_console)
+
+        while True:
+            character = getch.getch().lower()
+            character_ascii = ord(character)
+
+            word_count = len(self.character_request_mnemonic.split(' '))
+
+            if character_ascii >= 97 and character_ascii <= 122 \
+            and self.character_request_mnemonic[-8:] != '********':
+                # capture characters a-z
+                self.character_request_mnemonic = self.character_request_mnemonic + '*'
+                return proto.CharacterAck(character=character)
+
+            elif character_ascii == 32 and word_count < 24 \
+            and self.character_request_mnemonic[-1:] != ' ' \
+            and self.character_request_mnemonic[-3:] == '***':
+                # capture spaces
+                self.character_request_mnemonic = self.character_request_mnemonic + ' '
+                return proto.CharacterAck(character=' ')
+
+            elif character_ascii == 127 \
+            and len(self.character_request_mnemonic) > 0:
+                # capture backspaces
+                self.character_request_mnemonic = self.character_request_mnemonic[0:-1]
+                return proto.CharacterAck(delete=True)
+
+            elif character_ascii == 10:
+                # capture returns
+                return proto.CharacterAck(done=True)
 
 class DebugLinkMixin(object):
     # This class implements automatic responses
@@ -660,19 +726,22 @@ class ProtocolMixin(object):
 
     @field('message')
     @expect(proto.Success)
-    def recovery_device(self, word_count, passphrase_protection, pin_protection, label, language):
+    def recovery_device(self, word_count, passphrase_protection, pin_protection, label, language, use_character_cipher):
         if self.features.initialized:
             raise Exception("Device is initialized already. Call wipe_device() and try again.")
 
-        if word_count not in (12, 18, 24):
+        if use_character_cipher:
+            word_count = 0
+        elif word_count not in (12, 18, 24):
             raise Exception("Invalid word count. Use 12/18/24")
 
         res = self.call(proto.RecoveryDevice(word_count=int(word_count),
-                                   passphrase_protection=bool(passphrase_protection),
-                                   pin_protection=bool(pin_protection),
-                                   label=label,
-                                   language=language,
-                                   enforce_wordlist=True))
+                                    passphrase_protection=bool(passphrase_protection),
+                                    pin_protection=bool(pin_protection),
+                                    label=label,
+                                    language=language,
+                                    enforce_wordlist=True,
+                                    use_character_cipher=bool(use_character_cipher)))
 
         self.init_device()
         return res
