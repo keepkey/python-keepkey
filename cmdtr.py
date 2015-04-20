@@ -190,27 +190,31 @@ class Commands(object):
     def firmware_update(self, args):
         if not args.file and not args.url:
             raise Exception("Must provide firmware filename or URL")
+
+        if args.file:
             fp = open(args.file, 'r')
         elif args.url:
             print "Downloading from", args.url
             resp = urllib.urlretrieve(args.url)
             fp = open(resp[0], 'r')
             urllib.urlcleanup() # We still keep file pointer open
- 
+
         if fp.read(8) == '54525a52':
             print "Converting firmware to binary"
 
             fp.seek(0)
             fp_old = fp
-            
+
             fp = tempfile.TemporaryFile()
             fp.write(binascii.unhexlify(fp_old.read()))
 
             fp_old.close()
-            fp.seek(0)
 
-        if fp.read(4) != 'TRZR':
-            raise Exception("Trezor firmware header expected")
+        fp.seek(0)
+        if fp.read(4) != 'KPKY':
+            raise Exception("KeepKey firmware header expected")
+
+        print "Please confirm action on device..."
 
         fp.seek(0)
         return self.client.firmware_update(fp=fp)
