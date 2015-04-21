@@ -222,19 +222,15 @@ class TextUIMixin(object):
     def callback_CharacterRequest(self, msg):
         if self.character_request_first_pass:
             self.character_request_first_pass = False
-            log("Use recovery cipher on device to input mnemonic. Words are autocompleted using 3 or 4 characters.")
+            log("Use recovery cipher on device to input mnemonic. Words are autocompleted at 3 or 4 characters.")
             log("(use spacebar to progress to next word after match, use backspace to correct bad character or word entries)")
 
         # format mnemonic for console
         formatted_console = format_mnemonic(self.character_request_mnemonic)
 
         # clear the runway before we display formatted mnemonic
-        log_cr(' ' * 20)
-
-        if msg.found:
-            log_cr("[%s] %s" % (u'\u2713', formatted_console))
-        else:
-            log_cr("[X] %s" % (formatted_console))
+        log_cr(' ' * 14)
+        log_cr(formatted_console)
 
         while True:
             character = getch.getch().lower()
@@ -243,16 +239,14 @@ class TextUIMixin(object):
             word_count = len(self.character_request_mnemonic.split(' '))
 
             if character_ascii >= 97 and character_ascii <= 122 \
-            and self.character_request_mnemonic[-4:] != '****' \
-            and not msg.found:
+            and self.character_request_mnemonic[-4:] != '****':
                 # capture characters a-z
                 self.character_request_mnemonic = self.character_request_mnemonic + '*'
                 return proto.CharacterAck(character=character)
 
             elif character_ascii == 32 and word_count < 24 \
             and self.character_request_mnemonic[-1:] != ' ' \
-            and self.character_request_mnemonic[-3:] == '***' \
-            and msg.found:
+            and self.character_request_mnemonic[-3:] == '***':
                 # capture spaces
                 self.character_request_mnemonic = self.character_request_mnemonic + ' '
                 return proto.CharacterAck(character=' ')
