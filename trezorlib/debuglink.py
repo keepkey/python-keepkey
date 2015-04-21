@@ -74,6 +74,10 @@ class DebugLink(object):
         obj = self._call(proto.DebugLinkGetState())
         return obj.recovery_cipher
 
+    def read_recovery_auto_completed_word(self):
+        obj = self._call(proto.DebugLinkGetState())
+        return obj.recovery_auto_completed_word
+
     def read_reset_word(self):
         obj = self._call(proto.DebugLinkGetState())
         return obj.reset_word
