@@ -25,17 +25,22 @@ class TestDeviceRecovery(common.TrezorTest):
         pin_encoded = self.client.debug.encode_pin(self.pin6)
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
 
-        for character in mnemonic:
-            self.assertIsInstance(ret, proto.CharacterRequest)
-            cipher = self.client.debug.read_recovery_cipher()
+        mnemonic_words = mnemonic.split(' ')
 
-            if character == ' ':
-                ret = self.client.call_raw(proto.CharacterAck(character=character))
-            else:
+        for index, word in enumerate(mnemonic_words):
+            for character in word:
+                self.assertIsInstance(ret, proto.CharacterRequest)
+                cipher = self.client.debug.read_recovery_cipher()
+
                 encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
+                
+                auto_completed = self.client.debug.read_recovery_auto_completed_word()       
 
-            print character
+                if word == auto_completed:
+                    if len(mnemonic_words) != index + 1:
+                        ret = self.client.call_raw(proto.CharacterAck(character=' '))
+                    break
 
         # Send final ack
         self.assertIsInstance(ret, proto.CharacterRequest)
@@ -71,17 +76,22 @@ class TestDeviceRecovery(common.TrezorTest):
                                    enforce_wordlist=True,
                                    use_character_cipher=True))
 
-        for character in mnemonic:
-            self.assertIsInstance(ret, proto.CharacterRequest)
-            cipher = self.client.debug.read_recovery_cipher()
+        mnemonic_words = mnemonic.split(' ')
 
-            if character == ' ':
-                ret = self.client.call_raw(proto.CharacterAck(character=character))
-            else:
+        for index, word in enumerate(mnemonic_words):
+            for character in word:
+                self.assertIsInstance(ret, proto.CharacterRequest)
+                cipher = self.client.debug.read_recovery_cipher()
+
                 encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
+                
+                auto_completed = self.client.debug.read_recovery_auto_completed_word()       
 
-            print character
+                if word == auto_completed:
+                    if len(mnemonic_words) != index + 1:
+                        ret = self.client.call_raw(proto.CharacterAck(character=' '))
+                    break
 
         # Send final ack
         self.assertIsInstance(ret, proto.CharacterRequest)
@@ -128,34 +138,42 @@ class TestDeviceRecovery(common.TrezorTest):
                                    enforce_wordlist=True,
                                    use_character_cipher=True))
 
-        for character in mnemonic:
-            self.assertIsInstance(ret, proto.CharacterRequest)
-            cipher = self.client.debug.read_recovery_cipher()
+        mnemonic_words = mnemonic.split(' ')
 
-            if character == ' ':
-                ret = self.client.call_raw(proto.CharacterAck(character=character))
-            else:
+        for index, word in enumerate(mnemonic_words):
+            for character in word:
+                self.assertIsInstance(ret, proto.CharacterRequest)
+                cipher = self.client.debug.read_recovery_cipher()
+
                 encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
+                
+                auto_completed = self.client.debug.read_recovery_auto_completed_word()       
 
-            print character
+                if word == auto_completed:
+                    if len(mnemonic_words) != index + 1:
+                        ret = self.client.call_raw(proto.CharacterAck(character=' '))
+                    break
 
 
         for character in mnemonic:
             self.assertIsInstance(ret, proto.CharacterRequest)
             ret = self.client.call_raw(proto.CharacterAck(delete=True))
 
-        for character in mnemonic:
-            self.assertIsInstance(ret, proto.CharacterRequest)
-            cipher = self.client.debug.read_recovery_cipher()
+        for index, word in enumerate(mnemonic_words):
+            for character in word:
+                self.assertIsInstance(ret, proto.CharacterRequest)
+                cipher = self.client.debug.read_recovery_cipher()
 
-            if character == ' ':
-                ret = self.client.call_raw(proto.CharacterAck(character=character))
-            else:
                 encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
+                
+                auto_completed = self.client.debug.read_recovery_auto_completed_word()       
 
-            print character
+                if word == auto_completed:
+                    if len(mnemonic_words) != index + 1:
+                        ret = self.client.call_raw(proto.CharacterAck(character=' '))
+                    break
 
         # Send final ack
         self.assertIsInstance(ret, proto.CharacterRequest)
