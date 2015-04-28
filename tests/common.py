@@ -1,5 +1,6 @@
 import unittest
 import config
+import time
 
 from trezorlib.client import TrezorDebugClient
 from trezorlib.tx_api import TXAPIBitcoin
@@ -38,3 +39,31 @@ class TrezorTest(unittest.TestCase):
 
     def tearDown(self):
         self.client.close()
+
+class TrezorBootloaderTest(unittest.TestCase):
+    def setUp(self):
+        self.debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS, **config.DEBUG_TRANSPORT_KWARGS)
+        self.transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
+        self.client = TrezorDebugClient(self.transport)
+        self.client.set_debuglink(self.debug_transport)
+
+        print "Setup finished"
+        print "--------------"
+
+    def reconnect(self):
+        self.client.close()
+        time.sleep(5)
+        config.enumerate_hid()
+
+        self.debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS, **config.DEBUG_TRANSPORT_KWARGS)
+        self.transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
+        self.client = TrezorDebugClient(self.transport)
+        self.client.set_debuglink(self.debug_transport)
+
+        print "Reconnected"
+        print "--------------"
+
+    def tearDown(self):
+        self.client.close()
+        time.sleep(5)
+        config.enumerate_hid()
