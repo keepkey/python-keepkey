@@ -52,7 +52,7 @@ class TrezorBootloaderTest(unittest.TestCase):
 
     def reconnect(self):
         self.client.close()
-        time.sleep(5)
+        time.sleep(10)
         config.enumerate_hid()
 
         self.debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS, **config.DEBUG_TRANSPORT_KWARGS)
