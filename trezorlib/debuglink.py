@@ -70,14 +70,6 @@ class DebugLink(object):
         obj = self._call(proto.DebugLinkGetState())
         return (obj.recovery_fake_word, obj.recovery_word_pos)
 
-    def read_recovery_cipher(self):
-        obj = self._call(proto.DebugLinkGetState())
-        return obj.recovery_cipher
-
-    def read_recovery_auto_completed_word(self):
-        obj = self._call(proto.DebugLinkGetState())
-        return obj.recovery_auto_completed_word
-
     def read_reset_word(self):
         obj = self._call(proto.DebugLinkGetState())
         return obj.reset_word
@@ -89,6 +81,18 @@ class DebugLink(object):
     def read_passphrase_protection(self):
         obj = self._call(proto.DebugLinkGetState())
         return obj.passphrase_protection
+
+    def read_recovery_cipher(self):
+        obj = self._call(proto.DebugLinkGetState())
+        return obj.recovery_cipher
+
+    def read_recovery_auto_completed_word(self):
+        obj = self._call(proto.DebugLinkGetState())
+        return obj.recovery_auto_completed_word
+
+    def read_fingerprints(self):
+        obj = self._call(proto.DebugLinkGetState())
+        return (obj.app_fingerprint, obj.storage_fingerprint)
 
     def press_button(self, yes_no):
         print "Pressing", yes_no
