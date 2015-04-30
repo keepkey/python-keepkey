@@ -52,14 +52,16 @@ class TestProtectionLevels(common.TrezorTest):
     def test_get_public_key(self):
         with self.client:
             self.setup_mnemonic_pin_passphrase()
-            self.client.set_expected_responses([proto.PassphraseRequest(),
+            self.client.set_expected_responses([proto.PinMatrixRequest(),
+                                      proto.PassphraseRequest(),
                                       proto.PublicKey()])
             self.client.get_public_node([])
 
     def test_get_address(self):
         with self.client:
             self.setup_mnemonic_pin_passphrase()
-            self.client.set_expected_responses([proto.PassphraseRequest(),
+            self.client.set_expected_responses([proto.PinMatrixRequest(),
+                                      proto.PassphraseRequest(),
                                       proto.Address()])
             self.client.get_address('Bitcoin', [])
 
@@ -84,9 +86,9 @@ class TestProtectionLevels(common.TrezorTest):
 
     def test_reset_device(self):
         with self.client:
-            self.client.set_expected_responses([proto.EntropyRequest()] + \
-                                     [proto.ButtonRequest()] * 24 + \
-                                     [proto.Success(),
+            self.client.set_expected_responses([proto.EntropyRequest(), \
+                                      proto.ButtonRequest(),
+                                      proto.Success(),
                                       proto.Features()])
             self.client.reset_device(False, 128, True, False, 'label', 'english')
 
@@ -99,7 +101,7 @@ class TestProtectionLevels(common.TrezorTest):
             self.client.set_expected_responses([proto.WordRequest()] * 24 + \
                                      [proto.Success(),
                                       proto.Features()])
-            self.client.recovery_device(12, False, False, 'label', 'english')
+            self.client.recovery_device(12, False, False, 'label', 'english', False)
 
         # This must fail, because device is already initialized
         self.assertRaises(Exception, self.client.recovery_device, 12, False, False, 'label', 'english')
