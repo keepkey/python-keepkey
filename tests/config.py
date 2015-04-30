@@ -33,3 +33,17 @@ else:
     DEBUG_TRANSPORT = PipeTransport
     DEBUG_TRANSPORT_ARGS = ('/tmp/pipe.trezor_debug', False)
     DEBUG_TRANSPORT_KWARGS = {}
+
+def enumerate_hid():
+    global TRANSPORT, TRANSPORT_ARGS, TRANSPORT_KWARGS, DEBUG_TRANSPORT, DEBUG_TRANSPORT_ARGS, DEBUG_TRANSPORT_KWARGS
+
+    devices = HidTransport.enumerate()
+
+    if len(devices) > 0:
+        if devices[0][1] != None:
+            TRANSPORT = HidTransport
+            TRANSPORT_ARGS = (devices[0],)
+            TRANSPORT_KWARGS = {'debug_link': False}
+            DEBUG_TRANSPORT = HidTransport
+            DEBUG_TRANSPORT_ARGS = (devices[0],)
+            DEBUG_TRANSPORT_KWARGS = {'debug_link': True}
