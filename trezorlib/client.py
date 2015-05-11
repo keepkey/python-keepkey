@@ -58,17 +58,8 @@ def log_backspace(times):
         sys.stdout.write('\b')
         sys.stdout.flush()
 
-def format_mnemonic(mnemonic):
-    words = mnemonic.split(' ')
-    formatted_words = []
-
-    for index, word in enumerate(words):
-        formatted_words.append("WORD %d: %s" % (index + 1, word))
-
-    return formatted_words[-1]
-
-def str_len_diff(str1, str2):
-    return len(str1) - len(str2)
+def format_mnemonic(word_pos, character_pos):
+    return "WORD %d: %s" % (word_pos, character_pos * '*')
 
 class CallException(Exception):
     def __init__(self, code, message):
@@ -183,7 +174,6 @@ class TextUIMixin(object):
         super(TextUIMixin, self).__init__(*args, **kwargs)
 
         self.character_request_first_pass = True
-        self.character_request_mnemonic = ''
 
     def callback_ButtonRequest(self, msg):
         # log("Sending ButtonAck for %s " % get_buttonrequest_value(msg.code))
@@ -226,7 +216,7 @@ class TextUIMixin(object):
             log("(use spacebar to progress to next word after match, use backspace to correct bad character or word entries)")
 
         # format mnemonic for console
-        formatted_console = format_mnemonic(self.character_request_mnemonic)
+        formatted_console = format_mnemonic(msg.word_pos + 1, msg.character_pos)
 
         # clear the runway before we display formatted mnemonic
         log_cr(' ' * 14)
@@ -236,28 +226,22 @@ class TextUIMixin(object):
             character = getch.getch().lower()
             character_ascii = ord(character)
 
-            word_count = len(self.character_request_mnemonic.split(' '))
-
             if character_ascii >= 97 and character_ascii <= 122 \
-            and self.character_request_mnemonic[-4:] != '****':
+            and msg.character_pos != 4:
                 # capture characters a-z
-                self.character_request_mnemonic = self.character_request_mnemonic + '*'
                 return proto.CharacterAck(character=character)
 
-            elif character_ascii == 32 and word_count < 24 \
-            and self.character_request_mnemonic[-1:] != ' ' \
-            and self.character_request_mnemonic[-3:] == '***':
+            elif character_ascii == 32 and msg.word_pos < 23 \
+            and msg.character_pos >= 3:
                 # capture spaces
-                self.character_request_mnemonic = self.character_request_mnemonic + ' '
                 return proto.CharacterAck(character=' ')
 
             elif character_ascii == 127 \
-            and len(self.character_request_mnemonic) > 0:
+            and (msg.word_pos > 0 or msg.character_pos > 0):
                 # capture backspaces
-                self.character_request_mnemonic = self.character_request_mnemonic[0:-1]
                 return proto.CharacterAck(delete=True)
 
-            elif character_ascii == 10 and word_count in (12, 18, 24):
+            elif character_ascii == 10 and msg.word_pos in (11, 17, 23):
                 # capture returns
                 log("")
                 return proto.CharacterAck(done=True)
