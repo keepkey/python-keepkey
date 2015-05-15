@@ -833,8 +833,10 @@ class ProtocolMixin(object):
             return False
 
         data = fp.read()
-        fingerprint = hashlib.sha256(data[256:]).hexdigest()
-        log("Firmware fingerprint: " + fingerprint)
+
+        log("Firmware fingerprint: " + hashlib.sha256(data[:]).hexdigest())
+        log("Firmware fingerprint (trezur style): " + hashlib.sha256(data[256:]).hexdigest())
+
         resp = self.call(proto.FirmwareUpload(payload=data))
 
         if isinstance(resp, proto.Success):
