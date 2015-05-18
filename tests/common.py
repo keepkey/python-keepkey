@@ -65,5 +65,5 @@ class TrezorBootloaderTest(unittest.TestCase):
 
     def tearDown(self):
         self.client.close()
-        time.sleep(5)
+        time.sleep(10)
         config.enumerate_hid()
