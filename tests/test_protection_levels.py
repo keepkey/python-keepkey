@@ -101,7 +101,7 @@ class TestProtectionLevels(common.TrezorTest):
             self.client.set_expected_responses([proto.WordRequest()] * 24 + \
                                      [proto.Success(),
                                       proto.Features()])
-            self.client.recovery_device(12, False, False, 'label', 'english', False)
+            self.client.recovery_device(True, 12, False, False, 'label', 'english')
 
         # This must fail, because device is already initialized
         self.assertRaises(Exception, self.client.recovery_device, 12, False, False, 'label', 'english')
