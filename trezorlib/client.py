@@ -8,6 +8,7 @@ import mapping
 import json
 import getpass
 import getch
+import struct
 
 import tools
 import messages_pb2 as proto
@@ -833,11 +834,9 @@ class ProtocolMixin(object):
             return False
 
         data = fp.read()
+        data_crc = (binascii.crc32(data) & 0xFFFFFFFF)
 
-        log("Firmware fingerprint: " + hashlib.sha256(data[:]).hexdigest())
-        log("Firmware fingerprint (trezur style): " + hashlib.sha256(data[256:]).hexdigest())
-
-        resp = self.call(proto.FirmwareUpload(payload=data))
+        resp = self.call(proto.FirmwareUpload(payload_crc=struct.pack(">I", data_crc), payload=data))
 
         if isinstance(resp, proto.Success):
             return True
