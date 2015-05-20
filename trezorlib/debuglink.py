@@ -90,9 +90,12 @@ class DebugLink(object):
         obj = self._call(proto.DebugLinkGetState())
         return obj.recovery_auto_completed_word
 
-    def read_fingerprints(self):
+    def read_memory_hashes(self):
         obj = self._call(proto.DebugLinkGetState())
-        return (obj.app_fingerprint, obj.storage_fingerprint)
+        return (obj.firmware_hash, obj.storage_hash)
+
+    def fill_config(self):
+         self._call(proto.DebugLinkFillConfig(), nowait=True)
 
     def press_button(self, yes_no):
         print "Pressing", yes_no
