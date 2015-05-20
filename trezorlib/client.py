@@ -834,9 +834,9 @@ class ProtocolMixin(object):
             return False
 
         data = fp.read()
-        data_crc = (binascii.crc32(data) & 0xFFFFFFFF)
+        data_hash = hashlib.sha256(data).digest()
 
-        resp = self.call(proto.FirmwareUpload(payload_crc=struct.pack(">I", data_crc), payload=data))
+        resp = self.call(proto.FirmwareUpload(payload_hash=data_hash, payload=data))
 
         if isinstance(resp, proto.Success):
             return True
