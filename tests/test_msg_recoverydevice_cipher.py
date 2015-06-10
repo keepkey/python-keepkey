@@ -210,11 +210,10 @@ class TestDeviceRecovery(common.TrezorTest):
 
             # Provide entropy
             self.assertIsInstance(ret, proto.EntropyRequest)
-            ret = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
+            resp = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
 
             mnemonic = []
-            for _ in range(((strength/32*3)/12) + ((strength/32*3) % 12 > 0)):
-                self.assertIsInstance(ret, proto.ButtonRequest)
+            while isinstance(resp, proto.ButtonRequest):
                 mnemonic.append(self.client.debug.read_reset_word())
                 self.client.debug.press_yes()
                 resp = self.client.call_raw(proto.ButtonAck())
