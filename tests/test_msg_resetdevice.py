@@ -49,15 +49,14 @@ class TestDeviceReset(common.TrezorTest):
         # Provide entropy
         self.assertIsInstance(ret, proto.EntropyRequest)
         internal_entropy = self.client.debug.read_reset_entropy()
-        ret = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
+        resp = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
 
         # Generate mnemonic locally
         entropy = generate_entropy(strength, internal_entropy, external_entropy)
         expected_mnemonic = Mnemonic('english').to_mnemonic(entropy)
 
         mnemonic = []
-        for _ in range((strength/32*3)/12):
-            self.assertIsInstance(ret, proto.ButtonRequest)
+        while isinstance(resp, proto.ButtonRequest):
             mnemonic.append(self.client.debug.read_reset_word())
             self.client.debug.press_yes()
             resp = self.client.call_raw(proto.ButtonAck())
@@ -114,15 +113,14 @@ class TestDeviceReset(common.TrezorTest):
         # Provide entropy
         self.assertIsInstance(ret, proto.EntropyRequest)
         internal_entropy = self.client.debug.read_reset_entropy()
-        ret = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
+        resp = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
 
         # Generate mnemonic locally
         entropy = generate_entropy(strength, internal_entropy, external_entropy)
         expected_mnemonic = Mnemonic('english').to_mnemonic(entropy)
 
         mnemonic = []
-        for _ in range((strength/32*3)/12):
-            self.assertIsInstance(ret, proto.ButtonRequest)
+        while isinstance(resp, proto.ButtonRequest):
             mnemonic.append(self.client.debug.read_reset_word())
             self.client.debug.press_yes()
             resp = self.client.call_raw(proto.ButtonAck())
