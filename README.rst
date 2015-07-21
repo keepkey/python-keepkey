@@ -1,4 +1,4 @@
-python-trezor
+python-keepkey
 =============
 
 Client side implementation for Trezor-compatible Bitcoin hardware wallets.
@@ -61,6 +61,6 @@ How to install (Windows)
 How to install (Debian-Ubuntu)
 ------------------------------
 * sudo apt-get install python-dev python-setuptools cython libusb-1.0-0-dev libudev-dev
-* git clone https://github.com/trezor/python-trezor.git
-* cd python-trezor
+* git clone https://github.com/keepkey/python-keepkey.git
+* cd python-keepkey
 * python setup.py install (or develop)
