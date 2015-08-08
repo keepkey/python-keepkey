@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import os
 import binascii
 import argparse
@@ -8,8 +8,6 @@ import urllib
 import tempfile
 
 from trezorlib.client import TrezorClient, TrezorClientDebug
-from trezorlib.tx_api import TXAPIBitcoin
-from trezorlib.protobuf_json import pb2json
 
 def parse_args(commands):
     parser = argparse.ArgumentParser(description='Commandline tool for Trezor devices.')
@@ -422,7 +420,6 @@ def main():
     else:
         client = TrezorClient(transport)
 
-    client.set_tx_api(TXAPIBitcoin())
     cmds = Commands(client)
     
     res = args.func(cmds, args)

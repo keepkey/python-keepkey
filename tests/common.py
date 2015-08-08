@@ -11,8 +11,8 @@ class TrezorTest(unittest.TestCase):
         self.transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
         self.client = TrezorDebugClient(self.transport)
         self.client.set_debuglink(self.debug_transport)
-        # self.client.set_buttonwait(3)
         self.client.set_tx_api(TXAPIBitcoin())
+        # self.client.set_buttonwait(3)
 
         #                     1      2     3    4      5      6      7     8      9    10    11    12
         self.mnemonic12 = 'alcohol woman abuse must during monitor noble actual mixed trade anger aisle'
