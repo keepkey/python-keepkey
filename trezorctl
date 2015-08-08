@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import os
 import binascii
 import argparse
@@ -8,8 +8,6 @@ import urllib
 import tempfile
 
 from trezorlib.client import TrezorClient, TrezorClientDebug
-from trezorlib.tx_api import TXAPIBitcoin
-from trezorlib.protobuf_json import pb2json
 
 def parse_args(commands):
     parser = argparse.ArgumentParser(description='Commandline tool for Trezor devices.')
@@ -207,6 +205,8 @@ class Commands(object):
     def firmware_update(self, args):
         if not args.file and not args.url:
             raise Exception("Must provide firmware filename or URL")
+
+        if args.file:
             fp = open(args.file, 'r')
         elif args.url:
             print "Downloading from", args.url
@@ -224,10 +224,12 @@ class Commands(object):
             fp.write(binascii.unhexlify(fp_old.read()))
 
             fp_old.close()
-            fp.seek(0)
-
+        
+        fp.seek(0)
         if fp.read(4) != 'KPKY':
             raise Exception("KeepKey firmware header expected")
+
+        print "Please confirm action on device..."
 
         fp.seek(0)
         return self.client.firmware_update(fp=fp)
@@ -438,7 +440,6 @@ def main():
     else:
         client = TrezorClient(transport)
 
-    client.set_tx_api(TXAPIBitcoin())
     cmds = Commands(client)
     
     res = args.func(cmds, args)
