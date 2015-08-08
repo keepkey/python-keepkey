@@ -12,7 +12,7 @@ also found in ``helloworld.py``
 
 .. code:: python
 
-  #!/usr/bin/python
+  #!/usr/bin/env python
 
   from trezorlib.client import TrezorClient
   from trezorlib.transport_hid import HidTransport
@@ -46,21 +46,39 @@ also found in ``helloworld.py``
   if __name__ == '__main__':
       main()
 
+PIN Entering
+------------
+
+When you are asked for PIN, you have to enter scrambled PIN. Follow the numbers shown on TREZOR display and enter the their positions using the numeric keyboard mapping:
+
+=== === ===
+ 7   8   9
+ 4   5   6
+ 1   2   3
+=== === ===
+
+Example: your PIN is **1234** and TREZOR is displaying the following:
+
+=== === ===
+ 2   8   3
+ 5   4   6
+ 7   9   1
+=== === ===
+
+You have to enter: **3795**
+
 How to install (Windows)
 ------------------------
 * Install Python 2.7 (http://python.org)
-* Install Cython
-*    OPTION#1 - Install Cython (c:\python27\script\ > pip install cython 
-*    OPTION#2 - Install Cython (Windows binaries on http://cython.org/#download)
+* Install Cython (Windows binaries on http://cython.org/#download)
 * Install Microsoft Visual Studio 2008 Express
-* Install Microsoft Windows SDK for Visual Studio 2008 Express Tools for .NET Framework
 * Add "C:\\Program Files (x86)\\Microsoft Visual Studio 9.0" to system PATH
 * Clone repository (using TortoiseGit) to local directory
 * Run C:\\python27\\python.exe setup.py install (or develop)
 
 How to install (Debian-Ubuntu)
 ------------------------------
-* sudo apt-get install python-dev python-setuptools cython libusb-1.0-0-dev libudev-dev
+* sudo apt-get install python-dev python-setuptools cython libusb-1.0-0-dev libudev-dev git
 * git clone https://github.com/trezor/python-trezor.git
 * cd python-trezor
 * python setup.py install (or develop)
