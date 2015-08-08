@@ -8,7 +8,6 @@ import mapping
 import json
 import getpass
 import getch
-import struct
 
 import tools
 import messages_pb2 as proto
@@ -25,6 +24,8 @@ from mnemonic import Mnemonic
 #     SCREENSHOT = False
 
 SCREENSHOT = False
+
+DEFAULT_CURVE = 'secp256k1'
 
 # monkeypatching: text formatting of protobuf messages
 tools.monkeypatch_google_protobuf_text_format()
@@ -390,6 +391,7 @@ class DebugLinkMixin(object):
 
 class ProtocolMixin(object):
     PRIME_DERIVATION_FLAG = 0x80000000
+    VENDORS = ('keepkey.com',)
 
     def __init__(self, *args, **kwargs):
         super(ProtocolMixin, self).__init__(*args, **kwargs)
@@ -401,6 +403,8 @@ class ProtocolMixin(object):
 
     def init_device(self):
         self.features = expect(proto.Features)(self.call)(proto.Initialize())
+        if str(self.features.vendor) not in self.VENDORS:
+            raise Exception("Unsupported device")
 
     def _get_local_entropy(self):
         return os.urandom(32)
@@ -435,9 +439,9 @@ class ProtocolMixin(object):
         return path
 
     @expect(proto.PublicKey)
-    def get_public_node(self, n):
+    def get_public_node(self, n, ecdsa_curve_name=DEFAULT_CURVE):
         n = self._convert_prime(n)
-        return self.call(proto.GetPublicKey(address_n=n))
+        return self.call(proto.GetPublicKey(address_n=n, ecdsa_curve_name=ecdsa_curve_name))
 
     @field('address')
     @expect(proto.Address)
@@ -507,8 +511,8 @@ class ProtocolMixin(object):
         return self.call(proto.SignMessage(coin_name=coin_name, address_n=n, message=message))
 
     @expect(proto.SignedIdentity)
-    def sign_identity(self, identity, challenge_hidden, challenge_visual):
-        return self.call(proto.SignIdentity(identity=identity, challenge_hidden=challenge_hidden, challenge_visual=challenge_visual))
+    def sign_identity(self, identity, challenge_hidden, challenge_visual, ecdsa_curve_name=DEFAULT_CURVE):
+        return self.call(proto.SignIdentity(identity=identity, challenge_hidden=challenge_hidden, challenge_visual=challenge_visual, ecdsa_curve_name=ecdsa_curve_name))
 
     def verify_message(self, address, signature, message):
         try:
@@ -586,7 +590,10 @@ class ProtocolMixin(object):
                 continue
 
             tx = msg.transactions.add()
-            tx.CopyFrom(self.tx_api.get_tx(binascii.hexlify(inp.prev_hash)))
+            if self.tx_api:
+                tx.CopyFrom(self.tx_api.get_tx(binascii.hexlify(inp.prev_hash)))
+            else:
+                raise Exception('TX_API not defined')
             known_hashes.append(inp.prev_hash)
 
         return msg
@@ -608,7 +615,10 @@ class ProtocolMixin(object):
             if inp.prev_hash in known_hashes:
                 continue
 
-            txes[inp.prev_hash] = self.tx_api.get_tx(binascii.hexlify(inp.prev_hash))
+            if self.tx_api:
+                txes[inp.prev_hash] = self.tx_api.get_tx(binascii.hexlify(inp.prev_hash))
+            else:
+                raise Exception('TX_API not defined')
             known_hashes.append(inp.prev_hash)
 
         return txes
