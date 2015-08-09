@@ -2,10 +2,10 @@ import unittest
 import common
 import binascii
 
-from trezorlib import messages_pb2 as proto
-from trezorlib import types_pb2 as proto_types
+from keepkeylib import messages_pb2 as proto
+from keepkeylib import types_pb2 as proto_types
 
-class TestProtectionLevels(common.TrezorTest):
+class TestProtectionLevels(common.KeepKeyTest):
 
     def test_initialize(self):
         with self.client:
@@ -19,7 +19,7 @@ class TestProtectionLevels(common.TrezorTest):
             self.client.set_expected_responses([proto.ButtonRequest(),
                                       proto.PinMatrixRequest(),
                                       proto.Success(),
-                                      proto.Features()])  # TrezorClient reinitializes device
+                                      proto.Features()])  # KeepKeyClient reinitializes device
             self.client.apply_settings(label='nazdar')
 
     def test_change_pin(self):

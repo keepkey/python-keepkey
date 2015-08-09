@@ -3,11 +3,11 @@ import unittest
 import common
 import binascii
 
-from trezorlib import messages_pb2 as proto
-from trezorlib import types_pb2 as types
-from trezorlib.client import PinException
+from keepkeylib import messages_pb2 as proto
+from keepkeylib import types_pb2 as types
+from keepkeylib.client import PinException
 
-class TestDebugLink(common.TrezorTest):
+class TestDebugLink(common.KeepKeyTest):
 
     def test_mnemonic(self):
         self.setup_mnemonic_nopin_nopassphrase()
