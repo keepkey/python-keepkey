@@ -3,9 +3,9 @@ import common
 import binascii
 import base64
 
-from trezorlib.client import CallException
+from keepkeylib.client import CallException
 
-class TestMsgVerifymessage(common.TrezorTest):
+class TestMsgVerifymessage(common.KeepKeyTest):
 
     def test_message_long(self):
         self.setup_mnemonic_nopin_nopassphrase()

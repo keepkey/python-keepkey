@@ -2,10 +2,10 @@ import time
 import unittest
 import common
 
-from trezorlib import messages_pb2 as proto
-from trezorlib import types_pb2 as proto_types
+from keepkeylib import messages_pb2 as proto
+from keepkeylib import types_pb2 as proto_types
 
-class TestMsgChangepin(common.TrezorTest):
+class TestMsgChangepin(common.KeepKeyTest):
 
     def test_set_pin(self):
         self.setup_mnemonic_nopin_nopassphrase()

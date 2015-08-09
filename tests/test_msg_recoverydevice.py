@@ -1,9 +1,9 @@
 import unittest
 import common
 
-from trezorlib import messages_pb2 as proto
+from keepkeylib import messages_pb2 as proto
 
-class TestDeviceRecovery(common.TrezorTest):
+class TestDeviceRecovery(common.KeepKeyTest):
     def test_pin_passphrase(self):
         mnemonic = self.mnemonic12.split(' ')
         ret = self.client.call_raw(proto.RecoveryDevice(word_count=12,

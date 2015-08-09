@@ -1,9 +1,9 @@
 import unittest
 import common
 
-from trezorlib import messages_pb2 as messages
+from keepkeylib import messages_pb2 as messages
 
-class TestBasic(common.TrezorTest):
+class TestBasic(common.KeepKeyTest):
 
     def test_features(self):
         features = self.client.call(messages.Initialize())

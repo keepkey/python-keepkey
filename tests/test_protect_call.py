@@ -2,13 +2,13 @@ import time
 import unittest
 import common
 
-from trezorlib import messages_pb2 as proto
-from trezorlib import types_pb2 as types
-from trezorlib.client import PinException, CallException
+from keepkeylib import messages_pb2 as proto
+from keepkeylib import types_pb2 as types
+from keepkeylib.client import PinException, CallException
 
 # FIXME TODO Add passphrase tests
 
-class TestProtectCall(common.TrezorTest):
+class TestProtectCall(common.KeepKeyTest):
 
     def _some_protected_call(self, button, pin, passphrase):
         # This method perform any call which have protection in the device

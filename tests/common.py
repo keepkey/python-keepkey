@@ -2,14 +2,14 @@ import unittest
 import config
 import time
 
-from trezorlib.client import TrezorDebugClient
-from trezorlib.tx_api import TXAPIBitcoin
+from keepkeylib.client import KeepKeyDebugClient
+from keepkeylib.tx_api import TXAPIBitcoin
 
-class TrezorTest(unittest.TestCase):
+class KeepKeyTest(unittest.TestCase):
     def setUp(self):
         self.debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS, **config.DEBUG_TRANSPORT_KWARGS)
         self.transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
-        self.client = TrezorDebugClient(self.transport)
+        self.client = KeepKeyDebugClient(self.transport)
         self.client.set_debuglink(self.debug_transport)
         self.client.set_tx_api(TXAPIBitcoin())
         # self.client.set_buttonwait(3)
@@ -40,11 +40,11 @@ class TrezorTest(unittest.TestCase):
     def tearDown(self):
         self.client.close()
 
-class TrezorBootloaderTest(unittest.TestCase):
+class KeepKeyBootloaderTest(unittest.TestCase):
     def setUp(self):
         self.debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS, **config.DEBUG_TRANSPORT_KWARGS)
         self.transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
-        self.client = TrezorDebugClient(self.transport)
+        self.client = KeepKeyDebugClient(self.transport)
         self.client.set_debuglink(self.debug_transport)
 
         print "Setup finished"
@@ -57,7 +57,7 @@ class TrezorBootloaderTest(unittest.TestCase):
 
         self.debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS, **config.DEBUG_TRANSPORT_KWARGS)
         self.transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
-        self.client = TrezorDebugClient(self.transport)
+        self.client = KeepKeyDebugClient(self.transport)
         self.client.set_debuglink(self.debug_transport)
 
         print "Reconnected"
