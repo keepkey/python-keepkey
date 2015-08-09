@@ -1,13 +1,13 @@
-TrezorClient class
+KeepKeyClient class
 ----------------
 
-TrezorClient objects allow us to interact with TREZOR devices.
+KeepKeyClient objects allow us to interact with KeepKey devices.
 
-.. autoclass:: trezorlib.client.TrezorClient
+.. autoclass:: keepkeylib.client.KeepKeyClient
  :members:
  :undoc-members:
 
-The TrezorClient class inherits from three base classes:
+The KeepKeyClient class inherits from three base classes:
 
 .. toctree::
    :maxdepth: 2
