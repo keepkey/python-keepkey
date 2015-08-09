@@ -1,9 +1,9 @@
-python-trezor
-=============
+python-keepkey
+==============
 
-Client side implementation for Trezor-compatible Bitcoin hardware wallets.
+Client side implementation for KeepKey-compatible Bitcoin hardware wallets.
 
-See http://bitcointrezor.com for more information.
+See http://www.keepkey.com for more information.
 
 Example
 -------
@@ -14,29 +14,29 @@ also found in ``helloworld.py``
 
   #!/usr/bin/env python
 
-  from trezorlib.client import TrezorClient
-  from trezorlib.transport_hid import HidTransport
+  from keepkeylib.client import KeepKeyClient
+  from keepkeylib.transport_hid import HidTransport
 
   def main():
-      # List all connected TREZORs on USB
+      # List all connected KeepKeys on USB
       devices = HidTransport.enumerate()
 
       # Check whether we found any
       if len(devices) == 0:
-          print 'No TREZOR found'
+          print 'No KeepKey found'
           return
 
       # Use first connected device
       transport = HidTransport(devices[0])
 
-      # Creates object for manipulating TREZOR
-      client = TrezorClient(transport)
+      # Creates object for manipulating KeepKey
+      client = KeepKeyClient(transport)
 
-      # Print out TREZOR's features and settings
+      # Print out KeepKey's features and settings
       print client.features
 
       # Get the first address of first BIP44 account
-      # (should be the same address as shown in mytrezor.com)
+      # (should be the same address as shown in KeepKey wallet Chrome extension)
       bip32_path = client.expand_path("44'/0'/0'/0/0")
       address = client.get_address('Bitcoin', bip32_path)
       print 'Bitcoin address:', address
@@ -49,7 +49,7 @@ also found in ``helloworld.py``
 PIN Entering
 ------------
 
-When you are asked for PIN, you have to enter scrambled PIN. Follow the numbers shown on TREZOR display and enter the their positions using the numeric keyboard mapping:
+When you are asked for PIN, you have to enter scrambled PIN. Follow the numbers shown on KeepKey display and enter the their positions using the numeric keyboard mapping:
 
 === === ===
  7   8   9
@@ -57,7 +57,7 @@ When you are asked for PIN, you have to enter scrambled PIN. Follow the numbers 
  1   2   3
 === === ===
 
-Example: your PIN is **1234** and TREZOR is displaying the following:
+Example: your PIN is **1234** and KeepKey is displaying the following:
 
 === === ===
  2   8   3
@@ -79,6 +79,6 @@ How to install (Windows)
 How to install (Debian-Ubuntu)
 ------------------------------
 * sudo apt-get install python-dev python-setuptools cython libusb-1.0-0-dev libudev-dev git
-* git clone https://github.com/trezor/python-trezor.git
-* cd python-trezor
+* git clone https://github.com/keepkey/python-keepkey.git
+* cd python-keepkey
 * python setup.py install (or develop)
