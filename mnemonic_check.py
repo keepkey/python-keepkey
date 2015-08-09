@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 __doc__ = '''
-    Use this script to cross-check that TREZOR generated valid
-    mnemonic sentence for given internal (TREZOR-generated)
+    Use this script to cross-check that KeepKey generated valid
+    mnemonic sentence for given internal (KeepKey-generated)
     and external (computer-generated) entropy.
 
     Keep in mind that you're entering secret information to this script.
@@ -47,7 +47,7 @@ def main():
     print __doc__
 
     comp = binascii.unhexlify(raw_input("Please enter computer-generated entropy (in hex): ").strip())
-    trzr = binascii.unhexlify(raw_input("Please enter TREZOR-generated entropy (in hex): ").strip())
+    trzr = binascii.unhexlify(raw_input("Please enter KeepKey-generated entropy (in hex): ").strip())
     word_count = int(raw_input("How many words your mnemonic has? "))
 
     strength = word_count * 32 / 3

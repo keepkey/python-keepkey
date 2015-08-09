@@ -1,10 +1,10 @@
 import unittest
 import common
-import trezorlib.ckd_public as bip32
-import trezorlib.types_pb2 as proto_types
+import keepkeylib.ckd_public as bip32
+import keepkeylib.types_pb2 as proto_types
 import binascii
 
-class TestMsgGetaddress(common.TrezorTest):
+class TestMsgGetaddress(common.KeepKeyTest):
 
     def test_show(self):
         self.setup_mnemonic_nopin_nopassphrase()

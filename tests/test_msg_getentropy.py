@@ -2,8 +2,8 @@ import unittest
 import common
 import math
 
-import trezorlib.messages_pb2 as proto
-import trezorlib.types_pb2 as proto_types
+import keepkeylib.messages_pb2 as proto
+import keepkeylib.types_pb2 as proto_types
 
 def entropy(data):
     counts = {}
@@ -18,7 +18,7 @@ def entropy(data):
         e -= p * math.log(p, 256)
     return e
 
-class TestMsgGetentropy(common.TrezorTest):
+class TestMsgGetentropy(common.KeepKeyTest):
 
     def test_entropy(self):
         for l in [0, 1, 2, 3, 4, 5, 8, 9, 16, 17, 32, 33, 64, 65, 128, 129, 256, 257, 512, 513, 1024]:

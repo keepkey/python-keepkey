@@ -5,10 +5,10 @@ import hashlib
 import binascii
 import struct
 
-from trezorlib import messages_pb2 as proto
-from trezorlib import types_pb2 as proto_types
+from keepkeylib import messages_pb2 as proto
+from keepkeylib import types_pb2 as proto_types
 
-class TestBootloader(common.TrezorBootloaderTest):
+class TestBootloader(common.KeepKeyBootloaderTest):
 
     def test_firmware_update_mode(self):
 

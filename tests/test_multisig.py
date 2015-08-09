@@ -3,17 +3,17 @@ import common
 import binascii
 import itertools
 
-import trezorlib.messages_pb2 as proto
-import trezorlib.ckd_public as ckd_public
-import trezorlib.types_pb2 as proto_types
-from trezorlib.client import CallException
+import keepkeylib.messages_pb2 as proto
+import keepkeylib.ckd_public as ckd_public
+import keepkeylib.types_pb2 as proto_types
+from keepkeylib.client import CallException
 
 # Multisig howto:
 #
 # https://sx.dyne.org/multisig.html
 #
 
-class TestMultisig(common.TrezorTest):
+class TestMultisig(common.KeepKeyTest):
 
     def test_2_of_3(self):
         self.setup_mnemonic_nopin_nopassphrase()

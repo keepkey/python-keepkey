@@ -2,9 +2,9 @@ import time
 import unittest
 import common
 
-from trezorlib import messages_pb2 as proto
+from keepkeylib import messages_pb2 as proto
 
-class TestMsgApplysettings(common.TrezorTest):
+class TestMsgApplysettings(common.KeepKeyTest):
 
     def test_apply_settings(self):
         self.setup_mnemonic_pin_passphrase()

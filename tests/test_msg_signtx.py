@@ -3,12 +3,12 @@ import common
 import binascii
 import itertools
 
-import trezorlib.messages_pb2 as proto
-import trezorlib.types_pb2 as proto_types
-from trezorlib.client import CallException
-from trezorlib.tx_api import TXAPITestnet
+import keepkeylib.messages_pb2 as proto
+import keepkeylib.types_pb2 as proto_types
+from keepkeylib.client import CallException
+from keepkeylib.tx_api import TXAPITestnet
 
-class TestMsgSigntx(common.TrezorTest):
+class TestMsgSigntx(common.KeepKeyTest):
     def test_one_one_fee(self):
         self.setup_mnemonic_nopin_nopassphrase()
 
