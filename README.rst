@@ -3,6 +3,11 @@ python-keepkey
 
 Client side implementation for KeepKey-compatible Bitcoin hardware wallets.
 
+This is a modified version of python-trezor.  The changes made were to 
+support KeepKey's protocol, as well as the additional feature set
+of KeepKey.  For example, by default, device_recovery command invokes
+KeepKey's style of device recovery using the Recovery Cipher.
+
 See http://www.keepkey.com for more information.
 
 Example
