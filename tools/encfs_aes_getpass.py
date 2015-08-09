@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-Use Trezor as a hardware key for opening EncFS filesystem!
+Use KeepKey as a hardware key for opening EncFS filesystem!
 
 Demo usage:
 
@@ -14,13 +14,13 @@ import json
 import hashlib
 import binascii
 
-from trezorlib.client import TrezorClient, TrezorClientDebug
-from trezorlib.transport_hid import HidTransport
+from keepkeylib.client import KeepKeyClient, KeepKeyClientDebug
+from keepkeylib.transport_hid import HidTransport
 
 def wait_for_devices():
     devices = HidTransport.enumerate()
     while not len(devices):
-        sys.stderr.write("Please connect Trezor to computer and press Enter...")
+        sys.stderr.write("Please connect KeepKey to computer and press Enter...")
         raw_input()
         devices = HidTransport.enumerate()
 
@@ -28,7 +28,7 @@ def wait_for_devices():
 
 def choose_device(devices):
     if not len(devices):
-        raise Exception("No Trezor connected!")
+        raise Exception("No KeepKey connected!")
 
     if len(devices) == 1:
         try:
@@ -46,7 +46,7 @@ def choose_device(devices):
             sys.stderr.write("[-] <device is currently in use>\n")
             continue
 
-        client = TrezorClient(t)
+        client = KeepKeyClient(t)
 
         if client.features.label:
             sys.stderr.write("[%d] %s\n" % (i, client.features.label))
@@ -67,7 +67,7 @@ def choose_device(devices):
 def main():
     devices = wait_for_devices()
     transport = choose_device(devices)
-    client = TrezorClient(transport)
+    client = KeepKeyClient(transport)
 
     rootdir = os.environ['encfs_root']  # Read "man encfs" for more
     passw_file = os.path.join(rootdir, 'password.dat')
@@ -78,13 +78,13 @@ def main():
         sys.stderr.write('Please provide label for new drive: ')
         label = raw_input()
 
-        sys.stderr.write('Computer asked Trezor for new strong password.\n')
+        sys.stderr.write('Computer asked KeepKey for new strong password.\n')
         sys.stderr.write('Please confirm action on your device.\n')
 
         # 32 bytes, good for AES
-        trezor_entropy = client.get_entropy(32)
+        keepkey_entropy = client.get_entropy(32)
         urandom_entropy = os.urandom(32)
-        passw = hashlib.sha256(trezor_entropy + urandom_entropy).digest()
+        passw = hashlib.sha256(keepkey_entropy + urandom_entropy).digest()
 
         if len(passw) != 32:
             raise Exception("32 bytes password expected")
