@@ -1,8 +1,8 @@
 import unittest
 import common
-import trezorlib.ckd_public as bip32
+import keepkeylib.ckd_public as bip32
 
-class TestMsgGetaddress(common.TrezorTest):
+class TestMsgGetaddress(common.KeepKeyTest):
 
     def test_btc(self):
         self.setup_mnemonic_nopin_nopassphrase()

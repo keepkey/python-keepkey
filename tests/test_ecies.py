@@ -3,7 +3,7 @@ import common
 import binascii
 import base64
 
-from trezorlib.client import CallException
+from keepkeylib.client import CallException
 
 # as described here: http://memwallet.info/btcmssgs.html
 
@@ -38,7 +38,7 @@ def test_ecies_backforth(cls, test_string):
     cls.assertEqual(dec.message, '')
     cls.assertEqual(dec.address, '')
 
-class TestEcies(common.TrezorTest):
+class TestEcies(common.KeepKeyTest):
 
 # index:   m/1
 # address: 1CK7SJdcb8z9HuvVft3D91HLpLC6KSsGb

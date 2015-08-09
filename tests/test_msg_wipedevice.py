@@ -1,9 +1,9 @@
 import unittest
 import common
 
-from trezorlib import messages_pb2 as proto
+from keepkeylib import messages_pb2 as proto
 
-class TestDeviceWipe(common.TrezorTest):
+class TestDeviceWipe(common.KeepKeyTest):
     def test_wipe_device(self):
         self.setup_mnemonic_pin_passphrase()
         features = self.client.call_raw(proto.Initialize())

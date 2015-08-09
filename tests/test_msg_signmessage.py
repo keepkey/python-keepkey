@@ -2,9 +2,9 @@ import unittest
 import common
 import binascii
 
-from trezorlib.client import CallException
+from keepkeylib.client import CallException
 
-class TestMsgSignmessage(common.TrezorTest):
+class TestMsgSignmessage(common.KeepKeyTest):
 
     def test_sign(self):
         self.setup_mnemonic_nopin_nopassphrase()

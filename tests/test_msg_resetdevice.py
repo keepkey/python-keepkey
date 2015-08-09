@@ -2,7 +2,7 @@ import unittest
 import common
 import hashlib
 
-from trezorlib import messages_pb2 as proto
+from keepkeylib import messages_pb2 as proto
 from mnemonic import Mnemonic
 
 def generate_entropy(strength, internal_entropy, external_entropy):
@@ -33,7 +33,7 @@ def generate_entropy(strength, internal_entropy, external_entropy):
 
     return entropy_stripped
 
-class TestDeviceReset(common.TrezorTest):
+class TestDeviceReset(common.KeepKeyTest):
     def test_reset_device(self):
         # No PIN, no passphrase
         external_entropy = 'zlutoucky kun upel divoke ody' * 2

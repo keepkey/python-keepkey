@@ -2,12 +2,12 @@ import unittest
 import common
 import binascii
 
-import trezorlib.messages_pb2 as proto
-import trezorlib.types_pb2 as proto_types
+import keepkeylib.messages_pb2 as proto
+import keepkeylib.types_pb2 as proto_types
 
 # address_n = [177] < 68
 # address_n = [16518] < 66
-class TestZeroSig(common.TrezorTest):
+class TestZeroSig(common.KeepKeyTest):
 
     '''
     def test_mine_zero_signature(self):
@@ -58,7 +58,7 @@ class TestZeroSig(common.TrezorTest):
         (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
         siglen = ord(serialized_tx[44])
 
-        # Trezor must strip leading zero from signature
+        # KeepKey must strip leading zero from signature
         self.assertEqual(siglen, 67)
 
     def test_two_zero_signature(self):
@@ -79,7 +79,7 @@ class TestZeroSig(common.TrezorTest):
         (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
         siglen = ord(serialized_tx[44])
 
-        # Trezor must strip leading zero from signature
+        # KeepKey must strip leading zero from signature
         self.assertEqual(siglen, 66)
 
 if __name__ == '__main__':

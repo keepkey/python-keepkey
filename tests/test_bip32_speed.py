@@ -1,9 +1,9 @@
 import unittest
 import common
 import time
-from trezorlib import tools
+from keepkeylib import tools
 
-class TestBip32Speed(common.TrezorTest):
+class TestBip32Speed(common.KeepKeyTest):
 
     def test_public_ckd(self):
         self.setup_mnemonic_nopin_nopassphrase()
