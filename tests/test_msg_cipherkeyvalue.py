@@ -2,9 +2,9 @@ import unittest
 import common
 import binascii
 
-from trezorlib.client import CallException
+from keepkeylib.client import CallException
 
-class TestMsgCipherkeyvalue(common.TrezorTest):
+class TestMsgCipherkeyvalue(common.KeepKeyTest):
 
     def test_encrypt(self):
         self.setup_mnemonic_nopin_nopassphrase()

@@ -3,12 +3,12 @@ import common
 import binascii
 import itertools
 
-import trezorlib.messages_pb2 as proto
-import trezorlib.ckd_public as ckd_public
-import trezorlib.types_pb2 as proto_types
-from trezorlib.client import CallException
+import keepkeylib.messages_pb2 as proto
+import keepkeylib.ckd_public as ckd_public
+import keepkeylib.types_pb2 as proto_types
+from keepkeylib.client import CallException
 
-class TestMultisigChange(common.TrezorTest):
+class TestMultisigChange(common.KeepKeyTest):
 
     node_ext1 = ckd_public.deserialize('xpub6E2LkiC2h7icfcjXPFDmwufDRaaTjTRYcS2nD7eGQeFx1WwZxxvCya5GefiJND6ddJnAjzzMusLcCnu6WyhZPrF6e5G71MWjNJVfs6u9csg')
     # m/1 => 02c0d0c5fee952620757c6128dbf327c996cd72ed3358d15d6518a1186099bc15e
