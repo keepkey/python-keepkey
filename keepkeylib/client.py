@@ -441,7 +441,7 @@ class ProtocolMixin(object):
     @expect(proto.PublicKey)
     def get_public_node(self, n, ecdsa_curve_name=DEFAULT_CURVE):
         n = self._convert_prime(n)
-        return self.call(proto.GetPublicKey(address_n=n, ecdsa_curve_name=ecdsa_curve_name))
+        return self.call(proto.GetPublicKey(address_n=n))
 
     @field('address')
     @expect(proto.Address)
@@ -512,7 +512,7 @@ class ProtocolMixin(object):
 
     @expect(proto.SignedIdentity)
     def sign_identity(self, identity, challenge_hidden, challenge_visual, ecdsa_curve_name=DEFAULT_CURVE):
-        return self.call(proto.SignIdentity(identity=identity, challenge_hidden=challenge_hidden, challenge_visual=challenge_visual, ecdsa_curve_name=ecdsa_curve_name))
+        return self.call(proto.SignIdentity(identity=identity, challenge_hidden=challenge_hidden, challenge_visual=challenge_visual))
 
     def verify_message(self, address, signature, message):
         try:
