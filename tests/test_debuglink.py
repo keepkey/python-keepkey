@@ -22,6 +22,8 @@ class TestDebugLink(common.KeepKeyTest):
     def test_pin(self):
         self.setup_mnemonic_pin_passphrase()
 
+        self.client.clear_session()
+
         # Manually trigger PinMatrixRequest
         resp = self.client.call_raw(proto.Ping(message='test', pin_protection=True))
         self.assertIsInstance(resp, proto.PinMatrixRequest)
