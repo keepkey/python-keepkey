@@ -12,7 +12,6 @@ class TestMsgApplysettings(common.KeepKeyTest):
 
         with self.client:
             self.client.set_expected_responses([proto.ButtonRequest(),
-                                                proto.PinMatrixRequest(),
                                                 proto.Success(),
                                                 proto.Features()])
             self.client.apply_settings(label='new label')
@@ -25,7 +24,6 @@ class TestMsgApplysettings(common.KeepKeyTest):
 
         with self.client:
             self.client.set_expected_responses([proto.ButtonRequest(),
-                                                proto.PinMatrixRequest(),
                                                 proto.Success(),
                                                 proto.Features()])
             self.client.apply_settings(language='nonexistent')
@@ -39,7 +37,6 @@ class TestMsgApplysettings(common.KeepKeyTest):
 
         with self.client:
             self.client.set_expected_responses([proto.ButtonRequest(),
-                                                proto.PinMatrixRequest(),
                                                 proto.Success(),
                                                 proto.Features()])
             self.client.apply_settings(use_passphrase=True)
