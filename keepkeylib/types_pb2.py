@@ -282,34 +282,34 @@ PinMatrixRequestType_Current = 1
 PinMatrixRequestType_NewFirst = 2
 PinMatrixRequestType_NewSecond = 3
 
-WIRE_IN_FIELD_NUMBER = 50002
+WIRE_IN_FIELD_NUMBER = 60002
 wire_in = _descriptor.FieldDescriptor(
   name='wire_in', full_name='wire_in', index=0,
-  number=50002, type=8, cpp_type=7, label=1,
+  number=60002, type=8, cpp_type=7, label=1,
   has_default_value=False, default_value=False,
   message_type=None, enum_type=None, containing_type=None,
   is_extension=True, extension_scope=None,
   options=None)
-WIRE_OUT_FIELD_NUMBER = 50003
+WIRE_OUT_FIELD_NUMBER = 60003
 wire_out = _descriptor.FieldDescriptor(
   name='wire_out', full_name='wire_out', index=1,
-  number=50003, type=8, cpp_type=7, label=1,
+  number=60003, type=8, cpp_type=7, label=1,
   has_default_value=False, default_value=False,
   message_type=None, enum_type=None, containing_type=None,
   is_extension=True, extension_scope=None,
   options=None)
-WIRE_DEBUG_IN_FIELD_NUMBER = 50004
+WIRE_DEBUG_IN_FIELD_NUMBER = 60004
 wire_debug_in = _descriptor.FieldDescriptor(
   name='wire_debug_in', full_name='wire_debug_in', index=2,
-  number=50004, type=8, cpp_type=7, label=1,
+  number=60004, type=8, cpp_type=7, label=1,
   has_default_value=False, default_value=False,
   message_type=None, enum_type=None, containing_type=None,
   is_extension=True, extension_scope=None,
   options=None)
-WIRE_DEBUG_OUT_FIELD_NUMBER = 50005
+WIRE_DEBUG_OUT_FIELD_NUMBER = 60005
 wire_debug_out = _descriptor.FieldDescriptor(
   name='wire_debug_out', full_name='wire_debug_out', index=3,
-  number=50005, type=8, cpp_type=7, label=1,
+  number=60005, type=8, cpp_type=7, label=1,
   has_default_value=False, default_value=False,
   message_type=None, enum_type=None, containing_type=None,
   is_extension=True, extension_scope=None,
