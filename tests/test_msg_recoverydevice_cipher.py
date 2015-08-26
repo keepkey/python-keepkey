@@ -61,6 +61,8 @@ class TestDeviceRecovery(common.KeepKeyTest):
         self.assertIsInstance(resp, proto.PassphraseRequest)
         self.client.call_raw(proto.Cancel())
 
+        self.client.clear_session()
+
         # Do PIN-protected action, PinRequest should be raised
         resp = self.client.call_raw(proto.Ping(pin_protection=True))
         self.assertIsInstance(resp, proto.PinMatrixRequest)
