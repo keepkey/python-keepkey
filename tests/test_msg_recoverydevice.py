@@ -47,6 +47,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
         # Mnemonic is the same
         self.client.init_device()
+        self.client.clear_session()
         self.assertEqual(self.client.debug.read_mnemonic(), self.mnemonic12)
 
         self.assertTrue(self.client.features.pin_protection)
