@@ -16,6 +16,7 @@ class TestProtectionLevels(common.KeepKeyTest):
     def test_apply_settings(self):
         with self.client:
             self.setup_mnemonic_pin_passphrase()
+            self.client.clear_session()
             self.client.set_expected_responses([proto.ButtonRequest(),
                                       proto.PinMatrixRequest(),
                                       proto.Success(),
@@ -36,6 +37,7 @@ class TestProtectionLevels(common.KeepKeyTest):
     def test_ping(self):
         with self.client:
             self.setup_mnemonic_pin_passphrase()
+            self.client.clear_session()
             self.client.set_expected_responses([proto.ButtonRequest(),
                                       proto.PinMatrixRequest(),
                                       proto.PassphraseRequest(),
@@ -52,6 +54,7 @@ class TestProtectionLevels(common.KeepKeyTest):
     def test_get_public_key(self):
         with self.client:
             self.setup_mnemonic_pin_passphrase()
+            self.client.clear_session()
             self.client.set_expected_responses([proto.PinMatrixRequest(),
                                       proto.PassphraseRequest(),
                                       proto.PublicKey()])
@@ -60,6 +63,7 @@ class TestProtectionLevels(common.KeepKeyTest):
     def test_get_address(self):
         with self.client:
             self.setup_mnemonic_pin_passphrase()
+            self.client.clear_session()
             self.client.set_expected_responses([proto.PinMatrixRequest(),
                                       proto.PassphraseRequest(),
                                       proto.Address()])
@@ -109,6 +113,7 @@ class TestProtectionLevels(common.KeepKeyTest):
     def test_sign_message(self):
         with self.client:
             self.setup_mnemonic_pin_passphrase()
+            self.client.clear_session()
             self.client.set_expected_responses([proto.ButtonRequest(),
                                       proto.PinMatrixRequest(),
                                       proto.PassphraseRequest(),
