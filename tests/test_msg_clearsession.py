@@ -11,7 +11,7 @@ class TestMsgClearsession(common.KeepKeyTest):
         self.setup_mnemonic_pin_passphrase()
 
         with self.client:
-            self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_ProtectCall), proto.PinMatrixRequest(), proto.PassphraseRequest(), proto.Success()])
+            self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_ProtectCall), proto.PassphraseRequest(), proto.Success()])
             res = self.client.ping('random data', button_protection=True, pin_protection=True, passphrase_protection=True)
             self.assertEqual(res, 'random data')
 
