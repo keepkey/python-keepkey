@@ -9,6 +9,7 @@ class TestPing(common.KeepKeyTest):
 
     def test_ping(self):
         self.setup_mnemonic_pin_passphrase()
+        self.client.clear_session()
 
         with self.client:
             self.client.set_expected_responses([proto.Success()])
@@ -32,6 +33,7 @@ class TestPing(common.KeepKeyTest):
 
     def test_ping_caching(self):
         self.setup_mnemonic_pin_passphrase()
+        self.client.clear_session()
 
         with self.client:
             self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_ProtectCall), proto.PinMatrixRequest(), proto.PassphraseRequest(), proto.Success()])
