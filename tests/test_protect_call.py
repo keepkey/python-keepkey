@@ -71,6 +71,7 @@ class TestProtectCall(common.KeepKeyTest):
 
     def test_pin(self):
         self.setup_mnemonic_pin_passphrase()
+        self.client.clear_session()
 
         with self.client:
             self.assertEqual(self.client.debug.read_pin()[0], self.pin4)
@@ -82,16 +83,19 @@ class TestProtectCall(common.KeepKeyTest):
 
     def test_incorrect_pin(self):
         self.setup_mnemonic_pin_passphrase()
+        self.client.clear_session()
         self.client.setup_debuglink(button=True, pin_correct=False)
         self.assertRaises(PinException, self._some_protected_call, False, True, False)
 
     def test_cancelled_pin(self):
         self.setup_mnemonic_pin_passphrase()
+        self.client.clear_session()
         self.client.setup_debuglink(button=True, pin_correct=False)  # PIN cancel
         self.assertRaises(PinException, self._some_protected_call, False, True, False)
 
     def test_exponential_backoff_with_reboot(self):
         self.setup_mnemonic_pin_passphrase()
+        self.client.clear_session()
 
         self.client.setup_debuglink(button=True, pin_correct=False)
 
