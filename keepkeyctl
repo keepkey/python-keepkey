@@ -112,23 +112,6 @@ class Commands(object):
     def set_label(self, args):
         return self.client.apply_settings(label=args.label)
 
-    def set_homescreen(self,args):
-        if args.filename:
-            from PIL import Image
-            im = Image.open(args.filename)
-            if im.size != (128,64):
-                raise Exception('Wrong size of the image')
-            im = im.convert('1')
-            pix = im.load()
-            img = ''
-            for j in range(64):
-                for i in range(128):
-                    img += '1' if pix[i, j] else '0'
-            img = ''.join(chr(int(img[i:i + 8], 2)) for i in range(0, len(img), 8))
-        else:
-            img = '\x00'
-        return self.client.apply_settings(homescreen=img)
-
     def clear_session(self, args):
         return self.client.clear_session()
 
@@ -139,7 +122,7 @@ class Commands(object):
         return self.client.wipe_device()
 
     def recovery_device(self, args):
-        return self.client.recovery_device(args.words, args.passphrase_protection,
+        return self.client.recovery_device(args.use_trezor_method, args.words, args.passphrase_protection,
                                     args.pin_protection, args.label, 'english')
 
     def load_device(self, args):
@@ -213,18 +196,18 @@ class Commands(object):
             resp = urllib.urlretrieve(args.url)
             fp = open(resp[0], 'r')
             urllib.urlcleanup() # We still keep file pointer open
- 
-        if fp.read(8) == '4b504b59':
+
+        if fp.read(8) == '54525a52':
             print "Converting firmware to binary"
 
             fp.seek(0)
             fp_old = fp
-            
+
             fp = tempfile.TemporaryFile()
             fp.write(binascii.unhexlify(fp_old.read()))
 
             fp_old.close()
-        
+
         fp.seek(0)
         if fp.read(4) != 'KPKY':
             raise Exception("KeepKey firmware header expected")
@@ -241,7 +224,6 @@ class Commands(object):
     get_features.help = 'Retrieve device features and settings'
     get_public_node.help = 'Get public node of given path'
     set_label.help = 'Set new wallet label'
-    set_homescreen.help = 'Set new homescreen'
     clear_session.help = 'Clear session (remove cached PIN, passphrase, etc.)'
     change_pin.help = 'Change new PIN or remove existing'
     list_coins.help = 'List all supported coin types by the device'
@@ -283,9 +265,6 @@ class Commands(object):
 #        (('-c', '--clear'), {'action': 'store_true', 'default': False})
     )
 
-    set_homescreen.arguments = (
-        (('-f', '--filename',), {'type': str, 'default': ''}),
-    )
     change_pin.arguments = (
          (('-r', '--remove'), {'action': 'store_true', 'default': False}),
     )
@@ -293,6 +272,7 @@ class Commands(object):
     wipe_device.arguments = ()
 
     recovery_device.arguments = (
+        (('-t', '--use-trezor-method'), {'action': 'store_true', 'default': False}),
         (('-w', '--words'), {'type': int}),
         (('-p', '--pin-protection'), {'action': 'store_true', 'default': False}),
         (('-r', '--passphrase-protection'), {'action': 'store_true', 'default': False}),
