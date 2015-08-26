@@ -37,6 +37,8 @@ class TestMsgChangepin(common.KeepKeyTest):
         # Now we're done
         self.assertIsInstance(ret, proto.Success)
 
+        self.client.clear_session()
+
         # Check that there's PIN protection now
         features = self.client.call_raw(proto.Initialize())
         self.assertTrue(features.pin_protection)
@@ -51,6 +53,8 @@ class TestMsgChangepin(common.KeepKeyTest):
         self.setup_mnemonic_pin_passphrase()
         features = self.client.call_raw(proto.Initialize())
         self.assertTrue(features.pin_protection)
+
+        self.client.clear_session()
 
         # Check that there's PIN protection
         ret = self.client.call_raw(proto.Ping(pin_protection=True))
@@ -86,6 +90,8 @@ class TestMsgChangepin(common.KeepKeyTest):
         # Now we're done
         self.assertIsInstance(ret, proto.Success)
 
+        self.client.clear_session()
+
         # Check that there's still PIN protection now
         features = self.client.call_raw(proto.Initialize())
         self.assertTrue(features.pin_protection)
@@ -100,6 +106,8 @@ class TestMsgChangepin(common.KeepKeyTest):
         self.setup_mnemonic_pin_passphrase()
         features = self.client.call_raw(proto.Initialize())
         self.assertTrue(features.pin_protection)
+
+        self.client.clear_session()
 
         # Check that there's PIN protection
         ret = self.client.call_raw(proto.Ping(pin_protection=True))
