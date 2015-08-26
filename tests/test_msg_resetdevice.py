@@ -140,6 +140,8 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertTrue(resp.pin_protection)
         self.assertTrue(resp.passphrase_protection)
 
+        self.client.clear_session()
+
         # Do passphrase-protected action, PassphraseRequest should be raised
         resp = self.client.call_raw(proto.Ping(passphrase_protection=True))
         self.assertIsInstance(resp, proto.PassphraseRequest)
