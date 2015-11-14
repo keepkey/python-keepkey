@@ -7,7 +7,6 @@ import unicodedata
 import mapping
 import json
 import getpass
-import getch
 
 import tools
 import messages_pb2 as proto
@@ -62,6 +61,29 @@ def log_backspace(times):
 
 def format_mnemonic(word_pos, character_pos):
     return "WORD %d: %s" % (word_pos, character_pos * '*')
+
+def getch():
+    try:
+        import termios
+    except ImportError:
+        # Non-POSIX. Return msvcrt's (Windows') getch.
+        import msvcrt
+        return msvcrt.getch
+
+    # POSIX system. Create and return a getch that manipulates the tty.
+    import sys, tty
+    def _getch():
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(fd)
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+
+        return ch
+
+    return _getch()
 
 class CallException(Exception):
     def __init__(self, code, message):
@@ -194,6 +216,10 @@ class TextUIMixin(object):
         else:
             desc = 'PIN'
 
+        log("Use the numeric keypad to describe number positions. The layout is:")
+        log("    7 8 9")
+        log("    4 5 6")
+        log("    1 2 3")
         log("Please enter %s: " % desc)
         pin = getpass.getpass('')
         return proto.PinMatrixAck(pin=pin)
@@ -228,7 +254,12 @@ class TextUIMixin(object):
         log_cr(formatted_console)
 
         while True:
-            character = getch.getch().lower()
+            character = getch().lower()
+
+            # capture escape
+            if character in ('\x03', '\x04'):
+                return proto.Cancel()
+
             character_ascii = ord(character)
 
             if character_ascii >= 97 and character_ascii <= 122 \
@@ -246,7 +277,7 @@ class TextUIMixin(object):
                 # capture backspaces
                 return proto.CharacterAck(delete=True)
 
-            elif character_ascii == 10 and msg.word_pos in (11, 17, 23):
+            elif character_ascii == 13 and msg.word_pos in (11, 17, 23):
                 # capture returns
                 log("")
                 return proto.CharacterAck(done=True)
@@ -444,7 +475,7 @@ class ProtocolMixin(object):
     @expect(proto.PublicKey)
     def get_public_node(self, n, ecdsa_curve_name=DEFAULT_CURVE):
         n = self._convert_prime(n)
-        return self.call(proto.GetPublicKey(address_n=n))
+        return self.call(proto.GetPublicKey(address_n=n, ecdsa_curve_name=ecdsa_curve_name))
 
     @field('address')
     @expect(proto.Address)
@@ -515,7 +546,7 @@ class ProtocolMixin(object):
 
     @expect(proto.SignedIdentity)
     def sign_identity(self, identity, challenge_hidden, challenge_visual, ecdsa_curve_name=DEFAULT_CURVE):
-        return self.call(proto.SignIdentity(identity=identity, challenge_hidden=challenge_hidden, challenge_visual=challenge_visual))
+        return self.call(proto.SignIdentity(identity=identity, challenge_hidden=challenge_hidden, challenge_visual=challenge_visual, ecdsa_curve_name=ecdsa_curve_name))
 
     def verify_message(self, address, signature, message):
         try:
