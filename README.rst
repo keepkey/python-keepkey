@@ -75,9 +75,8 @@ You have to enter: **3795**
 How to install (Windows)
 ------------------------
 * Install Python 2.7 (http://python.org)
-* Install Cython (Windows binaries on http://cython.org/#download)
-* Install Microsoft Visual Studio 2008 Express
-* Add "C:\\Program Files (x86)\\Microsoft Visual Studio 9.0" to system PATH
+* Run C:\\python27\\scripts\\pip.exe install cython
+* Install Microsoft Visual C++ Compiler for Python 2.7
 * Clone repository (using TortoiseGit) to local directory
 * Run C:\\python27\\python.exe setup.py install (or develop)
 
