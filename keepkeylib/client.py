@@ -473,9 +473,9 @@ class ProtocolMixin(object):
         return path
 
     @expect(proto.PublicKey)
-    def get_public_node(self, n, show_display=False, ecdsa_curve_name=DEFAULT_CURVE):
+    def get_public_node(self, n, ecdsa_curve_name=DEFAULT_CURVE):
         n = self._convert_prime(n)
-        return self.call(proto.GetPublicKey(address_n=n, show_display=show_display, ecdsa_curve_name=ecdsa_curve_name))
+        return self.call(proto.GetPublicKey(address_n=n, ecdsa_curve_name=ecdsa_curve_name))
 
     @field('address')
     @expect(proto.Address)
