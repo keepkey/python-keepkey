@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='keepkey',
-    version='0.6.7',
+    version='0.6.8',
     author='Bitcoin TREZOR and KeepKey',
     author_email='support@keepkey.com',
     description='Python library for communicating with KeepKey Hardware Wallet',
@@ -28,7 +28,7 @@ setup(
     ],
     scripts = ['keepkeyctl'],
     test_suite='tests',
-    install_requires=['ecdsa>=0.9', 'protobuf==2.5.0', 'mnemonic>=0.8', 'hidapi>=0.7.99'],
+    install_requires=['ecdsa>=0.9', 'protobuf>=2.5.0', 'mnemonic>=0.8', 'hidapi>=0.7.99'],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
