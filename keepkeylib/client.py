@@ -272,7 +272,7 @@ class TextUIMixin(object):
                 # capture spaces
                 return proto.CharacterAck(character=' ')
 
-            elif character_ascii == 127 \
+            elif character_ascii == 8 or character_ascii == 127 \
             and (msg.word_pos > 0 or msg.character_pos > 0):
                 # capture backspaces
                 return proto.CharacterAck(delete=True)
