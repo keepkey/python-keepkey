@@ -11,7 +11,6 @@ from keepkeylib.tx_api import TXAPITestnet
 class TestMsgSigntx(common.KeepKeyTest):
 
     def test_one_three_fee(self):
-        print " pkhoo : def test_one_three_fee(self):"
         self.setup_mnemonic_nopin_nopassphrase()
 
         # tx: d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882
