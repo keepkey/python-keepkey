@@ -12,6 +12,7 @@ import tools
 import messages_pb2 as proto
 import types_pb2 as types
 import protobuf_json
+from openssl_sha256_wrapper import sha256
 from keepkeylib.debuglink import DebugLink
 from mnemonic import Mnemonic
 
@@ -717,6 +718,15 @@ class ProtocolMixin(object):
                         msg.outputs_cnt = len(current_tx.bin_outputs)
                     else:
                         msg.outputs_cnt = len(current_tx.outputs)
+
+                    # this will add a bookmark if OpenSSL is present on OS
+                    try:
+                        sha256_bookmark = sha256(tools.partial_serialize(current_tx, res.details.request_index))
+                        msg.bookmark.sha256_ctx = sha256_bookmark.get_ctx_bin()
+                        msg.bookmark.remaining_output_cnt = msg.outputs_cnt - res.details.request_index
+                    except OSError:
+                        log("Cannot add transaction bookmark, no OpenSSL detected on system")
+
                     res = self.call(proto.TxAck(tx=msg))
                     continue
 
