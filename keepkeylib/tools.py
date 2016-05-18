@@ -97,7 +97,7 @@ def monkeypatch_google_protobuf_text_format():
 
     google.protobuf.text_format.PrintFieldValue = _customPrintFieldValue
 
-def partial_serialize(txobj, output_index):
+def partial_serialize(txobj):
   o = []
   o.append(encode(txobj.version, 256, 4)[::-1])
   o.append(num_to_var_int(len(txobj.inputs)))
@@ -106,14 +106,4 @@ def partial_serialize(txobj, output_index):
     o.append(encode(inp.prev_index, 256, 4)[::-1])
     o.append(num_to_var_int(len(inp.script_sig))+(inp.script_sig if inp.script_sig or is_python2 else bytes()))
     o.append(encode(inp.sequence, 256, 4)[::-1])
-  if output_index == 0:
-    return ''.join(o)
-  o.append(num_to_var_int(len(txobj.bin_outputs)))
-  for index, out in enumerate(txobj.bin_outputs):
-    if index == output_index:
-      return ''.join(o)
-    o.append(encode(out.amount, 256, 8)[::-1])
-    o.append(num_to_var_int(len(out.script_pubkey))+out.script_pubkey)
-  o.append(encode(txobj.lock_time, 256, 4)[::-1])
-
   return ''.join(o)

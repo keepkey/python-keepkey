@@ -721,9 +721,8 @@ class ProtocolMixin(object):
 
                     # this will add a bookmark if OpenSSL is present on OS
                     try:
-                        sha256_bookmark = sha256(tools.partial_serialize(current_tx, res.details.request_index))
+                        sha256_bookmark = sha256(tools.partial_serialize(current_tx))
                         msg.bookmark.sha256_ctx = sha256_bookmark.get_ctx_bin()
-                        msg.bookmark.remaining_output_cnt = msg.outputs_cnt - res.details.request_index
                     except OSError:
                         log("Cannot add transaction bookmark, no OpenSSL detected on system")
 
