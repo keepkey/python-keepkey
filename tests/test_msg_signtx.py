@@ -70,10 +70,7 @@ class TestMsgSigntx(common.KeepKeyTest):
             self.client.set_tx_api(TXAPITestnet())
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
@@ -115,10 +112,7 @@ class TestMsgSigntx(common.KeepKeyTest):
             self.client.set_tx_api(TXAPITestnet())
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
@@ -161,9 +155,7 @@ class TestMsgSigntx(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
@@ -210,9 +202,7 @@ class TestMsgSigntx(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
@@ -266,15 +256,11 @@ class TestMsgSigntx(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("c6be22d34946593bcad1d2b013e12f74159e69574ffea21581dad115572e031c"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("c6be22d34946593bcad1d2b013e12f74159e69574ffea21581dad115572e031c"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("c6be22d34946593bcad1d2b013e12f74159e69574ffea21581dad115572e031c"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("c6be22d34946593bcad1d2b013e12f74159e69574ffea21581dad115572e031c"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("c6be22d34946593bcad1d2b013e12f74159e69574ffea21581dad115572e031c"))),
 
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("58497a7757224d1ff1941488d23087071103e5bf855f4c1c44e5c8d9d82ca46e"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("58497a7757224d1ff1941488d23087071103e5bf855f4c1c44e5c8d9d82ca46e"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("58497a7757224d1ff1941488d23087071103e5bf855f4c1c44e5c8d9d82ca46e"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("58497a7757224d1ff1941488d23087071103e5bf855f4c1c44e5c8d9d82ca46e"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("58497a7757224d1ff1941488d23087071103e5bf855f4c1c44e5c8d9d82ca46e"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
@@ -350,15 +336,10 @@ class TestMsgSigntx(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("c63e24ed820c5851b60c54613fbc4bcb37df6cd49b4c96143e99580a472f79fb"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("c63e24ed820c5851b60c54613fbc4bcb37df6cd49b4c96143e99580a472f79fb"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("c63e24ed820c5851b60c54613fbc4bcb37df6cd49b4c96143e99580a472f79fb"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("c63e24ed820c5851b60c54613fbc4bcb37df6cd49b4c96143e99580a472f79fb"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("c63e24ed820c5851b60c54613fbc4bcb37df6cd49b4c96143e99580a472f79fb"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("c63e24ed820c5851b60c54613fbc4bcb37df6cd49b4c96143e99580a472f79fb"))),
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("39a29e954977662ab3879c66fb251ef753e0912223a83d1dcb009111d28265e5"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("39a29e954977662ab3879c66fb251ef753e0912223a83d1dcb009111d28265e5"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("39a29e954977662ab3879c66fb251ef753e0912223a83d1dcb009111d28265e5"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("39a29e954977662ab3879c66fb251ef753e0912223a83d1dcb009111d28265e5"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("39a29e954977662ab3879c66fb251ef753e0912223a83d1dcb009111d28265e5"))),
             ] + [
                 item for items in itertools.izip(
@@ -372,7 +353,7 @@ class TestMsgSigntx(common.KeepKeyTest):
             ] + [
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=I)) for I in range(cnt)
             ] + [
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
+		proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1)),
             ] + [
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=I)) for I in range(cnt)
@@ -406,9 +387,7 @@ class TestMsgSigntx(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
@@ -443,9 +422,7 @@ class TestMsgSigntx(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
@@ -476,9 +453,7 @@ class TestMsgSigntx(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("54aa5680dea781f45ebb536e53dffc526d68c0eb5c00547e323b2c32382dfba3"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("54aa5680dea781f45ebb536e53dffc526d68c0eb5c00547e323b2c32382dfba3"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("54aa5680dea781f45ebb536e53dffc526d68c0eb5c00547e323b2c32382dfba3"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("54aa5680dea781f45ebb536e53dffc526d68c0eb5c00547e323b2c32382dfba3"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("54aa5680dea781f45ebb536e53dffc526d68c0eb5c00547e323b2c32382dfba3"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
@@ -576,8 +551,7 @@ class TestMsgSigntx(common.KeepKeyTest):
             self.client.set_tx_api(TXAPITestnet())
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("d6da21677d7cca5f42fbc7631d062c9ae918a0254f7c6c22de8e8cb7fd5b8236"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d6da21677d7cca5f42fbc7631d062c9ae918a0254f7c6c22de8e8cb7fd5b8236"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d6da21677d7cca5f42fbc7631d062c9ae918a0254f7c6c22de8e8cb7fd5b8236"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d6da21677d7cca5f42fbc7631d062c9ae918a0254f7c6c22de8e8cb7fd5b8236"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
