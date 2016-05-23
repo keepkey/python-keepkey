@@ -17,7 +17,7 @@ class TestPing(common.KeepKeyTest):
             self.assertEqual(res, 'random data')
 
         with self.client:
-            self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_ProtectCall), proto.Success()])
+            self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_Ping), proto.Success()])
             res = self.client.ping('random data', button_protection=True)
             self.assertEqual(res, 'random data')
 
@@ -36,13 +36,13 @@ class TestPing(common.KeepKeyTest):
         self.client.clear_session()
 
         with self.client:
-            self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_ProtectCall), proto.PinMatrixRequest(), proto.PassphraseRequest(), proto.Success()])
+            self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_Ping), proto.PinMatrixRequest(), proto.PassphraseRequest(), proto.Success()])
             res = self.client.ping('random data', button_protection=True, pin_protection=True, passphrase_protection=True)
             self.assertEqual(res, 'random data')
 
         with self.client:
             # pin and passphrase are cached
-            self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_ProtectCall), proto.Success()])
+            self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_Ping), proto.Success()])
             res = self.client.ping('random data', button_protection=True, pin_protection=True, passphrase_protection=True)
             self.assertEqual(res, 'random data')
 
