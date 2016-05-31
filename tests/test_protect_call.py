@@ -73,6 +73,7 @@ class TestProtectCall(common.KeepKeyTest):
 
     def test_pin(self):
         self.setup_mnemonic_pin_passphrase()
+        self.client.clear_session()
 
         with self.client:
             self.assertEqual(self.client.debug.read_pin()[0], self.pin4)
