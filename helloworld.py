@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 from keepkeylib.client import KeepKeyClient
 from keepkeylib.transport_hid import HidTransport

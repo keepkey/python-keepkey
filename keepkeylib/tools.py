@@ -1,5 +1,6 @@
 import hashlib
 import binascii
+import sys
 
 Hash = lambda x: hashlib.sha256(hashlib.sha256(x).digest()).digest()
 
@@ -33,7 +34,7 @@ __b58base = len(__b58chars)
 def b58encode(v):
     """ encode v, which is a string of bytes, to base58."""
 
-    long_value = 0L
+    long_value = 0
     for (i, c) in enumerate(v[::-1]):
         long_value += (256 ** i) * ord(c)
 
@@ -57,7 +58,7 @@ def b58encode(v):
 
 def b58decode(v, length):
     """ decode v into a string of len bytes."""
-    long_value = 0L
+    long_value = 0
     for (i, c) in enumerate(v[::-1]):
         long_value += __b58chars.find(c) * (__b58base ** i)
 
@@ -79,7 +80,10 @@ def b58decode(v, length):
     if length is not None and len(result) != length:
         return None
 
-    return result
+    if sys.version_info[0] < 3:
+        return result
+    else:
+        return str.encode(result)
 
 def monkeypatch_google_protobuf_text_format():
     # monkeypatching: text formatting of protobuf messages
