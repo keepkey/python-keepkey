@@ -71,8 +71,8 @@ def get_transport(transport_string, path, **kwargs):
     if transport_string == 'fake':
         from keepkeylib.transport_fake import FakeTransport
         return FakeTransport(path, **kwargs)
-    
-    raise NotImplemented("Unknown transport")
+
+    raise NotImplementedError("Unknown transport")
 
 class Commands(object):
     def __init__(self, client):
@@ -191,13 +191,13 @@ class Commands(object):
         if args.file:
             fp = open(args.file, 'r')
         elif args.url:
-            print "Downloading from", args.url
+            print("Downloading from", args.url)
             resp = urllib.urlretrieve(args.url)
             fp = open(resp[0], 'r')
             urllib.urlcleanup() # We still keep file pointer open
 
         if fp.read(8) == '54525a52':
-            print "Converting firmware to binary"
+            print("Converting firmware to binary")
 
             fp.seek(0)
             fp_old = fp
@@ -211,7 +211,7 @@ class Commands(object):
         if fp.read(4) != 'KPKY':
             raise Exception("KeepKey firmware header expected")
 
-        print "Please confirm action on device..."
+        print("Please confirm action on device...")
 
         fp.seek(0)
         return self.client.firmware_update(fp=fp)
