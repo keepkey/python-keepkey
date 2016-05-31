@@ -10,7 +10,7 @@ def main():
 
     # Check whether we found any
     if len(devices) == 0:
-        print 'No KeepKey found'
+        print('No KeepKey found')
         return
 
     # Use first connected device
@@ -20,13 +20,13 @@ def main():
     client = KeepKeyClient(transport)
 
     # Print out KeepKey's features and settings
-    print client.features
+    print(client.features)
 
     # Get the first address of first BIP44 account
     # (should be the same address as shown in KeepKey wallet Chrome extension)
     bip32_path = client.expand_path("44'/0'/0'/0/0")
     address = client.get_address('Bitcoin', bip32_path)
-    print 'Bitcoin address:', address
+    print('Bitcoin address:', address)
 
     client.close()
 
