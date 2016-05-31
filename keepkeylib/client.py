@@ -362,7 +362,7 @@ class DebugLinkMixin(object):
         self.passphrase = normalize_nfc(passphrase)
 
     def set_mnemonic(self, mnemonic):
-        self.mnemonic = normalize_nfc(mnemonic)
+        self.mnemonic = unicode(str(bytearray(Mnemonic.normalize_string(mnemonic), 'utf-8')), 'utf-8').split(' ')
 
     def call_raw(self, msg):
 
