@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+from __future__ import print_function
+import binascii
+import hashlib
+import mnemonic
+
 __doc__ = '''
     Use this script to cross-check that KeepKey generated valid
     mnemonic sentence for given internal (KeepKey-generated)
@@ -11,9 +16,11 @@ __doc__ = '''
     without an internet connection).
 '''
 
-import binascii
-import hashlib
-import mnemonic
+# Python2 vs Python3
+try:
+    input = raw_input
+except NameError:
+    pass
 
 def generate_entropy(strength, internal_entropy, external_entropy):
     '''
@@ -36,7 +43,7 @@ def generate_entropy(strength, internal_entropy, external_entropy):
         raise Exception("External entropy too short")
 
     entropy = hashlib.sha256(internal_entropy + external_entropy).digest()
-    entropy_stripped = entropy[:strength / 8]
+    entropy_stripped = entropy[:strength // 8]
 
     if len(entropy_stripped) * 8 != strength:
         raise Exception("Entropy length mismatch")
@@ -44,26 +51,26 @@ def generate_entropy(strength, internal_entropy, external_entropy):
     return entropy_stripped
 
 def main():
-    print __doc__
+    print(__doc__)
 
-    comp = binascii.unhexlify(raw_input("Please enter computer-generated entropy (in hex): ").strip())
-    trzr = binascii.unhexlify(raw_input("Please enter KeepKey-generated entropy (in hex): ").strip())
-    word_count = int(raw_input("How many words your mnemonic has? "))
+    comp = binascii.unhexlify(input("Please enter computer-generated entropy (in hex): ").strip())
+    trzr = binascii.unhexlify(input("Please enter KeepKey-generated entropy (in hex): ").strip())
+    word_count = int(input("How many words your mnemonic has? "))
 
-    strength = word_count * 32 / 3
+    strength = word_count * 32 // 3
 
     entropy = generate_entropy(strength, trzr, comp)
 
     words = mnemonic.Mnemonic('english').to_mnemonic(entropy)
     if not mnemonic.Mnemonic('english').check(words):
-        print "Mnemonic is invalid"
+        print("Mnemonic is invalid")
         return
 
     if len(words.split(' ')) != word_count:
-        print "Mnemonic length mismatch!"
+        print("Mnemonic length mismatch!")
         return
 
-    print "Generated mnemonic is:", words
+    print("Generated mnemonic is:", words)
 
 if __name__ == '__main__':
     main()

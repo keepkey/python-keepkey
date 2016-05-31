@@ -2,8 +2,7 @@
 
 import hid
 import time
-import platform
-from transport import Transport, ConnectionError, NotImplementedException
+from .transport import Transport, ConnectionError
 
 DEVICE_IDS = [
     (0x2B24, 0x0001),  # KeepKey
@@ -13,7 +12,7 @@ class FakeRead(object):
     # Let's pretend we have a file-like interface
     def __init__(self, func):
         self.func = func
-        
+
     def read(self, size):
         return self.func(size)
 
@@ -26,32 +25,6 @@ class HidTransport(Transport):
         super(HidTransport, self).__init__(device, *args, **kwargs)
 
     @classmethod
-    def _detect_debuglink(cls, path):
-        # Takes platform-specific path of USB and
-        # decide if the HID interface is normal transport
-        # or debuglink
-        
-        if platform.system() == 'Linux':
-            # Sample: 0003:0017:00
-            if path.endswith(':00'):
-                return False
-            return True
-        
-        elif platform.system() == 'Windows':
-            # Sample: \\\\?\\hid#vid_534c&pid_0001&mi_01#7&1d71791f&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}
-            # Note: 'mi' parameter is optional and might be unset
-            if '&mi_01#' in path:  # ,,,<o.O>,,,~
-                return True
-            return False
-
-        elif platform.system() == 'Darwin':
-            # DebugLink doesn't work on Mac
-            return False
-
-        else:
-            raise Exception("USB interface detection not implemented for %s" % platform.system())
-
-    @classmethod
     def enumerate(cls):
         """
         Return a list of available TREZOR devices.
@@ -61,6 +34,7 @@ class HidTransport(Transport):
             vendor_id = d['vendor_id']
             product_id = d['product_id']
             serial_number = d['serial_number']
+            interface_number = d['interface_number']
             path = d['path']
 
             # HIDAPI on Mac cannot detect correct HID interfaces, so device with
@@ -70,10 +44,15 @@ class HidTransport(Transport):
 
             if (vendor_id, product_id) in DEVICE_IDS:
                 devices.setdefault(serial_number, [None, None])
-                devices[serial_number][int(bool(cls._detect_debuglink(path)))] = path
-                
+                if interface_number == 0 or interface_number == -1: # normal link
+                    devices[serial_number][0] = path
+                elif interface_number == 1: # debug link
+                    devices[serial_number][1] = path
+                else:
+                    raise Exception("Unknown USB interface number: %d" % interface_number)
+
         # List of two-tuples (path_normal, path_debuglink)
-        return devices.values()
+        return list(devices.values())
 
     def is_connected(self):
         """
@@ -83,34 +62,35 @@ class HidTransport(Transport):
             if d['path'] == self.device:
                 return True
         return False
-        
+
     def _open(self):
-        self.buffer = ''
+        self.buffer = bytearray()
         self.hid = hid.device()
         self.hid.open_path(self.device)
         self.hid.set_nonblocking(True)
-        self.hid.send_feature_report([0x41, 0x01]) # enable UART
-        self.hid.send_feature_report([0x43, 0x03]) # purge TX/RX FIFOs
-    
+        # the following was needed just for TREZOR Shield
+        # self.hid.send_feature_report([0x41, 0x01]) # enable UART
+        # self.hid.send_feature_report([0x43, 0x03]) # purge TX/RX FIFOs
+
     def _close(self):
         self.hid.close()
-        self.buffer = ''
+        self.buffer = bytearray()
         self.hid = None
-    
+
     def ready_to_read(self):
         return False
-    
+
     def _write(self, msg, protobuf_msg):
         msg = bytearray(msg)
-        while len(msg):            
+        while len(msg):
             # Report ID, data padded to 63 bytes
             self.hid.write([63, ] + list(msg[:63]) + [0] * (63 - len(msg[:63])))
             msg = msg[63:]
-            
+
     def _read(self):
         (msg_type, datalen) = self._read_headers(FakeRead(self._raw_read))
         return (msg_type, self._raw_read(datalen))
-                    
+
     def _raw_read(self, length):
         start = time.time()
         while len(self.buffer) < length:
@@ -120,14 +100,14 @@ class HidTransport(Transport):
                 continue
 
             report_id = data[0]
-            
+
             if report_id > 63:
                 # Command report
                 raise Exception("Not implemented")
-                                     
+
             # Payload received, skip the report ID
-            self.buffer += str(bytearray(data[1:]))
+            self.buffer.extend(bytearray(data[1:]))
 
         ret = self.buffer[:length]
         self.buffer = self.buffer[length:]
-        return ret
+        return bytes(ret)
