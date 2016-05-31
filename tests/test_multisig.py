@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import unittest
 import common
 import binascii
@@ -23,7 +25,7 @@ class TestMultisig(common.KeepKeyTest):
         #key3 = self.client.get_public_node([3])
 
         # xpub:
-        # print ckd_public.serialize(self.client.get_public_node([]).node)
+        # print(ckd_public.serialize(self.client.get_public_node([]).node))
         # xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy
 
         # pubkeys:
@@ -133,7 +135,7 @@ class TestMultisig(common.KeepKeyTest):
         """
 
         # xpub:
-        # print ckd_public.serialize(self.client.get_public_node([]).node)
+        # print(ckd_public.serialize(self.client.get_public_node([]).node))
         # xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy
         node = ckd_public.deserialize('xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy')
 
@@ -189,7 +191,7 @@ class TestMultisig(common.KeepKeyTest):
         # multisig address: 3E7GDtuHqnqPmDgwH59pVC7AvySiSkbibz
 
         # xpub:
-        # print ckd_public.serialize(self.client.get_public_node([]).node)
+        # print(ckd_public.serialize(self.client.get_public_node([]).node))
         # xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy
         node = ckd_public.deserialize('xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy')
 

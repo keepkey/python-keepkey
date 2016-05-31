@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import unittest
 import common
 import math
@@ -26,7 +28,7 @@ class TestMsgGetentropy(common.KeepKeyTest):
                 self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_GenerateEntropy), proto.Entropy()])
                 ent = self.client.get_entropy(l)
                 self.assertTrue(len(ent) >= l)
-                print 'entropy = ', entropy(ent)
+                print('entropy = ', entropy(ent))
 
 if __name__ == '__main__':
     unittest.main()
