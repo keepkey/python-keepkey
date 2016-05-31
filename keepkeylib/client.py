@@ -241,6 +241,7 @@ class TextUIMixin(object):
 
     def callback_WordRequest(self, msg):
         log("Enter one word of mnemonic: ")
+        try:
             word = raw_input()
         except NameError:
             word = input() # Python 3
@@ -495,40 +496,6 @@ class ProtocolMixin(object):
         else:
             return self.call(proto.GetAddress(address_n=n, coin_name=coin_name, show_display=show_display))
 
-    @field('address')
-    @expect(proto.EthereumAddress)
-    def ethereum_get_address(self, n, show_display=False, multisig=None):
-        n = self._convert_prime(n)
-        return self.call(proto.EthereumGetAddress(address_n=n, show_display=show_display))
-
-    def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, to, value, data=''):
-        from rlp.utils import int_to_big_endian
-
-        n = self._convert_prime(n)
-
-        try:
-            self.transport.session_begin()
-
-            response = self.call(proto.EthereumSignTx(
-                address_n=n,
-                nonce=int_to_big_endian(nonce),
-                gas_price=int_to_big_endian(gas_price),
-                gas_limit=int_to_big_endian(gas_limit),
-                to=to,
-                value=int_to_big_endian(value)))
-            if data:
-                data, chunk = data[1024:], data[:1024]
-                response.data_initial_chunk = chunk
-                response.data_length = len(data)
-
-            while response.HasField('data_length'):
-                data, chunk = data[1024:], data[:1024]
-                response = self.call(proto.EthereumTxAck(data_chunk=chunk))
-
-            return response.signature_v, response.signature_r, response.signature_s
-        finally:
-            self.transport.session_end()
-
     @field('entropy')
     @expect(proto.Entropy)
     def get_entropy(self, size):
@@ -585,8 +552,8 @@ class ProtocolMixin(object):
         return self.call(proto.SignIdentity(identity=identity, challenge_hidden=challenge_hidden, challenge_visual=challenge_visual, ecdsa_curve_name=ecdsa_curve_name))
 
     def verify_message(self, address, signature, message):
-            # Convert message to UTF8 NFC (seems to be a bitcoin-qt standard)
-            message = normalize_nfc(message)
+        # Convert message to UTF8 NFC (seems to be a bitcoin-qt standard)
+        message = normalize_nfc(message)
         try:
             if address:
                 resp = self.call(proto.VerifyMessage(address=address, signature=signature, message=message))
