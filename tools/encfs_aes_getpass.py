@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 '''
 Use KeepKey as a hardware key for opening EncFS filesystem!
@@ -15,13 +16,18 @@ import hashlib
 import binascii
 
 from keepkeylib.client import KeepKeyClient, KeepKeyClientDebug
-from keepkeylib.transport_hid import HidTransport
+
+# Python2 vs Python3
+try:
+    input = raw_input
+except NameError:
+    pass
 
 def wait_for_devices():
     devices = HidTransport.enumerate()
     while not len(devices):
         sys.stderr.write("Please connect KeepKey to computer and press Enter...")
-        raw_input()
+        input()
         devices = HidTransport.enumerate()
 
     return devices
@@ -59,7 +65,7 @@ def choose_device(devices):
     sys.stderr.write("Please choose device to use: ")
 
     try:
-        device_id = int(raw_input())
+        device_id = int(input())
         return HidTransport(devices[device_id])
     except:
         raise Exception("Invalid choice, exiting...")
@@ -76,7 +82,7 @@ def main():
         # New encfs drive, let's generate password
 
         sys.stderr.write('Please provide label for new drive: ')
-        label = raw_input()
+        label = input()
 
         sys.stderr.write('Computer asked KeepKey for new strong password.\n')
         sys.stderr.write('Please confirm action on your device.\n')
@@ -95,7 +101,7 @@ def main():
         data = {'label': label,
                 'bip32_path': bip32_path,
                 'password_encrypted_hex': binascii.hexlify(passw_encrypted)}
-        
+
         json.dump(data, open(passw_file, 'wb'))
 
     # Let's load password
@@ -103,11 +109,11 @@ def main():
 
     sys.stderr.write('Please confirm action on your device.\n')
     passw = client.decrypt_keyvalue(data['bip32_path'],
-                data['label'],
-                binascii.unhexlify(data['password_encrypted_hex']),
-                False, True)
+                                    data['label'],
+                                    binascii.unhexlify(data['password_encrypted_hex']),
+                                    False, True)
 
-    print passw
+    print(passw)
 
 if __name__ == '__main__':
     main()

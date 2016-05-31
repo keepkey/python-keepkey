@@ -1,11 +1,13 @@
-import messages_pb2 as proto
-from transport import NotImplementedException
+from __future__ import print_function
+
+from . import messages_pb2 as proto
+from .transport import NotImplementedException
 
 def pin_info(pin):
-    print "Device asks for PIN %s" % pin
+    print("Device asks for PIN %s" % pin)
 
 def button_press(yes_no):
-    print "User pressed", '"y"' if yes_no else '"n"'
+    print("User pressed", '"y"' if yes_no else '"n"')
 
 def pprint(msg):
     return "<%s> (%d bytes):\n%s" % (msg.__class__.__name__, msg.ByteSize(), msg)
@@ -19,20 +21,20 @@ class DebugLink(object):
 
     def close(self):
         self.transport.close()
-        
+
     def _call(self, msg, nowait=False):
-        print "DEBUGLINK SEND", pprint(msg)
+        print("DEBUGLINK SEND", pprint(msg))
         self.transport.write(msg)
         if nowait:
             return
         ret = self.transport.read_blocking()
-        print "DEBUGLINK RECV", pprint(ret)
+        print("DEBUGLINK RECV", pprint(ret))
         return ret
 
     def read_pin(self):
         obj = self._call(proto.DebugLinkGetState())
-        print "Read PIN:", obj.pin
-        print "Read matrix:", obj.matrix
+        print("Read PIN:", obj.pin)
+        print("Read matrix:", obj.matrix)
 
         return (obj.pin, obj.matrix)
 
@@ -49,11 +51,11 @@ class DebugLink(object):
         # We have to encode that into encoded pin,
         # because application must send back positions
         # on keypad, not a real PIN.
-        pin_encoded = ''.join([ str(matrix.index(p) + 1) for p in pin])
+        pin_encoded = ''.join([str(matrix.index(p) + 1) for p in pin])
 
-        print "Encoded PIN:", pin_encoded
+        print("Encoded PIN:", pin_encoded)
         return pin_encoded
-        
+
     def read_layout(self):
         obj = self._call(proto.DebugLinkGetState())
         return obj.layout
@@ -98,7 +100,7 @@ class DebugLink(object):
          self._call(proto.DebugLinkFillConfig(), nowait=True)
 
     def press_button(self, yes_no):
-        print "Pressing", yes_no
+        print("Pressing", yes_no)
         self.button_func(yes_no)
         self._call(proto.DebugLinkDecision(yes_no=yes_no), nowait=True)
 
