@@ -219,8 +219,6 @@ class Commands(object):
     list.help = 'List connected KeepKey USB devices'
     ping.help = 'Send ping message'
     get_address.help = 'Get bitcoin address in base58 encoding'
-    ethereum_get_address.help = 'Get Ethereum address in hex encoding'
-    ethereum_send_tx.help = 'Sign and publish Ethereum transaction'
     get_entropy.help = 'Get example entropy'
     get_features.help = 'Retrieve device features and settings'
     get_public_node.help = 'Get public node of given path'
