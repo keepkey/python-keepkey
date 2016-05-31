@@ -49,8 +49,8 @@ class KeepKeyBootloaderTest(unittest.TestCase):
         self.client = KeepKeyDebugClient(self.transport)
         self.client.set_debuglink(self.debug_transport)
 
-        print "Setup finished"
-        print "--------------"
+        print("Setup finished")
+        print("--------------")
 
     def reconnect(self):
         self.client.close()
@@ -62,8 +62,8 @@ class KeepKeyBootloaderTest(unittest.TestCase):
         self.client = KeepKeyDebugClient(self.transport)
         self.client.set_debuglink(self.debug_transport)
 
-        print "Reconnected"
-        print "--------------"
+        print("Reconnected")
+        print("--------------")
 
     def tearDown(self):
         self.client.close()
