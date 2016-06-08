@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import time
 import unittest
 import common
@@ -107,7 +109,7 @@ class TestProtectCall(common.KeepKeyTest):
             got = time.time() - start
             
             msg = "Pin delay expected to be at least %s seconds, got %s" % (expected, got)
-            print msg
+            print(msg)
             self.assertLessEqual(expected, got, msg)
 
         for attempt in range(0, 5):
