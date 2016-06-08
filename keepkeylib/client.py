@@ -1,20 +1,21 @@
+from __future__ import print_function
+
 import os
 import sys
 import time
 import binascii
 import hashlib
 import unicodedata
-import mapping
 import json
 import getpass
 
-import tools
-import messages_pb2 as proto
-import types_pb2 as types
-import protobuf_json
-from keepkeylib.debuglink import DebugLink
 from mnemonic import Mnemonic
 
+from . import tools
+from . import mapping
+from . import messages_pb2 as proto
+from . import types_pb2 as types
+from .debuglink import DebugLink
 
 # try:
 #     from PIL import Image
@@ -113,7 +114,7 @@ class expect(object):
     # or raises an exception
     def __init__(self, *expected):
         self.expected = expected
-        
+
     def __call__(self, f):
         def wrapped_f(*args, **kwargs):
             ret = f(*args, **kwargs)
@@ -123,15 +124,18 @@ class expect(object):
         return wrapped_f
 
 def normalize_nfc(txt):
-    # Normalize string to UTF8 NFC for sign_message
-    if isinstance(txt, str):
-        utxt = txt.decode('utf8')
-    elif isinstance(txt, unicode):
-        utxt = txt
+    if sys.version_info[0] < 3:
+        if isinstance(txt, unicode):
+            return unicodedata.normalize('NFC', txt).encode('utf-8')
+        if isinstance(txt, str):
+            return unicodedata.normalize('NFC', txt.decode('utf-8')).encode('utf-8')
     else:
-        raise Exception("String value expected")
+        if isinstance(txt, bytes):
+            return unicodedata.normalize('NFC', txt.decode('utf-8')).encode('utf-8')
+        if isinstance(txt, str):
+            return unicodedata.normalize('NFC', txt).encode('utf-8')
 
-    return unicodedata.normalize('NFC', utxt)
+    raise Exception('unicode/str or bytes/str expected')
 
 class BaseClient(object):
     # Implements very basic layer of sending raw protobuf
@@ -229,7 +233,7 @@ class TextUIMixin(object):
         passphrase = getpass.getpass('')
         log("Confirm your Passphrase: ")
         if passphrase == getpass.getpass(''):
-            passphrase = unicode(str(bytearray(passphrase, 'utf-8')), 'utf-8')
+            passphrase = normalize_nfc(passphrase)
             return proto.PassphraseAck(passphrase=passphrase)
         else:
             log("Passphrase did not match! ")
@@ -237,7 +241,10 @@ class TextUIMixin(object):
 
     def callback_WordRequest(self, msg):
         log("Enter one word of mnemonic: ")
-        word = raw_input()
+        try:
+            word = raw_input()
+        except NameError:
+            word = input() # Python 3
         return proto.WordAck(word=word)
 
     def callback_CharacterRequest(self, msg):
@@ -302,7 +309,7 @@ class DebugLinkMixin(object):
 
         # Always press Yes and provide correct pin
         self.setup_debuglink(True, True)
-        
+
         # Do not expect any specific response from device
         self.expected_responses = None
 
@@ -352,7 +359,7 @@ class DebugLinkMixin(object):
         self.pin_correct = pin_correct
 
     def set_passphrase(self, passphrase):
-        self.passphrase = unicode(str(bytearray(Mnemonic.normalize_string(passphrase), 'utf-8')), 'utf-8')
+        self.passphrase = normalize_nfc(passphrase)
 
     def set_mnemonic(self, mnemonic):
         self.mnemonic = unicode(str(bytearray(Mnemonic.normalize_string(mnemonic), 'utf-8')), 'utf-8').split(' ')
@@ -374,7 +381,7 @@ class DebugLinkMixin(object):
         resp = super(DebugLinkMixin, self).call_raw(msg)
         self._check_request(resp)
         return resp
-        
+
     def _check_request(self, msg):
         if self.expected_responses != None:
             try:
@@ -392,7 +399,7 @@ class DebugLinkMixin(object):
                 if not msg.HasField(field.name) or getattr(msg, field.name) != value:
                     raise CallException(types.Failure_Other,
                             "Expected %s, got %s" % (pprint(expected), pprint(msg)))
-            
+
     def callback_ButtonRequest(self, msg):
         log("ButtonRequest code: " + get_buttonrequest_value(msg.code))
 
@@ -508,7 +515,7 @@ class ProtocolMixin(object):
 
     @field('message')
     @expect(proto.Success)
-    def apply_settings(self, label=None, language=None, use_passphrase=None):
+    def apply_settings(self, label=None, language=None, use_passphrase=None, homescreen=None):
         settings = proto.ApplySettings()
         if label != None:
             settings.label = label
@@ -536,15 +543,8 @@ class ProtocolMixin(object):
     @expect(proto.MessageSignature)
     def sign_message(self, coin_name, n, message):
         n = self._convert_prime(n)
-
-        try:
-            # Convert message to UTF8 NFC (seems to be a bitcoin-qt standard)
-            message = normalize_nfc(message)
-            # Convert message to ASCII stream
-            message = str(bytearray(message, 'utf-8'))
-        except:
-            pass # it was not UTF8 string
-
+        # Convert message to UTF8 NFC (seems to be a bitcoin-qt standard)
+        message = normalize_nfc(message)
         return self.call(proto.SignMessage(coin_name=coin_name, address_n=n, message=message))
 
     @expect(proto.SignedIdentity)
@@ -552,14 +552,8 @@ class ProtocolMixin(object):
         return self.call(proto.SignIdentity(identity=identity, challenge_hidden=challenge_hidden, challenge_visual=challenge_visual, ecdsa_curve_name=ecdsa_curve_name))
 
     def verify_message(self, address, signature, message):
-        try:
-            # Convert message to UTF8 NFC (seems to be a bitcoin-qt standard)
-            message = normalize_nfc(message)
-        # Convert message to ASCII stream
-            message = str(bytearray(message, 'utf-8'))
-        except:
-            pass # it was not UTF8 string
-
+        # Convert message to UTF8 NFC (seems to be a bitcoin-qt standard)
+        message = normalize_nfc(message)
         try:
             if address:
                 resp = self.call(proto.VerifyMessage(address=address, signature=signature, message=message))
@@ -817,7 +811,7 @@ class ProtocolMixin(object):
         mnemonic = Mnemonic.normalize_string(mnemonic)
 
         # Convert mnemonic to ASCII stream
-        mnemonic = unicode(str(bytearray(mnemonic, 'utf-8')), 'utf-8')
+        mnemonic = normalize_nfc(mnemonic)
 
         if self.features.initialized:
             raise Exception("Device is initialized already. Call wipe_device() and try again.")
@@ -843,7 +837,7 @@ class ProtocolMixin(object):
             raise Exception("Invalid length of xprv")
 
         node = types.HDNodeType()
-        data = tools.b58decode(xprv, None).encode('hex')
+        data = binascii.hexlify(tools.b58decode(xprv, None))
 
         if data[90:92] != '00':
             raise Exception("Contain invalid private key")

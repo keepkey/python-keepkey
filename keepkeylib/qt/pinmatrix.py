@@ -1,8 +1,9 @@
+from __future__ import print_function
 import sys
 import math
 import operator
-from PyQt4.Qt import QApplication, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout
-from PyQt4.QtGui import QPushButton, QLineEdit, QSizePolicy, QRegExpValidator, QLabel
+from PyQt4.QtGui import (QPushButton, QLineEdit, QSizePolicy, QRegExpValidator, QLabel,
+                         QApplication, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout)
 from PyQt4.QtCore import QObject, SIGNAL, QRegExp, Qt
 
 class PinButton(QPushButton):
@@ -27,7 +28,7 @@ class PinMatrixWidget(QWidget):
     '''
     def __init__(self, show_strength=True, parent=None):
         super(PinMatrixWidget, self).__init__(parent)
-        
+
         self.password = QLineEdit()
         self.password.setValidator(QRegExpValidator(QRegExp('[1-9]+'), None))
         self.password.setEchoMode(QLineEdit.Password)
@@ -91,8 +92,8 @@ if __name__ == '__main__':
     matrix = PinMatrixWidget()
 
     def clicked():
-        print "PinMatrix value is", matrix.get_value()
-        print "Possible button combinations:", matrix.get_strength()
+        print("PinMatrix value is", matrix.get_value())
+        print("Possible button combinations:", matrix.get_strength())
         sys.exit()
 
     ok = QPushButton('OK')

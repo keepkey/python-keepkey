@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import unittest
 import common
 import binascii
@@ -14,14 +16,14 @@ def test_ecies_backforth(cls, test_string):
 
     # encrypt without signature
     enc = cls.client.encrypt_message(pubkey, test_string, display_only=False, coin_name='Bitcoin', n=[])
-    print 'base64:', base64.b64encode(enc.nonce + enc.message + enc.hmac)
+    print('base64:', base64.b64encode(enc.nonce + enc.message + enc.hmac))
     dec = cls.client.decrypt_message([1], enc.nonce, enc.message, enc.hmac)
     cls.assertEqual(dec.message, test_string)
     cls.assertEqual(dec.address, '')
 
     # encrypt with signature
     enc = cls.client.encrypt_message(pubkey, test_string, display_only=False, coin_name='Bitcoin', n=[5])
-    print 'base64:', base64.b64encode(enc.nonce + enc.message + enc.hmac)
+    print('base64:', base64.b64encode(enc.nonce + enc.message + enc.hmac))
     dec = cls.client.decrypt_message([1], enc.nonce, enc.message, enc.hmac)
     cls.assertEqual(dec.message, test_string)
     cls.assertEqual(dec.address, '1Csf6LVPkv24FBs6bpj4ELPszE6mGf6jeV')

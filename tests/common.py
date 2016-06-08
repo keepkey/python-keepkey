@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import unittest
 import config
 import time
@@ -25,8 +27,8 @@ class KeepKeyTest(unittest.TestCase):
 
         self.client.wipe_device()
 
-        print "Setup finished"
-        print "--------------"
+        print("Setup finished")
+        print("--------------")
 
     def setup_mnemonic_nopin_nopassphrase(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic12, pin='', passphrase_protection=False, label='test', language='english')
@@ -47,8 +49,8 @@ class KeepKeyBootloaderTest(unittest.TestCase):
         self.client = KeepKeyDebugClient(self.transport)
         self.client.set_debuglink(self.debug_transport)
 
-        print "Setup finished"
-        print "--------------"
+        print("Setup finished")
+        print("--------------")
 
     def reconnect(self):
         self.client.close()
@@ -60,8 +62,8 @@ class KeepKeyBootloaderTest(unittest.TestCase):
         self.client = KeepKeyDebugClient(self.transport)
         self.client.set_debuglink(self.debug_transport)
 
-        print "Reconnected"
-        print "--------------"
+        print("Reconnected")
+        print("--------------")
 
     def tearDown(self):
         self.client.close()
