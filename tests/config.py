@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import sys
 sys.path = ['../',] + sys.path
 
@@ -10,7 +12,7 @@ devices = HidTransport.enumerate()
 
 if len(devices) > 0:
     if devices[0][1] != None:
-        print 'Using TREZOR'
+        print('Using TREZOR')
         TRANSPORT = HidTransport
         TRANSPORT_ARGS = (devices[0],)
         TRANSPORT_KWARGS = {'debug_link': False}
@@ -18,7 +20,7 @@ if len(devices) > 0:
         DEBUG_TRANSPORT_ARGS = (devices[0],)
         DEBUG_TRANSPORT_KWARGS = {'debug_link': True}
     else:
-        print 'Using Raspberry Pi'
+        print('Using Raspberry Pi')
         TRANSPORT = HidTransport
         TRANSPORT_ARGS = (devices[0],)
         TRANSPORT_KWARGS = {'debug_link': False}
@@ -26,7 +28,7 @@ if len(devices) > 0:
         DEBUG_TRANSPORT_ARGS = ('trezor.bo:2000',)
         DEBUG_TRANSPORT_KWARGS = {}
 else:
-    print 'Using Emulator'
+    print('Using Emulator')
     TRANSPORT = PipeTransport
     TRANSPORT_ARGS = ('/tmp/pipe.trezor', False)
     TRANSPORT_KWARGS = {}

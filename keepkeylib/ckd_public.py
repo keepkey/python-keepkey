@@ -7,8 +7,8 @@ from ecdsa.util import string_to_number, number_to_string
 from ecdsa.curves import SECP256k1
 from ecdsa.ellipticcurve import Point, INFINITY
 
-import tools
-import types_pb2 as proto_types
+from . import tools
+from . import types_pb2 as proto_types
 
 PRIME_DERIVATION_FLAG = 0x80000000
 
@@ -17,7 +17,7 @@ def point_to_pubkey(point):
     x_str = number_to_string(point.x(), order)
     y_str = number_to_string(point.y(), order)
     vk = x_str + y_str
-    return chr((ord(vk[63]) & 1) + 2) + vk[0:32]  # To compressed key 
+    return chr((ord(vk[63]) & 1) + 2) + vk[0:32]  # To compressed key
 
 def sec_to_public_pair(pubkey):
     """Convert a public key in sec binary format to a public pair."""
@@ -99,7 +99,7 @@ def serialize(node, version=0x0488B21E):
     s += node.chain_code
     if node.private_key:
         s += '\x00' + node.private_key
-    else :
+    else:
         s += node.public_key
     s += tools.Hash(s)[:4]
     return tools.b58encode(s)
@@ -115,7 +115,7 @@ def deserialize(xpub):
     node.fingerprint = struct.unpack('>I', data[5:9])[0]
     node.child_num = struct.unpack('>I', data[9:13])[0]
     node.chain_code = data[13:45]
-    
+
     key = data[45:-4]
     if key[0] == '\x00':
         node.private_key = key[1:]
