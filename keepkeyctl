@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import os
 import binascii
 import argparse
@@ -20,22 +21,22 @@ def parse_args(commands):
 #    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help='Enable low-level debugging')
 
     cmdparser = parser.add_subparsers(title='Available commands')
-    
+
     for cmd in commands._list_commands():
         func = object.__getattribute__(commands, cmd)
-            
+
         try:
             arguments = func.arguments
         except AttributeError:
             arguments = ((('params',), {'nargs': '*'}),)
-        
+
         item = cmdparser.add_parser(cmd, help=func.help)
         for arg in arguments:
             item.add_argument(*arg[0], **arg[1])
-            
+
         item.set_defaults(func=func)
         item.set_defaults(cmd=cmd)
-    
+
     return parser.parse_args()
 
 def get_transport(transport_string, path, **kwargs):
@@ -70,25 +71,25 @@ def get_transport(transport_string, path, **kwargs):
     if transport_string == 'fake':
         from keepkeylib.transport_fake import FakeTransport
         return FakeTransport(path, **kwargs)
-    
-    raise NotImplemented("Unknown transport")
+
+    raise NotImplementedError("Unknown transport")
 
 class Commands(object):
     def __init__(self, client):
         self.client = client
-        
+
     @classmethod
     def _list_commands(cls):
-        return [ x for x in dir(cls) if not x.startswith('_') ]
-  
+        return [x for x in dir(cls) if not x.startswith('_')]
+
     def list(self, args):
         # Fake method for advertising 'list' command
         pass
- 
+
     def get_address(self, args):
         address_n = self.client.expand_path(args.n)
         return self.client.get_address(args.coin, address_n, args.show_display)
-    
+
     def get_entropy(self, args):
         return binascii.hexlify(self.client.get_entropy(args.size))
 
@@ -96,14 +97,14 @@ class Commands(object):
         return self.client.features
 
     def list_coins(self, args):
-        return [ coin.coin_name for coin in self.client.features.coins ]
+        return [coin.coin_name for coin in self.client.features.coins]
 
     def ping(self, args):
         return self.client.ping(args.msg, button_protection=args.button_protection, pin_protection=args.pin_protection, passphrase_protection=args.passphrase_protection)
 
     def get_public_node(self, args):
         address_n = self.client.expand_path(args.n)
-        return self.client.get_public_node(address_n, args.ecdsa_curve_name, args.show_display)
+        return self.client.get_public_node(address_n, ecdsa_curve_name=args.curve, show_display=args.show_display)
 
     def set_label(self, args):
         return self.client.apply_settings(label=args.label)
@@ -128,11 +129,13 @@ class Commands(object):
         if args.mnemonic:
             mnemonic = ' '.join(args.mnemonic)
             return self.client.load_device_by_mnemonic(mnemonic, args.pin,
-                        args.passphrase_protection, args.label, 'english', args.skip_checksum)
-
+                                                       args.passphrase_protection,
+                                                       args.label, 'english',
+                                                       args.skip_checksum)
         else:
             return self.client.load_device_by_xprv(args.xprv, args.pin,
-                        args.passphrase_protection, args.label, 'english')
+                                                   args.passphrase_protection,
+                                                   args.label, 'english')
 
     def reset_device(self, args):
         return self.client.reset_device(True, args.strength, args.passphrase_protection,
@@ -188,13 +191,13 @@ class Commands(object):
         if args.file:
             fp = open(args.file, 'r')
         elif args.url:
-            print "Downloading from", args.url
+            print("Downloading from", args.url)
             resp = urllib.urlretrieve(args.url)
             fp = open(resp[0], 'r')
             urllib.urlcleanup() # We still keep file pointer open
 
         if fp.read(8) == '54525a52':
-            print "Converting firmware to binary"
+            print("Converting firmware to binary")
 
             fp.seek(0)
             fp_old = fp
@@ -208,7 +211,7 @@ class Commands(object):
         if fp.read(4) != 'KPKY':
             raise Exception("KeepKey firmware header expected")
 
-        print "Please confirm action on device..."
+        print("Please confirm action on device...")
 
         fp.seek(0)
         return self.client.firmware_update(fp=fp)
@@ -240,7 +243,7 @@ class Commands(object):
         (('-n', '-address'), {'type': str}),
         (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
     )
-    
+
     get_entropy.arguments = (
         (('size',), {'type': int}),
     )
@@ -255,16 +258,16 @@ class Commands(object):
         (('-p', '--pin-protection'), {'action': 'store_true', 'default': False}),
         (('-r', '--passphrase-protection'), {'action': 'store_true', 'default': False}),
     )
-    
+
     set_label.arguments = (
         (('-l', '--label',), {'type': str, 'default': ''}),
-#        (('-c', '--clear'), {'action': 'store_true', 'default': False})
+        # (('-c', '--clear'), {'action': 'store_true', 'default': False})
     )
 
     change_pin.arguments = (
-         (('-r', '--remove'), {'action': 'store_true', 'default': False}),
+        (('-r', '--remove'), {'action': 'store_true', 'default': False}),
     )
-    
+
     wipe_device.arguments = ()
 
     recovery_device.arguments = (
@@ -330,7 +333,7 @@ class Commands(object):
 
     get_public_node.arguments = (
         (('-n', '-address'), {'type': str}),
-        (('-e', '--ecdsa-curve-name'), {'type': str}),
+        (('-e', '--curve'), {'type': str}),
         (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
     )
 
@@ -397,20 +400,20 @@ def qt_pin_func(input_text, message=None):
         # let's fallback to default pin_func implementation
         return pin_func(input_text, message)
 '''
-    
+
 def main():
     args = parse_args(Commands)
 
     if args.cmd == 'list':
         devices = list_usb()
         if args.json:
-            print json.dumps(devices)
+            print(json.dumps(devices))
         else:
             for dev in devices:
                 if dev[1] != None:
-                    print "%s - debuglink enabled" % dev[0]
+                    print("%s - debuglink enabled" % dev[0])
                 else:
-                    print dev[0]
+                    print(dev[0])
         return
 
     transport = get_transport(args.transport, args.path)
@@ -420,13 +423,13 @@ def main():
         client = KeepKeyClient(transport)
 
     cmds = Commands(client)
-    
+
     res = args.func(cmds, args)
-    
+
     if args.json:
-        print json.dumps(res, sort_keys=True, indent=4)
+        print(json.dumps(res, sort_keys=True, indent=4))
     else:
-        print res
-    
+        print(res)
+
 if __name__ == '__main__':
     main()
