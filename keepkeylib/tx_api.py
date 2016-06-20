@@ -82,12 +82,20 @@ class TXAPIBitcoin(object):
         url = 'https://insight.bitpay.com/api/tx/%s' % txhash
         return insight_tx(url)
 
+    def get_raw_tx(self, txhash):
+        url = 'https://insight.bitpay.com/api/rawtx/%s' % txhash
+        return fetch_json(url)['rawtx']
+
 class TXAPITestnet(object):
 
     # @filecache(DAY)
     def get_tx(self, txhash):
         url = 'https://test-insight.bitpay.com/api/tx/%s' % txhash
         return insight_tx(url)
+
+    def get_raw_tx(self, txhash):
+        url = 'https://test-insight.bitpay.com/api/rawtx/%s' % txhash
+        return fetch_json(url)['rawtx']
 
 class TXAPISegnet(object):
 
