@@ -6,7 +6,6 @@ sys.path = ['../',] + sys.path
 from keepkeylib.transport_pipe import PipeTransport
 from keepkeylib.transport_hid import HidTransport
 from keepkeylib.transport_socket import SocketTransportClient
-from keepkeylib.transport_bridge import BridgeTransport
 
 devices = HidTransport.enumerate()
 
