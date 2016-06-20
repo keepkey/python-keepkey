@@ -635,7 +635,7 @@ class ProtocolMixin(object):
         msg = self._prepare_simple_sign_tx(coin_name, inputs, outputs)
         return self.call(msg).serialized.serialized_tx
 
-    def _prepare_sign_tx(self, coin_name, inputs, outputs):
+    def _prepare_sign_tx(self, coin_name, inputs, outputs, use_raw_tx):
         tx = types.TransactionType()
         tx.inputs.extend(inputs)
         tx.outputs.extend(outputs)
@@ -649,17 +649,20 @@ class ProtocolMixin(object):
                 continue
 
             if self.tx_api:
-                txes[inp.prev_hash] = self.tx_api.get_tx(binascii.hexlify(inp.prev_hash))
+                if use_raw_tx:
+                    txes[inp.prev_hash] = self.tx_api.get_raw_tx(binascii.hexlify(inp.prev_hash))
+                else:
+                    txes[inp.prev_hash] = self.tx_api.get_tx(binascii.hexlify(inp.prev_hash))
             else:
                 raise Exception('TX_API not defined')
             known_hashes.append(inp.prev_hash)
 
         return txes
 
-    def sign_tx(self, coin_name, inputs, outputs, debug_processor=None):
+    def sign_tx(self, coin_name, inputs, outputs, debug_processor=None, use_raw_tx=False):
 
         start = time.time()
-        txes = self._prepare_sign_tx(coin_name, inputs, outputs)
+        txes = self._prepare_sign_tx(coin_name, inputs, outputs, use_raw_tx)
 
         try:
             self.transport.session_begin()
@@ -703,15 +706,19 @@ class ProtocolMixin(object):
                 current_tx = txes[res.details.tx_hash]
 
                 if res.request_type == types.TXMETA:
-                    msg = types.TransactionType()
-                    msg.version = current_tx.version
-                    msg.lock_time = current_tx.lock_time
-                    msg.inputs_cnt = len(current_tx.inputs)
-                    if res.details.tx_hash:
-                        msg.outputs_cnt = len(current_tx.bin_outputs)
+                    if use_raw_tx:
+                        msg = types.RawTransactionType(payload=binascii.unhexlify(current_tx))
+                        res = self.call(proto.RawTxAck(tx=msg))
                     else:
-                        msg.outputs_cnt = len(current_tx.outputs)
-                    res = self.call(proto.TxAck(tx=msg))
+                        msg = types.TransactionType()
+                        msg.version = current_tx.version
+                        msg.lock_time = current_tx.lock_time
+                        msg.inputs_cnt = len(current_tx.inputs)
+                        if res.details.tx_hash:
+                            msg.outputs_cnt = len(current_tx.bin_outputs)
+                        else:
+                            msg.outputs_cnt = len(current_tx.outputs)
+                        res = self.call(proto.TxAck(tx=msg))
                     continue
 
                 elif res.request_type == types.TXINPUT:
