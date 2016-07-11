@@ -530,6 +530,16 @@ class ProtocolMixin(object):
 
     @field('message')
     @expect(proto.Success)
+    def apply_policy(self, policy_name, enabled):
+        policy = types.PolicyType(policy_name=policy_name, enabled=enabled)
+        apply_policies = proto.ApplyPolicies(policy=[policy])
+
+        out = self.call(apply_policies)
+        self.init_device()  # Reload Features
+        return out
+
+    @field('message')
+    @expect(proto.Success)
     def clear_session(self):
         return self.call(proto.ClearSession())
 
