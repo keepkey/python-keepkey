@@ -3,7 +3,7 @@ CURDIR=$(pwd)
 
 cd $CURDIR/../device-protocol
 
-for i in messages types ; do
+for i in messages types exchange ; do
     protoc --python_out=$CURDIR/keepkeylib/ -I/usr/include -I. $i.proto
 done
 
