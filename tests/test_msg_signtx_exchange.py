@@ -12,7 +12,7 @@ from keepkeylib.tx_api import TXAPITestnet
 class TestMsgSigntxExchange(common.KeepKeyTest):
     def test_btc_to_ltc_exchange(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('Exchange1', 1)
         # tx: d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882
         # input 0: 0.0039 BTC
 
@@ -75,7 +75,7 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
     def test_ltc_to_btc_exchange(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('Exchange1', 1)
 
         # tx: d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882
         # input 0: 0.0039 BTC
@@ -140,7 +140,7 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
     def test_incorrect_withdrawal_amount(self):           
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('Exchange1', 1)
         # tx: d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882
         # input 0: 0.0039 BTC
 
@@ -191,7 +191,7 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
     def test_deposit_address_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('Exchange1', 1)
         # tx: d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882
         # input 0: 0.0039 BTC
 
@@ -242,7 +242,7 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
     def test_return_address_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('Exchange1', 1)
         # tx: d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882
         # input 0: 0.0039 BTC
 
@@ -294,7 +294,7 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
     def test_signature_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('Exchange1', 1)
         # tx: d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882
         # input 0: 0.0039 BTC
 
