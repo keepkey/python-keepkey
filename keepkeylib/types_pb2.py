@@ -16,7 +16,7 @@ import exchange_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='types.proto',
   package='',
-  serialized_pb='\n\x0btypes.proto\x1a google/protobuf/descriptor.proto\x1a\x0e\x65xchange.proto\"\x80\x01\n\nHDNodeType\x12\r\n\x05\x64\x65pth\x18\x01 \x02(\r\x12\x13\n\x0b\x66ingerprint\x18\x02 \x02(\r\x12\x11\n\tchild_num\x18\x03 \x02(\r\x12\x12\n\nchain_code\x18\x04 \x02(\x0c\x12\x13\n\x0bprivate_key\x18\x05 \x01(\x0c\x12\x12\n\npublic_key\x18\x06 \x01(\x0c\">\n\x0eHDNodePathType\x12\x19\n\x04node\x18\x01 \x02(\x0b\x32\x0b.HDNodeType\x12\x11\n\taddress_n\x18\x02 \x03(\r\"\xdd\x01\n\x08\x43oinType\x12\x11\n\tcoin_name\x18\x01 \x01(\t\x12\x15\n\rcoin_shortcut\x18\x02 \x01(\t\x12\x17\n\x0c\x61\x64\x64ress_type\x18\x03 \x01(\r:\x01\x30\x12\x11\n\tmaxfee_kb\x18\x04 \x01(\x04\x12\x1c\n\x11\x61\x64\x64ress_type_p2sh\x18\x05 \x01(\r:\x01\x35\x12\x1e\n\x13\x61\x64\x64ress_type_p2wpkh\x18\x06 \x01(\r:\x01\x36\x12\x1e\n\x12\x61\x64\x64ress_type_p2wsh\x18\x07 \x01(\r:\x02\x31\x30\x12\x1d\n\x15signed_message_header\x18\x08 \x01(\t\"[\n\x18MultisigRedeemScriptType\x12 \n\x07pubkeys\x18\x01 \x03(\x0b\x32\x0f.HDNodePathType\x12\x12\n\nsignatures\x18\x02 \x03(\x0c\x12\t\n\x01m\x18\x03 \x01(\r\"\xdb\x01\n\x0bTxInputType\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x11\n\tprev_hash\x18\x02 \x02(\x0c\x12\x12\n\nprev_index\x18\x03 \x02(\r\x12\x12\n\nscript_sig\x18\x04 \x01(\x0c\x12\x1c\n\x08sequence\x18\x05 \x01(\r:\n4294967295\x12\x33\n\x0bscript_type\x18\x06 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\x12+\n\x08multisig\x18\x07 \x01(\x0b\x32\x19.MultisigRedeemScriptType\"\xff\x01\n\x0cTxOutputType\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\taddress_n\x18\x02 \x03(\r\x12\x0e\n\x06\x61mount\x18\x03 \x02(\x04\x12&\n\x0bscript_type\x18\x04 \x02(\x0e\x32\x11.OutputScriptType\x12+\n\x08multisig\x18\x05 \x01(\x0b\x32\x19.MultisigRedeemScriptType\x12\x16\n\x0eop_return_data\x18\x06 \x01(\x0c\x12(\n\x0c\x61\x64\x64ress_type\x18\x07 \x01(\x0e\x32\x12.OutputAddressType\x12$\n\rexchange_type\x18\x08 \x01(\x0b\x32\r.ExchangeType\"8\n\x0fTxOutputBinType\x12\x0e\n\x06\x61mount\x18\x01 \x02(\x04\x12\x15\n\rscript_pubkey\x18\x02 \x02(\x0c\"\xc3\x01\n\x0fTransactionType\x12\x0f\n\x07version\x18\x01 \x01(\r\x12\x1c\n\x06inputs\x18\x02 \x03(\x0b\x32\x0c.TxInputType\x12%\n\x0b\x62in_outputs\x18\x03 \x03(\x0b\x32\x10.TxOutputBinType\x12\x1e\n\x07outputs\x18\x05 \x03(\x0b\x32\r.TxOutputType\x12\x11\n\tlock_time\x18\x04 \x01(\r\x12\x12\n\ninputs_cnt\x18\x06 \x01(\r\x12\x13\n\x0boutputs_cnt\x18\x07 \x01(\r\"%\n\x12RawTransactionType\x12\x0f\n\x07payload\x18\x01 \x02(\x0c\">\n\x14TxRequestDetailsType\x12\x15\n\rrequest_index\x18\x01 \x01(\r\x12\x0f\n\x07tx_hash\x18\x02 \x01(\x0c\"\\\n\x17TxRequestSerializedType\x12\x17\n\x0fsignature_index\x18\x01 \x01(\r\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x03 \x01(\x0c\"g\n\x0cIdentityType\x12\r\n\x05proto\x18\x01 \x01(\t\x12\x0c\n\x04user\x18\x02 \x01(\t\x12\x0c\n\x04host\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\t\x12\x0c\n\x04path\x18\x05 \x01(\t\x12\x10\n\x05index\x18\x06 \x01(\r:\x01\x30\"2\n\nPolicyType\x12\x13\n\x0bpolicy_name\x18\x01 \x01(\t\x12\x0f\n\x07\x65nabled\x18\x02 \x01(\x08\"\xc8\x01\n\x0c\x45xchangeType\x12#\n\x08response\x18\x01 \x01(\x0b\x32\x11.ExchangeResponse\x12\"\n\x11\x64\x65posit_coin_name\x18\x02 \x01(\t:\x07\x42itcoin\x12\x17\n\x0f\x64\x65posit_address\x18\x03 \x01(\t\x12\x19\n\x11\x64\x65posit_address_n\x18\x04 \x03(\r\x12!\n\x10return_coin_name\x18\x05 \x01(\t:\x07\x42itcoin\x12\x18\n\x10return_address_n\x18\x06 \x03(\r*\xcd\x02\n\x0b\x46\x61ilureType\x12\x1d\n\x19\x46\x61ilure_UnexpectedMessage\x10\x01\x12\x1a\n\x16\x46\x61ilure_ButtonExpected\x10\x02\x12\x17\n\x13\x46\x61ilure_SyntaxError\x10\x03\x12\x1b\n\x17\x46\x61ilure_ActionCancelled\x10\x04\x12\x17\n\x13\x46\x61ilure_PinExpected\x10\x05\x12\x18\n\x14\x46\x61ilure_PinCancelled\x10\x06\x12\x16\n\x12\x46\x61ilure_PinInvalid\x10\x07\x12\x1c\n\x18\x46\x61ilure_InvalidSignature\x10\x08\x12\x11\n\rFailure_Other\x10\t\x12\x1a\n\x16\x46\x61ilure_NotEnoughFunds\x10\n\x12\x1a\n\x16\x46\x61ilure_NotInitialized\x10\x0b\x12\x19\n\x15\x46\x61ilure_FirmwareError\x10\x63*_\n\x10OutputScriptType\x12\x10\n\x0cPAYTOADDRESS\x10\x00\x12\x13\n\x0fPAYTOSCRIPTHASH\x10\x01\x12\x11\n\rPAYTOMULTISIG\x10\x02\x12\x11\n\rPAYTOOPRETURN\x10\x03*6\n\x0fInputScriptType\x12\x10\n\x0cSPENDADDRESS\x10\x00\x12\x11\n\rSPENDMULTISIG\x10\x01*D\n\x0bRequestType\x12\x0b\n\x07TXINPUT\x10\x00\x12\x0c\n\x08TXOUTPUT\x10\x01\x12\n\n\x06TXMETA\x10\x02\x12\x0e\n\nTXFINISHED\x10\x03*F\n\x11OutputAddressType\x12\t\n\x05SPEND\x10\x00\x12\x0c\n\x08TRANSFER\x10\x01\x12\n\n\x06\x43HANGE\x10\x02\x12\x0c\n\x08\x45XCHANGE\x10\x03*\xec\x07\n\x11\x42uttonRequestType\x12\x17\n\x13\x42uttonRequest_Other\x10\x01\x12\"\n\x1e\x42uttonRequest_FeeOverThreshold\x10\x02\x12\x1f\n\x1b\x42uttonRequest_ConfirmOutput\x10\x03\x12\x1d\n\x19\x42uttonRequest_ResetDevice\x10\x04\x12\x1d\n\x19\x42uttonRequest_ConfirmWord\x10\x05\x12\x1c\n\x18\x42uttonRequest_WipeDevice\x10\x06\x12\x1d\n\x19\x42uttonRequest_ProtectCall\x10\x07\x12\x18\n\x14\x42uttonRequest_SignTx\x10\x08\x12\x1f\n\x1b\x42uttonRequest_FirmwareCheck\x10\t\x12\x19\n\x15\x42uttonRequest_Address\x10\n\x12\x1f\n\x1b\x42uttonRequest_FirmwareErase\x10\x0b\x12*\n&ButtonRequest_ConfirmTransferToAccount\x10\x0c\x12+\n\'ButtonRequest_ConfirmTransferToNodePath\x10\r\x12\x1d\n\x19\x42uttonRequest_ChangeLabel\x10\x0e\x12 \n\x1c\x42uttonRequest_ChangeLanguage\x10\x0f\x12\"\n\x1e\x42uttonRequest_EnablePassphrase\x10\x10\x12#\n\x1f\x42uttonRequest_DisablePassphrase\x10\x11\x12\'\n#ButtonRequest_EncryptAndSignMessage\x10\x12\x12 \n\x1c\x42uttonRequest_EncryptMessage\x10\x13\x12\"\n\x1e\x42uttonRequest_ImportPrivateKey\x10\x14\x12(\n$ButtonRequest_ImportRecoverySentence\x10\x15\x12\x1e\n\x1a\x42uttonRequest_SignIdentity\x10\x16\x12\x16\n\x12\x42uttonRequest_Ping\x10\x17\x12\x1b\n\x17\x42uttonRequest_RemovePin\x10\x18\x12\x1b\n\x17\x42uttonRequest_ChangePin\x10\x19\x12\x1b\n\x17\x42uttonRequest_CreatePin\x10\x1a\x12\x1c\n\x18\x42uttonRequest_GetEntropy\x10\x1b\x12\x1d\n\x19\x42uttonRequest_SignMessage\x10\x1c\x12\x1f\n\x1b\x42uttonRequest_ApplyPolicies\x10\x1d\x12\x1e\n\x1a\x42uttonRequest_SignExchange\x10\x1e*\x7f\n\x14PinMatrixRequestType\x12 \n\x1cPinMatrixRequestType_Current\x10\x01\x12!\n\x1dPinMatrixRequestType_NewFirst\x10\x02\x12\"\n\x1ePinMatrixRequestType_NewSecond\x10\x03:4\n\x07wire_in\x12!.google.protobuf.EnumValueOptions\x18\xd2\x86\x03 \x01(\x08:5\n\x08wire_out\x12!.google.protobuf.EnumValueOptions\x18\xd3\x86\x03 \x01(\x08::\n\rwire_debug_in\x12!.google.protobuf.EnumValueOptions\x18\xd4\x86\x03 \x01(\x08:;\n\x0ewire_debug_out\x12!.google.protobuf.EnumValueOptions\x18\xd5\x86\x03 \x01(\x08\x42*\n\x1b\x63om.keepkey.device-protocolB\x0bKeepKeyType')
+  serialized_pb='\n\x0btypes.proto\x1a google/protobuf/descriptor.proto\x1a\x0e\x65xchange.proto\"\x80\x01\n\nHDNodeType\x12\r\n\x05\x64\x65pth\x18\x01 \x02(\r\x12\x13\n\x0b\x66ingerprint\x18\x02 \x02(\r\x12\x11\n\tchild_num\x18\x03 \x02(\r\x12\x12\n\nchain_code\x18\x04 \x02(\x0c\x12\x13\n\x0bprivate_key\x18\x05 \x01(\x0c\x12\x12\n\npublic_key\x18\x06 \x01(\x0c\">\n\x0eHDNodePathType\x12\x19\n\x04node\x18\x01 \x02(\x0b\x32\x0b.HDNodeType\x12\x11\n\taddress_n\x18\x02 \x03(\r\"\xdd\x01\n\x08\x43oinType\x12\x11\n\tcoin_name\x18\x01 \x01(\t\x12\x15\n\rcoin_shortcut\x18\x02 \x01(\t\x12\x17\n\x0c\x61\x64\x64ress_type\x18\x03 \x01(\r:\x01\x30\x12\x11\n\tmaxfee_kb\x18\x04 \x01(\x04\x12\x1c\n\x11\x61\x64\x64ress_type_p2sh\x18\x05 \x01(\r:\x01\x35\x12\x1e\n\x13\x61\x64\x64ress_type_p2wpkh\x18\x06 \x01(\r:\x01\x36\x12\x1e\n\x12\x61\x64\x64ress_type_p2wsh\x18\x07 \x01(\r:\x02\x31\x30\x12\x1d\n\x15signed_message_header\x18\x08 \x01(\t\"[\n\x18MultisigRedeemScriptType\x12 \n\x07pubkeys\x18\x01 \x03(\x0b\x32\x0f.HDNodePathType\x12\x12\n\nsignatures\x18\x02 \x03(\x0c\x12\t\n\x01m\x18\x03 \x01(\r\"\xdb\x01\n\x0bTxInputType\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x11\n\tprev_hash\x18\x02 \x02(\x0c\x12\x12\n\nprev_index\x18\x03 \x02(\r\x12\x12\n\nscript_sig\x18\x04 \x01(\x0c\x12\x1c\n\x08sequence\x18\x05 \x01(\r:\n4294967295\x12\x33\n\x0bscript_type\x18\x06 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\x12+\n\x08multisig\x18\x07 \x01(\x0b\x32\x19.MultisigRedeemScriptType\"\xff\x01\n\x0cTxOutputType\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\taddress_n\x18\x02 \x03(\r\x12\x0e\n\x06\x61mount\x18\x03 \x02(\x04\x12&\n\x0bscript_type\x18\x04 \x02(\x0e\x32\x11.OutputScriptType\x12+\n\x08multisig\x18\x05 \x01(\x0b\x32\x19.MultisigRedeemScriptType\x12\x16\n\x0eop_return_data\x18\x06 \x01(\x0c\x12(\n\x0c\x61\x64\x64ress_type\x18\x07 \x01(\x0e\x32\x12.OutputAddressType\x12$\n\rexchange_type\x18\x08 \x01(\x0b\x32\r.ExchangeType\"8\n\x0fTxOutputBinType\x12\x0e\n\x06\x61mount\x18\x01 \x02(\x04\x12\x15\n\rscript_pubkey\x18\x02 \x02(\x0c\"\xc3\x01\n\x0fTransactionType\x12\x0f\n\x07version\x18\x01 \x01(\r\x12\x1c\n\x06inputs\x18\x02 \x03(\x0b\x32\x0c.TxInputType\x12%\n\x0b\x62in_outputs\x18\x03 \x03(\x0b\x32\x10.TxOutputBinType\x12\x1e\n\x07outputs\x18\x05 \x03(\x0b\x32\r.TxOutputType\x12\x11\n\tlock_time\x18\x04 \x01(\r\x12\x12\n\ninputs_cnt\x18\x06 \x01(\r\x12\x13\n\x0boutputs_cnt\x18\x07 \x01(\r\"%\n\x12RawTransactionType\x12\x0f\n\x07payload\x18\x01 \x02(\x0c\">\n\x14TxRequestDetailsType\x12\x15\n\rrequest_index\x18\x01 \x01(\r\x12\x0f\n\x07tx_hash\x18\x02 \x01(\x0c\"\\\n\x17TxRequestSerializedType\x12\x17\n\x0fsignature_index\x18\x01 \x01(\r\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x03 \x01(\x0c\"g\n\x0cIdentityType\x12\r\n\x05proto\x18\x01 \x01(\t\x12\x0c\n\x04user\x18\x02 \x01(\t\x12\x0c\n\x04host\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\t\x12\x0c\n\x04path\x18\x05 \x01(\t\x12\x10\n\x05index\x18\x06 \x01(\r:\x01\x30\"2\n\nPolicyType\x12\x13\n\x0bpolicy_name\x18\x01 \x01(\t\x12\x0f\n\x07\x65nabled\x18\x02 \x01(\x08\"\xde\x01\n\x0c\x45xchangeType\x12\x39\n\x18signed_exchange_response\x18\x01 \x01(\x0b\x32\x17.SignedExchangeResponse\x12\"\n\x11\x64\x65posit_coin_name\x18\x02 \x01(\t:\x07\x42itcoin\x12\x17\n\x0f\x64\x65posit_address\x18\x03 \x01(\t\x12\x19\n\x11\x64\x65posit_address_n\x18\x04 \x03(\r\x12!\n\x10return_coin_name\x18\x05 \x01(\t:\x07\x42itcoin\x12\x18\n\x10return_address_n\x18\x06 \x03(\r*\xcd\x02\n\x0b\x46\x61ilureType\x12\x1d\n\x19\x46\x61ilure_UnexpectedMessage\x10\x01\x12\x1a\n\x16\x46\x61ilure_ButtonExpected\x10\x02\x12\x17\n\x13\x46\x61ilure_SyntaxError\x10\x03\x12\x1b\n\x17\x46\x61ilure_ActionCancelled\x10\x04\x12\x17\n\x13\x46\x61ilure_PinExpected\x10\x05\x12\x18\n\x14\x46\x61ilure_PinCancelled\x10\x06\x12\x16\n\x12\x46\x61ilure_PinInvalid\x10\x07\x12\x1c\n\x18\x46\x61ilure_InvalidSignature\x10\x08\x12\x11\n\rFailure_Other\x10\t\x12\x1a\n\x16\x46\x61ilure_NotEnoughFunds\x10\n\x12\x1a\n\x16\x46\x61ilure_NotInitialized\x10\x0b\x12\x19\n\x15\x46\x61ilure_FirmwareError\x10\x63*_\n\x10OutputScriptType\x12\x10\n\x0cPAYTOADDRESS\x10\x00\x12\x13\n\x0fPAYTOSCRIPTHASH\x10\x01\x12\x11\n\rPAYTOMULTISIG\x10\x02\x12\x11\n\rPAYTOOPRETURN\x10\x03*6\n\x0fInputScriptType\x12\x10\n\x0cSPENDADDRESS\x10\x00\x12\x11\n\rSPENDMULTISIG\x10\x01*D\n\x0bRequestType\x12\x0b\n\x07TXINPUT\x10\x00\x12\x0c\n\x08TXOUTPUT\x10\x01\x12\n\n\x06TXMETA\x10\x02\x12\x0e\n\nTXFINISHED\x10\x03*F\n\x11OutputAddressType\x12\t\n\x05SPEND\x10\x00\x12\x0c\n\x08TRANSFER\x10\x01\x12\n\n\x06\x43HANGE\x10\x02\x12\x0c\n\x08\x45XCHANGE\x10\x03*\xec\x07\n\x11\x42uttonRequestType\x12\x17\n\x13\x42uttonRequest_Other\x10\x01\x12\"\n\x1e\x42uttonRequest_FeeOverThreshold\x10\x02\x12\x1f\n\x1b\x42uttonRequest_ConfirmOutput\x10\x03\x12\x1d\n\x19\x42uttonRequest_ResetDevice\x10\x04\x12\x1d\n\x19\x42uttonRequest_ConfirmWord\x10\x05\x12\x1c\n\x18\x42uttonRequest_WipeDevice\x10\x06\x12\x1d\n\x19\x42uttonRequest_ProtectCall\x10\x07\x12\x18\n\x14\x42uttonRequest_SignTx\x10\x08\x12\x1f\n\x1b\x42uttonRequest_FirmwareCheck\x10\t\x12\x19\n\x15\x42uttonRequest_Address\x10\n\x12\x1f\n\x1b\x42uttonRequest_FirmwareErase\x10\x0b\x12*\n&ButtonRequest_ConfirmTransferToAccount\x10\x0c\x12+\n\'ButtonRequest_ConfirmTransferToNodePath\x10\r\x12\x1d\n\x19\x42uttonRequest_ChangeLabel\x10\x0e\x12 \n\x1c\x42uttonRequest_ChangeLanguage\x10\x0f\x12\"\n\x1e\x42uttonRequest_EnablePassphrase\x10\x10\x12#\n\x1f\x42uttonRequest_DisablePassphrase\x10\x11\x12\'\n#ButtonRequest_EncryptAndSignMessage\x10\x12\x12 \n\x1c\x42uttonRequest_EncryptMessage\x10\x13\x12\"\n\x1e\x42uttonRequest_ImportPrivateKey\x10\x14\x12(\n$ButtonRequest_ImportRecoverySentence\x10\x15\x12\x1e\n\x1a\x42uttonRequest_SignIdentity\x10\x16\x12\x16\n\x12\x42uttonRequest_Ping\x10\x17\x12\x1b\n\x17\x42uttonRequest_RemovePin\x10\x18\x12\x1b\n\x17\x42uttonRequest_ChangePin\x10\x19\x12\x1b\n\x17\x42uttonRequest_CreatePin\x10\x1a\x12\x1c\n\x18\x42uttonRequest_GetEntropy\x10\x1b\x12\x1d\n\x19\x42uttonRequest_SignMessage\x10\x1c\x12\x1f\n\x1b\x42uttonRequest_ApplyPolicies\x10\x1d\x12\x1e\n\x1a\x42uttonRequest_SignExchange\x10\x1e*\x7f\n\x14PinMatrixRequestType\x12 \n\x1cPinMatrixRequestType_Current\x10\x01\x12!\n\x1dPinMatrixRequestType_NewFirst\x10\x02\x12\"\n\x1ePinMatrixRequestType_NewSecond\x10\x03:4\n\x07wire_in\x12!.google.protobuf.EnumValueOptions\x18\xd2\x86\x03 \x01(\x08:5\n\x08wire_out\x12!.google.protobuf.EnumValueOptions\x18\xd3\x86\x03 \x01(\x08::\n\rwire_debug_in\x12!.google.protobuf.EnumValueOptions\x18\xd4\x86\x03 \x01(\x08:;\n\x0ewire_debug_out\x12!.google.protobuf.EnumValueOptions\x18\xd5\x86\x03 \x01(\x08\x42*\n\x1b\x63om.keepkey.device-protocolB\x0bKeepKeyType')
 
 _FAILURETYPE = _descriptor.EnumDescriptor(
   name='FailureType',
@@ -75,8 +75,8 @@ _FAILURETYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1871,
-  serialized_end=2204,
+  serialized_start=1893,
+  serialized_end=2226,
 )
 
 FailureType = enum_type_wrapper.EnumTypeWrapper(_FAILURETYPE)
@@ -105,8 +105,8 @@ _OUTPUTSCRIPTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2206,
-  serialized_end=2301,
+  serialized_start=2228,
+  serialized_end=2323,
 )
 
 OutputScriptType = enum_type_wrapper.EnumTypeWrapper(_OUTPUTSCRIPTTYPE)
@@ -127,8 +127,8 @@ _INPUTSCRIPTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2303,
-  serialized_end=2357,
+  serialized_start=2325,
+  serialized_end=2379,
 )
 
 InputScriptType = enum_type_wrapper.EnumTypeWrapper(_INPUTSCRIPTTYPE)
@@ -157,8 +157,8 @@ _REQUESTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2359,
-  serialized_end=2427,
+  serialized_start=2381,
+  serialized_end=2449,
 )
 
 RequestType = enum_type_wrapper.EnumTypeWrapper(_REQUESTTYPE)
@@ -187,8 +187,8 @@ _OUTPUTADDRESSTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2429,
-  serialized_end=2499,
+  serialized_start=2451,
+  serialized_end=2521,
 )
 
 OutputAddressType = enum_type_wrapper.EnumTypeWrapper(_OUTPUTADDRESSTYPE)
@@ -321,8 +321,8 @@ _BUTTONREQUESTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2502,
-  serialized_end=3506,
+  serialized_start=2524,
+  serialized_end=3528,
 )
 
 ButtonRequestType = enum_type_wrapper.EnumTypeWrapper(_BUTTONREQUESTTYPE)
@@ -347,8 +347,8 @@ _PINMATRIXREQUESTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3508,
-  serialized_end=3635,
+  serialized_start=3530,
+  serialized_end=3657,
 )
 
 PinMatrixRequestType = enum_type_wrapper.EnumTypeWrapper(_PINMATRIXREQUESTTYPE)
@@ -1126,7 +1126,7 @@ _EXCHANGETYPE = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='response', full_name='ExchangeType.response', index=0,
+      name='signed_exchange_response', full_name='ExchangeType.signed_exchange_response', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -1177,7 +1177,7 @@ _EXCHANGETYPE = _descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=1668,
-  serialized_end=1868,
+  serialized_end=1890,
 )
 
 _HDNODEPATHTYPE.fields_by_name['node'].message_type = _HDNODETYPE
@@ -1191,7 +1191,7 @@ _TXOUTPUTTYPE.fields_by_name['exchange_type'].message_type = _EXCHANGETYPE
 _TRANSACTIONTYPE.fields_by_name['inputs'].message_type = _TXINPUTTYPE
 _TRANSACTIONTYPE.fields_by_name['bin_outputs'].message_type = _TXOUTPUTBINTYPE
 _TRANSACTIONTYPE.fields_by_name['outputs'].message_type = _TXOUTPUTTYPE
-_EXCHANGETYPE.fields_by_name['response'].message_type = exchange_pb2._EXCHANGERESPONSE
+_EXCHANGETYPE.fields_by_name['signed_exchange_response'].message_type = exchange_pb2._SIGNEDEXCHANGERESPONSE
 DESCRIPTOR.message_types_by_name['HDNodeType'] = _HDNODETYPE
 DESCRIPTOR.message_types_by_name['HDNodePathType'] = _HDNODEPATHTYPE
 DESCRIPTOR.message_types_by_name['CoinType'] = _COINTYPE
