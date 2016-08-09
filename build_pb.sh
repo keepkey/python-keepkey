@@ -1,7 +1,14 @@
 #!/bin/bash
 CURDIR=$(pwd)
 
-cd $CURDIR/../device-protocol
+DEVICE_PROTO="device-protocol-private"
+
+if [ ! -d ../$DEVICE_PROTO ]
+then
+    git clone git@github.com:keepkey/$DEVICE_PROTO.git ../$DEVICE_PROTO
+fi
+
+cd $CURDIR/../$DEVICE_PROTO
 
 for i in messages types exchange ; do
     protoc --python_out=$CURDIR/keepkeylib/ -I/usr/include -I. $i.proto
