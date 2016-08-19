@@ -359,7 +359,7 @@ class DebugLinkMixin(object):
         self.pin_correct = pin_correct
 
     def set_passphrase(self, passphrase):
-        self.passphrase = normalize_nfc(passphrase)
+        self.passphrase = unicode(str(bytearray(Mnemonic.normalize_string(passphrase), 'utf-8')), 'utf-8')
 
     def set_mnemonic(self, mnemonic):
         self.mnemonic = unicode(str(bytearray(Mnemonic.normalize_string(mnemonic), 'utf-8')), 'utf-8').split(' ')
@@ -828,7 +828,7 @@ class ProtocolMixin(object):
         mnemonic = Mnemonic.normalize_string(mnemonic)
 
         # Convert mnemonic to ASCII stream
-        mnemonic = normalize_nfc(mnemonic)
+        mnemonic = unicode(str(bytearray(mnemonic, 'utf-8')), 'utf-8')
 
         if self.features.initialized:
             raise Exception("Device is initialized already. Call wipe_device() and try again.")
