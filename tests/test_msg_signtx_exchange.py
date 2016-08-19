@@ -488,7 +488,6 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
         # tx: 08ebb7932ff4cd631f82e999b4d2f4dba119a8519991f7d13cbf12dfb3d7f3b2
         # input 0: 5.83579345 BTC
 
-        print "This is a test"
         inp1 = proto_types.TxInputType(address_n=[0],  # 1rExUsv6RScHtQiLeSUv4ERGaAdxJTmDg  
                              # amount=583579345,
                              prev_hash=binascii.unhexlify('08ebb7932ff4cd631f82e999b4d2f4dba119a8519991f7d13cbf12dfb3d7f3b2'),
