@@ -156,7 +156,7 @@ class TestMsgSigntx(common.KeepKeyTest):
                              )
 
         # Transfer Output address
-        out1 = proto_types.TxOutputType(address_n=[0x8000002c, 0x80000000, 0x80000000, 1, 0 ],
+        out1 = proto_types.TxOutputType(address_n=[0x8000002c, 0x80000000, 0x80000000, 0, 0 ],
                               amount=390000 - 10000, 
                               script_type=proto_types.PAYTOADDRESS,
                               address_type=1,
@@ -190,7 +190,7 @@ class TestMsgSigntx(common.KeepKeyTest):
             ])
             (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, out2])
 
-        self.assertEqual(binascii.hexlify(serialized_tx), '010000000182488650ef25a58fef6788bd71b8212038d7f2bbe4750bc7bcb44701e85ef6d5000000006a47304402207c60797406ab334cfab1ffab8da487ebd9f346b66cfa7f71d5ffcdca99065c4002206d1c95638fb8fb00487c5f8f8fd8e55fea6c3410a915f27a89265d8cb5701da30121023230848585885f63803a0a8aecdd6538792d5c539215c91698e315bf0253b43dffffffff0260cc0500000000001976a9141c07afb85ee3408f8fd1fc9c5b5361800c28d2eb88ac401f0000000000001976a914db302d9f1dd36faa220d8dfd7ff18ff5e308a53688ac00000000')
+        self.assertEqual(binascii.hexlify(serialized_tx), '010000000182488650ef25a58fef6788bd71b8212038d7f2bbe4750bc7bcb44701e85ef6d5000000006a473044022029270ff6991d953cb89135dc43723a64f5be00a69db42efeb845f2918dec50c302201f6589bb44c9c4b6c8152966d5de9b56c2a6ca61172d0f63c6c62e48ad8975130121023230848585885f63803a0a8aecdd6538792d5c539215c91698e315bf0253b43dffffffff0260cc0500000000001976a9149c9d21f47382762df3ad81391ee0964b28dd951788ac401f0000000000001976a914db302d9f1dd36faa220d8dfd7ff18ff5e308a53688ac00000000')
     
     
     def test_xfer_multi_account(self):
@@ -283,7 +283,7 @@ class TestMsgSigntx(common.KeepKeyTest):
 
 
         # Transfer Output address
-        out2 = proto_types.TxOutputType(address_n=[0x8000002c, 0x80000000, 0x80000000, 1, 0 ],
+        out2 = proto_types.TxOutputType(address_n=[0x8000002c, 0x80000000, 0x80000000, 0, 0 ],
                               amount=10000, 
                               script_type=proto_types.PAYTOADDRESS,
                               address_type=1,
@@ -320,7 +320,7 @@ class TestMsgSigntx(common.KeepKeyTest):
             ])
             (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, out2, out3])
 
-        self.assertEqual(binascii.hexlify(serialized_tx), '010000000182488650ef25a58fef6788bd71b8212038d7f2bbe4750bc7bcb44701e85ef6d5000000006b483045022100fddbb36159890132d479cf88f706a866560dca04563b35c0db9297dd237b0fe0022047498dcebf88416a9bc5d81d7870a2b4457a0ba9fd5c0668d55e2971dd843ab40121023230848585885f63803a0a8aecdd6538792d5c539215c91698e315bf0253b43dffffffff0300650400000000001976a914de9b2a8da088824e8fe51debea566617d851537888ac10270000000000001976a9141c07afb85ee3408f8fd1fc9c5b5361800c28d2eb88ac80380100000000001976a914db302d9f1dd36faa220d8dfd7ff18ff5e308a53688ac00000000')
+        self.assertEqual(binascii.hexlify(serialized_tx), '010000000182488650ef25a58fef6788bd71b8212038d7f2bbe4750bc7bcb44701e85ef6d5000000006b483045022100c3ceed2bd2365ccdb978d605e9ae6347790b978e2747bbbec623364270be723c022017680d050c2bf0dae4bd249d83b43bc93a33661c1a0b18c7e8a05eb47815f9aa0121023230848585885f63803a0a8aecdd6538792d5c539215c91698e315bf0253b43dffffffff0300650400000000001976a914de9b2a8da088824e8fe51debea566617d851537888ac10270000000000001976a9149c9d21f47382762df3ad81391ee0964b28dd951788ac80380100000000001976a914db302d9f1dd36faa220d8dfd7ff18ff5e308a53688ac00000000')
 
 if __name__ == '__main__':
     unittest.main()
