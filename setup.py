@@ -25,6 +25,7 @@ setup(
         'keepkeylib.transport_socket',
         'keepkeylib.tx_api',
         'keepkeylib.types_pb2',
+        'keepkeylib.exchange_pb2',
     ],
     scripts = ['keepkeyctl'],
     test_suite='tests',
