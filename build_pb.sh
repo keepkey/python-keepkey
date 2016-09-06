@@ -1,7 +1,7 @@
 #!/bin/bash
 CURDIR=$(pwd)
 
-DEVICE_PROTO="device-protocol-private"
+DEVICE_PROTO="device-protocol"
 
 if [ ! -d ../$DEVICE_PROTO ]
 then
