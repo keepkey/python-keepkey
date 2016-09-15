@@ -496,6 +496,51 @@ class ProtocolMixin(object):
         else:
             return self.call(proto.GetAddress(address_n=n, coin_name=coin_name, show_display=show_display))
 
+    @field('address')
+    @expect(proto.EthereumAddress)
+    def ethereum_get_address(self, n, show_display=False, multisig=None):
+        n = self._convert_prime(n)
+        return self.call(proto.EthereumGetAddress(address_n=n, show_display=show_display))
+
+    def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, to, value, data=None):
+        def int_to_big_endian(value):
+            import rlp.utils
+            if value == 0:
+                return b''
+            return rlp.utils.int_to_big_endian(value)
+
+        n = self._convert_prime(n)
+
+        try:
+            self.transport.session_begin()
+
+            msg = proto.EthereumSignTx(
+                address_n=n,
+                nonce=int_to_big_endian(nonce),
+                gas_price=int_to_big_endian(gas_price),
+                gas_limit=int_to_big_endian(gas_limit),
+                value=int_to_big_endian(value))
+
+            if to:
+                msg.to = to
+
+            if data:
+                msg.data_length = len(data)
+                data, chunk = data[1024:], data[:1024]
+                msg.data_initial_chunk = chunk
+
+            response = self.call(msg)
+
+            while response.HasField('data_length'):
+                data_length = response.data_length
+                data, chunk = data[data_length:], data[:data_length]
+                response = self.call(proto.EthereumTxAck(data_chunk=chunk))
+
+            return response.signature_v, response.signature_r, response.signature_s
+
+        finally:
+            self.transport.session_end()
+
     @field('entropy')
     @expect(proto.Entropy)
     def get_entropy(self, size):
@@ -560,6 +605,16 @@ class ProtocolMixin(object):
     @expect(proto.SignedIdentity)
     def sign_identity(self, identity, challenge_hidden, challenge_visual, ecdsa_curve_name=DEFAULT_CURVE):
         return self.call(proto.SignIdentity(identity=identity, challenge_hidden=challenge_hidden, challenge_visual=challenge_visual, ecdsa_curve_name=ecdsa_curve_name))
+
+    @expect(proto.ECDHSessionKey)
+    def get_ecdh_session_key(self, identity, peer_public_key, ecdsa_curve_name=DEFAULT_CURVE):
+        return self.call(proto.GetECDHSessionKey(identity=identity, peer_public_key=peer_public_key, ecdsa_curve_name=ecdsa_curve_name))
+
+    @field('message')
+    @expect(proto.Success)
+    def set_u2f_counter(self, u2f_counter):
+        ret = self.call(proto.SetU2FCounter(u2f_counter = u2f_counter))
+        return ret
 
     def verify_message(self, address, signature, message):
         # Convert message to UTF8 NFC (seems to be a bitcoin-qt standard)
