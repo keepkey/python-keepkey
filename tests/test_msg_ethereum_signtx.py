@@ -2,8 +2,8 @@ import unittest
 import common
 import binascii
 
-import trezorlib.messages_pb2 as proto
-import trezorlib.types_pb2 as proto_types
+import keepkeylib.messages_pb2 as proto
+import keepkeylib.types_pb2 as proto_types
 
 from rlp.utils import int_to_big_endian
 

@@ -1,6 +1,6 @@
 import unittest
 import common
-import trezorlib.ckd_public as bip32
+import keepkeylib.ckd_public as bip32
 import binascii
 
 class TestMsgEthereumGetaddress(common.KeepKeyTest):
