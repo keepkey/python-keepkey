@@ -21,6 +21,8 @@ def parse_args(commands):
 #    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help='Enable low-level debugging')
 
     cmdparser = parser.add_subparsers(title='Available commands')
+    cmdparser.required = True
+    cmdparser.dest = 'command'
 
     for cmd in commands._list_commands():
         func = object.__getattribute__(commands, cmd)
