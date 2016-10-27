@@ -13,7 +13,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='exchange.proto',
   package='',
-  serialized_pb='\n\x0e\x65xchange.proto\"[\n\x0f\x45xchangeAddress\x12\x11\n\tcoin_type\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\x12\x10\n\x08\x64\x65st_tag\x18\x03 \x01(\t\x12\x12\n\nrs_address\x18\x04 \x01(\t\"\xa7\x02\n\x10\x45xchangeResponse\x12)\n\x0f\x64\x65posit_address\x18\x01 \x01(\x0b\x32\x10.ExchangeAddress\x12\x16\n\x0e\x64\x65posit_amount\x18\x02 \x01(\x04\x12\x12\n\nexpiration\x18\x03 \x01(\x03\x12\x13\n\x0bquoted_rate\x18\x04 \x01(\x04\x12,\n\x12withdrawal_address\x18\x05 \x01(\x0b\x32\x10.ExchangeAddress\x12\x19\n\x11withdrawal_amount\x18\x06 \x01(\x04\x12(\n\x0ereturn_address\x18\x07 \x01(\x0b\x32\x10.ExchangeAddress\x12\x0f\n\x07\x61pi_key\x18\x08 \x01(\x0c\x12\x11\n\tminer_fee\x18\t \x01(\x04\x12\x10\n\x08order_id\x18\n \x01(\x0c\"P\n\x16SignedExchangeResponse\x12#\n\x08response\x18\x01 \x01(\x0b\x32\x11.ExchangeResponse\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42.\n\x1b\x63om.keepkey.device-protocolB\x0fKeepKeyExchange')
+  serialized_pb='\n\x0e\x65xchange.proto\"[\n\x0f\x45xchangeAddress\x12\x11\n\tcoin_type\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\x12\x10\n\x08\x64\x65st_tag\x18\x03 \x01(\t\x12\x12\n\nrs_address\x18\x04 \x01(\t\"\xa7\x02\n\x10\x45xchangeResponse\x12)\n\x0f\x64\x65posit_address\x18\x01 \x01(\x0b\x32\x10.ExchangeAddress\x12\x16\n\x0e\x64\x65posit_amount\x18\x02 \x01(\x0c\x12\x12\n\nexpiration\x18\x03 \x01(\x03\x12\x13\n\x0bquoted_rate\x18\x04 \x01(\x04\x12,\n\x12withdrawal_address\x18\x05 \x01(\x0b\x32\x10.ExchangeAddress\x12\x19\n\x11withdrawal_amount\x18\x06 \x01(\x0c\x12(\n\x0ereturn_address\x18\x07 \x01(\x0b\x32\x10.ExchangeAddress\x12\x0f\n\x07\x61pi_key\x18\x08 \x01(\x0c\x12\x11\n\tminer_fee\x18\t \x01(\x0c\x12\x10\n\x08order_id\x18\n \x01(\x0c\"P\n\x16SignedExchangeResponse\x12#\n\x08response\x18\x01 \x01(\x0b\x32\x11.ExchangeResponse\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42.\n\x1b\x63om.keepkey.device-protocolB\x0fKeepKeyExchange')
 
 
 
@@ -83,8 +83,8 @@ _EXCHANGERESPONSE = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='deposit_amount', full_name='ExchangeResponse.deposit_amount', index=1,
-      number=2, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -111,8 +111,8 @@ _EXCHANGERESPONSE = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='withdrawal_amount', full_name='ExchangeResponse.withdrawal_amount', index=5,
-      number=6, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=6, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -132,8 +132,8 @@ _EXCHANGERESPONSE = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='miner_fee', full_name='ExchangeResponse.miner_fee', index=8,
-      number=9, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=9, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
