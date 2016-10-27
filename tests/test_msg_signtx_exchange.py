@@ -27,12 +27,12 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 response=proto_exchange.ExchangeResponse(
-                                         withdrawal_amount=47535135,
+                                         withdrawal_amount='47535135',
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPw') ,
   
-                                         deposit_amount=300000, 
+                                         deposit_amount='300000', 
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='btc',
                                                 address='1AJaZuL6heuX8SJEthckaKKQPu2EbDMR3U') ,
@@ -42,10 +42,10 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
                                                 address='19nkmC2y4Rq3DXia7Um5YW9hxkRhwA5ABN') ,
 
                                          expiration=1471627016859,
-                                         quoted_rate=15878378378,
+                                         quoted_rate='15878378378',
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee=100000,
+                                         miner_fee='100000',
                                          order_id=binascii.unhexlify('f1c9ace477f04af79bcbc62f3756ae08'),
                                          ),
                                 signature=binascii.unhexlify('1f3d840f06670c1688377255dbe5cfc53f8de8628aed7a73a09718d058aae4a13e24baf1b83838ffc580e1b9a0f479663027c14ab6da7069311a7c554157857680')
@@ -99,12 +99,12 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 response=proto_exchange.ExchangeResponse(
-                                         withdrawal_amount=47535135,
+                                         withdrawal_amount='47535135',
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPw') ,
   
-                                         deposit_amount=300000, 
+                                         deposit_amount='300000', 
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='btc',
                                                 address='1AJaZuL6heuX8SJEthckaKKQPu2EbDMR3U') ,
@@ -114,10 +114,10 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
                                                 address='19nkmC2y4Rq3DXia7Um5YW9hxkRhwA5ABN') ,
 
                                          expiration=1471627016859,
-                                         quoted_rate=15878378371,                       #error added here1
+                                         quoted_rate='15878378371',                       #error added here1
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee=100000,
+                                         miner_fee='100000',
                                          order_id=binascii.unhexlify('f1c9ace477f04af79bcbc62f3756ae08'),
                                          ),
                                 signature=binascii.unhexlify('1f3d840f06670c1688377255dbe5cfc53f8de8628aed7a73a09718d058aae4a13e24baf1b83838ffc580e1b9a0f479663027c14ab6da7069311a7c554157857680')
@@ -162,12 +162,12 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 response=proto_exchange.ExchangeResponse(
-                                         withdrawal_amount=47535135,
+                                         withdrawal_amount='47535135',
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPw') ,
   
-                                         deposit_amount=300000, 
+                                         deposit_amount='300000', 
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='btc',
                                                 address='1AJaZuL6heuX8SJEthckaKKQPu2EbDMR3U') ,
@@ -177,10 +177,10 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
                                                 address='19nkmC2y4Rq3DXia7Um5YW9hxkRhwA5ABN') ,
 
                                          expiration=1471627016859,
-                                         quoted_rate=15878378378,                       #error added here1
+                                         quoted_rate='15878378378',                       #error added here1
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee=100000,
+                                         miner_fee='100000',
                                          order_id=binascii.unhexlify('f1c9ace477f04af79bcbc62f3756ae08'),
                                          ),
                                 signature=binascii.unhexlify('1f3d840f06670c1688377255dbe5cfc53f8de8628aed7a73a09718d058aae4a13e24baf1b83838ffc580e1b9a0f479663027c14ab6da7069311a7c554157857680')
@@ -225,12 +225,12 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 response=proto_exchange.ExchangeResponse(
-                                         withdrawal_amount=47535135,
+                                         withdrawal_amount='47535135',
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPw') ,
   
-                                         deposit_amount=300000, 
+                                         deposit_amount='300000', 
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='btc',
                                                 address='1AJaZuL6heuX8SJEthckaKKQPu2EbDMR3U') ,
@@ -240,10 +240,10 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
                                                 address='19nkmC2y4Rq3DXia7Um5YW9hxkRhwA5ABN') ,
 
                                          expiration=1471627016859,
-                                         quoted_rate=15878378378,                 
+                                         quoted_rate='15878378378',                 
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee=100000,
+                                         miner_fee='100000',
                                          order_id=binascii.unhexlify('f1c9ace477f04af79bcbc62f3756ae08'),
                                          ),
                                 signature=binascii.unhexlify('1f3d840f06670c1688377255dbe5cfc53f8de8628aed7a73a09718d058aae4a13e24baf1b83838ffc580e1b9a0f479663027c14ab6da7069311a7c554157857680')
@@ -289,12 +289,12 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 response=proto_exchange.ExchangeResponse(
-                                         withdrawal_amount=47535135,
+                                         withdrawal_amount='47535135',
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPw') ,
   
-                                         deposit_amount=300000, 
+                                         deposit_amount='300000', 
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='btc',
                                                 address='1AJaZuL6heuX8SJEthckaKKQPu2EbDMR3U') ,
@@ -304,10 +304,10 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
                                                 address='19nkmC2y4Rq3DXia7Um5YW9hxkRhwA5ABN') ,
 
                                          expiration=1471627016859,
-                                         quoted_rate=15878378378,         
+                                         quoted_rate='15878378378',         
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee=100000,
+                                         miner_fee='100000',
                                          order_id=binascii.unhexlify('f1c9ace477f04af79bcbc62f3756ae08'),
                                          ),
                                 signature=binascii.unhexlify('1f3d840f06670c1688377255dbe5cfc53f8de8628aed7a73a09718d058aae4a13e24baf1b83838ffc580e1b9a0f479663027c14ab6da7069311a7c554157857680')
@@ -355,12 +355,12 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 response=proto_exchange.ExchangeResponse(
-                                         withdrawal_amount=533594,
+                                         withdrawal_amount='533594',
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='btc',
                                                 address='19nkmC2y4Rq3DXia7Um5YW9hxkRhwA5ABN') ,
   
-                                         deposit_amount=90000000, 
+                                         deposit_amount='90000000', 
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LiZ9EjjyZYuKdkBSqzc7ZVHNQPubcUKuNC') ,
@@ -370,10 +370,10 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
 
                                          expiration=1471629998149,
-                                         quoted_rate=626216,
+                                         quoted_rate='626216',
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee=30000,
+                                         miner_fee='30000',
                                          order_id=binascii.unhexlify('bfe3a6b0afc64126a4d47612d229debf'),
                                          ),
                                 signature=binascii.unhexlify('20cb8e122ab35ea5d7e4344ce57f1da9d3deba6f19178c5e7184fb2091a3101848784035d315ccff7282d08dc018686b583f794f8b6f0ad006d8423df6b85e2977')
@@ -431,12 +431,12 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 response=proto_exchange.ExchangeResponse(
-                                         withdrawal_amount=533594,
+                                         withdrawal_amount='533594',
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='btc',
                                                 address='19nkmC2y4Rq3DXia7Um5YW9hxkRhwA5ABN') ,
   
-                                         deposit_amount=90000000, 
+                                         deposit_amount='90000000', 
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LiZ9EjjyZYuKdkBSqzc7ZVHNQPubcUKuNC') ,
@@ -446,10 +446,10 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
 
                                          expiration=1471629998149,
-                                         quoted_rate=626216,
+                                         quoted_rate='626216',
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee=30000,
+                                         miner_fee='30000',
                                          order_id=binascii.unhexlify('bfe3a6b0afc64126a4d47612d229debf'),
                                          ),
                                 signature=binascii.unhexlify('20cb8e122ab35ea5d7e4344ce57f1da9d3deba6f19178c5e7184fb2091a3101848784035d315ccff7282d08dc018686b583f794f8b6f0ad006d8423df6b85e2977')
@@ -496,12 +496,12 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 response=proto_exchange.ExchangeResponse(
-                                         withdrawal_amount=533594,
+                                         withdrawal_amount='533594',
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='btc',
                                                 address='19nkmC2y4Rq3DXia7Um5YW9hxkRhwA5ABN') ,
   
-                                         deposit_amount=90000000, 
+                                         deposit_amount='90000000', 
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LiZ9EjjyZYuKdkBSqzc7ZVHNQPubcUKuNC') ,
@@ -511,10 +511,10 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
 
                                          expiration=1471629998149,
-                                         quoted_rate=626216,
+                                         quoted_rate='626216',
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee=30000,
+                                         miner_fee='30000',
                                          order_id=binascii.unhexlify('bfe3a6b0afc64126a4d47612d229debf'),
                                          ),
                                 signature=binascii.unhexlify('20cb8e122ab35ea5d7e4344ce57f1da9d3deba6f19178c5e7184fb2091a3101848784035d315ccff7282d08dc018686b583f794f8b6f0ad006d8423df6b85e2977')
