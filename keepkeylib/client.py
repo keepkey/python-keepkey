@@ -514,22 +514,30 @@ class ProtocolMixin(object):
         try:
             self.transport.session_begin()
 
-            msg = proto.EthereumSignTx(
-                address_n=n,
-                nonce=int_to_big_endian(nonce),
-                gas_price=int_to_big_endian(gas_price),
-                gas_limit=int_to_big_endian(gas_limit),
-                value=int_to_big_endian(value))
+            if exchange_type:
+                msg = proto.EthereumSignTx(
+                    address_n=n,
+                    nonce=int_to_big_endian(nonce),
+                    gas_price=int_to_big_endian(gas_price),
+                    gas_limit=int_to_big_endian(gas_limit),
+                    value=int_to_big_endian(value),
+                    exchange_type=exchange_type
+                    )
+            else:
+                msg = proto.EthereumSignTx(
+                    address_n=n,
+                    nonce=int_to_big_endian(nonce),
+                    gas_price=int_to_big_endian(gas_price),
+                    gas_limit=int_to_big_endian(gas_limit),
+                    value=int_to_big_endian(value)
+                    )
 
             if to:
                 msg.to = to
 
             if address_type:
-                address_type = address_type
-
-            if exchange_type:
-                exchange_type = exchange_type
-
+                msg.address_type = address_type
+            
             if data:
                 msg.data_length = len(data)
                 data, chunk = data[1024:], data[:1024]
