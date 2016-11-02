@@ -16,7 +16,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 response=proto_exchange.ExchangeResponse(
-                                         withdrawal_amount=int_to_big_endian(98765),
+                                         withdrawal_amount='98765',
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPw') ,
@@ -31,10 +31,10 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                                                 address='17ba4cfb053d3b2e56aec2ea36c041741dafc8ec') ,
 
                                          expiration=1471627016859,
-                                         quoted_rate=int_to_big_endian(15878378378),
+                                         quoted_rate='15878378378',
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee=int_to_big_endian(100000),
+                                         miner_fee='100000',
                                          order_id=binascii.unhexlify('f1c9ace477f04af79bcbc62f3756ae08'),
                                          ),
                                 signature=binascii.unhexlify('1f3d840f06670c1688377255dbe5cfc53f8de8628aed7a73a09718d058aae4a13e24baf1b83838ffc580e1b9a0f479663027c14ab6da7069311a7c554157857680')
