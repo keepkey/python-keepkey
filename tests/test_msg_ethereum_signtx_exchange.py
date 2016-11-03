@@ -32,10 +32,10 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                                                 address='17ba4cfb053d3b2e56aec2ea36c041741dafc8ec') ,
 
                                          expiration=1471627016859,
-                                         quoted_rate='15878378378',
+                                         quoted_rate=struct.pack('<Q', 15878378378),
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee='100000',
+                                         miner_fee=struct.pack('<Q', 100000),
                                          order_id=binascii.unhexlify('f1c9ace477f04af79bcbc62f3756ae08'),
                                          ),
                                 signature=binascii.unhexlify('1f3d840f06670c1688377255dbe5cfc53f8de8628aed7a73a09718d058aae4a13e24baf1b83838ffc580e1b9a0f479663027c14ab6da7069311a7c554157857680')
@@ -58,10 +58,10 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             )
 
         self.assertEqual(sig_v, 28)
-        self.assertEqual(binascii.hexlify(sig_r), 'a703218bb98bb28d584b0b2c66a42f810446a7862bf8c4f733d559a2d3323221')
-        self.assertEqual(binascii.hexlify(sig_s), '41e92ce8e5a6d9c83ccd93fe57ec592c344ff4fc01d2e9e2c70cbd01b1a3640c')
-        self.assertEqual(binascii.hexlify(hash), '6e7bec5ab02b87fb32b08a1a304a4bf7a8da105b57203870989b6617affdf6f7')
-        self.assertEqual(binascii.hexlify(signature_der), '3045022100a703218bb98bb28d584b0b2c66a42f810446a7862bf8c4f733d559a2d3323221022041e92ce8e5a6d9c83ccd93fe57ec592c344ff4fc01d2e9e2c70cbd01b1a3640c')
+        self.assertEqual(binascii.hexlify(sig_r), 'bdba01f69a3a5ef42d6e125cc9b3815c6ae8a9ab08533ad14d13ea0613efce80')
+        self.assertEqual(binascii.hexlify(sig_s), '1fec9657b838c9078699060155dcbbc8b8d2b07856a0a5c7750fde0080c654fa')
+        self.assertEqual(binascii.hexlify(hash), 'b3ea79f262c462a480cc899278be4a77809b677b0583153d17c0d1b0b5584321')
+        self.assertEqual(binascii.hexlify(signature_der), '3045022100bdba01f69a3a5ef42d6e125cc9b3815c6ae8a9ab08533ad14d13ea0613efce8002201fec9657b838c9078699060155dcbbc8b8d2b07856a0a5c7750fde0080c654fa')
 
         #reset policy ("ShapeShift")
         self.client.apply_policy('ShapeShift', 0)
