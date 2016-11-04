@@ -502,7 +502,7 @@ class ProtocolMixin(object):
         n = self._convert_prime(n)
         return self.call(proto.EthereumGetAddress(address_n=n, show_display=show_display))
 
-    def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, to, value, address_type=None, exchange_type=None, data=None):
+    def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None):
         def int_to_big_endian(value):
             import rlp.utils
             if value == 0:
@@ -521,6 +521,7 @@ class ProtocolMixin(object):
                     gas_price=int_to_big_endian(gas_price),
                     gas_limit=int_to_big_endian(gas_limit),
                     value=int_to_big_endian(value),
+		    to_address_n=to_n,
                     exchange_type=exchange_type
                     )
             else:
