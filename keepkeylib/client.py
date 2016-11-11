@@ -551,7 +551,10 @@ class ProtocolMixin(object):
                 data, chunk = data[data_length:], data[:data_length]
                 response = self.call(proto.EthereumTxAck(data_chunk=chunk))
 
-            return response.signature_v, response.signature_r, response.signature_s, response.hash, response.signature_der
+            if address_type:
+                return response.signature_v, response.signature_r, response.signature_s, response.hash, response.signature_der
+            else:
+                return response.signature_v, response.signature_r, response.signature_s
 
         finally:
             self.transport.session_end()
