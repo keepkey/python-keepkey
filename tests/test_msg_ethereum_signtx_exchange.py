@@ -25,7 +25,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
   
                                          deposit_amount=int_to_big_endian(12345678901234567890),
                                          deposit_address=proto_exchange.ExchangeAddress(
-                                                coin_type='etx', #error here
+                                                coin_type='etx', 
+                                                #error here -^-
                                                 address='1d1c328764a41bda0492b66baa30c4a339ff85ef') , 
 
                                          return_address=proto_exchange.ExchangeAddress(
@@ -84,7 +85,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                          deposit_amount=int_to_big_endian(12345678901234567890),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='1d1c328764a41bda0492b66baa30c4a339ff85e1') , #error here
+                                                address='1d1c328764a41bda0492b66baa30c4a339ff85e1') , 
+                                                                                 #error here   -^-
 
                                          return_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
@@ -137,7 +139,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                                 coin_type='ltc',
                                                 address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPw') ,
   
-                                         deposit_amount=int_to_big_endian(1234567890123456789),  #error here
+                                         deposit_amount=int_to_big_endian(1234567890123456789 ),  
+                                                                        #error here         -^-
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
                                                 address='1d1c328764a41bda0492b66baa30c4a339ff85ef') ,
@@ -190,7 +193,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                 response=proto_exchange.ExchangeResponse(
                                          withdrawal_amount=struct.pack('<Q', 98765),
                                          withdrawal_address=proto_exchange.ExchangeAddress(
-                                                coin_type='ltx',  #error here
+                                                coin_type='ltx',  
+                                              #error here   -^-
                                                 address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPw') ,
   
                                          deposit_amount=int_to_big_endian(12345678901234567890),
@@ -249,7 +253,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                          withdrawal_amount=struct.pack('<Q', 98765),
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
-                                                address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPg') , #error here
+                                                address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPg') , 
+                                                                    #error here          -^-
   
                                          deposit_amount=int_to_big_endian(12345678901234567890),
                                          deposit_address=proto_exchange.ExchangeAddress(
@@ -313,7 +318,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                                 address='1d1c328764a41bda0492b66baa30c4a339ff85ef') , 
 
                                          return_address=proto_exchange.ExchangeAddress(
-                                                coin_type='etx',  #error here
+                                                coin_type='etx',  
+                                              #error here   -^-
                                                 address='17ba4cfb053d3b2e56aec2ea36c041741dafc8ec') ,
 
                                          expiration=1471627016859,
@@ -370,7 +376,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
                                          return_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='17ba4cfb053d3b2e56aec2ea36c041741dafc8ecx') , #error here
+                                                address='17ba4cfb053d3b2e56aec2ea36c041741dafc8ecx') , 
+                                                                              #error here       -^-
 
                                          expiration=1471627016859,
                                          quoted_rate=struct.pack('<Q', 15878378378),
