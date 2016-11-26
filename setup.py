@@ -29,7 +29,7 @@ setup(
     ],
     scripts = ['keepkeyctl'],
     test_suite='tests',
-    install_requires=['ecdsa>=0.9', 'protobuf>=2.6.1', 'mnemonic>=0.8', 'hidapi==0.7.99.post15'],
+    install_requires=['ecdsa>=0.9', 'protobuf>=2.6.1', 'mnemonic>=0.8', 'hidapi>=0.7.99'],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
