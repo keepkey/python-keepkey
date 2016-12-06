@@ -26,11 +26,11 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='3d55d68b75d98ac3ac0d2ddf61554f00703d6357') ,
+                                                address='0x3d55d68b75d98ac3ac0d2ddf61554f00703d6357') ,
 
                                          return_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
+                                                address='0x3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
 
                                          expiration=1480978325881,
                                          quoted_rate=binascii.unhexlify('02ebe9834161'),
@@ -82,11 +82,11 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='8cfbb7ef910936ac801e4d07ae46599041206743') ,
+                                                address='0x8cfbb7ef910936ac801e4d07ae46599041206743') ,
 
                                          return_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
+                                                address='0x3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
 
                                          expiration=1480984776874,
                                          quoted_rate=binascii.unhexlify('0b54a1d6'),
@@ -123,9 +123,10 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
         #reset policy ("ShapeShift")
         self.client.apply_policy('ShapeShift', 0)
 
-    def test_ethereum_exch_dep_cointype_error(self):
+    def test_ethereum_exch_signature_error1(self):
         self.setup_mnemonic_nopin_nopassphrase()
 	self.client.apply_policy('ShapeShift', 1)
+
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 responseV2=proto_exchange.ExchangeResponseV2(
                                          withdrawal_amount=binascii.unhexlify('01a69189'),
@@ -135,15 +136,131 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
   
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
-                                                coin_type='etx',
-                                              #error here   -^-
-                                                address='8cfbb7ef910936ac801e4d07ae46599041206743') ,
+                                                coin_type='eth',
+                                                address='0x8cfbb7ef910936ac801e4d07ae46599041206743') ,
 
                                          return_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
+                                                address='0x3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
 
                                          expiration=1480984776874,
+                                         quoted_rate=binascii.unhexlify('0b54a1d6'),
+
+                                         api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
+                                         miner_fee=binascii.unhexlify('0186a0'),
+                                         order_id=binascii.unhexlify('1924ae6635e34cdca8137861434d9ede'),
+                                         ),
+                                signature=binascii.unhexlify('0f61697158580925b64ba9b93677a47f996deac9529d98e15ee90fcc240b098ab84f2324a4ccab092a38f8720537636ef1d012903ac27697f184cc43269975a420')
+                             )
+        exchange_type_out1=proto_types.ExchangeType(
+                              signed_exchange_response=signed_exchange_out1,
+                              withdrawal_coin_name='Litecoin',
+                              withdrawal_address_n=[2147483692,2147483650,2147483649,0,1],
+                              return_address_n=[2147483692,2147483708,2147483648,0,0]
+                            )
+
+        try:
+            sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
+            n=[2147483692,2147483708,2147483648,0,0],
+            nonce=01,
+            gas_price=20,
+            gas_limit=20,
+            to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
+            value=146207570000000000,
+            address_type=3,
+            exchange_type=exchange_type_out1,
+            )
+        except CallException as e:
+            self.assertEqual(e.args[1], 'Exchange signature error')
+            print "Negative Test Passed (test_ethereum_exch_signature_error1)!" 
+        else:
+            self.assert_(False, "Failed to detect error condition")
+
+        #reset policy ("ShapeShift")
+        self.client.apply_policy('ShapeShift', 0)
+
+        #reset policy ("ShapeShift")
+        self.client.apply_policy('ShapeShift', 0)
+
+    def test_ethereum_exch_signature_error2(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+	self.client.apply_policy('ShapeShift', 1)
+
+        signed_exchange_out1=proto_exchange.SignedExchangeResponse(
+                                responseV2=proto_exchange.ExchangeResponseV2(
+                                         withdrawal_amount=binascii.unhexlify('01a69189'),
+                                         withdrawal_address=proto_exchange.ExchangeAddress(
+                                                coin_type='ltc',
+                                                address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
+  
+                                         deposit_amount=binascii.unhexlify('02076f02a152b400'),
+                                         deposit_address=proto_exchange.ExchangeAddress(
+                                                coin_type='eth',
+                                                address='0x8cfbb7ef910936ac801e4d07ae46599041206743') ,
+
+                                         return_address=proto_exchange.ExchangeAddress(
+                                                coin_type='eth',
+                                                address='0x3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
+
+                                         expiration=1480984776874,
+                                         quoted_rate=binascii.unhexlify('0b54a1d6'),
+
+                                         api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
+                                         miner_fee=binascii.unhexlify('0186a0'),
+                                         order_id=binascii.unhexlify('1924ae6635e34cdca8137861434d9ede'),
+                                         ),
+                                signature=binascii.unhexlify('1f61697158580925b64ba9b93677a47f996deac9529d98e15ee90fcc240b098ab84f2324a4ccab092a38f8720537636ef1d012903ac27697f184cc43269975a421')
+                                                                                                                                                                                #error here   -^-
+                             )
+        exchange_type_out1=proto_types.ExchangeType(
+                              signed_exchange_response=signed_exchange_out1,
+                              withdrawal_coin_name='Litecoin',
+                              withdrawal_address_n=[2147483692,2147483650,2147483649,0,1],
+                              return_address_n=[2147483692,2147483708,2147483648,0,0]
+                            )
+
+        try:
+            sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
+            n=[2147483692,2147483708,2147483648,0,0],
+            nonce=01,
+            gas_price=20,
+            gas_limit=20,
+            to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
+            value=146207570000000000,
+            address_type=3,
+            exchange_type=exchange_type_out1,
+            )
+        except CallException as e:
+            self.assertEqual(e.args[1], 'Exchange signature error')
+            print "Negative Test Passed (test_ethereum_exch_signature_error2)!" 
+        else:
+            self.assert_(False, "Failed to detect error condition")
+
+        #reset policy ("ShapeShift")
+        self.client.apply_policy('ShapeShift', 0)
+
+    def test_ethereum_exch_signature_error3(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+	self.client.apply_policy('ShapeShift', 1)
+
+        signed_exchange_out1=proto_exchange.SignedExchangeResponse(
+                                responseV2=proto_exchange.ExchangeResponseV2(
+                                         withdrawal_amount=binascii.unhexlify('01a69189'),
+                                         withdrawal_address=proto_exchange.ExchangeAddress(
+                                                coin_type='ltc',
+                                                address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
+  
+                                         deposit_amount=binascii.unhexlify('02076f02a152b400'),
+                                         deposit_address=proto_exchange.ExchangeAddress(
+                                                coin_type='eth',
+                                                address='0x8cfbb7ef910936ac801e4d07ae46599041206743') ,
+
+                                         return_address=proto_exchange.ExchangeAddress(
+                                                coin_type='eth',
+                                                address='0x3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
+
+                                         expiration=1480984776875,
+                                                 #error here   -^-
                                          quoted_rate=binascii.unhexlify('0b54a1d6'),
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
@@ -158,7 +275,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                               withdrawal_address_n=[2147483692,2147483650,2147483649,0,1],
                               return_address_n=[2147483692,2147483708,2147483648,0,0]
                             )
-        
+
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
@@ -171,8 +288,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
             exchange_type=exchange_type_out1,
             )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Exchange deposit coin type error')
-            print "Negative Test Passed (test_ethereum_exch_dep_cointype_error)!" 
+            self.assertEqual(e.args[1], 'Exchange signature error')
+            print "Negative Test Passed (test_ethereum_exch_signature_error3)!" 
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -192,12 +309,11 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='8cfbb7ef910936ac801e4d07ae46599041206744') ,
-                                                                                 #error here   -^-
+                                                address='0x8cfbb7ef910936ac801e4d07ae46599041206743') ,
 
                                          return_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
+                                                address='0x3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
 
                                          expiration=1480984776874,
                                          quoted_rate=binascii.unhexlify('0b54a1d6'),
@@ -220,7 +336,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
             nonce=01,
             gas_price=20,
             gas_limit=20,
-            to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
+            to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206744'),
+                                                           #error here   -^-
             value=146207570000000000,
             address_type=3,
             exchange_type=exchange_type_out1,
@@ -244,15 +361,14 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                                 coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
   
-                                         deposit_amount=binascii.unhexlify('02076f02a152b401'),
-                                                                      #error here         -^-
+                                         deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='8cfbb7ef910936ac801e4d07ae46599041206743') ,
+                                                address='0x8cfbb7ef910936ac801e4d07ae46599041206743') ,
 
                                          return_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
+                                                address='0x3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
 
                                          expiration=1480984776874,
                                          quoted_rate=binascii.unhexlify('0b54a1d6'),
@@ -276,7 +392,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
             gas_price=20,
             gas_limit=20,
             to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
-            value=146207570000000000,
+            value=146207570000000001,
+              #error here         -^-
             address_type=3,
             exchange_type=exchange_type_out1,
             )
@@ -296,18 +413,17 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                 responseV2=proto_exchange.ExchangeResponseV2(
                                          withdrawal_amount=binascii.unhexlify('01a69189'),
                                          withdrawal_address=proto_exchange.ExchangeAddress(
-                                                coin_type='ltx',
-                                              #error here   -^-
+                                                coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
   
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='8cfbb7ef910936ac801e4d07ae46599041206743') ,
+                                                address='0x8cfbb7ef910936ac801e4d07ae46599041206743') ,
 
                                          return_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
+                                                address='0x3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
 
                                          expiration=1480984776874,
                                          quoted_rate=binascii.unhexlify('0b54a1d6'),
@@ -320,7 +436,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                              )
         exchange_type_out1=proto_types.ExchangeType(
                               signed_exchange_response=signed_exchange_out1,
-                              withdrawal_coin_name='Litecoin',
+                              withdrawal_coin_name='Bitcoin',
+                                     #error here   -^-
                               withdrawal_address_n=[2147483692,2147483650,2147483649,0,1],
                               return_address_n=[2147483692,2147483708,2147483648,0,0]
                             )
@@ -344,54 +461,51 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
         #reset policy ("ShapeShift")
         self.client.apply_policy('ShapeShift', 0)
 
-   
- 
-'''
     def test_ethereum_exch_withdrawal_addr_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
 	self.client.apply_policy('ShapeShift', 1)
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
-                                response=proto_exchange.ExchangeResponse(
-                                         withdrawal_amount=struct.pack('<Q', 98765),
+                                responseV2=proto_exchange.ExchangeResponseV2(
+                                         withdrawal_amount=binascii.unhexlify('01a69189'),
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
-                                                address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPg') , 
-                                                                    #error here          -^-
+                                                address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
   
-                                         deposit_amount=int_to_big_endian(12345678901234567890),
+                                         deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='1d1c328764a41bda0492b66baa30c4a339ff85ef') ,
+                                                address='0x8cfbb7ef910936ac801e4d07ae46599041206743') ,
 
                                          return_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='17ba4cfb053d3b2e56aec2ea36c041741dafc8ec') ,
+                                                address='0x3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
 
-                                         expiration=1471627016859,
-                                         quoted_rate=struct.pack('<Q', 15878378378),
+                                         expiration=1480984776874,
+                                         quoted_rate=binascii.unhexlify('0b54a1d6'),
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee=struct.pack('<Q', 100000),
-                                         order_id=binascii.unhexlify('f1c9ace477f04af79bcbc62f3756ae08'),
+                                         miner_fee=binascii.unhexlify('0186a0'),
+                                         order_id=binascii.unhexlify('1924ae6635e34cdca8137861434d9ede'),
                                          ),
-                                signature=binascii.unhexlify('1f3d840f06670c1688377255dbe5cfc53f8de8628aed7a73a09718d058aae4a13e24baf1b83838ffc580e1b9a0f479663027c14ab6da7069311a7c554157857680')
+                                signature=binascii.unhexlify('1f61697158580925b64ba9b93677a47f996deac9529d98e15ee90fcc240b098ab84f2324a4ccab092a38f8720537636ef1d012903ac27697f184cc43269975a420')
                              )
         exchange_type_out1=proto_types.ExchangeType(
                               signed_exchange_response=signed_exchange_out1,
                               withdrawal_coin_name='Litecoin',
-                              withdrawal_address_n=[2147483692,2147483650,2147483648,0,1],
-                              return_address_n=[2147483692,2147483648,2147483649,0,3],
+                              withdrawal_address_n=[2147483692,2147483650,2147483649,0,2],
+                                                                        #error here   -^-
+                              return_address_n=[2147483692,2147483708,2147483648,0,0]
                             )
 
         try:
-	    signature_der = self.client.ethereum_sign_tx(
-            n=[0, 0],
-            nonce=0,
+            sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
+            n=[2147483692,2147483708,2147483648,0,0],
+            nonce=01,
             gas_price=20,
             gas_limit=20,
-            to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
-            value=12345678901234567890,
+            to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
+            value=146207570000000000,
             address_type=3,
             exchange_type=exchange_type_out1,
             )
@@ -404,108 +518,50 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
         #reset policy ("ShapeShift")
         self.client.apply_policy('ShapeShift', 0)
 
-    def test_ethereum_exch_return_cointype_error(self):
-        self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
-
-        signed_exchange_out1=proto_exchange.SignedExchangeResponse(
-                                response=proto_exchange.ExchangeResponse(
-                                         withdrawal_amount=struct.pack('<Q', 98765),
-                                         withdrawal_address=proto_exchange.ExchangeAddress(
-                                                coin_type='ltc',
-                                                address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPw') ,
-  
-                                         deposit_amount=int_to_big_endian(12345678901234567890),
-                                         deposit_address=proto_exchange.ExchangeAddress(
-                                                coin_type='eth', 
-                                                address='1d1c328764a41bda0492b66baa30c4a339ff85ef') , 
-
-                                         return_address=proto_exchange.ExchangeAddress(
-                                                coin_type='etx',  
-                                              #error here   -^-
-                                                address='17ba4cfb053d3b2e56aec2ea36c041741dafc8ec') ,
-
-                                         expiration=1471627016859,
-                                         quoted_rate=struct.pack('<Q', 15878378378),
-
-                                         api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee=struct.pack('<Q', 100000),
-                                         order_id=binascii.unhexlify('f1c9ace477f04af79bcbc62f3756ae08'),
-                                         ),
-                                signature=binascii.unhexlify('1f3d840f06670c1688377255dbe5cfc53f8de8628aed7a73a09718d058aae4a13e24baf1b83838ffc580e1b9a0f479663027c14ab6da7069311a7c554157857680')
-                             )
-        exchange_type_out1=proto_types.ExchangeType(
-                              signed_exchange_response=signed_exchange_out1,
-                              withdrawal_coin_name='Litecoin',
-                              withdrawal_address_n=[2147483692,2147483650,2147483648,0,1],
-                              return_address_n=[2147483692,2147483648,2147483649,0,3],
-                            )
-
-        try:
-	    signature_der = self.client.ethereum_sign_tx(
-            n=[0, 0],
-            nonce=0,
-            gas_price=20,
-            gas_limit=20,
-            to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
-            value=12345678901234567890,
-            address_type=3,
-            exchange_type=exchange_type_out1,
-            )
-        except CallException as e:
-            self.assertEqual(e.args[1], 'Exchange return coin type error')
-            print "Negative Test Passed (test_ethereum_exch_return_cointype_error)!" 
-        else:
-            self.assert_(False, "Failed to detect error condition")
-
-        #reset policy ("ShapeShift")
-        self.client.apply_policy('ShapeShift', 0)
-
     def test_ethereum_exch_return_addr_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
 	self.client.apply_policy('ShapeShift', 1)
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
-                                response=proto_exchange.ExchangeResponse(
-                                         withdrawal_amount=struct.pack('<Q', 98765),
+                                responseV2=proto_exchange.ExchangeResponseV2(
+                                         withdrawal_amount=binascii.unhexlify('01a69189'),
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
-                                                address='LgCD3vmz2TkYGbaDDy1YRyT4JwL95XpYPw') ,
+                                                address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
   
-                                         deposit_amount=int_to_big_endian(12345678901234567890),
+                                         deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='1d1c328764a41bda0492b66baa30c4a339ff85ef') ,
+                                                address='0x8cfbb7ef910936ac801e4d07ae46599041206743') ,
 
                                          return_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
-                                                address='17ba4cfb053d3b2e56aec2ea36c041741dafc8ecx') , 
-                                                                              #error here       -^-
+                                                address='0x3f2329c9adfbccd9a84f52c906e936a42da18cb8') ,
 
-                                         expiration=1471627016859,
-                                         quoted_rate=struct.pack('<Q', 15878378378),
+                                         expiration=1480984776874,
+                                         quoted_rate=binascii.unhexlify('0b54a1d6'),
 
                                          api_key=binascii.unhexlify('6ad5831b778484bb849da45180ac35047848e5cac0fa666454f4ff78b8c7399fea6a8ce2c7ee6287bcd78db6610ca3f538d6b3e90ca80c8e6368b6021445950b'),
-                                         miner_fee=struct.pack('<Q', 100000),
-                                         order_id=binascii.unhexlify('f1c9ace477f04af79bcbc62f3756ae08'),
+                                         miner_fee=binascii.unhexlify('0186a0'),
+                                         order_id=binascii.unhexlify('1924ae6635e34cdca8137861434d9ede'),
                                          ),
-                                signature=binascii.unhexlify('1f3d840f06670c1688377255dbe5cfc53f8de8628aed7a73a09718d058aae4a13e24baf1b83838ffc580e1b9a0f479663027c14ab6da7069311a7c554157857680')
+                                signature=binascii.unhexlify('1f61697158580925b64ba9b93677a47f996deac9529d98e15ee90fcc240b098ab84f2324a4ccab092a38f8720537636ef1d012903ac27697f184cc43269975a420')
                              )
         exchange_type_out1=proto_types.ExchangeType(
                               signed_exchange_response=signed_exchange_out1,
                               withdrawal_coin_name='Litecoin',
-                              withdrawal_address_n=[2147483692,2147483650,2147483648,0,1],
-                              return_address_n=[2147483692,2147483648,2147483649,0,3],
+                              withdrawal_address_n=[2147483692,2147483650,2147483649,0,1],
+                              return_address_n=[2147483692,2147483708,2147483648,0,1]
+                                                                    #error here   -^-
                             )
-
         try:
-	    signature_der = self.client.ethereum_sign_tx(
-            n=[0, 0],
-            nonce=0,
+            sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
+            n=[2147483692,2147483708,2147483648,0,0],
+            nonce=01,
             gas_price=20,
             gas_limit=20,
-            to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
-            value=12345678901234567890,
+            to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
+            value=146207570000000000,
             address_type=3,
             exchange_type=exchange_type_out1,
             )
@@ -517,7 +573,6 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
         #reset policy ("ShapeShift")
         self.client.apply_policy('ShapeShift', 0)
-''' 
 
 if __name__ == '__main__':
     unittest.main()
