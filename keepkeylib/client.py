@@ -513,8 +513,17 @@ class ProtocolMixin(object):
 
         try:
             self.transport.session_begin()
-
-            if exchange_type:
+            if address_type == 1:   #Ethereum transfer transaction
+                msg = proto.EthereumSignTx(
+                    address_n=n,
+                    nonce=int_to_big_endian(nonce),
+                    gas_price=int_to_big_endian(gas_price),
+                    gas_limit=int_to_big_endian(gas_limit),
+                    value=int_to_big_endian(value),
+		    to_address_n=to_n,
+                    )
+                msg.address_type = address_type
+            elif address_type == 3:   #Ethereum exchange transaction
                 msg = proto.EthereumSignTx(
                     address_n=n,
                     nonce=int_to_big_endian(nonce),
@@ -524,6 +533,7 @@ class ProtocolMixin(object):
 		    to_address_n=to_n,
                     exchange_type=exchange_type
                     )
+                msg.address_type = address_type
             else:
                 msg = proto.EthereumSignTx(
                     address_n=n,
@@ -532,12 +542,9 @@ class ProtocolMixin(object):
                     gas_limit=int_to_big_endian(gas_limit),
                     value=int_to_big_endian(value)
                     )
-
+                   
             if to:
                 msg.to = to
-
-            if address_type:
-                msg.address_type = address_type
             
             if data:
                 msg.data_length = len(data)
