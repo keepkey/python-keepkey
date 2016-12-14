@@ -10,7 +10,7 @@ from keepkeylib.tx_api import TXAPITestnet
 
 class TestMsgSigntx(common.KeepKeyTest):
 
-    def test_btc_address_type_error_1(self):
+    def test_xfer_node_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
 
         # tx: d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882
@@ -22,40 +22,62 @@ class TestMsgSigntx(common.KeepKeyTest):
                              prev_index=0,
                              )
 
-        # Spend Output address
-        out1 = proto_types.TxOutputType(address='1MJ2tj2ThBE62zXbBYA5ZaN3fdve5CPAz1',
-                              amount=390000 - 80000 - 12000 - 10000,
-                              script_type=proto_types.PAYTOADDRESS,
-                              address_type=0,
-                              )
         # Transfer Output address
-        out2 = proto_types.TxOutputType(address='1MJ2tj2ThBE62zXbBYA5ZaN3fdve5CPAz2',
+        out1 = proto_types.TxOutputType(address_n=[0x8000002c, 0x80000000, 0x80000000, 1, 0 ],
+                                                                            #error    -^- 
                               amount=390000 - 10000, 
                               script_type=proto_types.PAYTOADDRESS,
                               address_type=1,
                               )
 
-        with self.client:
-            self.client.set_expected_responses([
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1)),
-            ])
+        # Change Output address
+        out2 = proto_types.TxOutputType(address_n=[0x8000002c, 0x80000000, 0x80000000, 1, 1 ],
+                              amount=8000,
+                              script_type=proto_types.PAYTOADDRESS,
+                              address_type=2,
+                              )
 
-            try:
-                self.client.sign_tx('Bitcoin', [inp1, ], [out1, out2])
-            except CallException as e:
-                self.assertEqual(e.args[0], proto_types.Failure_Other)
-            else:
-                self.assert_(False, "types.Invalid Address Type expected")
+        try:
+            self.client.sign_tx('Bitcoin', [inp1, ], [out1, out2])
+        except CallException as e:
+            self.assertEqual(e.args[0], proto_types.Failure_Other)
+        else:
+            self.assert_(False, "Failed to detect invalid Address node for transfer transaction")
 
-    
-    def test_btc_address_type_error_2(self):
+    def test_xfer_addressT_error(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        # tx: d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882
+        # input 0: 0.0039 BTC
+
+        inp1 = proto_types.TxInputType(address_n=[0],  # 14LmW5k4ssUrtbAB4255zdqv3b4w1TuX9e
+                             # amount=390000,
+                             prev_hash=binascii.unhexlify('d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882'),
+                             prev_index=0,
+                             )
+
+        # Spend Output address
+        out1 = proto_types.TxOutputType(address='1MJ2tj2ThBE62zXbBYA5ZaN3fdve5CPAz1',
+                              amount=390000 - 80000 - 12000 - 10000,
+                              script_type=proto_types.PAYTOADDRESS,
+                              address_type=0,
+                              )
+        # Transfer Output address
+        out2 = proto_types.TxOutputType(address='1EfKbQupktEMXf4gujJ9kCFo83k1iMqwqK',
+                               #error    -^- 
+                              amount=10000,
+                              script_type=proto_types.PAYTOADDRESS,
+                              address_type=1,
+                              )
+
+        try:
+            self.client.sign_tx('Bitcoin', [inp1, ], [out1, out2])
+        except CallException as e:
+            self.assertEqual(e.args[0], proto_types.Failure_Other)
+        else:
+            self.assert_(False, "Failed to detect invalid Address Type for transfer transaction")
+
+    def test_xfer_change_addressT_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
 
         # tx: d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882
@@ -75,31 +97,20 @@ class TestMsgSigntx(common.KeepKeyTest):
                               )
         # Transfer Output address
         out2 = proto_types.TxOutputType(address='1MJ2tj2ThBE62zXbBYA5ZaN3fdve5CPAz2',
-                              amount=390000 - 10000, 
+                               #error    -^- 
+                              amount=10000, 
                               script_type=proto_types.PAYTOADDRESS,
                               address_type=2,
                               )
 
-        with self.client:
-            self.client.set_expected_responses([
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1)),
-            ])
+        try:
+            self.client.sign_tx('Bitcoin', [inp1, ], [out1, out2])
+        except CallException as e:
+            self.assertEqual(e.args[0], proto_types.Failure_Other)
+        else:
+            self.assert_(False, "Failed to detect invalid address type for change transaction")
 
-            try:
-                self.client.sign_tx('Bitcoin', [inp1, ], [out1, out2])
-            except CallException as e:
-                self.assertEqual(e.args[0], proto_types.Failure_Other)
-            else:
-                self.assert_(False, "types.Invalid Address Type expected")
-
-    def test_xfer_address_type_error(self):
+    def test_xfer_spend_addressT_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
 
         # tx: d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882
@@ -119,29 +130,17 @@ class TestMsgSigntx(common.KeepKeyTest):
                               )
         # Transfer Output address
         out2 = proto_types.TxOutputType(address_n=[0x8000002c, 0x80000000, 0x80000000, 1, 0 ],
-                              amount=390000 - 10000, 
+                                #error     -^-
+                              amount=10000, 
                               script_type=proto_types.PAYTOADDRESS,
                               address_type=0,
                               )
-
-        with self.client:
-            self.client.set_expected_responses([
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1)),
-            ])
-
-            try:
-                self.client.sign_tx('Bitcoin', [inp1, ], [out1, out2])
-            except CallException as e:
-                self.assertEqual(e.args[0], proto_types.Failure_Other)
-            else:
-                self.assert_(False, "types.Invalid Address Type expected")
+        try:
+            self.client.sign_tx('Bitcoin', [inp1, ], [out1, out2])
+        except CallException as e:
+            self.assertEqual(e.args[0], proto_types.Failure_Other)
+        else:
+            self.assert_(False, "Failed to detect invalid address type for spend transaction")
 
     def test_xfer_change_fee(self):
         self.setup_mnemonic_nopin_nopassphrase()
