@@ -33,7 +33,6 @@ class TestBip32Speed(common.KeepKeyTest):
             print("DEPTH", depth, "EXPECTED DELAY", expected, "REAL DELAY", delay)
             self.assertLessEqual(delay, expected)
 
-    """
     def test_cache(self):
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -52,6 +51,5 @@ class TestBip32Speed(common.KeepKeyTest):
 
         # Cached time expected to be at least 2x faster
         self.assertLessEqual(cache_time, nocache_time / 2.)
-    """
 if __name__ == '__main__':
     unittest.main()
