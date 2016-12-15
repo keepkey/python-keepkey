@@ -16,7 +16,7 @@ class TestBip32Speed(common.KeepKeyTest):
             start = time.time()
             self.client.get_address('Bitcoin', range(depth))
             delay = time.time() - start
-            expected = (depth + 1) * 0.31
+            expected = (depth + 1) * 0.32
             print("DEPTH", depth, "EXPECTED DELAY", expected, "REAL DELAY", delay)
             self.assertLessEqual(delay, expected)
 
@@ -29,7 +29,7 @@ class TestBip32Speed(common.KeepKeyTest):
             start = time.time()
             self.client.get_address('Bitcoin', range(-depth, 0))
             delay = time.time() - start
-            expected = (depth + 1) * 0.31
+            expected = (depth + 1) * 0.32
             print("DEPTH", depth, "EXPECTED DELAY", expected, "REAL DELAY", delay)
             self.assertLessEqual(delay, expected)
 
