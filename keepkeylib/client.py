@@ -864,22 +864,19 @@ class ProtocolMixin(object):
 
     @field('message')
     @expect(proto.Success)
-    def recovery_device(self, use_trezor_method, word_count, passphrase_protection, pin_protection, label, language):
+    def recovery_device(self, word_count, passphrase_protection, pin_protection, label, language):
         if self.features.initialized:
             raise Exception("Device is initialized already. Call wipe_device() and try again.")
 
-        if not use_trezor_method:
-            word_count = 0
-        elif word_count not in (12, 18, 24):
+        if word_count not in (12, 18, 24):
             raise Exception("Invalid word count. Use 12/18/24")
 
         res = self.call(proto.RecoveryDevice(word_count=int(word_count),
-                                    passphrase_protection=bool(passphrase_protection),
-                                    pin_protection=bool(pin_protection),
-                                    label=label,
-                                    language=language,
-                                    enforce_wordlist=True,
-                                    use_character_cipher=bool(not use_trezor_method)))
+                                   passphrase_protection=bool(passphrase_protection),
+                                   pin_protection=bool(pin_protection),
+                                   label=label,
+                                   language=language,
+                                   enforce_wordlist=True))
 
         self.init_device()
         return res
