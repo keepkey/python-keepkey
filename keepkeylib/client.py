@@ -210,6 +210,29 @@ class TextUIMixin(object):
         # log("Sending ButtonAck for %s " % get_buttonrequest_value(msg.code))
         return proto.ButtonAck()
 
+    def callback_RecoveryMatrix(self, msg):
+        if self.recovery_matrix_first_pass:
+            self.recovery_matrix_first_pass = False
+            log("Use the numeric keypad to describe positions.  For the word list use only left and right keys. The layout is:")
+            log("    7 8 9     7 | 9")
+            log("    4 5 6     4 | 6")
+            log("    1 2 3     1 | 3")
+        while True:
+            character = getch()
+            if character in ('\x03', '\x04'):
+                return proto.Cancel()
+
+            if character in ('\x08', '\x7f'):
+                return proto.WordAck(word='\x08')
+
+            # ignore middle column if only 6 keys requested.
+            if (msg.type == types.WordRequestType_Matrix6 and
+                character in ('2', '5', '8')):
+                continue
+
+            if (ord(character) >= ord('1') and ord(character) <= ord('9')):
+                return proto.WordAck(word=character)
+
     def callback_PinMatrixRequest(self, msg):
         if msg.type == 1:
             desc = 'current PIN'
@@ -632,14 +655,11 @@ class ProtocolMixin(object):
         return self.call(proto.SignIdentity(identity=identity, challenge_hidden=challenge_hidden, challenge_visual=challenge_visual, ecdsa_curve_name=ecdsa_curve_name))
 
 
-    def verify_message(self, address, signature, message):
+    def verify_message(self, coin_name, address, signature, message):
         # Convert message to UTF8 NFC (seems to be a bitcoin-qt standard)
-        message = normalize_nfc(message)
+        message = normalize_nfc(message).encode("utf-8")
         try:
-            if address:
-                resp = self.call(proto.VerifyMessage(address=address, signature=signature, message=message))
-            else:
-                resp = self.call(proto.VerifyMessage(signature=signature, message=message))
+            resp = self.call(proto.VerifyMessage(address=address, signature=signature, message=message, coin_name=coin_name))
         except CallException as e:
             resp = e
         if isinstance(resp, proto.Success):
