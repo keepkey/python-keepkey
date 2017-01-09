@@ -105,7 +105,7 @@ class TestProtectionLevels(common.KeepKeyTest):
             self.client.set_expected_responses([proto.WordRequest()] * 24 + \
                                      [proto.Success(),
                                       proto.Features()])
-            self.client.recovery_device(True, 12, False, False, 'label', 'english')
+            self.client.recovery_device(12, False, False, 'label', 'english')
 
         # This must fail, because device is already initialized
         self.assertRaises(Exception, self.client.recovery_device, 12, False, False, 'label', 'english')
@@ -125,6 +125,7 @@ class TestProtectionLevels(common.KeepKeyTest):
             self.setup_mnemonic_pin_passphrase()
             self.client.set_expected_responses([proto.Success()])
             self.client.verify_message(
+                'Bitcoin',
                 '14LmW5k4ssUrtbAB4255zdqv3b4w1TuX9e',
                 binascii.unhexlify('209e23edf0e4e47ff1dec27f32cd78c50e74ef018ee8a6adf35ae17c7a9b0dd96f48b493fd7dbab03efb6f439c6383c9523b3bbc5f1a7d158a6af90ab154e9be80'),
                 'This is an example of a signed message.')
