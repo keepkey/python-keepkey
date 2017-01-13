@@ -8,7 +8,7 @@ import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 import keepkeylib.exchange_pb2 as proto_exchange
 from keepkeylib.client import CallException
-from keepkeylib.tx_api import TXAPITestnet
+from keepkeylib import tx_api
 
 #deposit    = External exchange designator
 #withdrawal = KeepKey destination fund designator
@@ -67,6 +67,7 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
                               exchange_type=exchange_type_out1,
                               )
         with self.client:
+            self.client.set_tx_api(tx_api.TxApiBitcoin)
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
@@ -139,6 +140,7 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
                               exchange_type=exchange_type_out1,
                               )
         with self.client:
+            self.client.set_tx_api(tx_api.TxApiBitcoin)
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("4a405a771b1c16af9059e01aa1de19ae1e143da6a5a8d130d1591875a93f9e0c"))),

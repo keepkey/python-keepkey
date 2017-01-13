@@ -6,7 +6,7 @@ import itertools
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
-from keepkeylib.tx_api import TXAPITestnet
+from keepkeylib import tx_api
 
 class TestMsgSigntx(common.KeepKeyTest):
     def test_one_one_fee(self):
@@ -69,7 +69,7 @@ class TestMsgSigntx(common.KeepKeyTest):
                               )
 
         with self.client:
-            self.client.set_tx_api(TXAPITestnet())
+            self.client.set_tx_api(tx_api.TxApiTestnet)
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
@@ -114,7 +114,7 @@ class TestMsgSigntx(common.KeepKeyTest):
                               )
 
         with self.client:
-            self.client.set_tx_api(TXAPITestnet())
+            self.client.set_tx_api(tx_api.TxApiTestnet)
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54"))),
@@ -575,7 +575,7 @@ class TestMsgSigntx(common.KeepKeyTest):
                               )
 
         with self.client:
-            self.client.set_tx_api(TXAPITestnet())
+            self.client.set_tx_api(tx_api.TxApiTestnet)
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("d6da21677d7cca5f42fbc7631d062c9ae918a0254f7c6c22de8e8cb7fd5b8236"))),

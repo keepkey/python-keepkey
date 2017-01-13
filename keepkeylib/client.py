@@ -1,3 +1,22 @@
+# This file is part of the TREZOR project.
+#
+# Copyright (C) 2012-2016 Marek Palatinus <slush@satoshilabs.com>
+# Copyright (C) 2012-2016 Pavol Rusnak <stick@satoshilabs.com>
+# Copyright (C) 2016      Jochen Hoenicke <hoenicke@gmail.com>
+#
+# This library is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this library.  If not, see <http://www.gnu.org/licenses/>.
+
 from __future__ import print_function, absolute_import
 
 import os
@@ -29,6 +48,29 @@ DEFAULT_CURVE = 'secp256k1'
 
 # monkeypatching: text formatting of protobuf messages
 tools.monkeypatch_google_protobuf_text_format()
+
+
+def getch():
+    try:
+        import termios
+    except ImportError:
+        # Non-POSIX. Return msvcrt's (Windows') getch.
+        import msvcrt
+        return msvcrt.getch()
+
+    # POSIX system. Create and return a getch that manipulates the tty.
+    import sys, tty
+    def _getch():
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(fd)
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
+
+    return _getch()
 
 def get_buttonrequest_value(code):
     # Converts integer code to its string representation of ButtonRequestType
@@ -173,6 +215,29 @@ class TextUIMixin(object):
     def callback_ButtonRequest(self, msg):
         # log("Sending ButtonAck for %s " % get_buttonrequest_value(msg.code))
         return proto.ButtonAck()
+
+    def callback_RecoveryMatrix(self, msg):
+        if self.recovery_matrix_first_pass:
+            self.recovery_matrix_first_pass = False
+            log("Use the numeric keypad to describe positions.  For the word list use only left and right keys. The layout is:")
+            log("    7 8 9     7 | 9")
+            log("    4 5 6     4 | 6")
+            log("    1 2 3     1 | 3")
+        while True:
+            character = getch()
+            if character in ('\x03', '\x04'):
+                return proto.Cancel()
+
+            if character in ('\x08', '\x7f'):
+                return proto.WordAck(word='\x08')
+
+            # ignore middle column if only 6 keys requested.
+            if (msg.type == types.WordRequestType_Matrix6 and
+                character in ('2', '5', '8')):
+                continue
+
+            if (ord(character) >= ord('1') and ord(character) <= ord('9')):
+                return proto.WordAck(word=character)
 
     def callback_PinMatrixRequest(self, msg):
         if msg.type == 1:
@@ -421,12 +486,12 @@ class ProtocolMixin(object):
 
     @field('address')
     @expect(proto.Address)
-    def get_address(self, coin_name, n, show_display=False, multisig=None):
+    def get_address(self, coin_name, n, show_display=False, multisig=None, script_type=types.SPENDADDRESS):
         n = self._convert_prime(n)
         if multisig:
-            return self.call(proto.GetAddress(address_n=n, coin_name=coin_name, show_display=show_display, multisig=multisig))
+            return self.call(proto.GetAddress(address_n=n, coin_name=coin_name, show_display=show_display, multisig=multisig, script_type=script_type))
         else:
-            return self.call(proto.GetAddress(address_n=n, coin_name=coin_name, show_display=show_display))
+            return self.call(proto.GetAddress(address_n=n, coin_name=coin_name, show_display=show_display, script_type=script_type))
 
     @field('address')
     @expect(proto.EthereumAddress)
@@ -608,7 +673,7 @@ class ProtocolMixin(object):
                                               encrypt=False,
                                               ask_on_encrypt=ask_on_encrypt,
                                               ask_on_decrypt=ask_on_decrypt,
-                                              iv=iv if iv is not None else ''))
+                                              iv=iv))
 
     @field('tx_size')
     @expect(proto.TxSize)
