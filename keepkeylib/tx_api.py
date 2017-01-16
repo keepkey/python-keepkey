@@ -41,16 +41,8 @@ class TxApi(object):
             except:
                 pass
         try:
-	    print "**********************************************"
-            print '%s' % self.url
-            print '%s' % resource
-            print '%s' % resourceid
-            print '%s/%s/%s' % (self.url, resource, resourceid)
-
             r = requests.get('%s/%s/%s' % (self.url, resource, resourceid), headers={'User-agent': 'Mozilla/5.0'})
             j = r.json()
-	    print j
-	    print "**********************************************"
         except:
             raise Exception('URL error: %s' % url)
         if cache_file:
