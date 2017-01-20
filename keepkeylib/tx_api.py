@@ -99,7 +99,7 @@ class TxApiInsight(TxApi):
                         # we assume cnt < 253, so we can treat varIntLen(cnt) as 1
                         raise ValueError('Too many joinsplits')
                     extra_data_len = 1 + joinsplit_cnt * 1802 + 32 + 64
-                    raw = fetch_json(self.url, 'rawtx', txhash)
+                    raw = self.fetch_json(self.url, 'rawtx', txhash)
                     raw = binascii.unhexlify(raw['rawtx'])
                     t.extra_data = raw[-extra_data_len:]
 
