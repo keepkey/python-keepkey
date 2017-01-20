@@ -67,7 +67,7 @@ class TestMsgSigntx(common.KeepKeyTest):
 
         self.assertEqual(binascii.hexlify(serialized_tx), b'01000000015773e57046079432f2e5b4b5907b1082b1e202a5535b4f8cb0f868a7c58fa108000000006a47304402203c3777f62eb368ab5a94b4e3e7b9f157a66c7e2c3faf3eac2111b464e0e809a002205a668aa1ce9ac4edb5610703926a8cd0d6c658f898d4f6809728a591aa9076610121030e669acac1f280d1ddf441cd2ba5e97417bf2689e4bbec86df4f831bf9f7ffd0ffffffff013301993b000000001976a914255b157a678a10021243307e4bb58f36375aa80e88ac00000000')
 
-    def test_transparent_one_one_feeOver(self):
+    def test_transparent_one_one_fee_too_high(self):
         self.setup_mnemonic_allallall()
 
         # tx:  c8ff96d72e80c01792146d8f0970cbc970882fb315ab1ae043342b4d455e6b56
