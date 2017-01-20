@@ -33,7 +33,7 @@ class TestMsgSigntx(common.KeepKeyTest):
         # tx: 08a18fc5a768f8b08c4f5b53a502e2b182107b90b5b4e5f23294074670e57357
         # input 0: 9.99884999 TAZ
         inp1 = proto_types.TxInputType(address_n=[2147483692, 2147483649, 2147483648, 0, 0],  # t1YxYiYy8Hjq5HBN7sioDtTs98SX2SzW5q8
-                              amount=999884999,
+                             #amount=999884999,
                              prev_hash=binascii.unhexlify(b'08a18fc5a768f8b08c4f5b53a502e2b182107b90b5b4e5f23294074670e57357'),
                              prev_index=0,
                              )
@@ -108,20 +108,60 @@ class TestMsgSigntx(common.KeepKeyTest):
 
         self.assertEqual(binascii.hexlify(serialized_tx), b'0100000001566b5e454d2b3443e01aab15b32f8870c9cb70098f6d149217c0802ed796ffc8000000006b483045022100c291cff800cd8f3e85890b7ebbce792d4485ddabb442fca3ee35e041a50c7814022049fcd09fe22f75e9cd9b7d2ab9f592cbbc4d4511d72fff14be3f38599b2855540121030e669acac1f280d1ddf441cd2ba5e97417bf2689e4bbec86df4f831bf9f7ffd0ffffffff016cd9f505000000001976a914255b157a678a10021243307e4bb58f36375aa80e88ac00000000')
 
-    def test_shielded_one_one_fee(self):
+    def test_shieldedIn_one_one_fee_1(self):
+        self.setup_mnemonic_allallall()
+
+        # tx:  43d133a5bb5d1764368726707584c4eb1faf2a696a832325a7608d6b5e72aeca
+        # input 0: 19.99740373 TAZ
+
+        inp1 = proto_types.TxInputType(address_n=[2147483692, 2147483649, 2147483648, 0, 0],  # tmJ1xYxP8XNTtCoDgvdmQPSrxh5qZJgy65Z
+                             # amount=1999740373,
+                             prev_hash=binascii.unhexlify(b'43d133a5bb5d1764368726707584c4eb1faf2a696a832325a7608d6b5e72aeca'),
+                             prev_index=0,
+                             )
+
+        out1 = proto_types.TxOutputType(address='tmJ1xYxP8XNTtCoDgvdmQPSrxh5qZJgy65Z',
+                              amount=1999740373 - 1940,
+                              script_type=proto_types.PAYTOADDRESS,
+                              )
+
+        with self.client:
+            self.client.set_tx_api(TxApiZcashTestnet)
+            self.client.set_expected_responses([
+                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify(b"43d133a5bb5d1764368726707584c4eb1faf2a696a832325a7608d6b5e72aeca"))),
+                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify(b"43d133a5bb5d1764368726707584c4eb1faf2a696a832325a7608d6b5e72aeca"))),
+                proto.TxRequest(request_type=proto_types.TXEXTRADATA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify(b"43d133a5bb5d1764368726707584c4eb1faf2a696a832325a7608d6b5e72aeca"),extra_data_offset=0, extra_data_len=1024)),
+                proto.TxRequest(request_type=proto_types.TXEXTRADATA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify(b"43d133a5bb5d1764368726707584c4eb1faf2a696a832325a7608d6b5e72aeca"),extra_data_offset=1024, extra_data_len=875)),
+                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
+                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
+                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
+
+                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
+                proto.TxRequest(request_type=proto_types.TXFINISHED),
+
+            ])
+
+            (signatures, serialized_tx) = self.client.sign_tx('Zcash Testnet', [inp1, ], [out1, ])
+
+        self.assertEqual(binascii.hexlify(serialized_tx), b'0100000001caae725e6b8d60a72523836a692aaf1febc484757026873664175dbba533d143000000006a47304402202ebaef78845205d9a80c07c5729edd82554fed911a5560a5e03527c28f995f2c022023ebdcf0e136cdf87f4dd627d0cc4149f453209d69a8e4c78aafe4913a8761300121030e669acac1f280d1ddf441cd2ba5e97417bf2689e4bbec86df4f831bf9f7ffd0ffffffff0141963177000000001976a914255b157a678a10021243307e4bb58f36375aa80e88ac00000000')
+
+    def test_shieldedIn_one_one_fee_2(self):
         self.setup_mnemonic_allallall()
 
         # tx: c6eddfbedd5821baea352b79fbd0d793a55257111c46a79002844b86a1c872e1
-        # input 0: 19.9973 ZEC
+        # input 0: 19.9973 TAZ
 
         inp1 = proto_types.TxInputType(address_n=[2147483692, 2147483649, 2147483648, 0, 0],  # t1YxYiYy8Hjq5HBN7sioDtTs98SX2SzW5q8
-                             #amount=1990000000
+                             #amount=1999730000 TAZ
                              prev_hash=binascii.unhexlify(b'c6eddfbedd5821baea352b79fbd0d793a55257111c46a79002844b86a1c872e1'),
                              prev_index=0,
                              )
 
         out1 = proto_types.TxOutputType(address='tmJ1xYxP8XNTtCoDgvdmQPSrxh5qZJgy65Z',
-                              amount=1990000000 - 1940,
+                              amount=1997300000 - 1940,
                               script_type=proto_types.PAYTOADDRESS,
                               )
 
@@ -143,7 +183,7 @@ class TestMsgSigntx(common.KeepKeyTest):
             ])
             (signatures, serialized_tx) = self.client.sign_tx('Zcash Testnet', [inp1, ], [out1, ])
 
-        self.assertEqual(binascii.hexlify(serialized_tx), b'0100000001e172c8a1864b840290a7461c115752a593d7d0fb792b35eaba2158ddbedfedc6000000006b483045022100d803daf203681f4149546b5601b3efe955b7bb3135b3e95d65752588a9323a8c02206044654ff06e1571e8a02e6e80bcb886c1d679bc5bd6aef95a74dfec6ecbe89f0121030e669acac1f280d1ddf441cd2ba5e97417bf2689e4bbec86df4f831bf9f7ffd0ffffffff01ecf59c76000000001976a914255b157a678a10021243307e4bb58f36375aa80e88ac00000000')
+        self.assertEqual(binascii.hexlify(serialized_tx), b'0100000001e172c8a1864b840290a7461c115752a593d7d0fb792b35eaba2158ddbedfedc6000000006b483045022100987ac3682c63bbe8d368693989c3a7fa2e310e9889673c8a0d1c5611c8835ed60220212d280223f519a311d0caed2a5065f9d27d234cb0c96073cd1adcb4f92f48b50121030e669acac1f280d1ddf441cd2ba5e97417bf2689e4bbec86df4f831bf9f7ffd0ffffffff018c590c77000000001976a914255b157a678a10021243307e4bb58f36375aa80e88ac00000000')
 
 if __name__ == '__main__':
     unittest.main()
