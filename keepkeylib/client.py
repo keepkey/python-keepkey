@@ -1,4 +1,23 @@
-from __future__ import print_function
+# This file is part of the TREZOR project.
+#
+# Copyright (C) 2012-2016 Marek Palatinus <slush@satoshilabs.com>
+# Copyright (C) 2012-2016 Pavol Rusnak <stick@satoshilabs.com>
+# Copyright (C) 2016      Jochen Hoenicke <hoenicke@gmail.com>
+#
+# This library is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this library.  If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import print_function, absolute_import
 
 import os
 import sys
@@ -502,7 +521,7 @@ class ProtocolMixin(object):
         n = self._convert_prime(n)
         return self.call(proto.EthereumGetAddress(address_n=n, show_display=show_display))
 
-    def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None):
+    def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None):
         def int_to_big_endian(value):
             import rlp.utils
             if value == 0:
@@ -550,6 +569,9 @@ class ProtocolMixin(object):
                 msg.data_length = len(data)
                 data, chunk = data[1024:], data[:1024]
                 msg.data_initial_chunk = chunk
+
+            if chain_id:
+                msg.chain_id = chain_id
 
             response = self.call(msg)
 
@@ -632,7 +654,7 @@ class ProtocolMixin(object):
         return self.call(proto.SignIdentity(identity=identity, challenge_hidden=challenge_hidden, challenge_visual=challenge_visual, ecdsa_curve_name=ecdsa_curve_name))
 
 
-    def verify_message(self, address, signature, message):
+    def verify_message(self, coin_name, address, signature, message):
         # Convert message to UTF8 NFC (seems to be a bitcoin-qt standard)
         message = normalize_nfc(message)
         try:
