@@ -16,6 +16,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
+#
+# The script has been modified for KeepKey Device.
 
 from __future__ import print_function, absolute_import
 
@@ -49,6 +51,33 @@ DEFAULT_CURVE = 'secp256k1'
 # monkeypatching: text formatting of protobuf messages
 tools.monkeypatch_google_protobuf_text_format()
 
+def get_buttonrequest_value(code):
+    # Converts integer code to its string representation of ButtonRequestType
+    return [ k for k, v in types.ButtonRequestType.items() if v == code][0]
+
+def pprint(msg):
+    msg_class = msg.__class__.__name__
+    msg_size = msg.ByteSize()
+    """
+    msg_ser = msg.SerializeToString()
+    msg_id = mapping.get_type(msg)
+    msg_json = json.dumps(protobuf_json.pb2json(msg))
+    """
+    if isinstance(msg, proto.FirmwareUpload):
+        return "<%s> (%d bytes):\n" % (msg_class, msg_size)
+    else:
+        return "<%s> (%d bytes):\n%s" % (msg_class, msg_size, msg)
+
+def log(msg):
+    sys.stderr.write("%s\n" % msg)
+    sys.stderr.flush()
+
+def log_cr(msg):
+    sys.stdout.write('\r%s' % msg)
+    sys.stdout.flush()
+
+def format_mnemonic(word_pos, character_pos):
+    return "WORD %d: %s" % (word_pos, character_pos * '*')
 
 def getch():
     try:
@@ -71,27 +100,6 @@ def getch():
         return ch
 
     return _getch()
-
-def get_buttonrequest_value(code):
-    # Converts integer code to its string representation of ButtonRequestType
-    return [ k for k, v in types.ButtonRequestType.items() if v == code][0]
-
-def pprint(msg):
-    msg_class = msg.__class__.__name__
-    msg_size = msg.ByteSize()
-    """
-    msg_ser = msg.SerializeToString()
-    msg_id = mapping.get_type(msg)
-    msg_json = json.dumps(protobuf_json.pb2json(msg))
-    """
-    if isinstance(msg, proto.FirmwareUpload):
-        return "<%s> (%d bytes):\n" % (msg_class, msg_size)
-    else:
-        return "<%s> (%d bytes):\n%s" % (msg_class, msg_size, msg)
-
-def log(msg):
-    sys.stderr.write("%s\n" % msg)
-    sys.stderr.flush()
 
 class CallException(Exception):
     def __init__(self, code, message):
@@ -211,6 +219,7 @@ class TextUIMixin(object):
 
     def __init__(self, *args, **kwargs):
         super(TextUIMixin, self).__init__(*args, **kwargs)
+        self.character_request_first_pass = True
 
     def callback_ButtonRequest(self, msg):
         # log("Sending ButtonAck for %s " % get_buttonrequest_value(msg.code))
@@ -275,6 +284,48 @@ class TextUIMixin(object):
         except NameError:
             word = input() # Python 3
         return proto.WordAck(word=word)
+
+    def callback_CharacterRequest(self, msg):
+        if self.character_request_first_pass:
+            self.character_request_first_pass = False
+            log("Use recovery cipher on device to input mnemonic. Words are autocompleted at 3 or 4 characters.")
+            log("(use spacebar to progress to next word after match, use backspace to correct bad character or word entries)")
+
+        # format mnemonic for console
+        formatted_console = format_mnemonic(msg.word_pos + 1, msg.character_pos)
+
+        # clear the runway before we display formatted mnemonic
+        log_cr(' ' * 14)
+        log_cr(formatted_console)
+
+        while True:
+            character = getch().lower()
+
+            # capture escape
+            if character in ('\x03', '\x04'):
+                return proto.Cancel()
+
+            character_ascii = ord(character)
+
+            if character_ascii >= 97 and character_ascii <= 122 \
+            and msg.character_pos != 4:
+                # capture characters a-z
+                return proto.CharacterAck(character=character)
+
+            elif character_ascii == 32 and msg.word_pos < 23 \
+            and msg.character_pos >= 3:
+                # capture spaces
+                return proto.CharacterAck(character=' ')
+
+            elif character_ascii == 8 or character_ascii == 127 \
+            and (msg.word_pos > 0 or msg.character_pos > 0):
+                # capture backspaces
+                return proto.CharacterAck(delete=True)
+
+            elif character_ascii == 13 and msg.word_pos in (11, 17, 23):
+                # capture returns
+                log("")
+                return proto.CharacterAck(done=True)
 
 class DebugLinkMixin(object):
     # This class implements automatic responses
@@ -500,7 +551,7 @@ class ProtocolMixin(object):
         return self.call(proto.EthereumGetAddress(address_n=n, show_display=show_display))
 
     @session
-    def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None):
+    def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None):
         def int_to_big_endian(value):
             import rlp.utils
             if value == 0:
@@ -547,6 +598,9 @@ class ProtocolMixin(object):
             data, chunk = data[1024:], data[:1024]
             msg.data_initial_chunk = chunk
 
+        if chain_id:
+            msg.chain_id = chain_id
+
         response = self.call(msg)
 
         while response.HasField('data_length'):
@@ -586,8 +640,6 @@ class ProtocolMixin(object):
             settings.language = language
         if use_passphrase != None:
             settings.use_passphrase = use_passphrase
-        if homescreen != None:
-            settings.homescreen = homescreen
 
         out = self.call(settings)
         self.init_device()  # Reload Features
@@ -839,19 +891,21 @@ class ProtocolMixin(object):
 
     @field('message')
     @expect(proto.Success)
-    def recovery_device(self, word_count, passphrase_protection, pin_protection, label, language):
+    def recovery_device(self, use_trezor_method, word_count, passphrase_protection, pin_protection, label, language):
         if self.features.initialized:
             raise Exception("Device is initialized already. Call wipe_device() and try again.")
-
-        if word_count not in (12, 18, 24):
+        if not use_trezor_method:
+			word_count = 0
+        elif word_count not in (12, 18, 24):
             raise Exception("Invalid word count. Use 12/18/24")
 
         res = self.call(proto.RecoveryDevice(word_count=int(word_count),
-                                   passphrase_protection=bool(passphrase_protection),
-                                   pin_protection=bool(pin_protection),
-                                   label=label,
-                                   language=language,
-                                   enforce_wordlist=True))
+                                    passphrase_protection=bool(passphrase_protection),
+                                    pin_protection=bool(pin_protection),
+                                    label=label,
+                                    language=language,
+                                    enforce_wordlist=True,
+                                    use_character_cipher=bool(not use_trezor_method)))
 
         self.init_device()
         return res
