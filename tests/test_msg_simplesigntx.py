@@ -8,7 +8,7 @@ import binascii
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
-from keepkeylib.tx_api import TXAPITestnet
+from keepkeylib import tx_api 
 
 class TestMsgSimplesigntx(common.KeepKeyTest):
 
@@ -60,7 +60,7 @@ class TestMsgSimplesigntx(common.KeepKeyTest):
                               )
 
         with self.client:
-            self.client.set_tx_api(TXAPITestnet())
+            self.client.set_tx_api(tx_api.TxApiTestnet)
             self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                                                 # proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput), # don't confirm change
                                                 proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
@@ -91,7 +91,7 @@ class TestMsgSimplesigntx(common.KeepKeyTest):
                               )
 
         with self.client:
-            self.client.set_tx_api(TXAPITestnet())
+            self.client.set_tx_api(tx_api.TxApiTestnet)
             self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                                                 # proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput), # don't confirm change
                                                 proto.ButtonRequest(code=proto_types.ButtonRequest_FeeOverThreshold),
@@ -347,7 +347,7 @@ class TestMsgSimplesigntx(common.KeepKeyTest):
                               )
 
         with self.client:
-            self.client.set_tx_api(TXAPITestnet())
+            self.client.set_tx_api(tx_api.TxApiTestnet)
             self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                                                 proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
                                                 proto.TxRequest(request_type=proto_types.TXFINISHED)])
