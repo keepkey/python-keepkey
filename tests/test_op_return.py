@@ -6,7 +6,7 @@ import itertools
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
-from keepkeylib.tx_api import TXAPITestnet
+from keepkeylib import tx_api
 
 class TestOpReturn(common.KeepKeyTest):
 

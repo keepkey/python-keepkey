@@ -18,7 +18,9 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
-
+#
+# The script has been modified for KeepKey Device.
+ 
 from __future__ import print_function
 import os
 import binascii
@@ -29,6 +31,7 @@ import urllib
 import tempfile
 
 from keepkeylib.client import KeepKeyClient, KeepKeyClientDebug
+import keepkeylib.types_pb2 as types
 
 def parse_args(commands):
     parser = argparse.ArgumentParser(description='Commandline tool for KeepKey devices.')
@@ -108,7 +111,11 @@ class Commands(object):
 
     def get_address(self, args):
         address_n = self.client.expand_path(args.n)
-        return self.client.get_address(args.coin, address_n, args.show_display)
+        typemap = { 'address': types.SPENDADDRESS,
+                    'segwit': types.SPENDWITNESS,
+                    'p2shsegwit': types.SPENDP2SHWITNESS }
+        script_type = typemap[args.script_type];
+        return self.client.get_address(args.coin, address_n, args.show_display, script_type=script_type)
 
     def ethereum_get_address(self, args):
         address_n = self.client.expand_path(args.n)
@@ -235,7 +242,7 @@ class Commands(object):
 
     def load_device(self, args):
         if not args.mnemonic and not args.xprv:
-            raise Exception("Please provide mnemonic or xprv")
+            raise CallException(types.Failure_Other, "Please provide mnemonic or xprv")
 
         if args.mnemonic:
             mnemonic = ' '.join(args.mnemonic)
@@ -352,11 +359,10 @@ class Commands(object):
     decrypt_keyvalue.help = 'Decrypt value by given key and path'
     firmware_update.help = 'Upload new firmware to device (must be in bootloader mode)'
 
-    clear_session.arguments= ()
-
     get_address.arguments = (
         (('-c', '--coin'), {'type': str, 'default': 'Bitcoin'}),
         (('-n', '-address'), {'type': str}),
+        (('-t', '--script-type'), {'type': str, 'choices': ['address', 'segwit', 'p2shsegwit'], 'default': 'address'}),
         (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
     )
 
@@ -410,11 +416,11 @@ class Commands(object):
     wipe_device.arguments = ()
 
     recovery_device.arguments = (
-        (('-t', '--use-trezor-method'), {'action': 'store_true', 'default': False}),
-        (('-w', '--words'), {'type': int}),
+        (('-w', '--words'), {'type': int, 'choices': [12, 18, 24], 'default': 24}),
         (('-p', '--pin-protection'), {'action': 'store_true', 'default': False}),
         (('-r', '--passphrase-protection'), {'action': 'store_true', 'default': False}),
         (('-l', '--label'), {'type': str, 'default': ''}),
+        (('-t', '--use-trezor-method'), {'action': 'store_true', 'default': False}),
     )
 
     load_device.arguments = (
@@ -485,61 +491,6 @@ class Commands(object):
 def list_usb():
     from keepkeylib.transport_hid import HidTransport
     return HidTransport.enumerate()
-
-'''
-class PinMatrixThread(threading.Thread):
-    # Hacked PinMatrixWidget into command line tool :-).
-    def __init__(self, input_text, message):
-        super(PinMatrixThread, self).__init__()
-        self.input_text = input_text
-        self.message = message
-        self.pin_value = ''
-
-    def run(self):
-        from keepkeylib.pinmatrix import PinMatrixWidget
-
-        import sys
-        from PyQt4.Qt import QApplication, QWidget, QVBoxLayout
-        from PyQt4.QtGui import QPushButton, QLabel
-        from PyQt4.QtCore import QObject, SIGNAL
-
-        a = QApplication(sys.argv)
-pass
-        matrix = PinMatrixWidget()
-
-        def clicked():
-            self.pin_value = str(matrix.get_value())
-            a.closeAllWindows()
-
-        ok = QPushButton('OK')
-        QObject.connect(ok, SIGNAL('clicked()'), clicked)
-
-        vbox = QVBoxLayout()
-        vbox.addWidget(QLabel(self.input_text + self.message))
-        vbox.addWidget(matrix)
-        vbox.addWidget(ok)
-
-        w = QWidget()
-        w.setLayout(vbox)
-        w.move(100, 100)
-        w.show()
-
-        a.exec_()
-
-def qt_pin_func(input_text, message=None):
-    # This is a hack to display Qt window in non-qt application.
-    # Qt window just asks for PIN and closes itself, which trigger join().
-    if False:  # os.getenv('DISPLAY'):
-        # Let's hope that system is configured properly and this won't crash
-        t = PinMatrixThread(input_text, message)
-        t.start()
-        t.join()
-        return t.pin_value
-    else:
-        # Most likely no X is running,
-        # let's fallback to default pin_func implementation
-        return pin_func(input_text, message)
-'''
 
 def main():
     args = parse_args(Commands)
