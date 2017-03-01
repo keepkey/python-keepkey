@@ -15,6 +15,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
+#
+# The script has been modified for KeepKey Device.
 
 from __future__ import print_function
 
