@@ -9,7 +9,7 @@ from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 
-import types_pb2
+import keepkeylib.types_pb2 as types_pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
