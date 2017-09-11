@@ -899,7 +899,7 @@ class ProtocolMixin(object):
         if self.features.initialized:
             raise Exception("Device is initialized already. Call wipe_device() and try again.")
         if not use_trezor_method:
-			word_count = 0
+            word_count = 0
         elif word_count not in (12, 18, 24):
             raise Exception("Invalid word count. Use 12/18/24")
 

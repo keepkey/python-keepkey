@@ -10,7 +10,7 @@ from google.protobuf import descriptor_pb2
 
 
 import google.protobuf.descriptor_pb2
-import exchange_pb2
+import keepkeylib.exchange_pb2 as exchange_pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
