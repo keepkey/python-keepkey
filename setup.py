@@ -28,8 +28,8 @@ setup(
         'keepkeylib.exchange_pb2',
     ],
     scripts = ['keepkeyctl'],
-    test_suite='tests/**/test_*.py',
-    install_requires=['ecdsa>=0.9', 'protobuf>=2.6.1', 'mnemonic>=0.8', 'hidapi==0.7.99.post15'],
+    test_suite='tests',
+    install_requires=['ecdsa>=0.9', 'protobuf>=2.6.1', 'mnemonic>=0.8', 'hidapi>=0.7.99'],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
