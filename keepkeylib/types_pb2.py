@@ -15,7 +15,7 @@ _sym_db = _symbol_database.Default()
 
 
 from google.protobuf import descriptor_pb2 as google_dot_protobuf_dot_descriptor__pb2
-import exchange_pb2 as exchange__pb2
+from . import exchange_pb2 as exchange__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
