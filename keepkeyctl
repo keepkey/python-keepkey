@@ -307,19 +307,14 @@ class Commands(object):
             ret = self.client.encrypt_keyvalue(address_n, args.key, bytes(args.value, 'utf-8'))
         else:
             ret = self.client.encrypt_keyvalue(address_n, args.key, args.value)
-        # ret = self.client.encrypt_keyvalue(address_n, args.key, args.value.encode())
-        # ret = self.client.encrypt_keyvalue(address_n, args.key, args.value)
         return binascii.hexlify(ret)
 
     def decrypt_keyvalue(self, args):
         address_n = self.client.expand_path(args.n)
-        # ret = self.client.decrypt_keyvalue(address_n, args.key, args.value.decode("hex"))
-        # ret = self.client.decrypt_keyvalue(address_n, args.key, args.value.encode())
         if sys.version_info > (3,):
             ret = self.client.decrypt_keyvalue(address_n, args.key, bytes.fromhex(args.value)) 
         else:
             ret = self.client.decrypt_keyvalue(address_n, args.key, args.value.decode("hex"))
-        # ret = self.client.decrypt_keyvalue(address_n, args.key, bytes(args.value, 'utf-8'))
         return ret
 
     def firmware_update(self, args):
