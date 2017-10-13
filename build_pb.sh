@@ -5,7 +5,8 @@ DEVICE_PROTO="device-protocol"
 
 if [ ! -d ../$DEVICE_PROTO ]
 then
-    git clone git@github.com:keepkey/$DEVICE_PROTO.git ../$DEVICE_PROTO
+    git clone https://github.com/keepkey/$DEVICE_PROTO.git ../$DEVICE_PROTO
+    sed -Ee 's/^import ([^.]+_pb2)/from . import \1/' -i "" $CURDIR/keepkeylib/"$i"_pb2.py
 fi
 
 cd $CURDIR/../$DEVICE_PROTO

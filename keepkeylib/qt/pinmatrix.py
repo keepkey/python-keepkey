@@ -1,10 +1,18 @@
 from __future__ import print_function
 import sys
 import math
-import operator
-from PyQt4.QtGui import (QPushButton, QLineEdit, QSizePolicy, QRegExpValidator, QLabel,
-                         QApplication, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout)
-from PyQt4.QtCore import QObject, SIGNAL, QRegExp, Qt
+
+try:
+    from PyQt4.QtGui import (QPushButton, QLineEdit, QSizePolicy, QRegExpValidator, QLabel,
+                             QApplication, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout)
+    from PyQt4.QtCore import QObject, SIGNAL, QRegExp, Qt, QT_VERSION_STR
+except:
+    from PyQt5.QtWidgets import (QPushButton, QLineEdit, QSizePolicy, QLabel,
+                                 QApplication, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout)
+    from PyQt5.QtGui import QRegExpValidator
+    from PyQt5.QtCore import QRegExp, Qt
+    from PyQt5.Qt import QT_VERSION_STR
+
 
 class PinButton(QPushButton):
     def __init__(self, password, encoded_value):
@@ -12,11 +20,17 @@ class PinButton(QPushButton):
         self.password = password
         self.encoded_value = encoded_value
 
-        QObject.connect(self, SIGNAL('clicked()'), self._pressed)
+        if QT_VERSION_STR >= '5':
+            self.clicked.connect(self._pressed)
+        elif QT_VERSION_STR >= '4':
+            QObject.connect(self, SIGNAL('clicked()'), self._pressed)
+        else:
+            raise Exception('Unsupported Qt version')
 
     def _pressed(self):
         self.password.setText(self.password.text() + str(self.encoded_value))
         self.password.setFocus()
+
 
 class PinMatrixWidget(QWidget):
     '''
@@ -32,7 +46,13 @@ class PinMatrixWidget(QWidget):
         self.password = QLineEdit()
         self.password.setValidator(QRegExpValidator(QRegExp('[1-9]+'), None))
         self.password.setEchoMode(QLineEdit.Password)
-        QObject.connect(self.password, SIGNAL('textChanged(QString)'), self._password_changed)
+
+        if QT_VERSION_STR >= '5':
+            self.password.textChanged.connect(self._password_changed)
+        elif QT_VERSION_STR >= '4':
+            QObject.connect(self.password, SIGNAL('textChanged(QString)'), self._password_changed)
+        else:
+            raise Exception('Unsupported Qt version')
 
         self.strength = QLabel()
         self.strength.setMinimumWidth(75)
@@ -83,6 +103,7 @@ class PinMatrixWidget(QWidget):
     def get_value(self):
         return self.password.text()
 
+
 if __name__ == '__main__':
     '''
         Demo application showing PinMatrix widget in action
@@ -97,7 +118,12 @@ if __name__ == '__main__':
         sys.exit()
 
     ok = QPushButton('OK')
-    QObject.connect(ok, SIGNAL('clicked()'), clicked)
+    if QT_VERSION_STR >= '5':
+        ok.clicked.connect(clicked)
+    elif QT_VERSION_STR >= '4':
+        QObject.connect(ok, SIGNAL('clicked()'), clicked)
+    else:
+        raise Exception('Unsupported Qt version')
 
     vbox = QVBoxLayout()
     vbox.addWidget(matrix)
