@@ -9,4 +9,4 @@ docker run -it --rm \
     -v $(pwd)/$TEMPDIR:/root/device-protocol \
     -w /root/python-keepkey \
     $IMAGETAG \
-	./build_pb.sh
+    ./build_pb.sh
