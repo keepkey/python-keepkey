@@ -589,10 +589,10 @@ class ProtocolMixin(object):
                 gas_limit=int_to_big_endian(gas_limit),
                 value=int_to_big_endian(value)
                 )
-                   
+
         if to:
             msg.to = to
-            
+
         if data:
             msg.data_length = len(data)
             data, chunk = data[1024:], data[:1024]
@@ -749,7 +749,8 @@ class ProtocolMixin(object):
 
             tx = msg.transactions.add()
             if self.tx_api:
-                tx.CopyFrom(self.tx_api.get_tx(binascii.hexlify(inp.prev_hash)))
+                prev_hash_str = binascii.hexlify(inp.prev_hash).decode('utf-8')
+                tx.CopyFrom(self.tx_api.get_tx(prev_hash_str))
             else:
                 raise Exception('TX_API not defined')
             known_hashes.append(inp.prev_hash)
@@ -774,10 +775,11 @@ class ProtocolMixin(object):
                 continue
 
             if self.tx_api:
+                prev_hash_str = binascii.hexlify(inp.prev_hash).decode('utf-8')
                 if use_raw_tx:
-                    txes[inp.prev_hash] = self.tx_api.get_raw_tx(binascii.hexlify(inp.prev_hash))
+                    txes[inp.prev_hash] = self.tx_api.get_raw_tx(prev_hash_str)
                 else:
-                    txes[inp.prev_hash] = self.tx_api.get_tx(binascii.hexlify(inp.prev_hash))
+                    txes[inp.prev_hash] = self.tx_api.get_tx(prev_hash_str)
             else:
                 raise Exception('TX_API not defined')
             known_hashes.append(inp.prev_hash)
@@ -899,7 +901,7 @@ class ProtocolMixin(object):
         if self.features.initialized:
             raise Exception("Device is initialized already. Call wipe_device() and try again.")
         if not use_trezor_method:
-			word_count = 0
+            word_count = 0
         elif word_count not in (12, 18, 24):
             raise Exception("Invalid word count. Use 12/18/24")
 
