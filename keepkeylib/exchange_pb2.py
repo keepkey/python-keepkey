@@ -21,7 +21,6 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_pb=_b('\n\x0e\x65xchange.proto\"[\n\x0f\x45xchangeAddress\x12\x11\n\tcoin_type\x18\x01 \x01(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\x12\x10\n\x08\x64\x65st_tag\x18\x03 \x01(\t\x12\x12\n\nrs_address\x18\x04 \x01(\t\"\xa9\x02\n\x12\x45xchangeResponseV2\x12)\n\x0f\x64\x65posit_address\x18\x01 \x01(\x0b\x32\x10.ExchangeAddress\x12\x16\n\x0e\x64\x65posit_amount\x18\x02 \x01(\x0c\x12\x12\n\nexpiration\x18\x03 \x01(\x03\x12\x13\n\x0bquoted_rate\x18\x04 \x01(\x0c\x12,\n\x12withdrawal_address\x18\x05 \x01(\x0b\x32\x10.ExchangeAddress\x12\x19\n\x11withdrawal_amount\x18\x06 \x01(\x0c\x12(\n\x0ereturn_address\x18\x07 \x01(\x0b\x32\x10.ExchangeAddress\x12\x0f\n\x07\x61pi_key\x18\x08 \x01(\x0c\x12\x11\n\tminer_fee\x18\t \x01(\x0c\x12\x10\n\x08order_id\x18\n \x01(\x0c\"y\n\x16SignedExchangeResponse\x12#\n\x08response\x18\x01 \x01(\x0b\x32\x11.ExchangeResponse\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\'\n\nresponseV2\x18\x03 \x01(\x0b\x32\x13.ExchangeResponseV2\"\xa7\x02\n\x10\x45xchangeResponse\x12)\n\x0f\x64\x65posit_address\x18\x01 \x01(\x0b\x32\x10.ExchangeAddress\x12\x16\n\x0e\x64\x65posit_amount\x18\x02 \x01(\x04\x12\x12\n\nexpiration\x18\x03 \x01(\x03\x12\x13\n\x0bquoted_rate\x18\x04 \x01(\x04\x12,\n\x12withdrawal_address\x18\x05 \x01(\x0b\x32\x10.ExchangeAddress\x12\x19\n\x11withdrawal_amount\x18\x06 \x01(\x04\x12(\n\x0ereturn_address\x18\x07 \x01(\x0b\x32\x10.ExchangeAddress\x12\x0f\n\x07\x61pi_key\x18\x08 \x01(\x0c\x12\x11\n\tminer_fee\x18\t \x01(\x04\x12\x10\n\x08order_id\x18\n \x01(\x0c\x42.\n\x1b\x63om.keepkey.device-protocolB\x0fKeepKeyExchange')
 )
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 
@@ -322,6 +321,7 @@ DESCRIPTOR.message_types_by_name['ExchangeAddress'] = _EXCHANGEADDRESS
 DESCRIPTOR.message_types_by_name['ExchangeResponseV2'] = _EXCHANGERESPONSEV2
 DESCRIPTOR.message_types_by_name['SignedExchangeResponse'] = _SIGNEDEXCHANGERESPONSE
 DESCRIPTOR.message_types_by_name['ExchangeResponse'] = _EXCHANGERESPONSE
+_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ExchangeAddress = _reflection.GeneratedProtocolMessageType('ExchangeAddress', (_message.Message,), dict(
   DESCRIPTOR = _EXCHANGEADDRESS,

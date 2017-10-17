@@ -1,4 +1,5 @@
 build/
+device-protocol/
 dist/
 python_trezor.egg-info/
 trezor.egg-info/
