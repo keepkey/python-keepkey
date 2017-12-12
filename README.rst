@@ -86,3 +86,13 @@ How to install (Debian-Ubuntu)
 * git clone https://github.com/keepkey/python-keepkey.git
 * cd python-keepkey
 * python setup.py install (or develop)
+
+
+Running Tests
+-------------
+
+To run unit tests that don't require a device:
+
+.. code:: shell
+
+    $ python tests/unit/*.py
