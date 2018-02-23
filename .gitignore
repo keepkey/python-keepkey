@@ -1,3 +1,6 @@
+keepkeylib/types_pb2.py
+keepkeylib/messages_pb2.py
+keepkeylib/exchange_pb2.py
 build/
 device-protocol/
 dist/
