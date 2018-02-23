@@ -38,6 +38,8 @@ from . import messages_pb2 as proto
 from . import types_pb2 as types
 from .debuglink import DebugLink
 
+import rlp.utils
+
 # try:
 #     from PIL import Image
 #     SCREENSHOT = True
@@ -562,15 +564,13 @@ class ProtocolMixin(object):
         return self.call(proto.EthereumGetAddress(address_n=n, show_display=show_display))
 
     @session
-    def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None):
+    def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None, token_shortcut=None, token_value=None, token_to=None):
         def int_to_big_endian(value):
-            import rlp.utils
             if value == 0:
                 return b''
             return rlp.utils.int_to_big_endian(value)
 
         n = self._convert_prime(n)
-
         if address_type == 1:   #Ethereum transfer transaction
             msg = proto.EthereumSignTx(
                 address_n=n,
@@ -578,9 +578,8 @@ class ProtocolMixin(object):
                 gas_price=int_to_big_endian(gas_price),
                 gas_limit=int_to_big_endian(gas_limit),
                 value=int_to_big_endian(value),
-                to_address_n=to_n,
+                to_address_n=to_n
                 )
-            msg.address_type = address_type
         elif address_type == 3:   #Ethereum exchange transaction
             msg = proto.EthereumSignTx(
                 address_n=n,
@@ -593,13 +592,29 @@ class ProtocolMixin(object):
                 )
             msg.address_type = address_type
         else:
-            msg = proto.EthereumSignTx(
-                address_n=n,
-                nonce=int_to_big_endian(nonce),
-                gas_price=int_to_big_endian(gas_price),
-                gas_limit=int_to_big_endian(gas_limit),
-                value=int_to_big_endian(value)
-                )
+            if token_shortcut is None:
+                msg = proto.EthereumSignTx(
+                    address_n=n,
+                    nonce=int_to_big_endian(nonce),
+                    gas_price=int_to_big_endian(gas_price),
+                    gas_limit=int_to_big_endian(gas_limit),
+                    value=int_to_big_endian(value)
+                    )
+            else:
+                #erc20 token transfer
+                value_array = bytearray([0]*32)
+                for ii,i in enumerate(rlp.utils.int_to_big_endian(token_value)[::-1]):
+                    value_array[31 - ii] = i
+                msg = proto.EthereumSignTx(
+                    address_n=n,
+                    nonce=int_to_big_endian(nonce),
+                    gas_price=int_to_big_endian(gas_price),
+                    gas_limit=int_to_big_endian(gas_limit),
+                    token_value=bytes(value_array),
+                    token_to=token_to,
+                    token_shortcut=token_shortcut,
+                    )
+
 
         if to:
             msg.to = to
