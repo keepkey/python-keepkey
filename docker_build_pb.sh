@@ -1,8 +1,10 @@
 #!/bin/bash
 
-IMAGETAG=keepkey/firmware
+IMAGETAG=kktech/firmware:v1
 
-docker run -it --rm \
+docker pull $IMAGETAG
+
+docker run -it \
     -v $(pwd):/root/python-keepkey \
     -w /root/python-keepkey \
     $IMAGETAG \
