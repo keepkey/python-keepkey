@@ -88,6 +88,13 @@ class TestMsgSignidentity(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig.public_key), '000fac2a491e0f5b871dc48288a4cae551bac5cb0ed19df0764d6e721ec5fade18')
         self.assertEqual(binascii.hexlify(sig.signature), '00f05e5085e666429de397c70a081932654369619c0bd2a6579ea6c1ef2af112ef79998d6c862a16b932d44b1ac1b83c8cbcd0fbda228274fde9e0d0ca6e9cb709')
 
+        # Verify that format characters in user supplied strings do not cause UB
+        identity = proto_types.IdentityType(proto='ssh', user='%n%s%x%p', host='%n%s%x%p', port='', path='', index=47)
+        sig = self.client.sign_identity(identity, hidden, visual, ecdsa_curve_name='ed25519')
+        self.assertEqual(sig.address, '')
+        self.assertEqual(binascii.hexlify(sig.public_key), '00f3ae8a64f2aa19baf8f7a8b2e48e8ea232d8dd368df322c4bd25ce8d4637b399')
+        self.assertEqual(binascii.hexlify(sig.signature), '00fa861cca76ed06f53174c84f8de1881f7f467c424c9c03e41be345cf9ad3f38f19ea01e32d37e2ccf3d9f104c617e99e4d2062397894c32158686d0222a9490b') 
+
 
 if __name__ == '__main__':
     unittest.main()

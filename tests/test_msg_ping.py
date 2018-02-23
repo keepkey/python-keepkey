@@ -51,6 +51,14 @@ class TestPing(common.KeepKeyTest):
             res = self.client.ping('random data', passphrase_protection=True)
             self.assertEqual(res, 'random data')
 
+    def test_ping_format_specifier_sanitize(self):
+        self.setup_mnemonic_pin_passphrase()
+        self.client.clear_session()
+        with self.client:
+            self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_Ping), proto.PinMatrixRequest(), proto.PassphraseRequest(), proto.Success()])
+            res = self.client.ping('%s%x%n%p', button_protection=True, pin_protection=True, passphrase_protection=True)
+            self.assertEqual(res, '%s%x%n%p')
+
     def test_ping_caching(self):
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()

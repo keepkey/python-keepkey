@@ -1,7 +1,7 @@
 #!/bin/bash
 CURDIR=$(pwd)
 DEVICE_PROTO="device-protocol"
-DEVICE_PROTO_VERSION="v4.0.1"
+DEVICE_PROTO_VERSION="v5.0.0"
 
 # Create a clean directory for the protobuf files
 if [ -d $DEVICE_PROTO ]
