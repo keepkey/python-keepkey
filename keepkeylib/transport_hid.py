@@ -44,11 +44,9 @@ class HidTransport(Transport):
 
             if (vendor_id, product_id) in DEVICE_IDS:
                 devices.setdefault(serial_number, [None, None])
-                print(path, interface_number)
-                if interface_number == 0 or (interface_number == -1 and path.endswith('0')): # normal link
+                if interface_number == 0 or (interface_number == -1 and path.endswith(b'0')): # normal link
                     devices[serial_number][0] = path
-                elif interface_number == 1 or (interface_number == -1 and path.endswith('1')): # debug link
-                    print("we made it")
+                elif interface_number == 1 or (interface_number == -1 and path.endswith(b'1')): # debug link
                     devices[serial_number][1] = path
                 else:
                     raise Exception("Unknown USB interface number: %d" % interface_number)
