@@ -5,6 +5,22 @@ import sys
 
 Hash = lambda x: hashlib.sha256(hashlib.sha256(x).digest()).digest()
 
+HARDENED_FLAG = 1 << 31
+
+
+def H_(x):
+    """
+    Shortcut function that "hardens" a number in a BIP44 path.
+    """
+    return x | HARDENED_FLAG
+
+
+def btc_hash(data):
+    """
+    Double-SHA256 hash as used in BTC
+    """
+    return hashlib.sha256(hashlib.sha256(data).digest()).digest()
+
 def hash_160(public_key):
     md = hashlib.new('ripemd160')
     md.update(hashlib.sha256(public_key).digest())
@@ -84,6 +100,43 @@ def b58decode(v, length):
         return None
 
     return result
+
+
+def parse_path(nstr):
+    """
+    Convert BIP32 path string to list of uint32 integers with hardened flags.
+    Several conventions are supported to set the hardened flag: -1, 1', 1h
+    e.g.: "0/1h/1" -> [0, 0x80000001, 1]
+    :param nstr: path string
+    :return: list of integers
+    """
+    if not nstr:
+        return []
+
+    n = nstr.split('/')
+
+    # m/a/b/c => a/b/c
+    if n[0] == 'm':
+        n = n[1:]
+
+    # coin_name/a/b/c => 44'/SLIP44_constant'/a/b/c
+    #if n[0] in slip44:
+    #    coin_id = slip44[n[0]]
+    #    n[0:1] = ['44h', '{}h'.format(coin_id)]
+
+    def str_to_harden(x):
+        if x.startswith('-'):
+            return H_(abs(int(x)))
+        elif x.endswith(('h', "'")):
+            return H_(int(x[:-1]))
+        else:
+            return int(x)
+
+    try:
+        return list(str_to_harden(x) for x in n)
+    except Exception:
+        raise ValueError('Invalid BIP32 path', nstr)
+
 
 def monkeypatch_google_protobuf_text_format():
     # monkeypatching: text formatting of protobuf messages
