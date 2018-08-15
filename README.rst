@@ -72,6 +72,14 @@ Example: your PIN is **1234** and KeepKey is displaying the following:
 
 You have to enter: **3795**
 
+How to install (virtualenv)
+------------------------
+* Install virtualenv
+* Clone repository
+* Run "virtualenv env" in the project root
+* Run "source env/bin/activate"
+* Run "python setup.py install"
+
 How to install (Windows)
 ------------------------
 * Install Python 2.7 (http://python.org)
