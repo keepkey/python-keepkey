@@ -33,7 +33,7 @@ from rlp.utils import int_to_big_endian
 class TestMsgEthereumSigntx(common.KeepKeyTest):
     def test_ethereum_tx_xfer_acc1(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
         sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
             n=[0, 0],
@@ -41,7 +41,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_price=20,
             gas_limit=20,
             value=12345678901234567890,
-	    to_n=[0x8000002c, 0x8000003c, 1, 0, 0],
+            to_n=[0x8000002c, 0x8000003c, 1, 0, 0],
             address_type=1,
             )
 
@@ -56,7 +56,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
     def test_ethereum_tx_xfer_acc2(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
         sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
             n=[0, 0],
@@ -64,7 +64,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_price=20,
             gas_limit=20,
             value=12345678901234567890,
-	    to_n=[0x8000002c, 0x8000003c, 2, 0, 0],
+            to_n=[0x8000002c, 0x8000003c, 2, 0, 0],
             address_type=1,
             )
 
@@ -79,7 +79,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
     def test_ethereum_xfer_account_path_error_0(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
         sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
             n=[0, 0],
@@ -87,24 +87,24 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_price=20,
             gas_limit=20,
             value=12345678901234567890,
-	    to_n=[0x8000002c, 0x8000003c, 2, 0, 0],
+            to_n=[0x8000002c, 0x8000003c, 2, 0, 0],
             address_type=1,
             )
 
         try:
-	    signature_der = self.client.ethereum_sign_tx(
-            n=[0, 0],
-            nonce=0,
-            gas_price=20,
-            gas_limit=20,
-	    to_n=[0x8000002a, 0x8000003c, 1, 0, 0],  
-            #error here   -^-
-            value=12345678901234567890,
-            address_type=1,
-            )
+            signature_der = self.client.ethereum_sign_tx(
+                n=[0, 0],
+                nonce=0,
+                gas_price=20,
+                gas_limit=20,
+                to_n=[0x8000002a, 0x8000003c, 1, 0, 0],
+                #error here   -^-
+                value=12345678901234567890,
+                address_type=1,
+                )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Failed to compile output')
-            print "Negative Test Passed (test_ethereum_xfer_account_path_error_0)!" 
+            self.assertEndsWith(e.args[1], 'Failed to compile output')
+            print "Negative Test Passed (test_ethereum_xfer_account_path_error_0)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -113,22 +113,22 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
     def test_ethereum_xfer_account_path_error_1(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
         try:
-	    signature_der = self.client.ethereum_sign_tx(
-            n=[0, 0],
-            nonce=0,
-            gas_price=20,
-            gas_limit=20,
-	    to_n=[0x8000002c, 0x80000030, 1, 0, 0], 
-                    #error here       -^- 
-            value=12345678901234567890,
-            address_type=1,
-            )
+            signature_der = self.client.ethereum_sign_tx(
+                n=[0, 0],
+                nonce=0,
+                gas_price=20,
+                gas_limit=20,
+                to_n=[0x8000002c, 0x80000030, 1, 0, 0],
+                                 #error here       -^-
+                value=12345678901234567890,
+                address_type=1,
+                )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Failed to compile output')
-            print "Negative Test Passed (test_ethereum_xfer_account_path_error_1)!" 
+            self.assertEndsWith(e.args[1], 'Failed to compile output')
+            print "Negative Test Passed (test_ethereum_xfer_account_path_error_1)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -137,23 +137,23 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
     def test_ethereum_xfer_account_path_error_2(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
 
         try:
-	    signature_der = self.client.ethereum_sign_tx(
-            n=[0, 0],
-            nonce=0,
-            gas_price=20,
-            gas_limit=20,
-	    to_n=[0x8000002c, 0x8000003c, 1, 1, 0],  
-                           #error here      -^- 
-            value=12345678901234567890,
-            address_type=1,
-            )
+            signature_der = self.client.ethereum_sign_tx(
+                n=[0, 0],
+                nonce=0,
+                gas_price=20,
+                gas_limit=20,
+                to_n=[0x8000002c, 0x8000003c, 1, 1, 0],
+                                  #error here      -^-
+                value=12345678901234567890,
+                address_type=1,
+                )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Failed to compile output')
-            print "Negative Test Passed (test_ethereum_xfer_account_path_error_2)!" 
+            self.assertEndsWith(e.args[1], 'Failed to compile output')
+            print "Negative Test Passed (test_ethereum_xfer_account_path_error_2)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -162,22 +162,22 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
     def test_ethereum_xfer_account_path_error_3(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
         try:
-	    signature_der = self.client.ethereum_sign_tx(
-            n=[0, 0],
-            nonce=0,
-            gas_price=20,
-            gas_limit=20,
-	    to_n=[0x8000002c, 0x8000003c, 1, 0, 1],  
-                                #error here    -^-
-            value=12345678901234567890,
-            address_type=1,
-            )
+            signature_der = self.client.ethereum_sign_tx(
+                n=[0, 0],
+                nonce=0,
+                gas_price=20,
+                gas_limit=20,
+                to_n=[0x8000002c, 0x8000003c, 1, 0, 1],
+                                    #error here    -^-
+                value=12345678901234567890,
+                address_type=1,
+                )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Failed to compile output')
-            print "Negative Test Passed (test_ethereum_xfer_account_path_error_2)!" 
+            self.assertEndsWith(e.args[1], 'Failed to compile output')
+            print "Negative Test Passed (test_ethereum_xfer_account_path_error_2)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 

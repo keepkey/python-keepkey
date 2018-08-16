@@ -72,6 +72,9 @@ class KeepKeyTest(unittest.TestCase):
     def tearDown(self):
         self.client.close()
 
+    def assertEndsWith(self, s, suffix):
+        self.assertTrue(s.endswith(suffix), "'{}'.endswith('{}')".format(s, suffix))
+
 class KeepKeyBootloaderTest(unittest.TestCase):
     def setUp(self):
         self.debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS, **config.DEBUG_TRANSPORT_KWARGS)

@@ -191,7 +191,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
             exchange_type=exchange_type_out1,
             )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Exchange signature error')
+            self.assertEndsWith(e.args[1], 'Exchange signature error')
             print "Negative Test Passed (test_ethereum_exch_signature_error1)!" 
         else:
             self.assert_(False, "Failed to detect error condition")
@@ -204,7 +204,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
     def test_ethereum_exch_signature_error2(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 responseV2=proto_exchange.ExchangeResponseV2(
@@ -212,7 +212,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
-  
+
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
@@ -241,18 +241,18 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
-            n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
-            gas_price=20,
-            gas_limit=20,
-            to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
-            value=146207570000000000,
-            address_type=3,
-            exchange_type=exchange_type_out1,
-            )
+                n=[2147483692,2147483708,2147483648,0,0],
+                nonce=01,
+                gas_price=20,
+                gas_limit=20,
+                to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
+                value=146207570000000000,
+                address_type=3,
+                exchange_type=exchange_type_out1,
+                )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Exchange signature error')
-            print "Negative Test Passed (test_ethereum_exch_signature_error2)!" 
+            self.assertEndsWith(e.args[1], 'Exchange signature error')
+            print "Negative Test Passed (test_ethereum_exch_signature_error2)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -261,7 +261,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
     def test_ethereum_exch_signature_error3(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 responseV2=proto_exchange.ExchangeResponseV2(
@@ -269,7 +269,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
-  
+
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
@@ -298,17 +298,17 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
-            n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
-            gas_price=20,
-            gas_limit=20,
-            to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
-            value=146207570000000000,
-            address_type=3,
-            exchange_type=exchange_type_out1,
-            )
+                n=[2147483692,2147483708,2147483648,0,0],
+                nonce=01,
+                gas_price=20,
+                gas_limit=20,
+                to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
+                value=146207570000000000,
+                address_type=3,
+                exchange_type=exchange_type_out1,
+                )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Exchange signature error')
+            self.assertEndsWith(e.args[1], 'Exchange signature error')
             print "Negative Test Passed (test_ethereum_exch_signature_error3)!" 
         else:
             self.assert_(False, "Failed to detect error condition")
@@ -318,14 +318,14 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
     def test_ethereum_exch_dep_addr_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 responseV2=proto_exchange.ExchangeResponseV2(
                                          withdrawal_amount=binascii.unhexlify('01a69189'),
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
-  
+
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
@@ -363,8 +363,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
             exchange_type=exchange_type_out1,
             )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Exchange deposit address error')
-            print "Negative Test Passed (test_ethereum_exch_dep_addr_error)!" 
+            self.assertEndsWith(e.args[1], 'Exchange deposit address error')
+            print "Negative Test Passed (test_ethereum_exch_dep_addr_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -373,14 +373,14 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
     def test_ethereum_exch_dep_amount_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 responseV2=proto_exchange.ExchangeResponseV2(
                                          withdrawal_amount=binascii.unhexlify('01a69189'),
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
-  
+
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
@@ -418,8 +418,8 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
             exchange_type=exchange_type_out1,
             )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Exchange deposit amount error')
-            print "Negative Test Passed (test_ethereum_exch_dep_amount_error)!" 
+            self.assertEndsWith(e.args[1], 'Exchange deposit amount error')
+            print "Negative Test Passed (test_ethereum_exch_dep_amount_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -428,14 +428,14 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
     def test_ethereum_exch_withdrawal_cointype_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 responseV2=proto_exchange.ExchangeResponseV2(
                                          withdrawal_amount=binascii.unhexlify('01a69189'),
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
-  
+
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
@@ -463,18 +463,18 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                             )
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
-            n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
-            gas_price=20,
-            gas_limit=20,
-            to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
-            value=146207570000000000,
-            address_type=3,
-            exchange_type=exchange_type_out1,
-            )
+                n=[2147483692,2147483708,2147483648,0,0],
+                nonce=01,
+                gas_price=20,
+                gas_limit=20,
+                to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
+                value=146207570000000000,
+                address_type=3,
+                exchange_type=exchange_type_out1,
+                )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Exchange withdrawal coin type error')
-            print "Negative Test Passed (test_ethereum_exch_withdrawal_cointype_error)!" 
+            self.assertEndsWith(e.args[1], 'Exchange withdrawal coin type error')
+            print "Negative Test Passed (test_ethereum_exch_withdrawal_cointype_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -483,7 +483,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
     def test_ethereum_exch_withdrawal_addr_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 responseV2=proto_exchange.ExchangeResponseV2(
@@ -491,7 +491,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
-  
+
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
@@ -520,18 +520,18 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
-            n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
-            gas_price=20,
-            gas_limit=20,
-            to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
-            value=146207570000000000,
-            address_type=3,
-            exchange_type=exchange_type_out1,
-            )
+                n=[2147483692,2147483708,2147483648,0,0],
+                nonce=01,
+                gas_price=20,
+                gas_limit=20,
+                to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
+                value=146207570000000000,
+                address_type=3,
+                exchange_type=exchange_type_out1,
+                )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Exchange withdrawal address error')
-            print "Negative Test Passed (test_ethereum_exch_withdrawal_addr_error)!" 
+            self.assertEndsWith(e.args[1], 'Exchange withdrawal address error')
+            print "Negative Test Passed (test_ethereum_exch_withdrawal_addr_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -540,7 +540,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
     def test_ethereum_exch_return_addr_error(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 responseV2=proto_exchange.ExchangeResponseV2(
@@ -548,7 +548,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
-  
+
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
@@ -576,18 +576,18 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                             )
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
-            n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
-            gas_price=20,
-            gas_limit=20,
-            to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
-            value=146207570000000000,
-            address_type=3,
-            exchange_type=exchange_type_out1,
-            )
+                n=[2147483692,2147483708,2147483648,0,0],
+                nonce=01,
+                gas_price=20,
+                gas_limit=20,
+                to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
+                value=146207570000000000,
+                address_type=3,
+                exchange_type=exchange_type_out1,
+                )
         except CallException as e:
-            self.assertEqual(e.args[1], 'Exchange return address error')
-            print "Negative Test Passed (test_ethereum_exch_return_addr_error)!" 
+            self.assertEndsWith(e.args[1], 'Exchange return address error')
+            print "Negative Test Passed (test_ethereum_exch_return_addr_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
