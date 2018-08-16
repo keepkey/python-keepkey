@@ -21,6 +21,7 @@
 import unittest
 import common
 import keepkeylib.ckd_public as bip32
+import keepkeylib.types_pb2 as proto_types
 
 class TestMsgGetaddress(common.KeepKeyTest):
 
@@ -40,9 +41,21 @@ class TestMsgGetaddress(common.KeepKeyTest):
         self.assertEqual(self.client.get_address('Litecoin', [-9, 0]), 'LZHVtcwAEDf1BR4d67551zUijyLUpDF9EX')
         self.assertEqual(self.client.get_address('Litecoin', [0, 9999999]), 'Laf5nGHSCT94C5dK6fw2RxuXPiw2ZuRR9S')
 
-    def test_tbtc(self):
+    def test_ltc_m_address(self):
+        # generate a 1 of 1 multisig and make sure we get an M address
         self.setup_mnemonic_nopin_nopassphrase()
-        self.assertEqual(self.client.get_address('Testnet', [111, 42]), 'moN6aN6NP1KWgnPSqzrrRPvx2x1UtZJssa')
+        node = bip32.deserialize('xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy')
+        multisig = proto_types.MultisigRedeemScriptType(
+                            pubkeys=[proto_types.HDNodePathType(node=node, address_n=[])],
+                            signatures=[''],
+                            m=1,
+                            )
+        self.assertEqual(self.client.get_address('Litecoin', [], multisig=multisig), 'MBFFn5LyWatMVt2aoXbLkFJHRsnNJcaxba')
+
+
+    def test_tbtc(self):
+         self.setup_mnemonic_nopin_nopassphrase()
+         self.assertEqual(self.client.get_address('Testnet', [111, 42]), 'moN6aN6NP1KWgnPSqzrrRPvx2x1UtZJssa')
 
     def test_public_ckd(self):
         self.setup_mnemonic_nopin_nopassphrase()
