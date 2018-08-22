@@ -54,6 +54,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_r), '6de597b8ec1b46501e5b159676e132c1aa78a95bd5892ef23560a9867528975a')
         self.assertEqual(binascii.hexlify(sig_s), '6e33c4230b1ecf96a8dbb514b4aec0a6d6ba53f8991c8143f77812aa6daa993f')
 
+    @unittest.expectedFailure # Signing of arbitrary data not supported
     def test_ethereum_signtx_data(self):
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -81,6 +82,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_r), '4e90b13c45c6a9bf4aaad0e5427c3e62d76692b36eb727c78d332441b7400404')
         self.assertEqual(binascii.hexlify(sig_s), '3ff236e7d05f0f9b1ee3d70599bb4200638f28388a8faf6bb36db9e04dc544be')
 
+    @unittest.expectedFailure # Signing of arbitrary data not supported
     def test_ethereum_signtx_message(self):
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -96,6 +98,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_r), '070e9dafda4d9e733fa7b6747a75f8a4916459560efb85e3e73cd39f31aa160d')
         self.assertEqual(binascii.hexlify(sig_s), '7842db33ef15c27049ed52741db41fe3238a6fa3a6a0888fcfb74d6917600e41')
 
+    @unittest.expectedFailure # Signing of arbitrary data not supported
     def test_ethereum_signtx_newcontract(self):
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -181,6 +184,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_r), '699428a6950e23c6843f1bf3754f847e64e047e829978df80d55187d19a401ce')
         self.assertEqual(binascii.hexlify(sig_s), '087343d0a3a2f10842218ffccb146b59a8431b6245ab389fde22dc833f171e6e')
 
+    @unittest.expectedFailure # Signing of arbitrary data not supported
     def test_ethereum_signtx_data_eip155(self):
         self.setup_mnemonic_allallall()
 
