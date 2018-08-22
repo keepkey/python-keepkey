@@ -157,6 +157,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
             value=12345678901234567890)
 
+    @unittest.expectedFailure # EIP155 not yet supported
     def test_ethereum_signtx_nodata_eip155(self):
         self.setup_mnemonic_allallall()
 

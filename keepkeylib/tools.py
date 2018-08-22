@@ -48,6 +48,12 @@ def public_key_to_bc_address(public_key, address_type, compress=True):
 __b58chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 __b58base = len(__b58chars)
 
+if sys.version_info < (3,):
+    def iterbytes(data):
+        return (ord (char) for char in data)
+
+else:
+    iterbytes = lambda x: iter(x)
 
 def b58encode(v):
     """ encode v, which is a string of bytes, to base58."""
