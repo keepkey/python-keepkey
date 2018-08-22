@@ -325,15 +325,18 @@ class TestMsgSigntx(common.KeepKeyTest):
         # tx: 39a29e954977662ab3879c66fb251ef753e0912223a83d1dcb009111d28265e5
         # index 1: 0.0254 BTC
 
+        TXHASH_c63e24 = binascii.unhexlify('c63e24ed820c5851b60c54613fbc4bcb37df6cd49b4c96143e99580a472f79fb')
+        TXHASH_39a29e = binascii.unhexlify('39a29e954977662ab3879c66fb251ef753e0912223a83d1dcb009111d28265e5')
+
         inp1 = proto_types.TxInputType(address_n=[3],  # 1CmzyJp9w3NafXMSEFH4SLYUPAVCSUrrJ5
                              # amount=100000,
-                             prev_hash=binascii.unhexlify('c63e24ed820c5851b60c54613fbc4bcb37df6cd49b4c96143e99580a472f79fb'),
+                             prev_hash=TXHASH_c63e24,
                              prev_index=1,
                              )
 
         inp2 = proto_types.TxInputType(address_n=[3],  # 1CmzyJp9w3NafXMSEFH4SLYUPAVCSUrrJ5
                              # amount=2540000,
-                             prev_hash=binascii.unhexlify('39a29e954977662ab3879c66fb251ef753e0912223a83d1dcb009111d28265e5'),
+                             prev_hash=TXHASH_39a29e,
                              prev_index=1,
                              )
 
@@ -349,11 +352,18 @@ class TestMsgSigntx(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("c63e24ed820c5851b60c54613fbc4bcb37df6cd49b4c96143e99580a472f79fb"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=TXHASH_c63e24)),
+                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=TXHASH_c63e24)),
+                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=TXHASH_c63e24)),
+                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=TXHASH_c63e24)),
+                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=TXHASH_c63e24)),
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("39a29e954977662ab3879c66fb251ef753e0912223a83d1dcb009111d28265e5"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=TXHASH_39a29e)),
+                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=TXHASH_39a29e)),
+                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=TXHASH_39a29e)),
+                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=TXHASH_39a29e)),
             ] + [
-                item for items in itertools.izip(
+                item for items in zip(
                     [proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=I)) for I in range(cnt)],
                     [proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput)] * cnt
                 ) for item in items
@@ -373,10 +383,10 @@ class TestMsgSigntx(common.KeepKeyTest):
             ] + [
                 proto.TxRequest(request_type=proto_types.TXFINISHED),
             ])
-            (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, inp2], outputs, None, True)
+            (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, inp2], outputs)
 
         if cnt == 255:
-            self.assertEqual(binascii.hexlify(serialized_tx), '0100000002fb792f470a58993e14964c9bd46cdf37cb4bbc3f61540cb651580c82ed243ec6010000006b483045022100969da46f94a81f34f3717b014e0c3e1826eda1b0022ec2f9ce39f3d750ab9235022026da269770993211a1503413566a339bbb4389a482fffcf8e1f76713fc3b94f5012103477b9f0f34ae85434ce795f0c5e1e90c9420e5b5fad084d7cce9a487b94a7902ffffffffe56582d2119100cb1d3da8232291e053f71e25fb669c87b32a667749959ea239010000006a473044022052e1419bb237b9db400ab5e3df16db6355619d545fde9030924a360763ae9ad40220704beab04d72ecaeb42eca7d98faca7a0941e65f2e1341f183be2b83e6b09e1c012103477b9f0f34ae85434ce795f0c5e1e90c9420e5b5fad084d7cce9a487b94a7902fffffffffdff00' + 'd8270000000000001976a914f0a2b64e56ee2ff57126232f84af6e3a41d4055088ac' * cnt + '00000000')
+            self.assertEqual(binascii.hexlify(serialized_tx), b'0100000002fb792f470a58993e14964c9bd46cdf37cb4bbc3f61540cb651580c82ed243ec6010000006b483045022100969da46f94a81f34f3717b014e0c3e1826eda1b0022ec2f9ce39f3d750ab9235022026da269770993211a1503413566a339bbb4389a482fffcf8e1f76713fc3b94f5012103477b9f0f34ae85434ce795f0c5e1e90c9420e5b5fad084d7cce9a487b94a7902ffffffffe56582d2119100cb1d3da8232291e053f71e25fb669c87b32a667749959ea239010000006a473044022052e1419bb237b9db400ab5e3df16db6355619d545fde9030924a360763ae9ad40220704beab04d72ecaeb42eca7d98faca7a0941e65f2e1341f183be2b83e6b09e1c012103477b9f0f34ae85434ce795f0c5e1e90c9420e5b5fad084d7cce9a487b94a7902fffffffffdff00' + b'd8270000000000001976a914f0a2b64e56ee2ff57126232f84af6e3a41d4055088ac' * cnt + b'00000000')
 
     def test_fee_too_high(self):
         self.setup_mnemonic_nopin_nopassphrase()
