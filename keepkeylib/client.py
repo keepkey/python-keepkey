@@ -749,31 +749,6 @@ class ProtocolMixin(object):
         msg.outputs_count = len(outputs)
         return self.call(msg)
 
-    def _prepare_simple_sign_tx(self, coin_name, inputs, outputs):
-        msg = proto.SimpleSignTx()
-        msg.coin_name = coin_name
-        msg.inputs.extend(inputs)
-        msg.outputs.extend(outputs)
-
-        known_hashes = []
-        for inp in inputs:
-            if inp.prev_hash in known_hashes:
-                continue
-
-            tx = msg.transactions.add()
-            if self.tx_api:
-                prev_hash_str = binascii.hexlify(inp.prev_hash).decode('utf-8')
-                tx.CopyFrom(self.tx_api.get_tx(prev_hash_str))
-            else:
-                raise Exception('TX_API not defined')
-            known_hashes.append(inp.prev_hash)
-
-        return msg
-
-    def simple_sign_tx(self, coin_name, inputs, outputs):
-        msg = self._prepare_simple_sign_tx(coin_name, inputs, outputs)
-        return self.call(msg).serialized.serialized_tx
-
     def _prepare_sign_tx(self, coin_name, inputs, outputs, use_raw_tx):
         tx = types.TransactionType()
         tx.inputs.extend(inputs)
