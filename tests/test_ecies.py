@@ -29,7 +29,7 @@ from keepkeylib.client import CallException
 
 # as described here: http://memwallet.info/btcmssgs.html
 
-def test_ecies_backforth(cls, test_string):
+def check_ecies_backforth(cls, test_string):
     cls.setup_mnemonic_nopin_nopassphrase()
 
     pubkey = binascii.unhexlify('0338d78612e990f2eea0c426b5e48a8db70b9d7ed66282b3b26511e0b1c75515a6')
@@ -72,12 +72,15 @@ class TestEcies(common.KeepKeyTest):
 # pubkey:  0234716c01c2dd03fa7ee302705e2b8fbd1311895d94b1dca15e62eedea9b0968f
 # privkey: L4uKPRgaZqL9iGmge3UBSLGTQC7gDFrLRhC1vM4LmGyrzNUBb1Zs
 
+    @unittest.expectedFailure # ECIES not supported
     def test_ecies_backforth_short(self):
-        test_ecies_backforth(self, 'testing message!')
+        check_ecies_backforth(self, 'testing message!')
 
+    @unittest.expectedFailure # ECIES not supported
     def test_ecies_backforth_long(self):
-        test_ecies_backforth(self, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin elementum libero in tortor condimentum malesuada. Quisque gravida semper sapien, ut ultrices dolor pharetra nec. Nulla hendrerit metus imperdiet, feugiat sapien eu, fermentum mauris. Suspendisse nec bibendum urna. Vivamus augue libero, mollis vel augue at, venenatis vestibulum nunc. Curabitur condimentum quam non nibh volutpat, at congue libero rutrum. Morbi at sollicitudin lectus. Donec commodo rutrum sollicitudin. Vivamus condimentum massa id ligula iaculis, et aliquet orci condimentum. Nullam non ex sit amet nisi porta suscipit.')
+        check_ecies_backforth(self, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin elementum libero in tortor condimentum malesuada. Quisque gravida semper sapien, ut ultrices dolor pharetra nec. Nulla hendrerit metus imperdiet, feugiat sapien eu, fermentum mauris. Suspendisse nec bibendum urna. Vivamus augue libero, mollis vel augue at, venenatis vestibulum nunc. Curabitur condimentum quam non nibh volutpat, at congue libero rutrum. Morbi at sollicitudin lectus. Donec commodo rutrum sollicitudin. Vivamus condimentum massa id ligula iaculis, et aliquet orci condimentum. Nullam non ex sit amet nisi porta suscipit.')
 
+    @unittest.expectedFailure # ECIES not supported
     def test_ecies_crosscheck(self):
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -113,6 +116,7 @@ class TestEcies(common.KeepKeyTest):
         self.assertEqual(dec.message, 'testing message!')
         self.assertEqual(dec.address, '1Csf6LVPkv24FBs6bpj4ELPszE6mGf6jeV')
 
+    @unittest.expectedFailure # ECIES not supported
     def test_ecies_crosscheck_long(self):
         self.setup_mnemonic_nopin_nopassphrase()
 

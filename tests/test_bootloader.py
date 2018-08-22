@@ -28,13 +28,23 @@ import struct
 from keepkeylib import messages_pb2 as proto
 from keepkeylib import types_pb2 as proto_types
 
+def skipIfNotBootloaderMode(f):
+    def wrapper(self, *args, **kwargs):
+        if not self.client.features.bootloader_mode:
+            self.skipTest("Unsupported when not in bootloader mode")
+        else:
+            f(self, *args, **kwargs)
+    return wrapper
+
 class TestBootloader(common.KeepKeyBootloaderTest):
 
+    @skipIfNotBootloaderMode
     def test_firmware_update_mode(self):
 
-        self.client.init_device()        
+        self.client.init_device()
         self.assertEquals(self.client.features.bootloader_mode, True)
 
+    @skipIfNotBootloaderMode
     def test_signed_firmware_upload(self):
 
         self.client.debug.fill_config()
@@ -64,8 +74,9 @@ class TestBootloader(common.KeepKeyBootloaderTest):
         # make sure config flash got copied over
         self.assertEquals(storage_hash, storage_hash_after)
 
+    @skipIfNotBootloaderMode
     def test_signed_wrong_firmware_upload(self):
-        
+
         self.client.debug.fill_config()
 
         # get storage hash so we can compare it after upload
@@ -93,6 +104,7 @@ class TestBootloader(common.KeepKeyBootloaderTest):
         # make sure config flash did not get copied over
         self.assertNotEquals(storage_hash, storage_hash_after)
 
+    @skipIfNotBootloaderMode
     def test_unsigned_firmware_upload(self):
 
         # get storage hash so we can compare it after upload
@@ -110,6 +122,7 @@ class TestBootloader(common.KeepKeyBootloaderTest):
         self.assertIsInstance(ret, proto.Failure)
         self.assertEquals(ret.message, 'Not valid firmware')
 
+    @skipIfNotBootloaderMode
     def test_signed_firmware_too_large_upload(self):
 
         # get storage hash so we can compare it after upload
@@ -127,6 +140,7 @@ class TestBootloader(common.KeepKeyBootloaderTest):
         self.assertIsInstance(ret, proto.Failure)
         self.assertEquals(ret.message, 'Firmware too large')
 
+    @skipIfNotBootloaderMode
     def test_signed_firmware_corrupted_upload(self):
 
         self.client.debug.fill_config()
