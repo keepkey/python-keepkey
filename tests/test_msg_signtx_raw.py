@@ -505,7 +505,7 @@ class TestMsgSigntx(common.KeepKeyTest):
 
         inp1 = proto_types.TxInputType(address_n=[0],  # 14LmW5k4ssUrtbAB4255zdqv3b4w1TuX9e
                              # amount=400000,
-                             prev_hash=binascii.unhexlify('54aa5680dea781f45ebb536e53dffc526d68c0eb5c00547e323b2c32382dfba3'),
+                             prev_hash=TXHASH_54aa56,
                              prev_index=1,
                              )
 
@@ -517,7 +517,10 @@ class TestMsgSigntx(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("54aa5680dea781f45ebb536e53dffc526d68c0eb5c00547e323b2c32382dfba3"))),
+                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=TXHASH_54aa56)),
+                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=TXHASH_54aa56)),
+                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=TXHASH_54aa56)),
+                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=TXHASH_54aa56)),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
@@ -526,10 +529,10 @@ class TestMsgSigntx(common.KeepKeyTest):
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXFINISHED),
             ])
-            (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, ], None, True)
+            (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
 
         # Accepted by network: tx 8cc1f4adf7224ce855cf535a5104594a0004cb3b640d6714fdb00b9128832dd5
-        self.assertEqual(binascii.hexlify(serialized_tx), '0100000001a3fb2d38322c3b327e54005cebc0686d52fcdf536e53bb5ef481a7de8056aa54010000006b4830450221009e020b0390ccad533b73b552f8a99a9d827212c558e4f755503674d07c92ad4502202d606f7316990e0461c51d4add25054f19c697aa3e3c2ced4d568f0b2c57e62f0121023230848585885f63803a0a8aecdd6538792d5c539215c91698e315bf0253b43dffffffff0170f305000000000017a9147f844bdb0b8fd54b64e3d16c85dc1170f1ff97c18700000000')
+        self.assertEqual(binascii.hexlify(serialized_tx), b'0100000001a3fb2d38322c3b327e54005cebc0686d52fcdf536e53bb5ef481a7de8056aa54010000006b4830450221009e020b0390ccad533b73b552f8a99a9d827212c558e4f755503674d07c92ad4502202d606f7316990e0461c51d4add25054f19c697aa3e3c2ced4d568f0b2c57e62f0121023230848585885f63803a0a8aecdd6538792d5c539215c91698e315bf0253b43dffffffff0170f305000000000017a9147f844bdb0b8fd54b64e3d16c85dc1170f1ff97c18700000000')
 
     @unittest.expectedFailure # FIXME: signed transaction has the wrong serialization before we even test the attack
     def test_attack_change_outputs(self):
