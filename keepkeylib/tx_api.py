@@ -143,7 +143,7 @@ class TxApiSmartbit(TxApi):
         return t
 
 
-TxApiBitcoin = TxApiInsight(network='insight_bitcoin', url='https://insight.bitpay.com/api/')
+TxApiBitcoin = TxApiInsight(network='insight_bitcoin', url='https://btc.coinquery.com/api/')
 TxApiTestnet = TxApiInsight(network='insight_testnet', url='https://test-insight.bitpay.com/api/')
 TxApiSegnet = TxApiSmartbit(network='smartbit_segnet', url='https://segnet-api.smartbit.com.au/v1/blockchain/')
 TxApiZcashTestnet = TxApiInsight(network='insight_zcashtestnet', url='https://explorer.testnet.z.cash/api/', zcash=True)

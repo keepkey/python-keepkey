@@ -27,6 +27,7 @@ from keepkeylib.tx_api import TxApiZcashTestnet
 
 class TestMsgSigntx(common.KeepKeyTest):
 
+    @unittest.expectedFailure # ZCash not yet supported
     def test_transparent_one_one(self):
         self.setup_mnemonic_allallall()
 
@@ -67,6 +68,7 @@ class TestMsgSigntx(common.KeepKeyTest):
 
         self.assertEqual(binascii.hexlify(serialized_tx), b'01000000015773e57046079432f2e5b4b5907b1082b1e202a5535b4f8cb0f868a7c58fa108000000006b483045022100cb92f4253705272142f8684489249cfdbb66d84a47872fca66597eb835474484022049916cb566bd431372be959e4239c80f72181922b0c5443c89d21aec27342c4a0121030e669acac1f280d1ddf441cd2ba5e97417bf2689e4bbec86df4f831bf9f7ffd0ffffffff013301993b000000001976a9145b157a678a10021243307e4bb58f36375aa80e1088ac00000000')
 
+    @unittest.expectedFailure # ZCash not yet supported
     def test_transparent_one_one_fee_too_high(self):
         self.setup_mnemonic_allallall()
 
@@ -108,6 +110,7 @@ class TestMsgSigntx(common.KeepKeyTest):
 
         self.assertEqual(binascii.hexlify(serialized_tx), b'0100000001566b5e454d2b3443e01aab15b32f8870c9cb70098f6d149217c0802ed796ffc8000000006a4730440220226750799c61f8914df7cf8a7623bbcde3197e0eb83dac9905c2ff5f4a29c41a02203215a36c14ddbf82d57dc69476f7a08b6a4f2349960ae01a5a489b974f262a110121030e669acac1f280d1ddf441cd2ba5e97417bf2689e4bbec86df4f831bf9f7ffd0ffffffff016cd9f505000000001976a9145b157a678a10021243307e4bb58f36375aa80e1088ac00000000')
 
+    @unittest.expectedFailure # ZCash not yet supported
     def test_shieldedIn_one_one_fee_1(self):
         self.setup_mnemonic_allallall()
 
@@ -148,6 +151,7 @@ class TestMsgSigntx(common.KeepKeyTest):
 
         self.assertEqual(binascii.hexlify(serialized_tx), b'0100000001caae725e6b8d60a72523836a692aaf1febc484757026873664175dbba533d143000000006b483045022100e3118845371537bcdcbe9071327769aea86704b0574adcd808673d53bdd1a18f022070903ffa067b3ae02613f4652d2a8101a946c2c87157ff08272ae50e25d91cbe0121030e669acac1f280d1ddf441cd2ba5e97417bf2689e4bbec86df4f831bf9f7ffd0ffffffff0141963177000000001976a9145b157a678a10021243307e4bb58f36375aa80e1088ac00000000')
 
+    @unittest.expectedFailure # ZCash not yet supported
     def test_shieldedIn_one_one_fee_2(self):
         self.setup_mnemonic_allallall()
 
@@ -167,7 +171,7 @@ class TestMsgSigntx(common.KeepKeyTest):
 
         with self.client:
             self.client.set_tx_api(TxApiZcashTestnet)
-	    self.client.set_expected_responses([
+            self.client.set_expected_responses([
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify(b"c6eddfbedd5821baea352b79fbd0d793a55257111c46a79002844b86a1c872e1"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify(b"c6eddfbedd5821baea352b79fbd0d793a55257111c46a79002844b86a1c872e1"))),

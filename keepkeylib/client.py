@@ -71,11 +71,11 @@ def pprint(msg):
         return "<%s> (%d bytes):\n%s" % (msg_class, msg_size, msg)
 
 def log(msg):
-    sys.stderr.write("%s\n" % msg)
+    sys.stderr.write("%s\n" % msg.encode('utf-8'))
     sys.stderr.flush()
 
 def log_cr(msg):
-    sys.stdout.write('\r%s' % msg)
+    sys.stdout.write('\r%s' % msg.encode('utf-8'))
     sys.stdout.flush()
 
 def format_mnemonic(word_pos, character_pos):
@@ -748,31 +748,6 @@ class ProtocolMixin(object):
         msg.inputs_count = len(inputs)
         msg.outputs_count = len(outputs)
         return self.call(msg)
-
-    def _prepare_simple_sign_tx(self, coin_name, inputs, outputs):
-        msg = proto.SimpleSignTx()
-        msg.coin_name = coin_name
-        msg.inputs.extend(inputs)
-        msg.outputs.extend(outputs)
-
-        known_hashes = []
-        for inp in inputs:
-            if inp.prev_hash in known_hashes:
-                continue
-
-            tx = msg.transactions.add()
-            if self.tx_api:
-                prev_hash_str = binascii.hexlify(inp.prev_hash).decode('utf-8')
-                tx.CopyFrom(self.tx_api.get_tx(prev_hash_str))
-            else:
-                raise Exception('TX_API not defined')
-            known_hashes.append(inp.prev_hash)
-
-        return msg
-
-    def simple_sign_tx(self, coin_name, inputs, outputs):
-        msg = self._prepare_simple_sign_tx(coin_name, inputs, outputs)
-        return self.call(msg).serialized.serialized_tx
 
     def _prepare_sign_tx(self, coin_name, inputs, outputs, use_raw_tx):
         tx = types.TransactionType()
