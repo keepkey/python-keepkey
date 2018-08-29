@@ -306,7 +306,7 @@ class TestMsgSigntx(common.KeepKeyTest):
 
         # Transfer Output address
         out2 = proto_types.TxOutputType(address_n=[0x8000002c, 0x80000000, 0x80000000, 0, 0 ],
-                              amount=10000, 
+                              amount=10000,
                               script_type=proto_types.PAYTOADDRESS,
                               address_type=1,
                               )
@@ -331,6 +331,7 @@ class TestMsgSigntx(common.KeepKeyTest):
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmTransferToAccount),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=2)),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmTransferToAccount),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
