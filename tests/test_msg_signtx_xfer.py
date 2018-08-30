@@ -200,6 +200,7 @@ class TestMsgSigntx(common.KeepKeyTest):
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmTransferToAccount),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1)),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmTransferToAccount),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
@@ -212,8 +213,8 @@ class TestMsgSigntx(common.KeepKeyTest):
             (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, out2])
 
         self.assertEqual(binascii.hexlify(serialized_tx), '010000000182488650ef25a58fef6788bd71b8212038d7f2bbe4750bc7bcb44701e85ef6d5000000006a473044022029270ff6991d953cb89135dc43723a64f5be00a69db42efeb845f2918dec50c302201f6589bb44c9c4b6c8152966d5de9b56c2a6ca61172d0f63c6c62e48ad8975130121023230848585885f63803a0a8aecdd6538792d5c539215c91698e315bf0253b43dffffffff0260cc0500000000001976a9149c9d21f47382762df3ad81391ee0964b28dd951788ac401f0000000000001976a914db302d9f1dd36faa220d8dfd7ff18ff5e308a53688ac00000000')
-    
-    
+
+
     def test_xfer_multi_account(self):
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -228,14 +229,14 @@ class TestMsgSigntx(common.KeepKeyTest):
 
         # Transfer Output address1
         out1 = proto_types.TxOutputType(address_n=[0x8000002c, 0x80000000, 0x80000001, 0, 0 ],
-                              amount= 10000, 
+                              amount= 10000,
                               script_type=proto_types.PAYTOADDRESS,
                               address_type=1,
                               )
 
         # Transfer Output address2
         out2 = proto_types.TxOutputType(address_n=[0x8000002c, 0x80000000, 0x80000002, 0, 0 ],
-                              amount= 10000, 
+                              amount= 10000,
                               script_type=proto_types.PAYTOADDRESS,
                               address_type=1,
                               )
@@ -268,6 +269,7 @@ class TestMsgSigntx(common.KeepKeyTest):
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=2)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmTransferToAccount),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=3)),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmTransferToAccount),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
@@ -306,7 +308,7 @@ class TestMsgSigntx(common.KeepKeyTest):
 
         # Transfer Output address
         out2 = proto_types.TxOutputType(address_n=[0x8000002c, 0x80000000, 0x80000000, 0, 0 ],
-                              amount=10000, 
+                              amount=10000,
                               script_type=proto_types.PAYTOADDRESS,
                               address_type=1,
                               )
@@ -331,6 +333,7 @@ class TestMsgSigntx(common.KeepKeyTest):
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmTransferToAccount),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=2)),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmTransferToAccount),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),

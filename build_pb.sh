@@ -1,16 +1,6 @@
 #!/bin/bash
 CURDIR=$(pwd)
-DEVICE_PROTO="device-protocol"
-DEVICE_PROTO_VERSION="v5.0.0"
-
-# Create a clean directory for the protobuf files
-if [ -d $DEVICE_PROTO ]
-then
-    rm -rf $DEVICE_PROTO
-fi
-
-git clone --branch $DEVICE_PROTO_VERSION --depth 1 https://github.com/keepkey/$DEVICE_PROTO.git $DEVICE_PROTO
-cd $DEVICE_PROTO
+cd "device-protocol"
 
 echo "Building with protoc version: $(protoc --version)"
 for i in messages types exchange ; do

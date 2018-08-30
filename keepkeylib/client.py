@@ -694,11 +694,11 @@ class ProtocolMixin(object):
         return ret
 
     @expect(proto.MessageSignature)
-    def sign_message(self, coin_name, n, message):
+    def sign_message(self, coin_name, n, message, script_type=types.SPENDADDRESS):
         n = self._convert_prime(n)
         # Convert message to UTF8 NFC (seems to be a bitcoin-qt standard)
         message = normalize_nfc(message).encode("utf-8")
-        return self.call(proto.SignMessage(coin_name=coin_name, address_n=n, message=message))
+        return self.call(proto.SignMessage(coin_name=coin_name, address_n=n, message=message, script_type=script_type))
 
     @expect(proto.SignedIdentity)
     def sign_identity(self, identity, challenge_hidden, challenge_visual, ecdsa_curve_name=DEFAULT_CURVE):
@@ -749,36 +749,36 @@ class ProtocolMixin(object):
         msg.outputs_count = len(outputs)
         return self.call(msg)
 
-    def _prepare_sign_tx(self, coin_name, inputs, outputs, use_raw_tx):
+    def _prepare_sign_tx(self, coin_name, inputs, outputs):
         tx = types.TransactionType()
         tx.inputs.extend(inputs)
         tx.outputs.extend(outputs)
 
-        txes = {}
+        txes = {None: tx}
         txes[b''] = tx
 
         known_hashes = []
         for inp in inputs:
-            if inp.prev_hash in known_hashes:
+            if inp.prev_hash in txes:
                 continue
 
-            if self.tx_api:
-                prev_hash_str = binascii.hexlify(inp.prev_hash).decode('utf-8')
-                if use_raw_tx:
-                    txes[inp.prev_hash] = self.tx_api.get_raw_tx(prev_hash_str)
-                else:
-                    txes[inp.prev_hash] = self.tx_api.get_tx(prev_hash_str)
-            else:
+            if inp.script_type in (types.SPENDP2SHWITNESS,
+                                   types.SPENDWITNESS):
+                continue
+
+            if not self.tx_api:
                 raise Exception('TX_API not defined')
-            known_hashes.append(inp.prev_hash)
+
+            prev_tx = self.tx_api.get_tx(binascii.hexlify(inp.prev_hash).decode('utf-8'))
+            txes[inp.prev_hash] = prev_tx
 
         return txes
 
     @session
-    def sign_tx(self, coin_name, inputs, outputs, version=None, lock_time=None, debug_processor=None, use_raw_tx=False):
+    def sign_tx(self, coin_name, inputs, outputs, version=None, lock_time=None, debug_processor=None):
 
         start = time.time()
-        txes = self._prepare_sign_tx(coin_name, inputs, outputs, use_raw_tx)
+        txes = self._prepare_sign_tx(coin_name, inputs, outputs)
 
         # Prepare and send initial message
         tx = proto.SignTx()
@@ -820,28 +820,36 @@ class ProtocolMixin(object):
                 break
 
             # Device asked for one more information, let's process it.
-            current_tx = txes[res.details.tx_hash]
+            if not res.details.tx_hash:
+                current_tx = txes[None]
+            else:
+                current_tx = txes[bytes(res.details.tx_hash)]
 
             if res.request_type == types.TXMETA:
-                if use_raw_tx:
-                    msg = types.RawTransactionType(payload=binascii.unhexlify(current_tx))
-                    res = self.call(proto.RawTxAck(tx=msg))
+                msg = types.TransactionType()
+                msg.version = current_tx.version
+                msg.lock_time = current_tx.lock_time
+                msg.inputs_cnt = len(current_tx.inputs)
+                if res.details.tx_hash:
+                    msg.outputs_cnt = len(current_tx.bin_outputs)
                 else:
-                    msg = types.TransactionType()
-                    msg.version = current_tx.version
-                    msg.lock_time = current_tx.lock_time
-                    msg.inputs_cnt = len(current_tx.inputs)
-                    if res.details.tx_hash:
-                        msg.outputs_cnt = len(current_tx.bin_outputs)
-                    else:
-                        msg.outputs_cnt = len(current_tx.outputs)
-                    msg.extra_data_len = len(current_tx.extra_data)
-                    res = self.call(proto.TxAck(tx=msg))
+                    msg.outputs_cnt = len(current_tx.outputs)
+                msg.extra_data_len = len(current_tx.extra_data) if current_tx.extra_data else 0
+                res = self.call(proto.TxAck(tx=msg))
                 continue
 
             elif res.request_type == types.TXINPUT:
                 msg = types.TransactionType()
                 msg.inputs.extend([current_tx.inputs[res.details.request_index], ])
+                if debug_processor is not None:
+                    # msg needs to be deep copied so when it's modified
+                    # the other messages stay intact
+                    from copy import deepcopy
+                    msg = deepcopy(msg)
+                    # If debug_processor function is provided,
+                    # pass thru it the request and prepared response.
+                    # This is useful for tests, see test_msg_signtx
+                    msg = debug_processor(res, msg)
                 res = self.call(proto.TxAck(tx=msg))
                 continue
 
@@ -853,9 +861,13 @@ class ProtocolMixin(object):
                     msg.outputs.extend([current_tx.outputs[res.details.request_index], ])
 
                 if debug_processor != None:
+                    # msg needs to be deep copied so when it's modified
+                    # the other messages stay intact
+                    from copy import deepcopy
+                    msg = deepcopy(msg)
                     # If debug_processor function is provided,
                     # pass thru it the request and prepared response.
-                    # This is useful for unit tests, see test_msg_signtx
+                    # This is useful for tests, see test_msg_signtx
                     msg = debug_processor(res, msg)
 
                 res = self.call(proto.TxAck(tx=msg))
