@@ -14,12 +14,12 @@
 # You should have received a copy of the License along with this library.
 # If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
 
+import unittest
+import common
 from binascii import unhexlify
 
-from .common import TrezorTest
 
-
-class TestMsgVerifymessageSegwitNative(TrezorTest):
+class TestMsgVerifymessageSegwitNative(common.KeepKeyTest):
 
     def test_message_long(self):
         self.setup_mnemonic_nopin_nopassphrase()
@@ -93,3 +93,6 @@ class TestMsgVerifymessageSegwitNative(TrezorTest):
 
         assert res_nfkd is True
         assert res_nfc is True
+
+if __name__ == '__main__':
+    unittest.main()
