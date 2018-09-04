@@ -215,7 +215,7 @@ class TestMsgSigntxSegwit(KeepKeyTest):
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1)),
-                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmTransferToAccount),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
