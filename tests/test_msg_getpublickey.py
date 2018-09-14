@@ -21,6 +21,7 @@
 import unittest
 import common
 import keepkeylib.ckd_public as bip32
+from keepkeylib import types_pb2 as proto_types
 
 class TestMsgGetpublic_key(common.KeepKeyTest):
 
@@ -43,6 +44,14 @@ class TestMsgGetpublic_key(common.KeepKeyTest):
     def test_tbtc(self):
         self.setup_mnemonic_nopin_nopassphrase()
         self.assertEqual(bip32.serialize(self.client.get_public_node([111, 42]).node, 0x043587CF), 'tpubDAgixSyai5PWbc8N1mBkHDR5nLgAnHFtY7r4y5EzxqAxrt9YUDpZL3kaRoHVvCfrcwNo31c2isBP2uTHcZxEosuKbyJhCAbrvGoPuLUZ7Mz')
+
+    def test_script_type(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.assertEqual(self.client.get_public_node([], coin_name="Bitcoin").xpub, "xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy")
+        self.assertEqual(self.client.get_public_node([], coin_name="Bitcoin", script_type=proto_types.SPENDADDRESS).xpub, "xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy")
+        self.assertEqual(self.client.get_public_node([], coin_name="Bitcoin", script_type=proto_types.SPENDP2SHWITNESS).xpub, "ypub6QqdH2c5z7966KBPZ5yDEQCTKWrkLK4dsw8RRjpMLMtyvvZmJ3nNv7pKdQw6fnQkUrLm6XEeheSCGVSpoJCQGm6fofpt9RoHVJYH72ecmVm")
+        self.assertEqual(self.client.get_public_node([], coin_name="Bitcoin", script_type=proto_types.SPENDWITNESS).xpub, "zpub6jftahH18ngZwcNWPSkqSVHxVV1CGw48o3eeD8iEiNGrz2NzYhwwYBUTectgfh4ftVTZqzqDAJnk9n4PWzcR4znGg1XJjLcmm2bvVc3Honv")
+        self.assertEqual(self.client.get_public_node([], coin_name="Bitcoin", script_type=proto_types.SPENDWITNESS, show_display=True).xpub, "zpub6jftahH18ngZwcNWPSkqSVHxVV1CGw48o3eeD8iEiNGrz2NzYhwwYBUTectgfh4ftVTZqzqDAJnk9n4PWzcR4znGg1XJjLcmm2bvVc3Honv")
 
 if __name__ == '__main__':
     unittest.main()

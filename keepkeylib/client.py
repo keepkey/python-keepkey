@@ -542,11 +542,11 @@ class ProtocolMixin(object):
         return path
 
     @expect(proto.PublicKey)
-    def get_public_node(self, n, ecdsa_curve_name=DEFAULT_CURVE, show_display=False):
+    def get_public_node(self, n, ecdsa_curve_name=DEFAULT_CURVE, show_display=False, coin_name=None, script_type=types.SPENDADDRESS):
         n = self._convert_prime(n)
         if not ecdsa_curve_name:
             ecdsa_curve_name=DEFAULT_CURVE
-        return self.call(proto.GetPublicKey(address_n=n, ecdsa_curve_name=ecdsa_curve_name, show_display=show_display))
+        return self.call(proto.GetPublicKey(address_n=n, ecdsa_curve_name=ecdsa_curve_name, show_display=show_display, coin_name=coin_name, script_type=script_type))
 
     @field('address')
     @expect(proto.Address)
