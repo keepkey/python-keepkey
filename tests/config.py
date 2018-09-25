@@ -34,10 +34,10 @@ if len(devices) > 0:
         print('Using TREZOR')
         TRANSPORT = HidTransport
         TRANSPORT_ARGS = (devices[0],)
-        TRANSPORT_KWARGS = {'debug_link': False}
+        TRANSPORT_KWARGS = {'debug_link': False, 'use_u2f': True}
         DEBUG_TRANSPORT = HidTransport
         DEBUG_TRANSPORT_ARGS = (devices[0],)
-        DEBUG_TRANSPORT_KWARGS = {'debug_link': True}
+        DEBUG_TRANSPORT_KWARGS = {'debug_link': True, 'use_u2f': False}
     else:
         print('Using Raspberry Pi')
         TRANSPORT = HidTransport
