@@ -15,7 +15,7 @@ DEVICE_IDS = [
 ]
 
 
-MAX_MSG_SIZE = 61
+MAX_MSG_SIZE = 59
 
 INTERFACE_MAPPING = {
     "normal_usb": 0,
@@ -116,16 +116,16 @@ class HidTransport(Transport):
         app_id  = 'https://www.keepkey.com'
         window_location = 'navigator.id.getAssertion'
         challenge = 'KPKYKPKYKPKYKPKYKPKYKPKYKPKYKPKY'
-        client_data = '{{"typ": "{}", "challenge": "{}", "origin": "{}"}}'.format(window_location, challenge, facet)
+        client_data = '{{"typ": "{}", "challenge": "{}", "origin": "{}"}}'.format(window_location, challenge, app_id)
         app_param = sha256(app_id.encode('utf8')).digest()
         client_param = sha256(client_data.encode('utf8')).digest()
         total_frames = math.ceil(len(msg)/float(MAX_MSG_SIZE))
         frame_i = 0
         chunks = []
-        while len(raw):
-            chunks.append(struct.pack("<BBB",int(total_frames), int(frame_i), 63) + raw[:MAX_MSG_SIZE] + b"\x00" * (MAX_MSG_SIZE - len(raw[:MAX_MSG_SIZE])))
+        while len(msg):
+            chunks.append(struct.pack("<BBBBB",int(total_frames), int(frame_i),0,0, 63) + msg[:MAX_MSG_SIZE] + b"\x00" * (MAX_MSG_SIZE - len(msg[:MAX_MSG_SIZE])))
             frame_i += 1
-            raw = raw[MAX_MSG_SIZE:]
+            msg = msg[MAX_MSG_SIZE:]
         apdus = []
         for this_wire_msg in chunks:
             key_handle = this_wire_msg
