@@ -1,11 +1,17 @@
 '''USB HID implementation of Transport.'''
 import math
 from hashlib import sha256
-import hidraw
 import time, json, base64, struct
 from .transport import Transport, ConnectionError
 import binascii
 from u2flib_host import hid_transport as u2fhid_transport
+
+import platform
+if platform.system() == 'Linux':
+    import hidraw as hid
+else:
+    import hid
+
 u2fhid_transport.DEVICES.append((0x2b24, 0x0001)) #KeepKey
 
 
@@ -53,7 +59,7 @@ class HidTransport(Transport):
         Return a list of available TREZOR devices.
         """
         devices = {}
-        for d in hidraw.enumerate(0, 0):
+        for d in hid.enumerate(0, 0):
             vendor_id = d['vendor_id']
             product_id = d['product_id']
             serial_number = d['serial_number']
@@ -83,7 +89,7 @@ class HidTransport(Transport):
         """
         Check if the device is still connected.
         """
-        for d in hidraw.enumerate(0, 0):
+        for d in hid.enumerate(0, 0):
             if d['path'] == self.device:
                 return True
         return False
@@ -95,7 +101,7 @@ class HidTransport(Transport):
             self.hid = u2fhid_transport.HIDDevice(self.path)
             self.hid.open()
         else:
-            self.hid = hidraw.device()
+            self.hid = hid.device()
             self.hid.open_path(self.device)
             self.hid.set_nonblocking(True)
         # the following was needed just for TREZOR Shield
