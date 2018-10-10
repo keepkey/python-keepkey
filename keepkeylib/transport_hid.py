@@ -46,8 +46,7 @@ class HidTransport(Transport):
         self.use_u2f = kwargs.get("use_u2f", False)
         self.use_debug_link = kwargs.get("debug_link", False)
         self.interface_index = 0 if not self.use_u2f else 2
-        if self.use_debug_link: self.interface_index += 1
-        if self.use_u2f and self.use_debug_link: raise ValueError("u2f debug not yet implimented")
+        if self.use_debug_link and not self.use_u2f: self.interface_index += 1
         #stale device paths are a problem here unless we re-enumerate
         device_paths = self.enumerate()[0]
         self.path = device_paths[self.interface_index]
@@ -129,7 +128,10 @@ class HidTransport(Transport):
         frame_i = 0
         chunks = []
         while len(msg):
-            chunks.append(struct.pack("<BBBBB",int(total_frames), int(frame_i),0,0, 63) + msg[:MAX_MSG_SIZE] + b"\x00" * (MAX_MSG_SIZE - len(msg[:MAX_MSG_SIZE])))
+            flags = 0
+            flags = flags | (0x40 if self.use_debug_link else 0)
+            chunks.append(struct.pack("<BBBBB", int(total_frames), int(frame_i), 0, flags, 63) +
+                          msg[:MAX_MSG_SIZE] + b"\x00" * (MAX_MSG_SIZE - len(msg[:MAX_MSG_SIZE])))
             frame_i += 1
             msg = msg[MAX_MSG_SIZE:]
         apdus = []
@@ -169,7 +171,8 @@ class HidTransport(Transport):
     def _read(self):
         if self.use_u2f:
             _id, _len = struct.unpack('>HL', self.resp[3:9])
-            return (_id, self.resp[9:])
+            is_debuglink = self.resp[-1]
+            return (_id, self.resp[9:-1])
         (msg_type, datalen) = self._read_headers(FakeRead(self._raw_read))
         return (msg_type, self._raw_read(datalen))
 
