@@ -24,6 +24,7 @@ import binascii
 
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
+from keepkeylib.client import CallException
 
 from rlp.utils import int_to_big_endian
 
@@ -31,6 +32,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
     def test_ethereum_signtx_nodata(self):
         self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy('AdvancedMode', 0)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[0, 0],
@@ -54,9 +56,34 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_r), '6de597b8ec1b46501e5b159676e132c1aa78a95bd5892ef23560a9867528975a')
         self.assertEqual(binascii.hexlify(sig_s), '6e33c4230b1ecf96a8dbb514b4aec0a6d6ba53f8991c8143f77812aa6daa993f')
 
-    @unittest.expectedFailure # Signing of arbitrary data not supported
     def test_ethereum_signtx_data(self):
         self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy('AdvancedMode', 0)
+
+        with self.client:
+            ret = self.client.call_raw(proto.EthereumSignTx(
+                address_n=[0, 0],
+                nonce=int_to_big_endian(0),
+                gas_price=int_to_big_endian(20),
+                gas_limit=int_to_big_endian(20),
+                value=int_to_big_endian(10),
+                to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
+                data_initial_chunk='abcdefghijklmnop' * 64,
+                data_length=1024))
+
+            # Confirm the Output
+            self.assertEqual(ret, proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput))
+            self.client.debug.press_yes()
+            ret = self.client.call_raw(proto.ButtonAck())
+
+            # Confirm Warning about AdvancedMode being turned off
+            self.assertEqual(ret, proto.ButtonRequest(code=proto_types.ButtonRequest_Other))
+            self.client.debug.press_yes()
+            ret = self.client.call_raw(proto.ButtonAck())
+
+            self.assertEqual(ret.code, proto_types.Failure_ActionCancelled)
+
+        self.client.apply_policy('AdvancedMode', 1)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[0, 0],
@@ -82,9 +109,12 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_r), '4e90b13c45c6a9bf4aaad0e5427c3e62d76692b36eb727c78d332441b7400404')
         self.assertEqual(binascii.hexlify(sig_s), '3ff236e7d05f0f9b1ee3d70599bb4200638f28388a8faf6bb36db9e04dc544be')
 
-    @unittest.expectedFailure # Signing of arbitrary data not supported
+        self.client.apply_policy('AdvancedMode', 0)
+
+
     def test_ethereum_signtx_message(self):
         self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy('AdvancedMode', 1)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[0, 0],
@@ -98,9 +128,9 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_r), '070e9dafda4d9e733fa7b6747a75f8a4916459560efb85e3e73cd39f31aa160d')
         self.assertEqual(binascii.hexlify(sig_s), '7842db33ef15c27049ed52741db41fe3238a6fa3a6a0888fcfb74d6917600e41')
 
-    @unittest.expectedFailure # Signing of arbitrary data not supported
     def test_ethereum_signtx_newcontract(self):
         self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy('AdvancedMode', 1)
 
         # contract creation without data should fail.
         self.assertRaises(Exception, self.client.ethereum_sign_tx,
@@ -124,6 +154,9 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '4742fc9e6a5fa8db3db15c2d856914a7f3daab21603a6c1ce9e9927482f8352e')
 
     def test_ethereum_sanity_checks(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy('AdvancedMode', 1)
+
         # gas overflow
         self.assertRaises(Exception, self.client.ethereum_sign_tx,
             n=[0, 0],
@@ -157,9 +190,9 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
             value=12345678901234567890)
 
-    @unittest.expectedFailure # EIP155 not yet supported
     def test_ethereum_signtx_nodata_eip155(self):
         self.setup_mnemonic_allallall()
+        self.client.apply_policy('AdvancedMode', 0)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[0x80000000 | 44, 0x80000000 | 1, 0x80000000, 0, 0],
@@ -185,9 +218,9 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_r), '699428a6950e23c6843f1bf3754f847e64e047e829978df80d55187d19a401ce')
         self.assertEqual(binascii.hexlify(sig_s), '087343d0a3a2f10842218ffccb146b59a8431b6245ab389fde22dc833f171e6e')
 
-    @unittest.expectedFailure # Signing of arbitrary data not supported
     def test_ethereum_signtx_data_eip155(self):
         self.setup_mnemonic_allallall()
+        self.client.apply_policy('AdvancedMode', 1)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[0x80000000 | 44, 0x80000000 | 1, 0x80000000, 0, 0],
