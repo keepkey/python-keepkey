@@ -54,6 +54,9 @@ class KeepKeyTest(unittest.TestCase):
 
         self.client.wipe_device()
 
+        self.client.apply_policy('U2F Transport', 1)
+ 
+
         print("Setup finished")
         print("--------------")
 

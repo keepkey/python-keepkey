@@ -26,6 +26,7 @@ sys.path = ['../',] + sys.path
 from keepkeylib.transport_pipe import PipeTransport
 from keepkeylib.transport_hid import HidTransport
 from keepkeylib.transport_socket import SocketTransportClient
+from keepkeylib.transport_udp import UDPTransport
 
 devices = HidTransport.enumerate()
 
@@ -34,10 +35,10 @@ if len(devices) > 0:
         print('Using TREZOR')
         TRANSPORT = HidTransport
         TRANSPORT_ARGS = (devices[0],)
-        TRANSPORT_KWARGS = {'debug_link': False}
+        TRANSPORT_KWARGS = {'debug_link': False, 'use_u2f': False}
         DEBUG_TRANSPORT = HidTransport
         DEBUG_TRANSPORT_ARGS = (devices[0],)
-        DEBUG_TRANSPORT_KWARGS = {'debug_link': True}
+        DEBUG_TRANSPORT_KWARGS = {'debug_link': True, 'use_u2f': False}
     else:
         print('Using Raspberry Pi')
         TRANSPORT = HidTransport
@@ -48,11 +49,11 @@ if len(devices) > 0:
         DEBUG_TRANSPORT_KWARGS = {}
 else:
     print('Using Emulator')
-    TRANSPORT = PipeTransport
-    TRANSPORT_ARGS = ('/tmp/pipe.trezor', False)
+    TRANSPORT = UDPTransport
+    TRANSPORT_ARGS = ('127.0.0.1:21324',)
     TRANSPORT_KWARGS = {}
-    DEBUG_TRANSPORT = PipeTransport
-    DEBUG_TRANSPORT_ARGS = ('/tmp/pipe.trezor_debug', False)
+    DEBUG_TRANSPORT = UDPTransport
+    DEBUG_TRANSPORT_ARGS = ('127.0.0.1:21325',)
     DEBUG_TRANSPORT_KWARGS = {}
 
 def enumerate_hid():
