@@ -31,7 +31,6 @@ from keepkeylib.client import CallException
 from rlp.utils import int_to_big_endian
 
 class TestMsgEthereumSigntx(common.KeepKeyTest):
-    @unittest.expectedFailure # Safety check fails
     def test_ethereum_tx_xfer_acc1(self):
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('ShapeShift', 1)
@@ -41,21 +40,21 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             nonce=0,
             gas_price=20,
             gas_limit=20,
-            value=12345678901234567890,
-            to_n=[0x8000002c, 0x8000003c, 1, 0, 0],
-            address_type=1,
+            value=1234567890,
+            to_n=[0x8000002c, 0x8000003c, 0x80000001, 0, 0],
+            address_type=proto_types.TRANSFER,
+            chain_id=1,
             )
 
-        self.assertEqual(sig_v, 27)
-        self.assertEqual(binascii.hexlify(sig_r), '99f70cb618893ed3489add3de2adc0a3597bb59f683b67feb67f14145bef6766')
-        self.assertEqual(binascii.hexlify(sig_s), '03c76425482270f1c720cb3c457a91b3d9e55848f21fdbde949e075fda344ab7')
-        self.assertEqual(binascii.hexlify(hash), '4cc3cd55e89f68f3bab16eeb94bc50c53fec6e8946e749a85be390b06cd09f42')
-        self.assertEqual(binascii.hexlify(signature_der), '304502210099f70cb618893ed3489add3de2adc0a3597bb59f683b67feb67f14145bef6766022003c76425482270f1c720cb3c457a91b3d9e55848f21fdbde949e075fda344ab7')
+        self.assertEqual(sig_v, 37)
+        self.assertEqual(binascii.hexlify(sig_r), '72b87b41a92dbad6dffcd7f9441102029adad4864291f867726abaaa3572dee7')
+        self.assertEqual(binascii.hexlify(sig_s), '26814243d29bea4dddaef6da5b8af6836e499c2c7ccaa0877204f5465edc8290')
+        self.assertEqual(binascii.hexlify(hash), 'f8cb6ffe80afaa7f651e66933e62667c3250a0168fcc29b1f46529511bf53fe6')
+        self.assertEqual(binascii.hexlify(signature_der), '3044022072b87b41a92dbad6dffcd7f9441102029adad4864291f867726abaaa3572dee7022026814243d29bea4dddaef6da5b8af6836e499c2c7ccaa0877204f5465edc8290')
 
         #reset policy ("ShapeShift")
         self.client.apply_policy('ShapeShift', 0)
 
-    @unittest.expectedFailure # Safety check fails
     def test_ethereum_tx_xfer_acc2(self):
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('ShapeShift', 1)
@@ -65,21 +64,21 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             nonce=0,
             gas_price=20,
             gas_limit=20,
-            value=12345678901234567890,
-            to_n=[0x8000002c, 0x8000003c, 2, 0, 0],
-            address_type=1,
+            value=1234567890,
+            to_n=[0x8000002c, 0x8000003c, 0x80000002, 0, 0],
+            address_type=proto_types.TRANSFER,
+            chain_id=1,
             )
 
-        self.assertEqual(sig_v, 28)
-        self.assertEqual(binascii.hexlify(sig_r), '1c1949e8a261f8abfc40f4b6230fd69d7ce14c8d5ca7629af61ceb4ba0ea0b45')
-        self.assertEqual(binascii.hexlify(sig_s), '59c450dce64d38aba22527353a8708255859c9c25abbfca07a19cf180d5a3858')
-        self.assertEqual(binascii.hexlify(hash), '77e95b8843f6fd5f27c37a3ced1a1369a236e566ed0fea45a7a57d278c590860')
-        self.assertEqual(binascii.hexlify(signature_der), '304402201c1949e8a261f8abfc40f4b6230fd69d7ce14c8d5ca7629af61ceb4ba0ea0b45022059c450dce64d38aba22527353a8708255859c9c25abbfca07a19cf180d5a3858')
+        self.assertEqual(sig_v, 37)
+        self.assertEqual(binascii.hexlify(sig_r), '24b978c585e12ef9bb816105718adcdd11824262919489c22b63d9c71873535f')
+        self.assertEqual(binascii.hexlify(sig_s), '079f2a155bec09d7a7e23189aa5f6a4305df839605eed23a720486a919306259')
+        self.assertEqual(binascii.hexlify(hash), '9d78419c4bbe60057b4ce5e3b8115b8a486589890dc9751b87c2bece0ed2f4a1')
+        self.assertEqual(binascii.hexlify(signature_der), '3044022024b978c585e12ef9bb816105718adcdd11824262919489c22b63d9c71873535f0220079f2a155bec09d7a7e23189aa5f6a4305df839605eed23a720486a919306259')
 
         #reset policy ("ShapeShift")
         self.client.apply_policy('ShapeShift', 0)
 
-    @unittest.expectedFailure # Safety check fails
     def test_ethereum_xfer_account_path_error_0(self):
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('ShapeShift', 1)
@@ -89,9 +88,10 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             nonce=0,
             gas_price=20,
             gas_limit=20,
-            value=12345678901234567890,
-            to_n=[0x8000002c, 0x8000003c, 2, 0, 0],
-            address_type=1,
+            value=1234567890,
+            to_n=[0x8000002c, 0x8000003c, 0x80000002, 0, 0],
+            address_type=proto_types.TRANSFER,
+            chain_id=1,
             )
 
         try:
@@ -100,10 +100,11 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 nonce=0,
                 gas_price=20,
                 gas_limit=20,
-                to_n=[0x8000002a, 0x8000003c, 1, 0, 0],
-                #error here   -^-
-                value=12345678901234567890,
-                address_type=1,
+                to_n=[0x8000002c, 0x8000003c, 2, 0, 0],
+                #error here                  -^-
+                value=1234567890,
+                address_type=proto_types.TRANSFER,
+                chain_id=1,
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Failed to compile output')
@@ -114,10 +115,13 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         #reset policy ("ShapeShift")
         self.client.apply_policy('ShapeShift', 0)
 
-    @unittest.expectedFailure # Safety check fails
     def test_ethereum_xfer_account_path_error_1(self):
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('ShapeShift', 1)
+
+        # Really we should warn instead in this case, and show:
+        #     "Transfer 0.001234 ETH to m/44'/60'/1'/0/0/"
+        # on the device, rathern than erroring out.
 
         try:
             signature_der = self.client.ethereum_sign_tx(
@@ -125,10 +129,11 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 nonce=0,
                 gas_price=20,
                 gas_limit=20,
-                to_n=[0x8000002c, 0x80000030, 1, 0, 0],
-                                 #error here       -^-
-                value=12345678901234567890,
-                address_type=1,
+                to_n=[0x8000002c, 0x8000003c, 1, 0, 0],
+                                 #error here -^-
+                value=1234000000000000,
+                address_type=proto_types.TRANSFER,
+                chain_id=1,
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Failed to compile output')
@@ -139,7 +144,6 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         #reset policy ("ShapeShift")
         self.client.apply_policy('ShapeShift', 0)
 
-    @unittest.expectedFailure # Safety check fails
     def test_ethereum_xfer_account_path_error_2(self):
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('ShapeShift', 1)
@@ -153,8 +157,9 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 gas_limit=20,
                 to_n=[0x8000002c, 0x8000003c, 1, 1, 0],
                                   #error here      -^-
-                value=12345678901234567890,
-                address_type=1,
+                value=1234567890,
+                address_type=proto_types.TRANSFER,
+                chain_id=1,
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Failed to compile output')
@@ -165,7 +170,6 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         #reset policy ("ShapeShift")
         self.client.apply_policy('ShapeShift', 0)
 
-    @unittest.expectedFailure # Safety check fails
     def test_ethereum_xfer_account_path_error_3(self):
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('ShapeShift', 1)
@@ -178,8 +182,9 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 gas_limit=20,
                 to_n=[0x8000002c, 0x8000003c, 1, 0, 1],
                                     #error here    -^-
-                value=12345678901234567890,
-                address_type=1,
+                value=1234567890,
+                address_type=proto_types.TRANSFER,
+                chain_id=1,
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Failed to compile output')

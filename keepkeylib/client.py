@@ -571,16 +571,7 @@ class ProtocolMixin(object):
             return rlp.utils.int_to_big_endian(value)
 
         n = self._convert_prime(n)
-        if address_type == 1:   #Ethereum transfer transaction
-            msg = proto.EthereumSignTx(
-                address_n=n,
-                nonce=int_to_big_endian(nonce),
-                gas_price=int_to_big_endian(gas_price),
-                gas_limit=int_to_big_endian(gas_limit),
-                value=int_to_big_endian(value),
-                to_address_n=to_n
-                )
-        elif address_type == 3:   #Ethereum exchange transaction
+        if address_type == types.TRANSFER:   #Ethereum transfer transaction
             msg = proto.EthereumSignTx(
                 address_n=n,
                 nonce=int_to_big_endian(nonce),
@@ -588,7 +579,18 @@ class ProtocolMixin(object):
                 gas_limit=int_to_big_endian(gas_limit),
                 value=int_to_big_endian(value),
                 to_address_n=to_n,
-                exchange_type=exchange_type
+                address_type=address_type
+                )
+        elif address_type == types.EXCHANGE:   #Ethereum exchange transaction
+            msg = proto.EthereumSignTx(
+                address_n=n,
+                nonce=int_to_big_endian(nonce),
+                gas_price=int_to_big_endian(gas_price),
+                gas_limit=int_to_big_endian(gas_limit),
+                value=int_to_big_endian(value),
+                to_address_n=to_n,
+                exchange_type=exchange_type,
+                address_type=address_type
                 )
             msg.address_type = address_type
         else:
