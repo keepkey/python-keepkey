@@ -37,7 +37,7 @@ import keepkeylib.types_pb2 as types
 def parse_args(commands):
     parser = argparse.ArgumentParser(description='Commandline tool for KeepKey devices.')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='Prints communication to device')
-    parser.add_argument('-t', '--transport', dest='transport',  choices=['usb', 'serial', 'pipe', 'socket', 'bridge', 'udp'], default='usb', help="Transport used for talking with the device")
+    parser.add_argument('-t', '--transport', dest='transport',  choices=['usb', 'serial', 'pipe', 'socket', 'bridge', 'udp', 'webusb'], default='usb', help="Transport used for talking with the device")
     parser.add_argument('-p', '--path', dest='path', default='', help="Path used by the transport (usually serial port)")
 #    parser.add_argument('-dt', '--debuglink-transport', dest='debuglink_transport', choices=['usb', 'serial', 'pipe', 'socket'], default='usb', help="Debuglink transport")
 #    parser.add_argument('-dp', '--debuglink-path', dest='debuglink_path', default='', help="Path used by the transport (usually serial port)")
@@ -79,6 +79,15 @@ def get_transport(transport_string, path, **kwargs):
             # Two-tuple of (normal_interface, debug_interface)
             if path in d:
                 return HidTransport(d, **kwargs)
+
+        raise Exception("Device not found")
+
+    if transport_string == 'webusb':
+        from keepkeylib.transport_webusb import WebUsbTransport
+
+        for d in WebUsbTransport.enumerate():
+            print(d)
+            return WebUsbTransport(d, **kwargs)
 
         raise Exception("Device not found")
  
