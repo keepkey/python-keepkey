@@ -7,10 +7,7 @@ import binascii
 from u2flib_host import hid_transport as u2fhid_transport
 
 import platform
-if platform.system() == 'Linux':
-    import hidraw as hid
-else:
-    import hid
+import hid
 
 u2fhid_transport.DEVICES.append((0x2b24, 0x0001)) #KeepKey
 
