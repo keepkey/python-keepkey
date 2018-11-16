@@ -35,6 +35,7 @@ setup(
         'mnemonic>=0.8',
         'hidapi>=0.7.99.post15',
         'python-u2flib-host>=3.0.3',
+        'timeout-decorator>=0.4.0',
         'hidraw>=0.1'
     ],
     include_package_data=True,
