@@ -22,9 +22,6 @@ class WebUsbTransport(Transport):
     WebUsbTransport implements transport over WebUSB interface.
     """
 
-   # PATH_PREFIX = "webusb"
-   # context = None
-
     def __init__(self, device, *args, **kwargs):
         self.buffer = ''
 
@@ -34,7 +31,6 @@ class WebUsbTransport(Transport):
         self.device = device
 
         super(WebUsbTransport, self).__init__(device, *args, **kwargs)
-
 
     def _open(self):
         self.handle = self.device.open()
@@ -53,14 +49,11 @@ class WebUsbTransport(Transport):
           #  atexit.register(cls.context.close)
         devices = []
         for dev in cls.context.getDeviceIterator(skip_on_error=True):
-            print("Device: ", dev)
-            print("Type: ", type(dev))
+
             usb_id = (dev.getVendorID(), dev.getProductID())
+            # TODO: not magic constant
             if usb_id != (0x2B24, 0x0001):
-                print("Skipping cause usb_id")
                 continue
-            # if not is_vendor_class(dev):
-                # continue
             try:
                 # workaround for issue #223:
                 # on certain combinations of Windows USB drivers and libusb versions,
@@ -68,15 +61,12 @@ class WebUsbTransport(Transport):
                 # a HID and a WebUSB device), and one of the returned devices is
                 # non-functional.
                 dev.getProduct()
-                # devices.append(WebUsbTransport(dev))
                 devices.append(dev)
             except usb1.USBErrorNotSupported:
                 pass
-        print("Num Devices", len(devices))
         return devices
 
     def _write(self, msg, protobuf_msg):
-        print("Writing")
 
         msg = bytearray(msg)
         while len(msg):
@@ -89,18 +79,11 @@ class WebUsbTransport(Transport):
         return (msg_type, self._raw_read(datalen))
 
     def _raw_read(self, length):
-        print("Read Raw: ", length)
         start = time.time()
         endpoint = 0x80 | self.endpoint
-        print("endpoint:", endpoint)
-        print("handle:", self.handle)
         while len(self.buffer) < length:
-            print("len buffer:", len(self.buffer))
-            print("length", length)
-            print("interruptRead")
             while True:
                 data = self.handle.interruptRead(endpoint, 64)
-                print("Data: ", data)
                 if data:
                     break
                 else:
@@ -109,10 +92,7 @@ class WebUsbTransport(Transport):
             if len(data) != 64:
                 raise TransportException("Unexpected chunk size: %d" % len(chunk))
 
-            print("lendata-1", len(data[1:]))
-            print("prelenbuffer", len(self.buffer))
             self.buffer += data[1:]
-            print("postlenBuffer", len(self.buffer))
 
         ret = self.buffer[:length]
         self.buffer = self.buffer[length:]
