@@ -1,6 +1,5 @@
 import struct
 from . import mapping
-import timeout_decorator
 
 class NotImplementedException(Exception):
     pass
@@ -103,7 +102,6 @@ class Transport(object):
             inst.ParseFromString(data)
             return inst
 
-    @timeout_decorator.timeout(60, timeout_exception=Exception)
     def _read_headers(self, read_f):
         # Try to read headers until some sane value are detected
         is_ok = False
