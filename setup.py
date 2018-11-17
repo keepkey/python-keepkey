@@ -29,7 +29,13 @@ setup(
     ],
     scripts = ['keepkeyctl'],
     test_suite='tests/**/test_*.py',
-    install_requires=['ecdsa>=0.9', 'protobuf>=3.0.0', 'mnemonic>=0.8', 'hidapi>=0.7.99.post15', 'python-u2flib-host>=3.0.3', 'hidraw>=0.1'],
+    install_requires=[
+        'ecdsa>=0.9',
+        'protobuf>=3.0.0',
+        'mnemonic>=0.8',
+        'hidapi>=0.7.99.post15',
+        'python-u2flib-host>=3.0.3'
+    ],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
