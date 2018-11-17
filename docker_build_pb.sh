@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IMAGETAG=kktech/firmware:v1
+IMAGETAG=kktech/firmware:v8
 
 docker pull $IMAGETAG
 
@@ -8,4 +8,4 @@ docker run -it \
     -v $(pwd):/root/python-keepkey \
     -w /root/python-keepkey \
     $IMAGETAG \
-    ./build_pb.sh
+    /bin/sh -c "source /root/python-keepkey/build_pb.sh"
