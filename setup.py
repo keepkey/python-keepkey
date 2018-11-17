@@ -34,7 +34,9 @@ setup(
         'protobuf>=3.0.0',
         'mnemonic>=0.8',
         'hidapi>=0.7.99.post15',
-        'python-u2flib-host>=3.0.3'
+        'python-u2flib-host>=3.0.3',
+        'mnemonic',
+        'rlp'
     ],
     include_package_data=True,
     zip_safe=False,
