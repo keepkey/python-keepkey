@@ -34,10 +34,11 @@ setup(
         'protobuf>=3.0.0',
         'mnemonic>=0.8',
         'hidapi>=0.7.99.post15',
-        'python-u2flib-host>=3.0.3',
-        'mnemonic',
-        'rlp'
+        'python-u2flib-host>=3.0.3'
     ],
+    extras_require={
+        "ethereum": ["rlp>=0.4.4", "ethjsonrpc>=0.3.0"],
+    },
     include_package_data=True,
     zip_safe=False,
     classifiers=[

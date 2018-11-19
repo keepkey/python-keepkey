@@ -38,7 +38,6 @@ from . import messages_pb2 as proto
 from . import types_pb2 as types
 from .debuglink import DebugLink
 
-import rlp.utils
 
 # try:
 #     from PIL import Image
@@ -565,6 +564,8 @@ class ProtocolMixin(object):
 
     @session
     def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None, token_shortcut=None, token_value=None, token_to=None):
+        import rlp.utils
+
         def int_to_big_endian(value):
             if value == 0:
                 return b''
