@@ -1,3 +1,19 @@
+# This file is part of the Trezor project.
+#
+# Copyright (C) 2012-2018 SatoshiLabs and contributors
+#
+# This library is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License version 3
+# as published by the Free Software Foundation.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the License along with this library.
+# If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
+
 import importlib
 import logging
 import sys
@@ -16,6 +32,9 @@ class FakeRead(object):
     def read(self, size):
         return self.func(size)
 
+DEVICE_IDS = [
+    (0x2B24, 0x0001),  # KeepKey
+]
 
 class WebUsbTransport(Transport):
     """
@@ -25,36 +44,48 @@ class WebUsbTransport(Transport):
     def __init__(self, device, *args, **kwargs):
         self.buffer = ''
 
-        # TODO: Select between normal/debug interface
-        self.interface = 0
-        self.endpoint = 1
+        if kwargs.get("debug_link", False):
+            self.interface = 1
+            self.endpoint = 2
+        else:
+            self.interface = 0
+            self.endpoint = 1
+
         self.device = device
+        self.handle = None
 
         super(WebUsbTransport, self).__init__(device, *args, **kwargs)
 
     def _open(self):
         self.handle = self.device.open()
-        # if self.handle is None:
-        if sys.platform.startswith("linux"):
-            args = (UDEV_RULES_STR,)
-        else:
-            args = ()
-        # raise IOError("Cannot open device", *args)
+        if self.handle is None:
+            if sys.platform.startswith("linux"):
+                args = (UDEV_RULES_STR,)
+            else:
+                args = ()
+            raise IOError("Cannot open device", *args)
+
         self.handle.claimInterface(self.interface)
+
+    def _close(self):
+        if self.handle is not None:
+            self.handle.releaseInterface(self.interface)
+            self.handle.close()
+        self.handle = None
 
     @classmethod
     def enumerate(cls):
         cls.context = usb1.USBContext()
-        cls.context.open()
-          #  atexit.register(cls.context.close)
+        cls.context.open() #TODO: are there any extra closing steps that need to be taken?
+
         devices = []
         for dev in cls.context.getDeviceIterator(skip_on_error=True):
 
             usb_id = (dev.getVendorID(), dev.getProductID())
-            # TODO: not magic constant
-            if usb_id != (0x2B24, 0x0001):
+            if usb_id not in DEVICE_IDS:
                 continue
             try:
+                # this windows workaround pulled from github.com/trezor/python-trezor
                 # workaround for issue #223:
                 # on certain combinations of Windows USB drivers and libusb versions,
                 # Trezor is returned twice (possibly because Windows know it as both
@@ -64,6 +95,7 @@ class WebUsbTransport(Transport):
                 devices.append(dev)
             except usb1.USBErrorNotSupported:
                 pass
+
         return devices
 
     def _write(self, msg, protobuf_msg):

@@ -23,6 +23,7 @@ setup(
         'keepkeylib.transport_pipe',
         'keepkeylib.transport_serial',
         'keepkeylib.transport_socket',
+        'keepkeylib.transport_webusb',
         'keepkeylib.tx_api',
         'keepkeylib.types_pb2',
         'keepkeylib.exchange_pb2',
