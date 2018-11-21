@@ -26,27 +26,42 @@ sys.path = ['../',] + sys.path
 from keepkeylib.transport_pipe import PipeTransport
 from keepkeylib.transport_hid import HidTransport
 from keepkeylib.transport_socket import SocketTransportClient
+from keepkeylib.transport_webusb import WebUsbTransport
 from keepkeylib.transport_udp import UDPTransport
 
-devices = HidTransport.enumerate()
+hid_devices = HidTransport.enumerate()
+webusb_devices = WebUsbTransport.enumerate()
 
-if len(devices) > 0:
-    if devices[0][1] != None:
-        print('Using TREZOR')
+# Only count a hid device if it has more than just the U2F interface exposed
+onlyU2F = len(hid_devices) > 0 and \
+    hid_devices[0][0] == None and hid_devices[0][1] == None and hid_devices[0][2] != None
+
+if len(hid_devices) > 0 and not onlyU2F:
+    if hid_devices[0][1] != None:
+        print('Using KeepKey over HID')
         TRANSPORT = HidTransport
-        TRANSPORT_ARGS = (devices[0],)
+        TRANSPORT_ARGS = (hid_devices[0],)
         TRANSPORT_KWARGS = {'debug_link': False, 'use_u2f': False}
         DEBUG_TRANSPORT = HidTransport
-        DEBUG_TRANSPORT_ARGS = (devices[0],)
+        DEBUG_TRANSPORT_ARGS = (hid_devices[0],)
         DEBUG_TRANSPORT_KWARGS = {'debug_link': True, 'use_u2f': False}
     else:
         print('Using Raspberry Pi')
         TRANSPORT = HidTransport
-        TRANSPORT_ARGS = (devices[0],)
+        TRANSPORT_ARGS = (hid_devices[0],)
         TRANSPORT_KWARGS = {'debug_link': False}
         DEBUG_TRANSPORT = SocketTransportClient
         DEBUG_TRANSPORT_ARGS = ('trezor.bo:2000',)
         DEBUG_TRANSPORT_KWARGS = {}
+
+elif len(webusb_devices) > 0:
+    print('Using Keepkey over webUSB')
+    TRANSPORT = WebUsbTransport
+    TRANSPORT_ARGS = (webusb_devices[0],)
+    TRANSPORT_KWARGS = {'debug_link': False, 'use_u2f': False}
+    DEBUG_TRANSPORT = WebUsbTransport
+    DEBUG_TRANSPORT_ARGS = (webusb_devices[0],)
+    DEBUG_TRANSPORT_KWARGS = {'debug_link': True, 'use_u2f': False}
 else:
     print('Using Emulator')
     TRANSPORT = UDPTransport

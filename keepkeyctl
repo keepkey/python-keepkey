@@ -86,7 +86,6 @@ def get_transport(transport_string, path, **kwargs):
         from keepkeylib.transport_webusb import WebUsbTransport
 
         for d in WebUsbTransport.enumerate():
-            print(d)
             return WebUsbTransport(d, **kwargs)
 
         raise Exception("Device not found")
