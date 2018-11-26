@@ -23,6 +23,8 @@ setup(
         'keepkeylib.transport_pipe',
         'keepkeylib.transport_serial',
         'keepkeylib.transport_socket',
+        'keepkeylib.transport_webusb',
+        'keepkeylib.transport_udp',
         'keepkeylib.tx_api',
         'keepkeylib.types_pb2',
         'keepkeylib.exchange_pb2',
@@ -35,6 +37,7 @@ setup(
         'mnemonic>=0.8',
         'hidapi>=0.7.99.post15',
         'python-u2flib-host>=3.0.3'
+        'libusb1>=1.6'
     ],
     extras_require={
         "ethereum": ["rlp>=0.4.4", "ethjsonrpc>=0.3.0"],
