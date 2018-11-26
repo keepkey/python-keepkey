@@ -36,7 +36,7 @@ setup(
         'protobuf>=3.0.0',
         'mnemonic>=0.8',
         'hidapi>=0.7.99.post15',
-        'python-u2flib-host>=3.0.3'
+        'python-u2flib-host>=3.0.3',
         'libusb1>=1.6'
     ],
     extras_require={
