@@ -37,7 +37,7 @@ import keepkeylib.types_pb2 as types
 def parse_args(commands):
     parser = argparse.ArgumentParser(description='Commandline tool for KeepKey devices.')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='Prints communication to device')
-    parser.add_argument('-t', '--transport', dest='transport',  choices=['usb', 'serial', 'pipe', 'socket', 'bridge', 'udp', 'webusb'], default='usb', help="Transport used for talking with the device")
+    parser.add_argument('-t', '--transport', dest='transport',  choices=['usb', 'serial', 'pipe', 'socket', 'bridge', 'udp', 'webusb'], help="Transport used for talking with the device")
     parser.add_argument('-p', '--path', dest='path', default='', help="Path used by the transport (usually serial port)")
 #    parser.add_argument('-dt', '--debuglink-transport', dest='debuglink_transport', choices=['usb', 'serial', 'pipe', 'socket'], default='usb', help="Debuglink transport")
 #    parser.add_argument('-dp', '--debuglink-path', dest='debuglink_path', default='', help="Path used by the transport (usually serial port)")
@@ -65,30 +65,65 @@ def parse_args(commands):
 
     return parser.parse_args()
 
+def get_hid_transport(path, **kwargs):
+    from keepkeylib.transport_hid import HidTransport
+
+    if path == '':
+        try:
+            path = list_usb()[0][0]
+        except IndexError:
+            raise Exception("No KeepKey found on USB")
+
+    for d in HidTransport.enumerate():
+        # Two-tuple of (normal_interface, debug_interface)
+        if path in d:
+            return HidTransport(d, **kwargs)
+
+    raise Exception("Device not found")
+
+def get_webusb_transport(path, **kwargs):
+    from keepkeylib.transport_webusb import WebUsbTransport
+
+    for d in WebUsbTransport.enumerate():
+        return WebUsbTransport(d, **kwargs)
+
+    raise Exception("Device not found")
+
+
+
 def get_transport(transport_string, path, **kwargs):
-    if transport_string == 'usb':
-        from keepkeylib.transport_hid import HidTransport
 
-        if path == '':
-            try:
-                path = list_usb()[0][0]
-            except IndexError:
-                raise Exception("No KeepKey found on USB")
+    # if no transport is specified try both hid and webusb
+    if transport_string is None:
+        print("No transport specified, attempting to detect device...")
+        transport = None
+        try:
+            transport = get_hid_transport(path, **kwargs)
+        except:
+            pass
 
-        for d in HidTransport.enumerate():
-            # Two-tuple of (normal_interface, debug_interface)
-            if path in d:
-                return HidTransport(d, **kwargs)
+        if transport is not None:
+            print("Device detected over HID")
+            return transport
+
+        try:
+            transport = get_webusb_transport(path, **kwargs)
+        except:
+            pass
+
+        if transport is not None:
+            print("Device detected over webUSB")
+            return transport
 
         raise Exception("Device not found")
+
+
+
+    if transport_string == 'usb':
+        return get_hid_transport(path, **kwargs)
 
     if transport_string == 'webusb':
-        from keepkeylib.transport_webusb import WebUsbTransport
-
-        for d in WebUsbTransport.enumerate():
-            return WebUsbTransport(d, **kwargs)
-
-        raise Exception("Device not found")
+        return get_webusb_transport(path, **kwargs)
  
     if transport_string == 'serial':
         from keepkeylib.transport_serial import SerialTransport
