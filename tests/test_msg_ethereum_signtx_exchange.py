@@ -34,7 +34,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
     def test_eth_to_doge_exch(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 responseV2=proto_exchange.ExchangeResponseV2(
@@ -42,7 +42,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='doge',
                                                 address='DQTjL9vfXVbMfCGM49KWeYvvvNzRPaoiFp') ,
-  
+
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
@@ -91,7 +91,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
     def test_eth_to_ltc_exch(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 responseV2=proto_exchange.ExchangeResponseV2(
@@ -99,7 +99,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
-  
+
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
@@ -147,7 +147,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
 
     def test_ethereum_exch_signature_error1(self):
         self.setup_mnemonic_nopin_nopassphrase()
-	self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('ShapeShift', 1)
 
         signed_exchange_out1=proto_exchange.SignedExchangeResponse(
                                 responseV2=proto_exchange.ExchangeResponseV2(
@@ -155,7 +155,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
-  
+
                                          deposit_amount=binascii.unhexlify('02076f02a152b400'),
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='eth',
@@ -194,7 +194,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
             )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange signature error')
-            print "Negative Test Passed (test_ethereum_exch_signature_error1)!" 
+            print "Negative Test Passed (test_ethereum_exch_signature_error1)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -311,7 +311,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange signature error')
-            print "Negative Test Passed (test_ethereum_exch_signature_error3)!" 
+            print "Negative Test Passed (test_ethereum_exch_signature_error3)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
