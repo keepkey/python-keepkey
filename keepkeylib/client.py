@@ -582,7 +582,7 @@ class ProtocolMixin(object):
                 to_address_n=to_n,
                 address_type=address_type
                 )
-        elif address_type == types.EXCHANGE:   #Ethereum exchange transaction
+        elif address_type == types.EXCHANGE and token_to is None:   #Ethereum exchange transaction
             msg = proto.EthereumSignTx(
                 address_n=n,
                 nonce=int_to_big_endian(nonce),
@@ -593,7 +593,20 @@ class ProtocolMixin(object):
                 exchange_type=exchange_type,
                 address_type=address_type
                 )
-            msg.address_type = address_type
+        elif address_type == types.EXCHANGE and token_to is not None:
+            msg = proto.EthereumSignTx(
+                address_n=n,
+                nonce=int_to_big_endian(nonce),
+                gas_price=int_to_big_endian(gas_price),
+                gas_limit=int_to_big_endian(gas_limit),
+                value=int_to_big_endian(value),
+                to_address_n=to_n,
+                exchange_type=exchange_type,
+                address_type=address_type,
+                token_value=token_value,
+                token_to=token_to,
+                token_shortcut=token_shortcut,
+                )
         else:
             if token_shortcut is None:
                 msg = proto.EthereumSignTx(
