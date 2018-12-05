@@ -33,7 +33,7 @@ class FakeRead(object):
         return self.func(size)
 
 DEVICE_IDS = [
-    (0x2B24, 0x0001),  # KeepKey
+    (0x2B24, 0x0002),  # KeepKey
 ]
 
 class WebUsbTransport(Transport):
