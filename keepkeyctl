@@ -255,6 +255,25 @@ class Commands(object):
         else:
             return 'Signed raw transaction: %s' % tx_hex
 
+    def eos_get_public_key(self, args):
+        address_n = self.client.expand_path(args.n)
+        res = self.client.eos_get_public_key(address_n, args.show_display)
+        return "WIF: %s\nRaw: %s" % (str(res.wif_public_key), binascii.hexlify(res.raw_public_key))
+
+    def eos_sign_tx(self, args):
+        import keepkeylib.eos as eos
+        address_n = self.client.expand_path(args.n)
+        with open(args.file, 'r') as f:
+            transaction = json.load(f)
+        resp = self.client.eos_sign_tx(address_n, transaction)
+        signature = eos.encode_signature(
+            "SIG_K1_",
+            resp.signature_v,
+            resp.signature_r,
+            resp.signature_s)
+        transaction['signatures'] = [signature]
+        return json.dumps(transaction, indent=2, sort_keys=True)
+
     def get_entropy(self, args):
         return binascii.hexlify(self.client.get_entropy(args.size))
 
@@ -377,6 +396,8 @@ class Commands(object):
     get_address.help = 'Get bitcoin address in base58 encoding'
     ethereum_get_address.help = 'Get Ethereum address in hex encoding'
     ethereum_sign_tx.help = 'Sign (and optionally publish) Ethereum transaction'
+    eos_get_public_key.help = 'Get EOS public key'
+    eos_sign_tx.help = 'Sign EOS transaction'
     get_entropy.help = 'Get example entropy'
     get_features.help = 'Retrieve device features and settings'
     get_public_node.help = 'Get public node of given path'
@@ -418,6 +439,16 @@ class Commands(object):
         (('-d', '--data'), {'type': str, 'help': 'Data as hex string, e.g., 0x12345678', 'default': ''}),
         (('-p', '--publish'), {'action': 'store_true', 'help': 'publish transaction via RPC', 'default': False}),
         (('to',), {'type': str, 'help': 'Destination address; "" for contract creation'}),
+    )
+
+    eos_get_public_key.arguments = (
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/194'/0'/0/0"}),
+        (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
+    )
+
+    eos_sign_tx.arguments = (
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/194'/0'/0/0"}),
+        (('-f', '--file'), {'type': str}),
     )
 
     get_entropy.arguments = (

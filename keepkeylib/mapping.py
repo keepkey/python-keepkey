@@ -1,4 +1,5 @@
 from . import messages_pb2 as proto
+from . import messages_eos_pb2 as eos_proto
 
 map_type_to_class = {}
 map_class_to_type = {}
@@ -6,7 +7,10 @@ map_class_to_type = {}
 def build_map():
     for msg_type, i in proto.MessageType.items():
         msg_name = msg_type.replace('MessageType_', '')
-        msg_class = getattr(proto, msg_name)
+        if msg_type.startswith('MessageType_Eos'):
+            msg_class = getattr(eos_proto, msg_name)
+        else:
+            msg_class = getattr(proto, msg_name)
 
         map_type_to_class[i] = msg_class
         map_class_to_type[msg_class] = i
