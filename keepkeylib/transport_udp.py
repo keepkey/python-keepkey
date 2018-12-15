@@ -56,8 +56,8 @@ class UDPTransport(Transport):
 
     def _raw_read(self, length):
         while len(self.buffer) < length:
-            data = self.socket.recv(16 * 1024)
-            self.buffer += data
+            data = self.socket.recv(64)
+            self.buffer += data[1:]
 
         ret = self.buffer[:length]
         self.buffer = self.buffer[length:]
