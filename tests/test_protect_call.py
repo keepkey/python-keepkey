@@ -116,18 +116,22 @@ class TestProtectCall(common.KeepKeyTest):
         self.assertRaises(PinException, self._some_protected_call, False, True, False)
 
     def test_exponential_backoff_with_reboot(self):
+        if self.client.features.firmware_variant == "Emulator":
+            self.skipTest("Due to a known defect in the emulator, pin timeouts don't work.")
+            return
+
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()
 
         self.client.setup_debuglink(button=True, pin_correct=False)
 
         def test_backoff(attempts, start):
-            if attempts <= 2 : 
+            if attempts <= 2 :
                 expected = 0
             else:
                 expected = (2 ** attempts) - 1
             got = time.time() - start
-            
+
             msg = "Pin delay expected to be at least %s seconds, got %s" % (expected, got)
             print(msg)
             self.assertLessEqual(expected, got, msg)
