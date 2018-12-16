@@ -44,6 +44,7 @@ class UDPTransport(Transport):
     def _write(self, msg, protobuf_msg):
 
         for chunk in [msg[i:i+63] for i in range(0, len(msg), 63)]:
+            chunk = chunk + b'\0' * (63 - len(chunk))
             self.socket.send(b'?' + chunk)
 
     def _read(self):
