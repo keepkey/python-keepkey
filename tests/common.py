@@ -47,6 +47,7 @@ class KeepKeyTest(unittest.TestCase):
         self.mnemonic18 = 'owner little vague addict embark decide pink prosper true fork panda embody mixture exchange choose canoe electric jewel'
         self.mnemonic24 = 'dignity pass list indicate nasty swamp pool script soccer toe leaf photo multiply desk host tomato cradle drill spread actor shine dismiss champion exotic'
         self.mnemonic_all = ' '.join(['all'] * 12)
+        self.mnemonic_abandon = ' '.join(['abandon'] * 11) + ' about'
 
         self.pin4 = '1234'
         self.pin6 = '789456'
@@ -59,6 +60,9 @@ class KeepKeyTest(unittest.TestCase):
 
     def setup_mnemonic_allallall(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic_all, pin='', passphrase_protection=False, label='test', language='english')
+
+    def setup_mnemonic_abandon(self):
+        self.client.load_device_by_mnemonic(mnemonic=self.mnemonic_abandon, pin='', passphrase_protection=False, label='test', language='english')
 
     def setup_mnemonic_nopin_nopassphrase(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic12, pin='', passphrase_protection=False, label='test', language='english')

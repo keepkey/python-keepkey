@@ -29,13 +29,16 @@ import hashlib
 import unicodedata
 import json
 import getpass
+import copy
 
 from mnemonic import Mnemonic
 
 from . import tools
 from . import mapping
 from . import messages_pb2 as proto
+from . import messages_eos_pb2 as eos_proto
 from . import types_pb2 as types
+from . import eos
 from .debuglink import DebugLink
 
 
@@ -654,6 +657,95 @@ class ProtocolMixin(object):
             return response.signature_v, response.signature_r, response.signature_s, response.hash, response.signature_der
         else:
             return response.signature_v, response.signature_r, response.signature_s
+
+    @expect(eos_proto.EosPublicKey)
+    def eos_get_public_key(self, address_n, show_display=True, legacy=True):
+        msg = eos_proto.EosGetPublicKey(
+            address_n=address_n,
+            show_display=show_display,
+            kind = eos_proto.EOS if legacy else eos_proto.EOS_K1
+            )
+        return self.call(msg)
+
+    @session
+    def eos_sign_tx_raw(self, msg, actions):
+        response = self.call(msg)
+
+        for common, action in actions:
+            if isinstance(action, eos_proto.EosActionTransfer):
+                msg = eos_proto.EosTxActionAck(common=common, transfer=action)
+            elif isinstance(action, eos_proto.EosActionDelegate):
+                msg = eos_proto.EosTxActionAck(common=common, delegate=action)
+            elif isinstance(action, eos_proto.EosActionUndelegate):
+                msg = eos_proto.EosTxActionAck(common=common, undelegate=action)
+            elif isinstance(action, eos_proto.EosActionRefund):
+                msg = eos_proto.EosTxActionAck(common=common, refund=action)
+            elif isinstance(action, eos_proto.EosActionBuyRam):
+                msg = eos_proto.EosTxActionAck(common=common, buy_ram=action)
+            elif isinstance(action, eos_proto.EosActionBuyRamBytes):
+                msg = eos_proto.EosTxActionAck(common=common, buy_ram_bytes=action)
+            elif isinstance(action, eos_proto.EosActionSellRam):
+                msg = eos_proto.EosTxActionAck(common=common, sell_ram=action)
+            elif isinstance(action, eos_proto.EosActionVoteProducer):
+                msg = eos_proto.EosTxActionAck(common=common, vote_producer=action)
+            elif isinstance(action, eos_proto.EosActionUpdateAuth):
+                msg = eos_proto.EosTxActionAck(common=common, update_auth=action)
+            elif isinstance(action, eos_proto.EosActionDeleteAuth):
+                msg = eos_proto.EosTxActionAck(common=common, delete_auth=action)
+            elif isinstance(action, eos_proto.EosActionUnlinkAuth):
+                msg = eos_proto.EosTxActionAck(common=common, unlink_auth=action)
+            elif isinstance(action, eos_proto.EosActionLinkAuth):
+                msg = eos_proto.EosTxActionAck(common=common, link_auth=action)
+            elif isinstance(action, eos_proto.EosActionNewAccount):
+                msg = eos_proto.EosTxActionAck(common=common, new_account=action)
+            elif isinstance(action, eos_proto.EosActionUnknown):
+                msg = eos_proto.EosTxActionAck(common=common, unknown=action)
+            else:
+                raise Exception("Unknown EOS Action")
+
+            response = self.call(msg)
+
+        if not isinstance(response, eos_proto.EosSignedTx):
+            raise Exception("Unexpected EOS signing response")
+
+        return response
+
+    @session
+    def eos_sign_tx(self, n, transaction):
+        tx = eos.parse_transaction_json(copy.deepcopy(transaction))
+
+        header = eos_proto.EosTxHeader(
+            expiration=tx.expiration,
+            ref_block_num=tx.ref_block_num,
+            ref_block_prefix=tx.ref_block_prefix,
+            max_net_usage_words=tx.net_usage_words,
+            max_cpu_usage_ms=tx.max_cpu_usage_ms,
+            delay_sec=tx.delay_sec)
+
+        msg = eos_proto.EosSignTx(
+            address_n=n,
+            chain_id=tx.chain_id,
+            header=header,
+            num_actions=tx.num_actions)
+
+        response = self.call(msg)
+
+        try:
+            while isinstance(response, eos_proto.EosTxActionRequest):
+                a = eos.parse_action(tx.actions.pop(0))
+                if isinstance(a, list):
+                    while len(a) and isinstance(response, eos_proto.EosTxActionRequest):
+                        response = self.call(a.pop(0))
+                else:
+                    response = self.call(a)
+        except IndexError:
+            # pop from empty list
+            raise Exception("Unexpected EOS signing response")
+
+        if not isinstance(response, eos_proto.EosSignedTx):
+            raise Exception("Unexpected EOS signing response")
+
+        return response
 
     @field('entropy')
     @expect(proto.Entropy)
