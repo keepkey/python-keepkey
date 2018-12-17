@@ -2,7 +2,7 @@ import hashlib
 import binascii
 import struct
 from datetime import datetime
-from .tools import b58decode, b58encode
+from .tools import b58decode, b58encode, parse_path
 from . import messages_eos_pb2 as proto
 
 def int_to_big_endian(value):
@@ -245,15 +245,26 @@ def parse_unlinkauth(data):
 def parse_authorization(data):
     keys = []
     for key in data['keys']:
-        _t, _k = public_key_to_buffer(key['key'])
+        if 'key' in key:
+            _t, _k = public_key_to_buffer(key['key'])
 
-        keys.append(
-            proto.EosAuthorizationKey(
-                type=_t,
-                key=_k,
-                weight=int(key['weight'])
+            keys.append(
+                proto.EosAuthorizationKey(
+                    type=_t,
+                    key=_k,
+                    weight=int(key['weight'])
+                )
             )
-        )
+        elif 'address_n' in key:
+            address_n=parse_path(key['address_n'])
+
+            keys.append(
+                proto.EosAuthorizationKey(
+                    type=1,
+                    address_n=address_n,
+                    weight=int(key['weight'])
+                )
+            )
 
     accounts = []
     for account in data['accounts']:

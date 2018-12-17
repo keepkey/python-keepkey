@@ -245,7 +245,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                     keys=[
                         proto.EosAuthorizationKey(
                             type=1,
-                            key=binascii.unhexlify('AB' * 32),
+                            address_n=parse_path("m/44'/194'/0'/0/0"),
                             weight=2)
                     ],
                     accounts=[
@@ -304,6 +304,16 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                     type=eos.name_to_number('whatever')))
 
     def action_newaccount(self):
+        device_auth=proto.EosAuthorization(
+                    threshold=1,
+                    keys=[
+                        proto.EosAuthorizationKey(
+                            type=1,
+                            address_n=parse_path("m/44'/194'/0'/0/0"),
+                            weight=1)
+                    ],
+                    accounts=[],
+                    waits=[])
         return (proto.EosActionCommon(
                     account=eos.name_to_number('eosio'),
                     name=eos.name_to_number('newaccount'),
@@ -315,8 +325,8 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 proto.EosActionNewAccount(
                     creator=eos.name_to_number('memememememe'),
                     name=eos.name_to_number('newnewnewnew'),
-                    owner=self.authorization(),
-                    active=self.authorization()))
+                    owner=device_auth,
+                    active=device_auth))
 
     def action_unknown(self, account, name, data):
         n = 256
@@ -513,7 +523,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 num_actions=1),
             [self.action_updateauth()])
 
-        self.assertEqual(binascii.hexlify(res.hash), "abe81eb56c11d4599a777fafb12b2271a0944906d108d908e4598d8e46e6376e")
+        self.assertEqual(binascii.hexlify(res.hash), "51afb4e1285b8a273a4ebe3feb8b8fb3c4d00c69ee0077e27a4cc36a0126754a")
 
     def test_deleteauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
@@ -565,7 +575,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 num_actions=1),
             [self.action_newaccount()])
 
-        self.assertEqual(binascii.hexlify(res.hash), "0523c3bf61d4c0fc5f1c4ccfcff8f43eca20db894ccda8d84f6e3e9b0311df1c")
+        self.assertEqual(binascii.hexlify(res.hash), "8cebf868f235f99af457ea23b8e6dda6abf73d9321dfa4040707c94478f44690")
 
     def test_unknown_noadvanced(self):
         self.setup_mnemonic_nopin_nopassphrase()
@@ -1285,7 +1295,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 "threshold": 1,
                 "keys": [
                 {
-                  "key": "EOS8Dkj827FpinZBGmhTM28B85H9eXiFH5XzvLoeukCJV5sKfLc6K",
+                  "address_n": "44'/194'/0'/0/0",
                   "weight": 1
                 }
               ],
@@ -1296,7 +1306,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
               "threshold": 1,
               "keys": [
                 {
-                  "key": "EOS8Dkj827FpinZBGmhTM28B85H9eXiFH5XzvLoeukCJV5sKfLc6K",
+                  "address_n": "44'/194'/0'/0/0",
                   "weight": 1
                 }
               ],
@@ -1347,9 +1357,9 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             json.loads(data))
 
         assert isinstance(actionResp, proto.EosSignedTx)
-        self.assertEqual(binascii.hexlify(actionResp.signature_r), "24af5378bd335b6999ef6c652889d5f316ebd4f24f58a6c57e3e885227d009dc")
-        self.assertEqual(binascii.hexlify(actionResp.signature_s), "204e010ce0036e14b415ba09dd614d40addbb290626e4acc6039b185748f6683")
-        self.assertEqual(actionResp.signature_v, 32)
+        self.assertEqual(binascii.hexlify(actionResp.signature_r), "16238c00b6fc82ca0d9212141a4b6607dfac0723d20ee208f124a6846cfc958c")
+        self.assertEqual(binascii.hexlify(actionResp.signature_s), "3cf158773bdf22f4d7e987cd0602e38ae108eb41efc2d8a595f159fcbeaa2e82")
+        self.assertEqual(actionResp.signature_v, 31)
 
     def test_eos_signtx_setcontract(self):
         self.setup_mnemonic_nopin_nopassphrase()

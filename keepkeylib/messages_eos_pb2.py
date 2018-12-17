@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-eos.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x12messages-eos.proto\"[\n\x0f\x45osGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12\x1f\n\x04kind\x18\x03 \x01(\x0e\x32\x11.EosPublicKeyKind\">\n\x0c\x45osPublicKey\x12\x16\n\x0ewif_public_key\x18\x01 \x01(\t\x12\x16\n\x0eraw_public_key\x18\x02 \x01(\x0c\"c\n\tEosSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\x0c\x12\x1c\n\x06header\x18\x03 \x01(\x0b\x32\x0c.EosTxHeader\x12\x13\n\x0bnum_actions\x18\x04 \x01(\r\"\x9c\x01\n\x0b\x45osTxHeader\x12\x12\n\nexpiration\x18\x01 \x02(\r\x12\x15\n\rref_block_num\x18\x02 \x02(\r\x12\x18\n\x10ref_block_prefix\x18\x03 \x02(\r\x12\x1b\n\x13max_net_usage_words\x18\x04 \x02(\r\x12\x18\n\x10max_cpu_usage_ms\x18\x05 \x02(\r\x12\x11\n\tdelay_sec\x18\x06 \x02(\r\"\x14\n\x12\x45osTxActionRequest\"\xe6\x04\n\x0e\x45osTxActionAck\x12 \n\x06\x63ommon\x18\x01 \x01(\x0b\x32\x10.EosActionCommon\x12$\n\x08transfer\x18\x02 \x01(\x0b\x32\x12.EosActionTransfer\x12$\n\x08\x64\x65legate\x18\x03 \x01(\x0b\x32\x12.EosActionDelegate\x12(\n\nundelegate\x18\x04 \x01(\x0b\x32\x14.EosActionUndelegate\x12 \n\x06refund\x18\x05 \x01(\x0b\x32\x10.EosActionRefund\x12!\n\x07\x62uy_ram\x18\x06 \x01(\x0b\x32\x10.EosActionBuyRam\x12,\n\rbuy_ram_bytes\x18\x07 \x01(\x0b\x32\x15.EosActionBuyRamBytes\x12#\n\x08sell_ram\x18\x08 \x01(\x0b\x32\x11.EosActionSellRam\x12-\n\rvote_producer\x18\t \x01(\x0b\x32\x16.EosActionVoteProducer\x12)\n\x0bupdate_auth\x18\n \x01(\x0b\x32\x14.EosActionUpdateAuth\x12)\n\x0b\x64\x65lete_auth\x18\x0b \x01(\x0b\x32\x14.EosActionDeleteAuth\x12%\n\tlink_auth\x18\x0c \x01(\x0b\x32\x12.EosActionLinkAuth\x12)\n\x0bunlink_auth\x18\r \x01(\x0b\x32\x14.EosActionUnlinkAuth\x12)\n\x0bnew_account\x18\x0e \x01(\x0b\x32\x14.EosActionNewAccount\x12\"\n\x07unknown\x18\x0f \x01(\x0b\x32\x11.EosActionUnknown\"*\n\x08\x45osAsset\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x12\x12\x0e\n\x06symbol\x18\x02 \x01(\x04\"7\n\x12\x45osPermissionLevel\x12\r\n\x05\x61\x63tor\x18\x01 \x01(\x04\x12\x12\n\npermission\x18\x02 \x01(\x04\"@\n\x13\x45osAuthorizationKey\x12\x0c\n\x04type\x18\x01 \x01(\r\x12\x0b\n\x03key\x18\x02 \x01(\x0c\x12\x0e\n\x06weight\x18\x03 \x01(\r\"O\n\x17\x45osAuthorizationAccount\x12$\n\x07\x61\x63\x63ount\x18\x01 \x01(\x0b\x32\x13.EosPermissionLevel\x12\x0e\n\x06weight\x18\x02 \x01(\r\"8\n\x14\x45osAuthorizationWait\x12\x10\n\x08wait_sec\x18\x01 \x01(\r\x12\x0e\n\x06weight\x18\x02 \x01(\r\"\x9b\x01\n\x10\x45osAuthorization\x12\x11\n\tthreshold\x18\x01 \x01(\r\x12\"\n\x04keys\x18\x02 \x03(\x0b\x32\x14.EosAuthorizationKey\x12*\n\x08\x61\x63\x63ounts\x18\x03 \x03(\x0b\x32\x18.EosAuthorizationAccount\x12$\n\x05waits\x18\x04 \x03(\x0b\x32\x15.EosAuthorizationWait\"\\\n\x0f\x45osActionCommon\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\x04\x12*\n\rauthorization\x18\x03 \x03(\x0b\x32\x13.EosPermissionLevel\"`\n\x11\x45osActionTransfer\x12\x0e\n\x06sender\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\x1b\n\x08quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\x12\x0c\n\x04memo\x18\x04 \x01(\t\"\x89\x01\n\x11\x45osActionDelegate\x12\x0e\n\x06sender\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\x1f\n\x0cnet_quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\x12\x1f\n\x0c\x63pu_quantity\x18\x04 \x01(\x0b\x32\t.EosAsset\x12\x10\n\x08transfer\x18\x05 \x01(\x08\"y\n\x13\x45osActionUndelegate\x12\x0e\n\x06sender\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\x1f\n\x0cnet_quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\x12\x1f\n\x0c\x63pu_quantity\x18\x04 \x01(\x0b\x32\t.EosAsset\" \n\x0f\x45osActionRefund\x12\r\n\x05owner\x18\x01 \x01(\x04\"O\n\x0f\x45osActionBuyRam\x12\r\n\x05payer\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\x1b\n\x08quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\"F\n\x14\x45osActionBuyRamBytes\x12\r\n\x05payer\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\r\n\x05\x62ytes\x18\x03 \x01(\r\"2\n\x10\x45osActionSellRam\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\r\n\x05\x62ytes\x18\x02 \x01(\x12\"H\n\x15\x45osActionVoteProducer\x12\r\n\x05voter\x18\x01 \x01(\x04\x12\r\n\x05proxy\x18\x02 \x01(\x04\x12\x11\n\tproducers\x18\x03 \x03(\x04\"k\n\x13\x45osActionUpdateAuth\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x12\n\npermission\x18\x02 \x01(\x04\x12\x0e\n\x06parent\x18\x03 \x01(\x04\x12\x1f\n\x04\x61uth\x18\x04 \x01(\x0b\x32\x11.EosAuthorization\":\n\x13\x45osActionDeleteAuth\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x12\n\npermission\x18\x02 \x01(\x04\"U\n\x11\x45osActionLinkAuth\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x0c\n\x04\x63ode\x18\x02 \x01(\x04\x12\x0c\n\x04type\x18\x03 \x01(\x04\x12\x13\n\x0brequirement\x18\x04 \x01(\x04\"B\n\x13\x45osActionUnlinkAuth\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x0c\n\x04\x63ode\x18\x02 \x01(\x04\x12\x0c\n\x04type\x18\x03 \x01(\x04\"y\n\x13\x45osActionNewAccount\x12\x0f\n\x07\x63reator\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\x04\x12 \n\x05owner\x18\x03 \x01(\x0b\x32\x11.EosAuthorization\x12!\n\x06\x61\x63tive\x18\x04 \x01(\x0b\x32\x11.EosAuthorization\"9\n\x10\x45osActionUnknown\x12\x11\n\tdata_size\x18\x01 \x01(\r\x12\x12\n\ndata_chunk\x18\x02 \x01(\x0c\"Z\n\x0b\x45osSignedTx\x12\x13\n\x0bsignature_v\x18\x01 \x01(\r\x12\x13\n\x0bsignature_r\x18\x02 \x01(\x0c\x12\x13\n\x0bsignature_s\x18\x03 \x01(\x0c\x12\x0c\n\x04hash\x18\x04 \x01(\x0c*3\n\x10\x45osPublicKeyKind\x12\x07\n\x03\x45OS\x10\x00\x12\n\n\x06\x45OS_K1\x10\x01\x12\n\n\x06\x45OS_R1\x10\x02\x42\x38\n#com.shapeshift.keepkey.lib.protobufB\x11KeepKeyMessageEos')
+  serialized_pb=_b('\n\x12messages-eos.proto\"[\n\x0f\x45osGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12\x1f\n\x04kind\x18\x03 \x01(\x0e\x32\x11.EosPublicKeyKind\">\n\x0c\x45osPublicKey\x12\x16\n\x0ewif_public_key\x18\x01 \x01(\t\x12\x16\n\x0eraw_public_key\x18\x02 \x01(\x0c\"c\n\tEosSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\x0c\x12\x1c\n\x06header\x18\x03 \x01(\x0b\x32\x0c.EosTxHeader\x12\x13\n\x0bnum_actions\x18\x04 \x01(\r\"\x9c\x01\n\x0b\x45osTxHeader\x12\x12\n\nexpiration\x18\x01 \x02(\r\x12\x15\n\rref_block_num\x18\x02 \x02(\r\x12\x18\n\x10ref_block_prefix\x18\x03 \x02(\r\x12\x1b\n\x13max_net_usage_words\x18\x04 \x02(\r\x12\x18\n\x10max_cpu_usage_ms\x18\x05 \x02(\r\x12\x11\n\tdelay_sec\x18\x06 \x02(\r\"\x14\n\x12\x45osTxActionRequest\"\xe6\x04\n\x0e\x45osTxActionAck\x12 \n\x06\x63ommon\x18\x01 \x01(\x0b\x32\x10.EosActionCommon\x12$\n\x08transfer\x18\x02 \x01(\x0b\x32\x12.EosActionTransfer\x12$\n\x08\x64\x65legate\x18\x03 \x01(\x0b\x32\x12.EosActionDelegate\x12(\n\nundelegate\x18\x04 \x01(\x0b\x32\x14.EosActionUndelegate\x12 \n\x06refund\x18\x05 \x01(\x0b\x32\x10.EosActionRefund\x12!\n\x07\x62uy_ram\x18\x06 \x01(\x0b\x32\x10.EosActionBuyRam\x12,\n\rbuy_ram_bytes\x18\x07 \x01(\x0b\x32\x15.EosActionBuyRamBytes\x12#\n\x08sell_ram\x18\x08 \x01(\x0b\x32\x11.EosActionSellRam\x12-\n\rvote_producer\x18\t \x01(\x0b\x32\x16.EosActionVoteProducer\x12)\n\x0bupdate_auth\x18\n \x01(\x0b\x32\x14.EosActionUpdateAuth\x12)\n\x0b\x64\x65lete_auth\x18\x0b \x01(\x0b\x32\x14.EosActionDeleteAuth\x12%\n\tlink_auth\x18\x0c \x01(\x0b\x32\x12.EosActionLinkAuth\x12)\n\x0bunlink_auth\x18\r \x01(\x0b\x32\x14.EosActionUnlinkAuth\x12)\n\x0bnew_account\x18\x0e \x01(\x0b\x32\x14.EosActionNewAccount\x12\"\n\x07unknown\x18\x0f \x01(\x0b\x32\x11.EosActionUnknown\"*\n\x08\x45osAsset\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x12\x12\x0e\n\x06symbol\x18\x02 \x01(\x04\"7\n\x12\x45osPermissionLevel\x12\r\n\x05\x61\x63tor\x18\x01 \x01(\x04\x12\x12\n\npermission\x18\x02 \x01(\x04\"S\n\x13\x45osAuthorizationKey\x12\x0c\n\x04type\x18\x01 \x01(\r\x12\x0b\n\x03key\x18\x02 \x01(\x0c\x12\x0e\n\x06weight\x18\x03 \x01(\r\x12\x11\n\taddress_n\x18\x04 \x03(\r\"O\n\x17\x45osAuthorizationAccount\x12$\n\x07\x61\x63\x63ount\x18\x01 \x01(\x0b\x32\x13.EosPermissionLevel\x12\x0e\n\x06weight\x18\x02 \x01(\r\"8\n\x14\x45osAuthorizationWait\x12\x10\n\x08wait_sec\x18\x01 \x01(\r\x12\x0e\n\x06weight\x18\x02 \x01(\r\"\x9b\x01\n\x10\x45osAuthorization\x12\x11\n\tthreshold\x18\x01 \x01(\r\x12\"\n\x04keys\x18\x02 \x03(\x0b\x32\x14.EosAuthorizationKey\x12*\n\x08\x61\x63\x63ounts\x18\x03 \x03(\x0b\x32\x18.EosAuthorizationAccount\x12$\n\x05waits\x18\x04 \x03(\x0b\x32\x15.EosAuthorizationWait\"\\\n\x0f\x45osActionCommon\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\x04\x12*\n\rauthorization\x18\x03 \x03(\x0b\x32\x13.EosPermissionLevel\"`\n\x11\x45osActionTransfer\x12\x0e\n\x06sender\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\x1b\n\x08quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\x12\x0c\n\x04memo\x18\x04 \x01(\t\"\x89\x01\n\x11\x45osActionDelegate\x12\x0e\n\x06sender\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\x1f\n\x0cnet_quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\x12\x1f\n\x0c\x63pu_quantity\x18\x04 \x01(\x0b\x32\t.EosAsset\x12\x10\n\x08transfer\x18\x05 \x01(\x08\"y\n\x13\x45osActionUndelegate\x12\x0e\n\x06sender\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\x1f\n\x0cnet_quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\x12\x1f\n\x0c\x63pu_quantity\x18\x04 \x01(\x0b\x32\t.EosAsset\" \n\x0f\x45osActionRefund\x12\r\n\x05owner\x18\x01 \x01(\x04\"O\n\x0f\x45osActionBuyRam\x12\r\n\x05payer\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\x1b\n\x08quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\"F\n\x14\x45osActionBuyRamBytes\x12\r\n\x05payer\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\r\n\x05\x62ytes\x18\x03 \x01(\r\"2\n\x10\x45osActionSellRam\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\r\n\x05\x62ytes\x18\x02 \x01(\x12\"H\n\x15\x45osActionVoteProducer\x12\r\n\x05voter\x18\x01 \x01(\x04\x12\r\n\x05proxy\x18\x02 \x01(\x04\x12\x11\n\tproducers\x18\x03 \x03(\x04\"k\n\x13\x45osActionUpdateAuth\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x12\n\npermission\x18\x02 \x01(\x04\x12\x0e\n\x06parent\x18\x03 \x01(\x04\x12\x1f\n\x04\x61uth\x18\x04 \x01(\x0b\x32\x11.EosAuthorization\":\n\x13\x45osActionDeleteAuth\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x12\n\npermission\x18\x02 \x01(\x04\"U\n\x11\x45osActionLinkAuth\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x0c\n\x04\x63ode\x18\x02 \x01(\x04\x12\x0c\n\x04type\x18\x03 \x01(\x04\x12\x13\n\x0brequirement\x18\x04 \x01(\x04\"B\n\x13\x45osActionUnlinkAuth\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x0c\n\x04\x63ode\x18\x02 \x01(\x04\x12\x0c\n\x04type\x18\x03 \x01(\x04\"y\n\x13\x45osActionNewAccount\x12\x0f\n\x07\x63reator\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\x04\x12 \n\x05owner\x18\x03 \x01(\x0b\x32\x11.EosAuthorization\x12!\n\x06\x61\x63tive\x18\x04 \x01(\x0b\x32\x11.EosAuthorization\"9\n\x10\x45osActionUnknown\x12\x11\n\tdata_size\x18\x01 \x01(\r\x12\x12\n\ndata_chunk\x18\x02 \x01(\x0c\"Z\n\x0b\x45osSignedTx\x12\x13\n\x0bsignature_v\x18\x01 \x01(\r\x12\x13\n\x0bsignature_r\x18\x02 \x01(\x0c\x12\x13\n\x0bsignature_s\x18\x03 \x01(\x0c\x12\x0c\n\x04hash\x18\x04 \x01(\x0c*3\n\x10\x45osPublicKeyKind\x12\x07\n\x03\x45OS\x10\x00\x12\n\n\x06\x45OS_K1\x10\x01\x12\n\n\x06\x45OS_R1\x10\x02\x42\x38\n#com.shapeshift.keepkey.lib.protobufB\x11KeepKeyMessageEos')
 )
 
 _EOSPUBLICKEYKIND = _descriptor.EnumDescriptor(
@@ -44,8 +44,8 @@ _EOSPUBLICKEYKIND = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2908,
-  serialized_end=2959,
+  serialized_start=2927,
+  serialized_end=2978,
 )
 _sym_db.RegisterEnumDescriptor(_EOSPUBLICKEYKIND)
 
@@ -514,6 +514,13 @@ _EOSAUTHORIZATIONKEY = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='address_n', full_name='EosAuthorizationKey.address_n', index=3,
+      number=4, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -527,7 +534,7 @@ _EOSAUTHORIZATIONKEY = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=1179,
-  serialized_end=1243,
+  serialized_end=1262,
 )
 
 
@@ -564,8 +571,8 @@ _EOSAUTHORIZATIONACCOUNT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1245,
-  serialized_end=1324,
+  serialized_start=1264,
+  serialized_end=1343,
 )
 
 
@@ -602,8 +609,8 @@ _EOSAUTHORIZATIONWAIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1326,
-  serialized_end=1382,
+  serialized_start=1345,
+  serialized_end=1401,
 )
 
 
@@ -654,8 +661,8 @@ _EOSAUTHORIZATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1385,
-  serialized_end=1540,
+  serialized_start=1404,
+  serialized_end=1559,
 )
 
 
@@ -699,8 +706,8 @@ _EOSACTIONCOMMON = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1542,
-  serialized_end=1634,
+  serialized_start=1561,
+  serialized_end=1653,
 )
 
 
@@ -751,8 +758,8 @@ _EOSACTIONTRANSFER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1636,
-  serialized_end=1732,
+  serialized_start=1655,
+  serialized_end=1751,
 )
 
 
@@ -810,8 +817,8 @@ _EOSACTIONDELEGATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1735,
-  serialized_end=1872,
+  serialized_start=1754,
+  serialized_end=1891,
 )
 
 
@@ -862,8 +869,8 @@ _EOSACTIONUNDELEGATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1874,
-  serialized_end=1995,
+  serialized_start=1893,
+  serialized_end=2014,
 )
 
 
@@ -893,8 +900,8 @@ _EOSACTIONREFUND = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1997,
-  serialized_end=2029,
+  serialized_start=2016,
+  serialized_end=2048,
 )
 
 
@@ -938,8 +945,8 @@ _EOSACTIONBUYRAM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2031,
-  serialized_end=2110,
+  serialized_start=2050,
+  serialized_end=2129,
 )
 
 
@@ -983,8 +990,8 @@ _EOSACTIONBUYRAMBYTES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2112,
-  serialized_end=2182,
+  serialized_start=2131,
+  serialized_end=2201,
 )
 
 
@@ -1021,8 +1028,8 @@ _EOSACTIONSELLRAM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2184,
-  serialized_end=2234,
+  serialized_start=2203,
+  serialized_end=2253,
 )
 
 
@@ -1066,8 +1073,8 @@ _EOSACTIONVOTEPRODUCER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2236,
-  serialized_end=2308,
+  serialized_start=2255,
+  serialized_end=2327,
 )
 
 
@@ -1118,8 +1125,8 @@ _EOSACTIONUPDATEAUTH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2310,
-  serialized_end=2417,
+  serialized_start=2329,
+  serialized_end=2436,
 )
 
 
@@ -1156,8 +1163,8 @@ _EOSACTIONDELETEAUTH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2419,
-  serialized_end=2477,
+  serialized_start=2438,
+  serialized_end=2496,
 )
 
 
@@ -1208,8 +1215,8 @@ _EOSACTIONLINKAUTH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2479,
-  serialized_end=2564,
+  serialized_start=2498,
+  serialized_end=2583,
 )
 
 
@@ -1253,8 +1260,8 @@ _EOSACTIONUNLINKAUTH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2566,
-  serialized_end=2632,
+  serialized_start=2585,
+  serialized_end=2651,
 )
 
 
@@ -1305,8 +1312,8 @@ _EOSACTIONNEWACCOUNT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2634,
-  serialized_end=2755,
+  serialized_start=2653,
+  serialized_end=2774,
 )
 
 
@@ -1343,8 +1350,8 @@ _EOSACTIONUNKNOWN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2757,
-  serialized_end=2814,
+  serialized_start=2776,
+  serialized_end=2833,
 )
 
 
@@ -1395,8 +1402,8 @@ _EOSSIGNEDTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2816,
-  serialized_end=2906,
+  serialized_start=2835,
+  serialized_end=2925,
 )
 
 _EOSGETPUBLICKEY.fields_by_name['kind'].enum_type = _EOSPUBLICKEYKIND
