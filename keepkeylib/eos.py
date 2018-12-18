@@ -102,9 +102,9 @@ def public_key_to_wif(pub_key, prefix):
         raise Exception("invalid public key length")
     return prefix + b58encode(compressed_pub_key + h160(compressed_pub_key)[:4])
 
-def encode_signature(prefix, v, r, s):
+def encode_signature(prefix, v, r, s, keyType):
     sig = struct.pack("B", v) + r + s
-    return prefix + b58encode(sig + h160(sig)[:4])
+    return prefix + b58encode(sig + h160(sig + keyType)[:4])
 
 def parse_common(action):
     authorization = []

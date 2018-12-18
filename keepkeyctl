@@ -270,7 +270,8 @@ class Commands(object):
             "SIG_K1_",
             resp.signature_v,
             resp.signature_r,
-            resp.signature_s)
+            resp.signature_s,
+            b'K1')
         transaction['signatures'] = [signature]
         return json.dumps(transaction, indent=2, sort_keys=True)
 
