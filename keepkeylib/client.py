@@ -520,6 +520,7 @@ class ProtocolMixin(object):
             "Namecoin": 7,
             "Zcash": 133,
             "BitcoinCash": 145,
+            "Axe": 4242,
         }
 
         if n[0] in coins:
