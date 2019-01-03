@@ -360,7 +360,7 @@ def parse_transaction_json(json):
     tx.expiration = expiration
     tx.ref_block_num = int(body['ref_block_num'])
     tx.ref_block_prefix = int(body['ref_block_prefix'])
-    tx.net_usage_words = int(body['net_usage_words'])
+    tx.net_usage_words = int(body['max_net_usage_words'])
     tx.max_cpu_usage_ms = int(body['max_cpu_usage_ms'])
     tx.delay_sec = int(body['delay_sec'])
 
