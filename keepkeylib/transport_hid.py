@@ -4,13 +4,8 @@ from hashlib import sha256
 import time, json, base64, struct
 from .transport import Transport, ConnectionError
 import binascii
-from u2flib_host import hid_transport as u2fhid_transport
 
 import hid
-
-u2fhid_transport.DEVICES.append((0x2b24, 0x0001)) #KeepKey
-
-
 
 DEVICE_IDS = [
     (0x2B24, 0x0001),  # KeepKey
@@ -22,8 +17,6 @@ MAX_MSG_SIZE = 59
 INTERFACE_MAPPING = {
     "normal_usb": 0,
     "debug_link": 1,
-    "normal_u2f": 2,
-    "debug_u2f" : 3,
     }
 
 class FakeRead(object):
@@ -39,10 +32,9 @@ class HidTransport(Transport):
         self.hid = None
         self.buffer = ''
         #select the appropriate transport
-        self.use_u2f = kwargs.get("use_u2f", False)
         self.use_debug_link = kwargs.get("debug_link", False)
-        self.interface_index = 0 if not self.use_u2f else 2
-        if self.use_debug_link and not self.use_u2f: self.interface_index += 1
+        self.interface_index = 0
+        if self.use_debug_link: self.interface_index += 1
         #stale device paths are a problem here unless we re-enumerate
         device_paths = self.enumerate()[0]
         self.path = device_paths[self.interface_index]
@@ -51,7 +43,7 @@ class HidTransport(Transport):
     @classmethod
     def enumerate(cls):
         """
-        Return a list of available TREZOR devices.
+        Return a list of available KeepKey devices.
         """
         devices = {}
         for d in hid.enumerate(0, 0):
@@ -72,8 +64,6 @@ class HidTransport(Transport):
                     devices[serial_number][0] = path
                 elif interface_number == 1 or (interface_number == -1 and path.endswith(b'1')): # debug link
                     devices[serial_number][1] = path
-                elif interface_number == 2 or (interface_number == -1 and path.endswith(b'2')): # u2f link
-                    devices[serial_number][2] = path
                 else:
                     raise Exception("Unknown USB interface number: %d" % interface_number)
 
@@ -92,13 +82,9 @@ class HidTransport(Transport):
     def _open(self):
         self.apdus = []
         self.buffer = bytearray()
-        if self.use_u2f:
-            self.hid = u2fhid_transport.HIDDevice(self.path)
-            self.hid.open()
-        else:
-            self.hid = hid.device()
-            self.hid.open_path(self.device)
-            self.hid.set_nonblocking(True)
+        self.hid = hid.device()
+        self.hid.open_path(self.device)
+        self.hid.set_nonblocking(True)
         # the following was needed just for TREZOR Shield
         # self.hid.send_feature_report([0x41, 0x01]) # enable UART
         # self.hid.send_feature_report([0x43, 0x03]) # purge TX/RX FIFOs
@@ -147,10 +133,7 @@ class HidTransport(Transport):
             self.resp = resp
 
     def _write(self, msg, protobuf_msg):
-        if self.use_u2f:
-            self._write_u2f(msg, protobuf_msg)
-        else:
-            self._write_usb(msg, protobuf_msg)
+        self._write_usb(msg, protobuf_msg)
 
     def _write_usb(self, msg, protobuf_msg):
         msg = bytearray(msg)
@@ -159,16 +142,7 @@ class HidTransport(Transport):
             self.hid.write([63, ] + list(msg[:63]) + [0] * (63 - len(msg[:63])))
             msg = msg[63:]
 
-    def _write_u2f(self, msg, protobuf_msg):
-        msg = bytearray(msg)
-        self._msg_to_apdus(msg)
-        self._empty_response()
-
     def _read(self):
-        if self.use_u2f:
-            _id, _len = struct.unpack('>HL', self.resp[3:9])
-            is_debuglink = self.resp[-1]
-            return (_id, self.resp[9:-1])
         (msg_type, datalen) = self._read_headers(FakeRead(self._raw_read))
         return (msg_type, self._raw_read(datalen))
 

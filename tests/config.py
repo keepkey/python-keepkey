@@ -44,10 +44,10 @@ if len(hid_devices) > 0 and not onlyU2F:
         print('Using KeepKey over HID')
         TRANSPORT = HidTransport
         TRANSPORT_ARGS = (hid_devices[0],)
-        TRANSPORT_KWARGS = {'debug_link': False, 'use_u2f': False}
+        TRANSPORT_KWARGS = {'debug_link': False}
         DEBUG_TRANSPORT = HidTransport
         DEBUG_TRANSPORT_ARGS = (hid_devices[0],)
-        DEBUG_TRANSPORT_KWARGS = {'debug_link': True, 'use_u2f': False}
+        DEBUG_TRANSPORT_KWARGS = {'debug_link': True}
     else:
         print('Using Raspberry Pi')
         TRANSPORT = HidTransport
@@ -61,10 +61,10 @@ elif len(webusb_devices) > 0:
     print('Using Keepkey over webUSB')
     TRANSPORT = WebUsbTransport
     TRANSPORT_ARGS = (webusb_devices[0],)
-    TRANSPORT_KWARGS = {'debug_link': False, 'use_u2f': False}
+    TRANSPORT_KWARGS = {'debug_link': False}
     DEBUG_TRANSPORT = WebUsbTransport
     DEBUG_TRANSPORT_ARGS = (webusb_devices[0],)
-    DEBUG_TRANSPORT_KWARGS = {'debug_link': True, 'use_u2f': False}
+    DEBUG_TRANSPORT_KWARGS = {'debug_link': True}
 else:
     print('Using Emulator')
     TRANSPORT = UDPTransport
