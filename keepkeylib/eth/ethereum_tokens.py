@@ -1,7 +1,7 @@
 #!/bin/env python
 
 from __future__ import print_function
-import io
+from io import StringIO
 import json
 import md5
 import os.path
@@ -52,7 +52,7 @@ class ETHToken(object):
         net_name = self.network['symbol'].lower()
         tok_name = self.token['name']
 
-        line = '\t{%d, "%s", " %s", %d}, // %s / %s' % (chain_id, address, symbol, decimals, net_name, tok_name)
+        line = 'X(%d, "%s", " %s", %d) // %s / %s' % (chain_id, address, symbol, decimals, net_name, tok_name)
         print(line, file=outf)
 
 
@@ -62,11 +62,12 @@ def main():
         sys.exit(-1)
 
     out_filename = sys.argv[1]
-    outf = io.StringIO()
+    outf = StringIO()
 
     table = ETHTokenTable()
     table.build()
     table.serialize_c(outf)
+    print(unicode('#undef X'), file=outf)
 
     if os.path.isfile(out_filename):
         with open(out_filename, 'r') as inf:
