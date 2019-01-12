@@ -17,7 +17,7 @@ class FakeRead(object):
 
 class UDPTransport(Transport):
     def __init__(self, device, *args, **kwargs):
-        self.buffer = ''
+        self.buffer = b''
         device = device.split(':')
         if len(device) < 2:
             device = ('0.0.0.0', int(device[0]))
