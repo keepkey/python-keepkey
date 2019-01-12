@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='keepkey',
@@ -8,27 +8,7 @@ setup(
     author_email='support@keepkey.com',
     description='Python library for communicating with KeepKey Hardware Wallet',
     url='https://github.com/keepkey/python-keepkey',
-    py_modules=[
-        'keepkeylib.ckd_public',
-        'keepkeylib.client',
-        'keepkeylib.debuglink',
-        'keepkeylib.mapping',
-        'keepkeylib.messages_pb2',
-        'keepkeylib.protobuf_json',
-        'keepkeylib.qt.pinmatrix',
-        'keepkeylib.tools',
-        'keepkeylib.transport',
-        'keepkeylib.transport_fake',
-        'keepkeylib.transport_hid',
-        'keepkeylib.transport_pipe',
-        'keepkeylib.transport_serial',
-        'keepkeylib.transport_socket',
-        'keepkeylib.transport_webusb',
-        'keepkeylib.transport_udp',
-        'keepkeylib.tx_api',
-        'keepkeylib.types_pb2',
-        'keepkeylib.exchange_pb2',
-    ],
+    packages=find_packages(exclude=['tests']),
     scripts = ['keepkeyctl'],
     test_suite='tests/**/test_*.py',
     install_requires=[
