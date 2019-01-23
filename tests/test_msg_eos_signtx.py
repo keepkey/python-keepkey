@@ -625,7 +625,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 num_actions=1),
             [self.action_newaccount()])
 
-        self.assertEqual(binascii.hexlify(res.hash), "8cebf868f235f99af457ea23b8e6dda6abf73d9321dfa4040707c94478f44690")
+        self.assertEqual(binascii.hexlify(res.hash), "8e0accde9fb6529b5d72b4d9a9859e1dae0c6ae9a159bb1ea8c8f579f942c291")
 
     def test_unknown_noadvanced(self):
         self.setup_mnemonic_nopin_nopassphrase()
@@ -1424,9 +1424,9 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             json.loads(data))
 
         assert isinstance(actionResp, proto.EosSignedTx)
-        self.assertEqual(binascii.hexlify(actionResp.signature_r), "16238c00b6fc82ca0d9212141a4b6607dfac0723d20ee208f124a6846cfc958c")
-        self.assertEqual(binascii.hexlify(actionResp.signature_s), "3cf158773bdf22f4d7e987cd0602e38ae108eb41efc2d8a595f159fcbeaa2e82")
-        self.assertEqual(actionResp.signature_v, 31)
+        self.assertEqual(binascii.hexlify(actionResp.signature_r), "61317ec7dc5c6e62ef7e45b4961ad89fe748c5a9076f23e0c6afc90ad1f93f47")
+        self.assertEqual(binascii.hexlify(actionResp.signature_s), "056996515e6c6e28be136821859cf2092f719a8da25171ce6534c2bf9a013d3d")
+        self.assertEqual(actionResp.signature_v, 32)
 
     def test_eos_signtx_setcontract(self):
         self.setup_mnemonic_nopin_nopassphrase()
