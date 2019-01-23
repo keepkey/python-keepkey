@@ -537,8 +537,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
     def test_updateauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
 
-        self.client.set_buttonwait(5)
-
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
                 address_n=parse_path("m/44'/194'/0'/0/0"),
