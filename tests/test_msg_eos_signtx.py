@@ -224,42 +224,64 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 proto.EosActionVoteProducer(
                     voter=eos.name_to_number('memememememe')))
 
-    def action_updateauth(self):
+    def action_updateauth(self, is_slip48):
         return (proto.EosActionCommon(
                     account=eos.name_to_number('eosio'),
                     name=eos.name_to_number('updateauth'),
                     authorization=[
                         proto.EosPermissionLevel(
                             actor=eos.name_to_number('eosio'),
-                            permission=eos.name_to_number('active'))
+                            permission=eos.name_to_number('owner'))
                     ]),
                 proto.EosActionUpdateAuth(
                     account=eos.name_to_number('memememememe'),
                     permission=eos.name_to_number('active'),
                     parent=eos.name_to_number('momomomomom'),
-                    auth=self.authorization()))
+                    auth=self.authorization(is_slip48)))
 
-    def authorization(self):
-        return proto.EosAuthorization(
-                    threshold=2,
-                    keys=[
-                        proto.EosAuthorizationKey(
-                            type=1,
-                            address_n=parse_path("m/44'/194'/0'/0/0"),
-                            weight=2)
-                    ],
-                    accounts=[
-                        proto.EosAuthorizationAccount(
-                            account=proto.EosPermissionLevel(
-                                actor=eos.name_to_number('memememememe'),
-                                permission=eos.name_to_number('active')),
-                            weight=1)
-                    ],
-                    waits=[
-                        proto.EosAuthorizationWait(
-                            wait_sec=3600,
-                            weight=1)
-                    ])
+    def authorization(self, is_slip48):
+        if is_slip48:
+            # SLIP48 permissions
+            return proto.EosAuthorization(
+                threshold=1,
+                keys=[
+                    proto.EosAuthorizationKey(
+                        type=1,
+                        address_n=parse_path("m/48'/4'/1'/0'/0'"),
+                        weight=1)
+                ],
+                accounts=[
+                    proto.EosAuthorizationAccount(
+                        account=proto.EosPermissionLevel(
+                            actor=eos.name_to_number('memememememe'),
+                            permission=eos.name_to_number('active')),
+                        weight=1)
+                ],
+                waits=[
+                ])
+
+        else:
+            # SLIP44 / Exodus-style permissions
+            return proto.EosAuthorization(
+                threshold=2,
+                keys=[
+                    proto.EosAuthorizationKey(
+                        type=1,
+                        address_n=parse_path("m/44'/194'/0'/0/0"),
+                        weight=2)
+                ],
+                accounts=[
+                    proto.EosAuthorizationAccount(
+                        account=proto.EosPermissionLevel(
+                            actor=eos.name_to_number('memememememe'),
+                            permission=eos.name_to_number('active')),
+                        weight=1)
+                ],
+                waits=[
+                    proto.EosAuthorizationWait(
+                        wait_sec=3600,
+                        weight=1)
+                ])
 
     def action_deleteauth(self):
         return (proto.EosActionCommon(
@@ -527,15 +549,27 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('Experimental', 1)
 
+        self.client.set_buttonwait(5)
+
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
                 address_n=parse_path("m/44'/194'/0'/0/0"),
                 chain_id=EOS_CHAIN_ID,
                 header=self.header(),
                 num_actions=1),
-            [self.action_updateauth()])
+            [self.action_updateauth(False)])
 
-        self.assertEqual(binascii.hexlify(res.hash), "51afb4e1285b8a273a4ebe3feb8b8fb3c4d00c69ee0077e27a4cc36a0126754a")
+        self.assertEqual(binascii.hexlify(res.hash), "0282c00575f451a47e99902ab2a51243499ea004df309148d1f2e23c007520b7")
+
+        res = self.client.eos_sign_tx_raw(
+            proto.EosSignTx(
+                address_n=parse_path("m/48'/4'/0'/0'/0'"),
+                chain_id=EOS_CHAIN_ID,
+                header=self.header(),
+                num_actions=1),
+            [self.action_updateauth(True)])
+
+        self.assertEqual(binascii.hexlify(res.hash), "63e2440c33abb0dccce44d634d24c6fd33eecab879439c7995cf65d1cb7d9acc")
 
     def test_deleteauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
