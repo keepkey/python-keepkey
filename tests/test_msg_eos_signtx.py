@@ -452,7 +452,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             [self.action_delegatebw(False),
              self.action_delegatebw(True)])
 
-        self.assertEqual(binascii.hexlify(res.hash), "59e407c075535f600ff24e1487f6fc0062d32bc507033f65d92ab6131f00074c")
+        self.assertEqual(binascii.hexlify(res.hash), "b4921554b1ae7a7960477e9b89cb4d410493cef8a71bc60ead48882721eadcbd")
 
     def test_undelegatebw(self):
         self.setup_mnemonic_nopin_nopassphrase()
