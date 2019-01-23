@@ -842,10 +842,10 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             }
             ],
                 "data": {
-                "sender": "miniminimini",
+                "from": "miniminimini",
                 "receiver": "maximaximaxi",
-                "stake_net_quantity": "1.0000 EOS",
-                "stake_cpu_quantity": "1.0000 EOS",
+                "stake_net": "1.0000 EOS",
+                "stake_cpu": "1.0000 EOS",
                 "transfer": true
             }
             }
@@ -886,7 +886,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             }
             ],
                 "data": {
-                "sender": "miniminimini",
+                "from": "miniminimini",
                 "receiver": "maximaximaxi",
                 "unstake_net_quantity": "1.0000 EOS",
                 "unstake_cpu_quantity": "1.0000 EOS"
@@ -1372,10 +1372,10 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 }
                 ],
                 "data": {
-                "sender": "miniminimini",
+                "from": "miniminimini",
                 "receiver": "maximaximaxi",
-                "stake_net_quantity": "1.0000 EOS",
-                "stake_cpu_quantity": "1.0000 EOS",
+                "stake_net": "1.0000 EOS",
+                "stake_cpu": "1.0000 EOS",
                 "transfer": true
                 }
             }

@@ -172,11 +172,11 @@ def parse_sell_ram(data):
     )
 
 def parse_delegatebw(data):
-    amount_net, symbol_net = asset_to_number(data['stake_net_quantity'])
-    amount_cpu, symbol_cpu = asset_to_number(data['stake_cpu_quantity'])
+    amount_net, symbol_net = asset_to_number(data['stake_net'])
+    amount_cpu, symbol_cpu = asset_to_number(data['stake_cpu'])
 
     return proto.EosActionDelegate(
-        sender=name_to_number(data['sender']),
+        sender=name_to_number(data['from']),
         receiver=name_to_number(data['receiver']),
         net_quantity=proto.EosAsset(
             amount=amount_net,
@@ -194,7 +194,7 @@ def parse_undelegatebw(data):
     amount_cpu, symbol_cpu = asset_to_number(data['unstake_cpu_quantity'])
 
     return proto.EosActionUndelegate(
-        sender=name_to_number(data['sender']),
+        sender=name_to_number(data['from']),
         receiver=name_to_number(data['receiver']),
         net_quantity=proto.EosAsset(
             amount=amount_net,
