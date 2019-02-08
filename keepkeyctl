@@ -275,6 +275,42 @@ class Commands(object):
         transaction['signatures'] = [signature]
         return json.dumps(transaction, indent=2, sort_keys=True)
 
+    def nano_get_address(self, args):
+        address_n = self.client.expand_path(args.n)
+        res = self.client.nano_get_address(args.coin, address_n, args.show_display)
+        return "Address: %s" % (res.address,)
+
+    def nano_sign_tx(self, args):
+        def decode_hex(value):
+            return value.decode('hex') if value else None
+
+        address_n = self.client.expand_path(args.n)
+        tx_type = None
+        link_recipient_n = None
+        if args.link_recipient_n:
+            link_recipient_n = self.client.expand_path(args.link_recipient_n)
+        if link_recipient_n:
+            tx_type = types.OutputAddressType.Value('TRANSFER')
+
+        res = self.client.nano_sign_tx(
+            args.coin, address_n,
+            tx_type=tx_type,
+            grandparent_hash=decode_hex(args.top_parent_hash),
+            parent_link=decode_hex(args.top_link),
+            parent_representative=args.top_representative,
+            parent_balance=args.top_balance,
+            link_hash=decode_hex(args.link_hash),
+            link_recipient=args.link_recipient,
+            link_recipient_n=link_recipient_n,
+            representative=args.representative,
+            balance=args.balance,
+        )
+
+        return "Block hash: %s\nSignature: %s" % (
+            res.block_hash.encode('hex'),
+            res.signature.encode('hex'),
+        )
+
     def get_entropy(self, args):
         return binascii.hexlify(self.client.get_entropy(args.size))
 
@@ -399,6 +435,8 @@ class Commands(object):
     ethereum_sign_tx.help = 'Sign (and optionally publish) Ethereum transaction'
     eos_get_public_key.help = 'Get EOS public key'
     eos_sign_tx.help = 'Sign EOS transaction'
+    nano_get_address.help = 'Get Nano address'
+    nano_sign_tx.help = 'Sign Nano transaction'
     get_entropy.help = 'Get example entropy'
     get_features.help = 'Retrieve device features and settings'
     get_public_node.help = 'Get public node of given path'
@@ -450,6 +488,25 @@ class Commands(object):
     eos_sign_tx.arguments = (
         (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/194'/0'/0/0"}),
         (('-f', '--file'), {'type': str}),
+    )
+
+    nano_get_address.arguments = (
+        (('-c', '--coin'), {'type': str, 'default': 'Nano'}),
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/165'/0'"}),
+        (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
+    )
+    nano_sign_tx.arguments = (
+        (('-c', '--coin'), {'type': str, 'default': 'Nano'}),
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/165'/0'"}),
+        (('--top-parent-hash',), {'type': str, 'help': "Current account top block parent block hash", 'default': None}),
+        (('--top-link',), {'type': str, 'help': "Current account top block link field", 'default': None}),
+        (('--top-representative',), {'type': str, 'help': "Current account top block representative address", 'default': None}),
+        (('--top-balance',), {'type': int, 'help': "Current account top block balance in raws", 'default': None}),
+        (('--link-hash',), {'type': str, 'help': "Block hash from which to receive funds", 'default': None}),
+        (('--link-recipient',), {'type': str, 'help': "Address of the recipient", 'default': None}),
+        (('--link-recipient-n',), {'type': str, 'help': "BIP-32 path for own account to use as recipient", 'default': None}),
+        (('--representative',), {'type': str, 'help': "Representative for the account"}),
+        (('--balance',), {'type': int, 'help': "New account balance in raws"}),
     )
 
     get_entropy.arguments = (

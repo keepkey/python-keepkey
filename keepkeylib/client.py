@@ -37,8 +37,10 @@ from . import tools
 from . import mapping
 from . import messages_pb2 as proto
 from . import messages_eos_pb2 as eos_proto
+from . import messages_nano_pb2 as nano_proto
 from . import types_pb2 as types
 from . import eos
+from . import nano
 from .debuglink import DebugLink
 
 
@@ -747,6 +749,53 @@ class ProtocolMixin(object):
             raise Exception("Unexpected EOS signing response")
 
         return response
+
+    @expect(nano_proto.NanoAddress)
+    def nano_get_address(self, coin_name, address_n, show_display=False):
+        msg = nano_proto.NanoGetAddress(
+            coin_name=coin_name,
+            address_n=address_n,
+            show_display=show_display)
+        return self.call(msg)
+
+    @expect(nano_proto.NanoSignedTx)
+    def nano_sign_tx(
+        self, coin_name, address_n,
+        tx_type=None,
+        grandparent_hash=None,
+        parent_link=None,
+        parent_representative=None,
+        parent_balance=None,
+        link_hash=None,
+        link_recipient=None,
+        link_recipient_n=None,
+        representative=None,
+        balance=None,
+    ):
+        parent_block = None
+        if (grandparent_hash is not None or
+               parent_link is not None or
+               parent_representative is not None or
+               parent_balance is not None):
+            parent_block = nano_proto.NanoSignTx.ParentBlock(
+                parent_hash=grandparent_hash,
+                link=parent_link,
+                representative=parent_representative,
+                balance=nano.encode_balance(parent_balance),
+            )
+
+        msg = nano_proto.NanoSignTx(
+            coin_name=coin_name,
+            address_n=address_n,
+            parent_block=parent_block,
+            link_hash=link_hash,
+            link_recipient=link_recipient,
+            link_recipient_n=link_recipient_n,
+            address_type=tx_type,
+            representative=representative,
+            balance=nano.encode_balance(balance),
+        )
+        return self.call(msg)
 
     @field('entropy')
     @expect(proto.Entropy)
