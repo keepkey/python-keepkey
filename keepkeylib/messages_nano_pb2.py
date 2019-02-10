@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-nano.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x13messages-nano.proto\x1a\x0btypes.proto\"R\n\x0eNanoGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Nano\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\"\x1e\n\x0bNanoAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\x80\x03\n\nNanoSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Nano\x12-\n\x0cparent_block\x18\x03 \x01(\x0b\x32\x17.NanoSignTx.ParentBlock\x12\x11\n\tlink_hash\x18\x04 \x01(\x0c\x12\x16\n\x0elink_recipient\x18\x05 \x01(\t\x12\x18\n\x10link_recipient_n\x18\x06 \x03(\r\x12(\n\x0c\x61\x64\x64ress_type\x18\x07 \x01(\x0e\x32\x12.OutputAddressType\x12$\n\rexchange_type\x18\x08 \x01(\x0b\x32\r.ExchangeType\x12\x16\n\x0erepresentative\x18\t \x01(\t\x12\x0f\n\x07\x62\x61lance\x18\n \x01(\x0c\x1aY\n\x0bParentBlock\x12\x13\n\x0bparent_hash\x18\x01 \x01(\x0c\x12\x0c\n\x04link\x18\x02 \x01(\x0c\x12\x16\n\x0erepresentative\x18\x04 \x01(\t\x12\x0f\n\x07\x62\x61lance\x18\x05 \x01(\x0c\"5\n\x0cNanoSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x12\n\nblock_hash\x18\x02 \x01(\x0c\x42\x30\n\x1a\x63om.keepkey.deviceprotocolB\x12KeepKeyMessageNano')
+  serialized_pb=_b('\n\x13messages-nano.proto\x1a\x0btypes.proto\"R\n\x0eNanoGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Nano\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\"\x1e\n\x0bNanoAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\xd6\x02\n\nNanoSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Nano\x12-\n\x0cparent_block\x18\x03 \x01(\x0b\x32\x17.NanoSignTx.ParentBlock\x12\x11\n\tlink_hash\x18\x04 \x01(\x0c\x12\x16\n\x0elink_recipient\x18\x05 \x01(\t\x12\x18\n\x10link_recipient_n\x18\x06 \x03(\r\x12\x16\n\x0erepresentative\x18\x07 \x01(\t\x12\x0f\n\x07\x62\x61lance\x18\x08 \x01(\x0c\x12$\n\rexchange_type\x18\t \x01(\x0b\x32\r.ExchangeType\x1aY\n\x0bParentBlock\x12\x13\n\x0bparent_hash\x18\x01 \x01(\x0c\x12\x0c\n\x04link\x18\x02 \x01(\x0c\x12\x16\n\x0erepresentative\x18\x04 \x01(\t\x12\x0f\n\x07\x62\x61lance\x18\x05 \x01(\x0c\"5\n\x0cNanoSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x12\n\nblock_hash\x18\x02 \x01(\x0c\x42\x30\n\x1a\x63om.keepkey.deviceprotocolB\x12KeepKeyMessageNano')
   ,
   dependencies=[types__pb2.DESCRIPTOR,])
 
@@ -150,8 +150,8 @@ _NANOSIGNTX_PARENTBLOCK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=448,
-  serialized_end=537,
+  serialized_start=406,
+  serialized_end=495,
 )
 
 _NANOSIGNTX = _descriptor.Descriptor(
@@ -204,30 +204,23 @@ _NANOSIGNTX = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='address_type', full_name='NanoSignTx.address_type', index=6,
-      number=7, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='exchange_type', full_name='NanoSignTx.exchange_type', index=7,
-      number=8, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='representative', full_name='NanoSignTx.representative', index=8,
-      number=9, type=9, cpp_type=9, label=1,
+      name='representative', full_name='NanoSignTx.representative', index=6,
+      number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='balance', full_name='NanoSignTx.balance', index=9,
-      number=10, type=12, cpp_type=9, label=1,
+      name='balance', full_name='NanoSignTx.balance', index=7,
+      number=8, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='exchange_type', full_name='NanoSignTx.exchange_type', index=8,
+      number=9, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -244,7 +237,7 @@ _NANOSIGNTX = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=153,
-  serialized_end=537,
+  serialized_end=495,
 )
 
 
@@ -281,13 +274,12 @@ _NANOSIGNEDTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=539,
-  serialized_end=592,
+  serialized_start=497,
+  serialized_end=550,
 )
 
 _NANOSIGNTX_PARENTBLOCK.containing_type = _NANOSIGNTX
 _NANOSIGNTX.fields_by_name['parent_block'].message_type = _NANOSIGNTX_PARENTBLOCK
-_NANOSIGNTX.fields_by_name['address_type'].enum_type = types__pb2._OUTPUTADDRESSTYPE
 _NANOSIGNTX.fields_by_name['exchange_type'].message_type = types__pb2._EXCHANGETYPE
 DESCRIPTOR.message_types_by_name['NanoGetAddress'] = _NANOGETADDRESS
 DESCRIPTOR.message_types_by_name['NanoAddress'] = _NANOADDRESS

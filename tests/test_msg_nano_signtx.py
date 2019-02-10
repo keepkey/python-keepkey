@@ -22,7 +22,6 @@ import common
 from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
 from keepkeylib import messages_nano_pb2 as proto
-from keepkeylib import types_pb2 as types
 from keepkeylib import nano
 
 NANO_ACCOUNT_0_PATH = parse_path("m/44'/165'/0'")
@@ -123,35 +122,17 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
         self.setup_mnemonic_nopin_nopassphrase()
         res = self.client.nano_sign_tx(
             'Nano', NANO_ACCOUNT_0_PATH,
-            tx_type=types.OutputAddressType.Value('TRANSFER'),
             grandparent_hash='30c1221a6985710a4d9d57f708cb1cf43a7ef51f933f49f7ae68550989c770f3'.decode('hex'),
             parent_link=NANO_ACCOUNT_1_PUBLICKEY.decode('hex'),
             parent_representative=REP_NANODE,
             parent_balance=8624176000000000000000000000000,
-            link_recipient_n=NANO_ACCOUNT_1_PATH,
-            representative=REP_NANODE,
-            balance=4624176000000000000000000000000,
-        )
-        self.assertIsInstance(res, proto.NanoSignedTx)
-        self.assertEqual(res.block_hash, '6ee110237ddfd250bb3d7962c058e4474eb83c244ecd6f1e924103a6a6467ab4'.decode('hex'))
-        self.assertEqual(res.signature, '2dced1aedc3b1763d8875f1390726e4170936dc2fa5a57f739db08b810f3c2eb63d1f15661a7ad3b25e0f6a47552819cea53d458d3a009839f1839e3bc016301'.decode('hex'))
-
-    def test_block_7(self):
-        self.setup_mnemonic_nopin_nopassphrase()
-        res = self.client.nano_sign_tx(
-            'Nano', NANO_ACCOUNT_0_PATH,
-            tx_type=types.OutputAddressType.Value('TRANSFER'),
-            grandparent_hash='09f4627f61ec90b66b9c87da06dca0090bbbd8644e3289dc95baa018d104a8d1'.decode('hex'),
-            parent_link=NANO_ACCOUNT_1_PUBLICKEY.decode('hex'),
-            parent_representative=REP_NANODE,
-            parent_balance=4624176000000000000000000000000,
             link_recipient_n=OTHER_ACCOUNT_3_PATH,
             representative=REP_NANODE,
             balance=4000076000000000000000000000000,
         )
         self.assertIsInstance(res, proto.NanoSignedTx)
-        self.assertEqual(res.block_hash, 'bf190cba5a7491a3721811dda8f7aa9ec84a74c55d10a4c8c1f980bf931ef2ec'.decode('hex'))
-        self.assertEqual(res.signature, 'b017e422fa2dd5853d85584e68a1fa967d38614737f32c434e7433bf7567fd47615d79a646c1e4de83e1e01ad34940a59451660e6e2eedb86d07cf1341853004'.decode('hex'))
+        self.assertEqual(res.block_hash, 'b9612451d71c2e1d3c8279e5cdfddaa2e92bf306f8ecfc3eed37b6e10a35bea2'.decode('hex'))
+        self.assertEqual(res.signature, 'ef949007adc2cc6ae6a7c447e19cbf0b5fd15081a24aac4aea2a2ee38cb399c22ea72c5ad9c87a93a25f0c132c2bafac6e6643fd4d2a94f66feb3bb4827a970b'.decode('hex'))
 
     def test_invalid_block_1(self):
         self.setup_mnemonic_nopin_nopassphrase()

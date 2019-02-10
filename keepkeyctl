@@ -285,16 +285,12 @@ class Commands(object):
             return value.decode('hex') if value else None
 
         address_n = self.client.expand_path(args.n)
-        tx_type = None
         link_recipient_n = None
         if args.link_recipient_n:
             link_recipient_n = self.client.expand_path(args.link_recipient_n)
-        if link_recipient_n:
-            tx_type = types.OutputAddressType.Value('TRANSFER')
 
         res = self.client.nano_sign_tx(
             args.coin, address_n,
-            tx_type=tx_type,
             grandparent_hash=decode_hex(args.top_parent_hash),
             parent_link=decode_hex(args.top_link),
             parent_representative=args.top_representative,

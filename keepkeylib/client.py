@@ -761,7 +761,6 @@ class ProtocolMixin(object):
     @expect(nano_proto.NanoSignedTx)
     def nano_sign_tx(
         self, coin_name, address_n,
-        tx_type=None,
         grandparent_hash=None,
         parent_link=None,
         parent_representative=None,
@@ -791,7 +790,6 @@ class ProtocolMixin(object):
             link_hash=link_hash,
             link_recipient=link_recipient,
             link_recipient_n=link_recipient_n,
-            address_type=tx_type,
             representative=representative,
             balance=nano.encode_balance(balance),
         )
