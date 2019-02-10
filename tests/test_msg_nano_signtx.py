@@ -156,6 +156,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
     def test_invalid_block_1(self):
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
+            # Missing link_hash
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
                 representative=REP_OFFICIAL_1,
@@ -165,6 +166,27 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
     def test_invalid_block_2(self):
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
+            # Missing representative
+            self.client.nano_sign_tx(
+                'Nano', NANO_ACCOUNT_0_PATH,
+                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
+                balance=9624176000000000000000000000000,
+            )
+
+    def test_invalid_block_3(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+        with self.assertRaises(CallException):
+            # Missing balance
+            self.client.nano_sign_tx(
+                'Nano', NANO_ACCOUNT_0_PATH,
+                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
+                representative=REP_OFFICIAL_1,
+            )
+
+    def test_invalid_block_4(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+        with self.assertRaises(CallException):
+            # Account first block cannot be 0 balance
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
                 link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
@@ -172,33 +194,13 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
                 balance=0,
             )
 
-    def test_invalid_block_3(self):
-        self.setup_mnemonic_nopin_nopassphrase()
-        with self.assertRaises(CallException):
-            self.client.nano_sign_tx(
-                'Nano', NANO_ACCOUNT_0_PATH,
-                link_recipient=RECIPIENT_DONATIONS,
-                representative=REP_OFFICIAL_1,
-                balance=9624176000000000000000000000000,
-            )
-
-    def test_invalid_block_4(self):
-        self.setup_mnemonic_nopin_nopassphrase()
-        with self.assertRaises(CallException):
-            self.client.nano_sign_tx(
-                'Nano', NANO_ACCOUNT_0_PATH,
-                link_recipient_n=NANO_ACCOUNT_1_PATH,
-                representative=REP_OFFICIAL_1,
-                balance=9624176000000000000000000000000,
-            )
-
     def test_invalid_block_5(self):
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
+            # First block must use link_hash, not other link_* fields
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
-                link_recipient_n=NANO_ACCOUNT_1_PATH,
+                link_recipient=RECIPIENT_DONATIONS,
                 representative=REP_OFFICIAL_1,
                 balance=9624176000000000000000000000000,
             )
@@ -206,10 +208,10 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
     def test_invalid_block_6(self):
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
+            # First block must use link_hash, not other link_* fields
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
-                link_recipient=RECIPIENT_DONATIONS,
+                link_recipient_n=NANO_ACCOUNT_1_PATH,
                 representative=REP_OFFICIAL_1,
                 balance=9624176000000000000000000000000,
             )
@@ -217,9 +219,10 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
     def test_invalid_block_7(self):
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
+            # Only one of link_* fields can be specified
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                link_recipient=RECIPIENT_DONATIONS,
+                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
                 link_recipient_n=NANO_ACCOUNT_1_PATH,
                 representative=REP_OFFICIAL_1,
                 balance=9624176000000000000000000000000,
@@ -228,6 +231,59 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
     def test_invalid_block_8(self):
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
+            # Only one of link_* fields can be specified
+            self.client.nano_sign_tx(
+                'Nano', NANO_ACCOUNT_0_PATH,
+                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
+                link_recipient=RECIPIENT_DONATIONS,
+                representative=REP_OFFICIAL_1,
+                balance=9624176000000000000000000000000,
+            )
+
+    def test_invalid_block_9(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+        with self.assertRaises(CallException):
+            # Only one of link_* fields can be specified
+            self.client.nano_sign_tx(
+                'Nano', NANO_ACCOUNT_0_PATH,
+                link_recipient=RECIPIENT_DONATIONS,
+                link_recipient_n=NANO_ACCOUNT_1_PATH,
+                representative=REP_OFFICIAL_1,
+                balance=9624176000000000000000000000000,
+            )
+
+    def test_invalid_block_10(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+        with self.assertRaises(CallException):
+            # Missing parent_representative
+            self.client.nano_sign_tx(
+                'Nano', NANO_ACCOUNT_0_PATH,
+                grandparent_hash='517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'.decode('hex'),
+                parent_link='0000000000000000000000000000000000000000000000000000000000000000'.decode('hex'),
+                parent_balance=9624176000000000000000000000000,
+                link_hash='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
+                representative=REP_NANODE,
+                balance=19624176000000000000000000000000,
+            )
+
+    def test_invalid_block_11(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+        with self.assertRaises(CallException):
+            # Missing parent_balance
+            self.client.nano_sign_tx(
+                'Nano', NANO_ACCOUNT_0_PATH,
+                grandparent_hash='517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'.decode('hex'),
+                parent_link='0000000000000000000000000000000000000000000000000000000000000000'.decode('hex'),
+                parent_representative=REP_NANODE,
+                link_hash='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
+                representative=REP_NANODE,
+                balance=19624176000000000000000000000000,
+            )
+
+    def test_invalid_block_12(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+        with self.assertRaises(CallException):
+            # Invalid parent_representative value
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
                 grandparent_hash='517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'.decode('hex'),
@@ -239,9 +295,10 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
                 balance=19624176000000000000000000000000,
             )
 
-    def test_invalid_block_9(self):
+    def test_invalid_block_13(self):
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
+            # Invalid representative value
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
                 grandparent_hash='517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'.decode('hex'),
@@ -253,9 +310,10 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
                 balance=19624176000000000000000000000000,
             )
 
-    def test_invalid_block_10(self):
+    def test_invalid_block_14(self):
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
+            # Invalid link_recipient value
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
                 grandparent_hash='1a3ec7d5d246aa987d99fde40ff3cadb8833941391611ec9125014d7458ac406'.decode('hex'),
