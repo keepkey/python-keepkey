@@ -47,7 +47,7 @@ class TxApi(object):
             raise Exception('URL error: %s' % url)
         if cache_file:
             try: # saving into cache
-                json.dump(j, open(cachefile, 'w'))
+                json.dump(j, open(cache_file, 'w'))
             except:
                 pass
         return j
