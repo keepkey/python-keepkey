@@ -68,6 +68,25 @@ class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_r), 'b37dbfa65c37906de2037f4684941c7144773786621037962d43db7836170ac0')
         self.assertEqual(binascii.hexlify(sig_s), '0bc7319762281d839c436adb41c35f8de5f4db1aec953f677c3a83062d93fc51')
 
+    def test_approve_cvc_all(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=[2147483692,2147483708,2147483648,0,0],
+            nonce=01,
+            gas_price=20,
+            gas_limit=20,
+            value=0,
+            to=binascii.unhexlify('41e5560054824ea6b0732e656e3ad64e20e94e45'),
+            address_type=0,
+            chain_id=1,
+            data=binascii.unhexlify('095ea7b3' + '0000000000000000000000001d8ce9022f6284c3a5c317f8f34620107214e545' + 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+            )
+
+        self.assertEqual(sig_v, 37)
+        self.assertEqual(binascii.hexlify(sig_r), 'bb4c640b79f946e1399450dfc615b0a6024b6724f167cef70cf2530408fc6339')
+        self.assertEqual(binascii.hexlify(sig_s), '4ca7dcf697482aeaafef1108e899e571f4b63272b29852b05a49d46ea143c642')
+
 
 if __name__ == '__main__':
     unittest.main()
