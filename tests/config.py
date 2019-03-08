@@ -24,13 +24,22 @@ import sys
 sys.path = ['../',] + sys.path
 
 from keepkeylib.transport_pipe import PipeTransport
-from keepkeylib.transport_hid import HidTransport
 from keepkeylib.transport_socket import SocketTransportClient
-from keepkeylib.transport_webusb import WebUsbTransport
 from keepkeylib.transport_udp import UDPTransport
 
-hid_devices = HidTransport.enumerate()
-webusb_devices = WebUsbTransport.enumerate()
+try:
+    from keepkeylib.transport_hid import HidTransport
+    hid_devices = HidTransport.enumerate()
+except Exception:
+    print("Error loading HID. HID devices not enumerated.")
+    hid_devices = []
+
+try:
+    from keepkeylib.transport_webusb import WebUsbTransport
+    webusb_devices = WebUsbTransport.enumerate()
+except Exception:
+    print("Error loading WebUSB. WebUSB devices not enumerated.")
+    webusb_devices = []
 
 reload(sys)
 sys.setdefaultencoding('utf8')
