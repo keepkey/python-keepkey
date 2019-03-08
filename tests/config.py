@@ -86,7 +86,11 @@ else:
 def enumerate_hid():
     global TRANSPORT, TRANSPORT_ARGS, TRANSPORT_KWARGS, DEBUG_TRANSPORT, DEBUG_TRANSPORT_ARGS, DEBUG_TRANSPORT_KWARGS
 
-    devices = HidTransport.enumerate()
+    try:
+        devices = HidTransport.enumerate()
+    except Exception:
+        print("Error loading HID. HID devices not enumerated.")
+        devices = []
 
     if len(devices) > 0:
         if devices[0][1] != None:
