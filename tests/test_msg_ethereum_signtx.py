@@ -25,8 +25,7 @@ import binascii
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
-
-from rlp.utils import int_to_big_endian
+from keepkeylib.tools import int_to_big_endian
 
 class TestMsgEthereumSigntx(common.KeepKeyTest):
 

@@ -2,11 +2,8 @@ import hashlib
 import binascii
 import struct
 from datetime import datetime
-from .tools import b58decode, b58encode, parse_path
+from .tools import b58decode, b58encode, parse_path, int_to_big_endian
 from . import messages_eos_pb2 as proto
-
-def int_to_big_endian(value):
-    return value.to_bytes((value.bit_length() + 7) // 8, "big")
 
 def name_to_number(name):
     length = len(name)
