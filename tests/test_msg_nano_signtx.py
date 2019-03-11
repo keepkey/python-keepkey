@@ -48,6 +48,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
         self.assertEqual(hexlify(nano.encode_balance(340282366920938463463374607431768211455)), 'ffffffffffffffffffffffffffffffff')
 
     def test_block_1(self):
+        # https://www.nanode.co/block/f9a323153daefe041efb94d69b9669c882c935530ed953bbe8a665dfedda9696
         self.setup_mnemonic_nopin_nopassphrase()
         with self.client:
             self.client.set_expected_responses([
@@ -56,15 +57,16 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             ])
             res = self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
+                link_hash='491fca2c69a84607d374aaf1f6acd3ce70744c5be0721b5ed394653e85233507'.decode('hex'),
                 representative=REP_OFFICIAL_1,
-                balance=9624176000000000000000000000000,
+                balance=96242336390000000000000000000,
             )
             self.assertIsInstance(res, proto_nano.NanoSignedTx)
-            self.assertEqual(hexlify(res.block_hash), '517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece')
-            self.assertEqual(hexlify(res.signature), 'e5449bd97ffcd555b435f1289ebf28be4ec4bc58915f7fbdda7283f6727b134b8fb1cdde4eafcb166f2a8a6642000ef3a088661d4100cd819d8bdddb64dd3a00')
+            self.assertEqual(hexlify(res.block_hash), 'f9a323153daefe041efb94d69b9669c882c935530ed953bbe8a665dfedda9696')
+            self.assertEqual(hexlify(res.signature), 'd247f6b90383b24e612569c75a12f11242f6e03b4914eadc7d941577dcf54a3a7cb7f0a4aba4246a40d9ebb5ee1e00b4a0a834ad5a1e7bef24e11f62b95a9e09')
 
     def test_block_2(self):
+        # https://www.nanode.co/block/2568bf76336f7a415ca236dab97c1df9de951ca057a2e79df1322e647a259e7b
         self.setup_mnemonic_nopin_nopassphrase()
         with self.client:
             self.client.set_expected_responses([
@@ -73,17 +75,18 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             ])
             res = self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                parent_link='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
+                parent_link='491fca2c69a84607d374aaf1f6acd3ce70744c5be0721b5ed394653e85233507'.decode('hex'),
                 parent_representative=REP_OFFICIAL_1,
-                parent_balance=9624176000000000000000000000000,
+                parent_balance=96242336390000000000000000000,
                 representative=REP_NANODE,
-                balance=9624176000000000000000000000000,
+                balance=96242336390000000000000000000,
             )
             self.assertIsInstance(res, proto_nano.NanoSignedTx)
-            self.assertEqual(hexlify(res.block_hash), '1a3ec7d5d246aa987d99fde40ff3cadb8833941391611ec9125014d7458ac406')
-            self.assertEqual(hexlify(res.signature), '992619296a0ffe80bfbf4f48739894c8288dde4dbb7f39225a644b4352acdec58e19e0899a18ffc68d89973438d5e6dd6a77e5ae707f03bc0c6544085175e30e')
+            self.assertEqual(hexlify(res.block_hash), '2568bf76336f7a415ca236dab97c1df9de951ca057a2e79df1322e647a259e7b')
+            self.assertEqual(hexlify(res.signature), '3a0687542405163d5623808052042b3482360a82cc003d178a0c0d8bfbca86450975d0faec60ae5ac37feba9a8e2205c8540317b26f2c589c2a6578b03870403')
 
     def test_block_3(self):
+        # https://www.nanode.co/block/1ca240212838d053ecaa9dceee598c52a6080067edecaeede3319eb0b7db6525
         self.setup_mnemonic_nopin_nopassphrase()
         with self.client:
             self.client.set_expected_responses([
@@ -92,19 +95,20 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             ])
             res = self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'.decode('hex'),
+                grandparent_hash='f9a323153daefe041efb94d69b9669c882c935530ed953bbe8a665dfedda9696'.decode('hex'),
                 parent_link='0000000000000000000000000000000000000000000000000000000000000000'.decode('hex'),
                 parent_representative=REP_NANODE,
-                parent_balance=9624176000000000000000000000000,
-                link_hash='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
+                parent_balance=96242336390000000000000000000,
+                link_hash='d7384845d2ae530b45a5dd50ee50757f988329f652781767af3f1bc2322f52b9'.decode('hex'),
                 representative=REP_NANODE,
-                balance=19624176000000000000000000000000,
+                balance=196242336390000000000000000000,
             )
             self.assertIsInstance(res, proto_nano.NanoSignedTx)
-            self.assertEqual(hexlify(res.block_hash), '2df9eb25f4b7dd2e9174b47c45ab3987db23c38881fd70473ba1c7aff2519d32')
-            self.assertEqual(hexlify(res.signature), 'f0496f49b59a401322334dd7a7676ae4e894efea09be383bf55362e61eef8f526a247a6feefc3bbfa460abfdc6a21b59781fe6c97c4ee91b323868cdf0a4ed0f')
+            self.assertEqual(hexlify(res.block_hash), '1ca240212838d053ecaa9dceee598c52a6080067edecaeede3319eb0b7db6525')
+            self.assertEqual(hexlify(res.signature), 'e980d45365ae2fb291950019f7c19a3d5fa5df2736ca7e7ca1984338b4686976cb7efdda2894ddcea480f82645b50f2340c9d0fc69a05621bdc355783a21820d')
 
     def test_block_4(self):
+        # https://www.nanode.co/block/32ac7d8f5a16a498abf203b8dfee623c9e111ff25e7339f8cd69ec7492b23edd
         self.setup_mnemonic_nopin_nopassphrase()
         with self.client:
             self.client.set_expected_responses([
@@ -113,19 +117,20 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             ])
             res = self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='1a3ec7d5d246aa987d99fde40ff3cadb8833941391611ec9125014d7458ac406'.decode('hex'),
-                parent_link='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
+                grandparent_hash='2568bf76336f7a415ca236dab97c1df9de951ca057a2e79df1322e647a259e7b'.decode('hex'),
+                parent_link='d7384845d2ae530b45a5dd50ee50757f988329f652781767af3f1bc2322f52b9'.decode('hex'),
                 parent_representative=REP_NANODE,
-                parent_balance=19624176000000000000000000000000,
+                parent_balance=196242336390000000000000000000,
                 link_recipient=RECIPIENT_DONATIONS,
                 representative=REP_NANODE,
-                balance=12624176000000000000000000000000,
+                balance=126242336390000000000000000000,
             )
             self.assertIsInstance(res, proto_nano.NanoSignedTx)
-            self.assertEqual(hexlify(res.block_hash), '30c1221a6985710a4d9d57f708cb1cf43a7ef51f933f49f7ae68550989c770f3')
-            self.assertEqual(hexlify(res.signature), 'd3da7079459fa3d16ceeaebc0905ac956d2b8dbaae21910ad2215fe8dc018f48c74c0bb06a68d9b78194395e3e33ed4c2a54c56a978e4245e761368fd6155a00')
+            self.assertEqual(hexlify(res.block_hash), '32ac7d8f5a16a498abf203b8dfee623c9e111ff25e7339f8cd69ec7492b23edd')
+            self.assertEqual(hexlify(res.signature), 'bcb806e140c9e2bc71c51ebbd941b4d99cee3d97fd50e3006eabc5e325c712662e2dc163ee32660875d67815ce4721e122389d2e64f1c9ad4555a9d3d8c33802')
 
     def test_block_5(self):
+        # https://www.nanode.co/block/5d732d843c22f806011127655790484dbabd38dda20b24900c053c3dfc12523f
         self.setup_mnemonic_nopin_nopassphrase()
         with self.client:
             self.client.set_expected_responses([
@@ -134,19 +139,20 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             ])
             res = self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='2df9eb25f4b7dd2e9174b47c45ab3987db23c38881fd70473ba1c7aff2519d32'.decode('hex'),
+                grandparent_hash='1ca240212838d053ecaa9dceee598c52a6080067edecaeede3319eb0b7db6525'.decode('hex'),
                 parent_link=RECIPIENT_DONATIONS_PUBLICKEY.decode('hex'),
                 parent_representative=REP_NANODE,
-                parent_balance=12624176000000000000000000000000,
+                parent_balance=126242336390000000000000000000,
                 link_recipient_n=NANO_ACCOUNT_1_PATH,
                 representative=REP_NANODE,
-                balance=8624176000000000000000000000000,
+                balance=86242336390000000000000000000,
             )
             self.assertIsInstance(res, proto_nano.NanoSignedTx)
-            self.assertEqual(hexlify(res.block_hash), '09f4627f61ec90b66b9c87da06dca0090bbbd8644e3289dc95baa018d104a8d1')
-            self.assertEqual(hexlify(res.signature), 'a195b448b03afb3dc8e9f523cd74e065bddac1b9acef989504b59aca73ca6612aa06983fd3efa782d5230e2e17433d9a14ecffbc76d84d85d8099fb81cbf9a01')
+            self.assertEqual(hexlify(res.block_hash), '5d732d843c22f806011127655790484dbabd38dda20b24900c053c3dfc12523f')
+            self.assertEqual(hexlify(res.signature), '3fb596c34db1241201983cbf613fe9b68a6eae2420c7f294c7e883574fda10d5cc19c9e516b57ed0cbc5e7d3438f70f2ddd7a45bf3e693ff800b97e187de5701')
 
     def test_block_6(self):
+        # https://www.nanode.co/block/a7e59d38b001d9348dbe16fa866d0b435259d381af1db019f3ff83fd7590e226
         self.setup_mnemonic_nopin_nopassphrase()
         with self.client:
             self.client.set_expected_responses([
@@ -155,17 +161,17 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             ])
             res = self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='30c1221a6985710a4d9d57f708cb1cf43a7ef51f933f49f7ae68550989c770f3'.decode('hex'),
+                grandparent_hash='32ac7d8f5a16a498abf203b8dfee623c9e111ff25e7339f8cd69ec7492b23edd'.decode('hex'),
                 parent_link=NANO_ACCOUNT_1_PUBLICKEY.decode('hex'),
                 parent_representative=REP_NANODE,
-                parent_balance=8624176000000000000000000000000,
+                parent_balance=86242336390000000000000000000,
                 link_recipient_n=OTHER_ACCOUNT_3_PATH,
                 representative=REP_NANODE,
-                balance=4000076000000000000000000000000,
+                balance=40000760000000000000000000000,
             )
             self.assertIsInstance(res, proto_nano.NanoSignedTx)
-            self.assertEqual(hexlify(res.block_hash), 'b9612451d71c2e1d3c8279e5cdfddaa2e92bf306f8ecfc3eed37b6e10a35bea2')
-            self.assertEqual(hexlify(res.signature), 'ef949007adc2cc6ae6a7c447e19cbf0b5fd15081a24aac4aea2a2ee38cb399c22ea72c5ad9c87a93a25f0c132c2bafac6e6643fd4d2a94f66feb3bb4827a970b')
+            self.assertEqual(hexlify(res.block_hash), 'a7e59d38b001d9348dbe16fa866d0b435259d381af1db019f3ff83fd7590e226')
+            self.assertEqual(hexlify(res.signature), '1dcd8a27aeac1cab9a2054d5cc6df1b80be46290596dcf6d195c2c286b1615d4139276f9be9c6f202ee1ee8a5569b4a4fc838b1d7306aa71c8e431a6b8075707')
 
     def test_invalid_block_1(self):
         self.setup_mnemonic_nopin_nopassphrase()
