@@ -22,7 +22,9 @@ import common
 from binascii import hexlify
 from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
-from keepkeylib import messages_nano_pb2 as proto
+from keepkeylib import messages_pb2 as proto
+from keepkeylib import messages_nano_pb2 as proto_nano
+from keepkeylib import types_pb2 as proto_types
 from keepkeylib import nano
 
 NANO_ACCOUNT_0_PATH = parse_path("m/44'/165'/0'")
@@ -47,93 +49,123 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
 
     def test_block_1(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        res = self.client.nano_sign_tx(
-            'Nano', NANO_ACCOUNT_0_PATH,
-            link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
-            representative=REP_OFFICIAL_1,
-            balance=9624176000000000000000000000000,
-        )
-        self.assertIsInstance(res, proto.NanoSignedTx)
-        self.assertEqual(hexlify(res.block_hash), '517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece')
-        self.assertEqual(hexlify(res.signature), 'e5449bd97ffcd555b435f1289ebf28be4ec4bc58915f7fbdda7283f6727b134b8fb1cdde4eafcb166f2a8a6642000ef3a088661d4100cd819d8bdddb64dd3a00')
+        with self.client:
+            self.client.set_expected_responses([
+                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
+                proto_nano.NanoSignedTx(),
+            ])
+            res = self.client.nano_sign_tx(
+                'Nano', NANO_ACCOUNT_0_PATH,
+                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
+                representative=REP_OFFICIAL_1,
+                balance=9624176000000000000000000000000,
+            )
+            self.assertIsInstance(res, proto_nano.NanoSignedTx)
+            self.assertEqual(hexlify(res.block_hash), '517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece')
+            self.assertEqual(hexlify(res.signature), 'e5449bd97ffcd555b435f1289ebf28be4ec4bc58915f7fbdda7283f6727b134b8fb1cdde4eafcb166f2a8a6642000ef3a088661d4100cd819d8bdddb64dd3a00')
 
     def test_block_2(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        res = self.client.nano_sign_tx(
-            'Nano', NANO_ACCOUNT_0_PATH,
-            parent_link='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
-            parent_representative=REP_OFFICIAL_1,
-            parent_balance=9624176000000000000000000000000,
-            representative=REP_NANODE,
-            balance=9624176000000000000000000000000,
-        )
-        self.assertIsInstance(res, proto.NanoSignedTx)
-        self.assertEqual(hexlify(res.block_hash), '1a3ec7d5d246aa987d99fde40ff3cadb8833941391611ec9125014d7458ac406')
-        self.assertEqual(hexlify(res.signature), '992619296a0ffe80bfbf4f48739894c8288dde4dbb7f39225a644b4352acdec58e19e0899a18ffc68d89973438d5e6dd6a77e5ae707f03bc0c6544085175e30e')
+        with self.client:
+            self.client.set_expected_responses([
+                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
+                proto_nano.NanoSignedTx(),
+            ])
+            res = self.client.nano_sign_tx(
+                'Nano', NANO_ACCOUNT_0_PATH,
+                parent_link='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
+                parent_representative=REP_OFFICIAL_1,
+                parent_balance=9624176000000000000000000000000,
+                representative=REP_NANODE,
+                balance=9624176000000000000000000000000,
+            )
+            self.assertIsInstance(res, proto_nano.NanoSignedTx)
+            self.assertEqual(hexlify(res.block_hash), '1a3ec7d5d246aa987d99fde40ff3cadb8833941391611ec9125014d7458ac406')
+            self.assertEqual(hexlify(res.signature), '992619296a0ffe80bfbf4f48739894c8288dde4dbb7f39225a644b4352acdec58e19e0899a18ffc68d89973438d5e6dd6a77e5ae707f03bc0c6544085175e30e')
 
     def test_block_3(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        res = self.client.nano_sign_tx(
-            'Nano', NANO_ACCOUNT_0_PATH,
-            grandparent_hash='517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'.decode('hex'),
-            parent_link='0000000000000000000000000000000000000000000000000000000000000000'.decode('hex'),
-            parent_representative=REP_NANODE,
-            parent_balance=9624176000000000000000000000000,
-            link_hash='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
-            representative=REP_NANODE,
-            balance=19624176000000000000000000000000,
-        )
-        self.assertIsInstance(res, proto.NanoSignedTx)
-        self.assertEqual(hexlify(res.block_hash), '2df9eb25f4b7dd2e9174b47c45ab3987db23c38881fd70473ba1c7aff2519d32')
-        self.assertEqual(hexlify(res.signature), 'f0496f49b59a401322334dd7a7676ae4e894efea09be383bf55362e61eef8f526a247a6feefc3bbfa460abfdc6a21b59781fe6c97c4ee91b323868cdf0a4ed0f')
+        with self.client:
+            self.client.set_expected_responses([
+                # Receive doesn't produce a proto.ButtonRequest
+                proto_nano.NanoSignedTx(),
+            ])
+            res = self.client.nano_sign_tx(
+                'Nano', NANO_ACCOUNT_0_PATH,
+                grandparent_hash='517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'.decode('hex'),
+                parent_link='0000000000000000000000000000000000000000000000000000000000000000'.decode('hex'),
+                parent_representative=REP_NANODE,
+                parent_balance=9624176000000000000000000000000,
+                link_hash='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
+                representative=REP_NANODE,
+                balance=19624176000000000000000000000000,
+            )
+            self.assertIsInstance(res, proto_nano.NanoSignedTx)
+            self.assertEqual(hexlify(res.block_hash), '2df9eb25f4b7dd2e9174b47c45ab3987db23c38881fd70473ba1c7aff2519d32')
+            self.assertEqual(hexlify(res.signature), 'f0496f49b59a401322334dd7a7676ae4e894efea09be383bf55362e61eef8f526a247a6feefc3bbfa460abfdc6a21b59781fe6c97c4ee91b323868cdf0a4ed0f')
 
     def test_block_4(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        res = self.client.nano_sign_tx(
-            'Nano', NANO_ACCOUNT_0_PATH,
-            grandparent_hash='1a3ec7d5d246aa987d99fde40ff3cadb8833941391611ec9125014d7458ac406'.decode('hex'),
-            parent_link='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
-            parent_representative=REP_NANODE,
-            parent_balance=19624176000000000000000000000000,
-            link_recipient=RECIPIENT_DONATIONS,
-            representative=REP_NANODE,
-            balance=12624176000000000000000000000000,
-        )
-        self.assertIsInstance(res, proto.NanoSignedTx)
-        self.assertEqual(hexlify(res.block_hash), '30c1221a6985710a4d9d57f708cb1cf43a7ef51f933f49f7ae68550989c770f3')
-        self.assertEqual(hexlify(res.signature), 'd3da7079459fa3d16ceeaebc0905ac956d2b8dbaae21910ad2215fe8dc018f48c74c0bb06a68d9b78194395e3e33ed4c2a54c56a978e4245e761368fd6155a00')
+        with self.client:
+            self.client.set_expected_responses([
+                proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
+                proto_nano.NanoSignedTx(),
+            ])
+            res = self.client.nano_sign_tx(
+                'Nano', NANO_ACCOUNT_0_PATH,
+                grandparent_hash='1a3ec7d5d246aa987d99fde40ff3cadb8833941391611ec9125014d7458ac406'.decode('hex'),
+                parent_link='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
+                parent_representative=REP_NANODE,
+                parent_balance=19624176000000000000000000000000,
+                link_recipient=RECIPIENT_DONATIONS,
+                representative=REP_NANODE,
+                balance=12624176000000000000000000000000,
+            )
+            self.assertIsInstance(res, proto_nano.NanoSignedTx)
+            self.assertEqual(hexlify(res.block_hash), '30c1221a6985710a4d9d57f708cb1cf43a7ef51f933f49f7ae68550989c770f3')
+            self.assertEqual(hexlify(res.signature), 'd3da7079459fa3d16ceeaebc0905ac956d2b8dbaae21910ad2215fe8dc018f48c74c0bb06a68d9b78194395e3e33ed4c2a54c56a978e4245e761368fd6155a00')
 
     def test_block_5(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        res = self.client.nano_sign_tx(
-            'Nano', NANO_ACCOUNT_0_PATH,
-            grandparent_hash='2df9eb25f4b7dd2e9174b47c45ab3987db23c38881fd70473ba1c7aff2519d32'.decode('hex'),
-            parent_link=RECIPIENT_DONATIONS_PUBLICKEY.decode('hex'),
-            parent_representative=REP_NANODE,
-            parent_balance=12624176000000000000000000000000,
-            link_recipient_n=NANO_ACCOUNT_1_PATH,
-            representative=REP_NANODE,
-            balance=8624176000000000000000000000000,
-        )
-        self.assertIsInstance(res, proto.NanoSignedTx)
-        self.assertEqual(hexlify(res.block_hash), '09f4627f61ec90b66b9c87da06dca0090bbbd8644e3289dc95baa018d104a8d1')
-        self.assertEqual(hexlify(res.signature), 'a195b448b03afb3dc8e9f523cd74e065bddac1b9acef989504b59aca73ca6612aa06983fd3efa782d5230e2e17433d9a14ecffbc76d84d85d8099fb81cbf9a01')
+        with self.client:
+            self.client.set_expected_responses([
+                proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
+                proto_nano.NanoSignedTx(),
+            ])
+            res = self.client.nano_sign_tx(
+                'Nano', NANO_ACCOUNT_0_PATH,
+                grandparent_hash='2df9eb25f4b7dd2e9174b47c45ab3987db23c38881fd70473ba1c7aff2519d32'.decode('hex'),
+                parent_link=RECIPIENT_DONATIONS_PUBLICKEY.decode('hex'),
+                parent_representative=REP_NANODE,
+                parent_balance=12624176000000000000000000000000,
+                link_recipient_n=NANO_ACCOUNT_1_PATH,
+                representative=REP_NANODE,
+                balance=8624176000000000000000000000000,
+            )
+            self.assertIsInstance(res, proto_nano.NanoSignedTx)
+            self.assertEqual(hexlify(res.block_hash), '09f4627f61ec90b66b9c87da06dca0090bbbd8644e3289dc95baa018d104a8d1')
+            self.assertEqual(hexlify(res.signature), 'a195b448b03afb3dc8e9f523cd74e065bddac1b9acef989504b59aca73ca6612aa06983fd3efa782d5230e2e17433d9a14ecffbc76d84d85d8099fb81cbf9a01')
 
     def test_block_6(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        res = self.client.nano_sign_tx(
-            'Nano', NANO_ACCOUNT_0_PATH,
-            grandparent_hash='30c1221a6985710a4d9d57f708cb1cf43a7ef51f933f49f7ae68550989c770f3'.decode('hex'),
-            parent_link=NANO_ACCOUNT_1_PUBLICKEY.decode('hex'),
-            parent_representative=REP_NANODE,
-            parent_balance=8624176000000000000000000000000,
-            link_recipient_n=OTHER_ACCOUNT_3_PATH,
-            representative=REP_NANODE,
-            balance=4000076000000000000000000000000,
-        )
-        self.assertIsInstance(res, proto.NanoSignedTx)
-        self.assertEqual(hexlify(res.block_hash), 'b9612451d71c2e1d3c8279e5cdfddaa2e92bf306f8ecfc3eed37b6e10a35bea2')
-        self.assertEqual(hexlify(res.signature), 'ef949007adc2cc6ae6a7c447e19cbf0b5fd15081a24aac4aea2a2ee38cb399c22ea72c5ad9c87a93a25f0c132c2bafac6e6643fd4d2a94f66feb3bb4827a970b')
+        with self.client:
+            self.client.set_expected_responses([
+                proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
+                proto_nano.NanoSignedTx(),
+            ])
+            res = self.client.nano_sign_tx(
+                'Nano', NANO_ACCOUNT_0_PATH,
+                grandparent_hash='30c1221a6985710a4d9d57f708cb1cf43a7ef51f933f49f7ae68550989c770f3'.decode('hex'),
+                parent_link=NANO_ACCOUNT_1_PUBLICKEY.decode('hex'),
+                parent_representative=REP_NANODE,
+                parent_balance=8624176000000000000000000000000,
+                link_recipient_n=OTHER_ACCOUNT_3_PATH,
+                representative=REP_NANODE,
+                balance=4000076000000000000000000000000,
+            )
+            self.assertIsInstance(res, proto_nano.NanoSignedTx)
+            self.assertEqual(hexlify(res.block_hash), 'b9612451d71c2e1d3c8279e5cdfddaa2e92bf306f8ecfc3eed37b6e10a35bea2')
+            self.assertEqual(hexlify(res.signature), 'ef949007adc2cc6ae6a7c447e19cbf0b5fd15081a24aac4aea2a2ee38cb399c22ea72c5ad9c87a93a25f0c132c2bafac6e6643fd4d2a94f66feb3bb4827a970b')
 
     def test_invalid_block_1(self):
         self.setup_mnemonic_nopin_nopassphrase()
