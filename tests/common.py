@@ -27,7 +27,7 @@ import time
 from keepkeylib.client import KeepKeyClient, KeepKeyDebugClient
 from keepkeylib import tx_api
 
-tx_api.cache_dir = '../txcache'
+tx_api.cache_dir = 'txcache'
 
 
 class KeepKeyTest(unittest.TestCase):
