@@ -622,7 +622,7 @@ def main():
             args.debuglink_transport,
             args.debuglink_path)
 
-    if args.auto_button:
+    if args.auto_button and debuglink_transport:
         client = KeepKeyDebugClient(transport)
         client.set_debuglink(debuglink_transport)
     elif args.verbose:

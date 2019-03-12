@@ -1,2 +1,2 @@
 #!/bin/sh
-./keepkeyctl -t pipe -p /tmp/pipe.keepkey $*
+./keepkeyctl -t udp -p 127.0.0.1:21324 -Dt udp -Dp 127.0.0.1:21325 --auto_button "$@"
