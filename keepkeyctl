@@ -43,7 +43,8 @@ def parse_args(commands):
     parser.add_argument('-Dp', '--debuglink-path', dest='debuglink_path', default='', help="Path used by the transport (usually serial port)")
     parser.add_argument('-j', '--json', dest='json', action='store_true', help="Prints result as json object")
 #    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help='Enable low-level debugging')
-    parser.add_argument('-a', '--auto_button', dest='auto_button', action='store_true', help='Automatically press the button on Debuglink devices')
+    parser.add_argument('-a', '--auto-button', dest='auto_button', action='store_true', help='Automatically press the button on Debuglink devices')
+    parser.add_argument('--no-auto-button', dest='auto_button', action='store_false')
 
     cmdparser = parser.add_subparsers(title='Available commands')
     cmdparser.required = True
@@ -621,10 +622,9 @@ def main():
         debuglink_transport = get_transport(
             args.debuglink_transport,
             args.debuglink_path)
-
-    if args.auto_button and debuglink_transport:
         client = KeepKeyDebugClient(transport)
         client.set_debuglink(debuglink_transport)
+        client.auto_button = args.auto_button
     elif args.verbose:
         client = KeepKeyClientDebug(transport)
     else:

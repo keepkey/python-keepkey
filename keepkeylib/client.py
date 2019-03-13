@@ -353,6 +353,7 @@ class DebugLinkMixin(object):
 
         # Always press Yes and provide correct pin
         self.setup_debuglink(True, True)
+        self.auto_button = True
 
         # Do not expect any specific response from device
         self.expected_responses = None
@@ -447,11 +448,13 @@ class DebugLinkMixin(object):
     def callback_ButtonRequest(self, msg):
         log("ButtonRequest code: " + get_buttonrequest_value(msg.code))
 
-        log("Pressing button " + str(self.button))
-        if self.button_wait:
-            log("Waiting %d seconds " % self.button_wait)
-            time.sleep(self.button_wait)
-        self.debug.press_button(self.button)
+        if self.auto_button:
+            log("Pressing button " + str(self.button))
+            if self.button_wait:
+                log("Waiting %d seconds " % self.button_wait)
+                time.sleep(self.button_wait)
+            self.debug.press_button(self.button)
+
         return proto.ButtonAck()
 
     def callback_PinMatrixRequest(self, msg):
