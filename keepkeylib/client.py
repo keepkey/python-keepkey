@@ -908,6 +908,10 @@ class ProtocolMixin(object):
         txes = {None: tx}
         txes[b''] = tx
 
+        force_bip143 = ['BitcoinGold', 'BitcoinCash', 'BitcoinSV']
+        if coin_name in force_bip143:
+            return txes
+
         known_hashes = []
         for inp in inputs:
             if inp.prev_hash in txes:
