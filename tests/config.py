@@ -20,6 +20,8 @@
 
 from __future__ import print_function
 
+import os
+
 import sys
 sys.path = ['../',] + sys.path
 
@@ -77,10 +79,10 @@ elif len(webusb_devices) > 0:
 else:
     print('Using Emulator')
     TRANSPORT = UDPTransport
-    TRANSPORT_ARGS = ('127.0.0.1:21324',)
+    TRANSPORT_ARGS = (os.getenv('KK_TRANSPORT_MAIN', '127.0.0.1:21324'),)
     TRANSPORT_KWARGS = {}
     DEBUG_TRANSPORT = UDPTransport
-    DEBUG_TRANSPORT_ARGS = ('127.0.0.1:21325',)
+    DEBUG_TRANSPORT_ARGS = (os.getenv('KK_TRANSPORT_DEBUG', '127.0.0.1:21325'),)
     DEBUG_TRANSPORT_KWARGS = {}
 
 def enumerate_hid():
