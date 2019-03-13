@@ -648,7 +648,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                     num_actions=1),
                 self.action_unknown('acbdefghijkl', 'mnopqrstuvwx', binascii.unhexlify('AB' * i)))
 
-            #print(i, binascii.hexlify(res.hash))
             self.assertEqual(binascii.hexlify(res.hash), h)
 
     def test_eos_signtx_transfer_token(self):
