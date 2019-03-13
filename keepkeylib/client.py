@@ -175,6 +175,7 @@ class BaseClient(object):
     # messages to device and getting its response back.
     def __init__(self, transport, **kwargs):
         self.transport = transport
+        self.verbose = False
         super(BaseClient, self).__init__()  # *args, **kwargs)
 
     def cancel(self):
@@ -446,12 +447,15 @@ class DebugLinkMixin(object):
                             "Expected %s, got %s" % (pprint(expected), pprint(msg)))
 
     def callback_ButtonRequest(self, msg):
-        log("ButtonRequest code: " + get_buttonrequest_value(msg.code))
+        if self.verbose:
+            log("ButtonRequest code: " + get_buttonrequest_value(msg.code))
 
         if self.auto_button:
-            log("Pressing button " + str(self.button))
+            if self.verbose:
+                log("Pressing button " + str(self.button))
             if self.button_wait:
-                log("Waiting %d seconds " % self.button_wait)
+                if self.verbose:
+                    log("Waiting %d seconds " % self.button_wait)
                 time.sleep(self.button_wait)
             self.debug.press_button(self.button)
 
@@ -465,7 +469,8 @@ class DebugLinkMixin(object):
         return proto.PinMatrixAck(pin=pin)
 
     def callback_PassphraseRequest(self, msg):
-        log("Provided passphrase: '%s'" % self.passphrase)
+        if self.verbose:
+            log("Provided passphrase: '%s'" % self.passphrase)
         return proto.PassphraseAck(passphrase=self.passphrase)
 
     def callback_WordRequest(self, msg):
@@ -961,7 +966,8 @@ class ProtocolMixin(object):
 
             # If there's some part of signed transaction, let's add it
             if res.HasField('serialized') and res.serialized.HasField('serialized_tx'):
-                log("RECEIVED PART OF SERIALIZED TX (%d BYTES)" % len(res.serialized.serialized_tx))
+                if self.verbose:
+                    log("RECEIVED PART OF SERIALIZED TX (%d BYTES)" % len(res.serialized.serialized_tx))
                 serialized_tx += res.serialized.serialized_tx
 
             if res.HasField('serialized') and res.serialized.HasField('signature_index'):
@@ -1037,7 +1043,8 @@ class ProtocolMixin(object):
         if None in signatures:
             raise Exception("Some signatures are missing!")
 
-        log("SIGNED IN %.03f SECONDS, CALLED %d MESSAGES, %d BYTES" % \
+        if self.verbose:
+            log("SIGNED IN %.03f SECONDS, CALLED %d MESSAGES, %d BYTES" % \
                 (time.time() - start, counter, len(serialized_tx)))
 
         return (signatures, serialized_tx)
@@ -1090,7 +1097,8 @@ class ProtocolMixin(object):
             raise Exception("Invalid response, expected EntropyRequest")
 
         external_entropy = self._get_local_entropy()
-        log("Computer generated entropy: " + binascii.hexlify(external_entropy).decode('ascii'))
+        if self.verbose:
+            log("Computer generated entropy: " + binascii.hexlify(external_entropy).decode('ascii'))
         ret = self.call(proto.EntropyAck(entropy=external_entropy))
         self.init_device()
         return ret
@@ -1187,8 +1195,11 @@ class ProtocolMixin(object):
 class KeepKeyClient(ProtocolMixin, TextUIMixin, BaseClient):
     pass
 
-class KeepKeyClientDebug(ProtocolMixin, TextUIMixin, DebugWireMixin, BaseClient):
+class KeepKeyClientVerbose(ProtocolMixin, TextUIMixin, DebugWireMixin, BaseClient):
     pass
 
-class KeepKeyDebugClient(ProtocolMixin, DebugLinkMixin, DebugWireMixin, BaseClient):
+class KeepKeyDebuglinkClient(ProtocolMixin, DebugLinkMixin, BaseClient):
+    pass
+
+class KeepKeyDebuglinkClientVerbose(ProtocolMixin, DebugLinkMixin, DebugWireMixin, BaseClient):
     pass
