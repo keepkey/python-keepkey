@@ -4,6 +4,7 @@ from hashlib import sha256
 import time, json, base64, struct
 from .transport import Transport, ConnectionError
 import binascii
+import platform
 
 import hid
 
@@ -34,10 +35,11 @@ def is_normal_link(device):
     if device['interface_number'] == 0:
         return True
 
-    # MacOS reports -1 as the interface_number for everything, inspect based on
-    # the path instead
-    if device['interface_number'] == -1:
-        return device['path'].endswith(b'0')
+    # MacOS reports -1 as the interface_number for everything,
+    # inspect based on the path instead.
+    if platform.system() == 'Darwin':
+        if device['interface_number'] == -1:
+            return device['path'].endswith(b'0')
 
     return False
 
@@ -48,10 +50,11 @@ def is_debug_link(device):
     if device['interface_number'] == 1:
         return True
 
-    # MacOS reports -1 as the interface_number for everything, inspect based on
-    # the path instead
-    if device['interface_number'] == -1:
-        return device['path'].endswith(b'1')
+    # MacOS reports -1 as the interface_number for everything,
+    # inspect based on the path instead.
+    if platform.system() == 'Darwin':
+        if device['interface_number'] == -1:
+            return device['path'].endswith(b'1')
 
     return False
 
