@@ -27,6 +27,34 @@ class FakeRead(object):
     def read(self, size):
         return self.func(size)
 
+def is_normal_link(device):
+    if device['usage_page'] == 0xff00:
+        return True
+
+    if device['interface_number'] == 0:
+        return True
+
+    # MacOS reports -1 as the interface_number for everything, inspect based on
+    # the path instead
+    if device['interface_number'] == -1:
+        return device['path'].endswith(b'0')
+
+    return False
+
+def is_debug_link(device):
+    if device['usage_page'] == 0xff01:
+        return True
+
+    if device['interface_number'] == 1:
+        return True
+
+    # MacOS reports -1 as the interface_number for everything, inspect based on
+    # the path instead
+    if device['interface_number'] == -1:
+        return device['path'].endswith(b'1')
+
+    return False
+
 class HidTransport(Transport):
     def __init__(self, device_paths, *args, **kwargs):
         self.hid = None
@@ -60,9 +88,9 @@ class HidTransport(Transport):
 
             if (vendor_id, product_id) in DEVICE_IDS:
                 devices.setdefault(serial_number, [None, None, None])
-                if interface_number == 0 or (interface_number == -1 and path.endswith(b'0')): # normal link
+                if is_normal_link(d):
                     devices[serial_number][0] = path
-                elif interface_number == 1 or (interface_number == -1 and path.endswith(b'1')): # debug link
+                elif is_debug_link(d):
                     devices[serial_number][1] = path
                 else:
                     raise Exception("Unknown USB interface number: %d" % interface_number)
