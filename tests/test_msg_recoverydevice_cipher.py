@@ -54,8 +54,8 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
                 encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
-                
-                auto_completed = self.client.debug.read_recovery_auto_completed_word()       
+
+                auto_completed = self.client.debug.read_recovery_auto_completed_word()
 
                 if word == auto_completed:
                     if len(mnemonic_words) != index + 1:
@@ -75,7 +75,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
         self.assertTrue(self.client.features.pin_protection)
         self.assertTrue(self.client.features.passphrase_protection)
-        
+
         # Do passphrase-protected action, PassphraseRequest should be raised
         resp = self.client.call_raw(proto.Ping(passphrase_protection=True))
         self.assertIsInstance(resp, proto.PassphraseRequest)
@@ -107,8 +107,8 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
                 encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
-                
-                auto_completed = self.client.debug.read_recovery_auto_completed_word()       
+
+                auto_completed = self.client.debug.read_recovery_auto_completed_word()
 
                 if word == auto_completed:
                     if len(mnemonic_words) != index + 1:
@@ -136,7 +136,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
         # Do PIN-protected action, PinRequest should NOT be raised
         resp = self.client.call_raw(proto.Ping(pin_protection=True))
         self.assertIsInstance(resp, proto.Success)
-    
+
     def test_character_fail(self):
         ret = self.client.call_raw(proto.RecoveryDevice(word_count=12,
                                    passphrase_protection=False,
@@ -169,8 +169,8 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
                 encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
-                
-                auto_completed = self.client.debug.read_recovery_auto_completed_word()       
+
+                auto_completed = self.client.debug.read_recovery_auto_completed_word()
 
                 if word == auto_completed:
                     if len(mnemonic_words) != index + 1:
@@ -189,8 +189,8 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
                 encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
-                
-                auto_completed = self.client.debug.read_recovery_auto_completed_word()       
+
+                auto_completed = self.client.debug.read_recovery_auto_completed_word()
 
                 if word == auto_completed:
                     if len(mnemonic_words) != index + 1:
@@ -241,7 +241,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
                 resp = self.client.call_raw(proto.ButtonAck())
 
             mnemonic = ' '.join(mnemonic)
-            
+
             # wipe device
             ret = self.client.call_raw(proto.WipeDevice())
             self.client.debug.press_yes()
@@ -265,8 +265,8 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
                     encoded_character = cipher[ord(character) - 97]
                     ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
-                
-                    auto_completed = self.client.debug.read_recovery_auto_completed_word()       
+
+                    auto_completed = self.client.debug.read_recovery_auto_completed_word()
 
                     if word == auto_completed:
                         if len(mnemonic_words) != index + 1:
@@ -279,14 +279,14 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
             # Workflow succesfully ended
             self.assertIsInstance(ret, proto.Success)
-           
+
             self.client.init_device()
-            self.assertEqual(self.client.debug.read_mnemonic(), mnemonic) 
-            
+            self.assertEqual(self.client.debug.read_mnemonic(), mnemonic)
+
             # wipe device
             ret = self.client.call_raw(proto.WipeDevice())
             self.client.debug.press_yes()
             ret = self.client.call_raw(proto.ButtonAck())
-             
+
 if __name__ == '__main__':
     unittest.main()

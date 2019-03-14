@@ -247,7 +247,6 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
             self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange signature error')
-            print "Negative Test Passed (test_signature_error0)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -271,7 +270,7 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
-  
+
                                          deposit_amount=binascii.unhexlify('0493e0'), #300000
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='btc',
@@ -310,7 +309,6 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
             self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange signature error')
-            print "Negative Test Passed (test_signature_error1)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -373,7 +371,6 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
             self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange withdrawal coin type error')
-            print "Negative Test Passed (test_withdrawal_cointype_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -397,7 +394,7 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
                                          withdrawal_address=proto_exchange.ExchangeAddress(
                                                 coin_type='ltc',
                                                 address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V') ,
-  
+
                                          deposit_amount=binascii.unhexlify('0493e0'), #300000
                                          deposit_address=proto_exchange.ExchangeAddress(
                                                 coin_type='btc',
@@ -436,7 +433,6 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
             self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange withdrawal address error')
-            print "Negative Test Passed (test_withdrawal_address_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -500,7 +496,6 @@ class TestMsgSigntxExchange(common.KeepKeyTest):
             self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange return address error')
-            print "Negative Test Passed (test_return_address_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 

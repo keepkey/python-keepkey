@@ -193,7 +193,6 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
             )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange signature error')
-            print "Negative Test Passed (test_ethereum_exch_signature_error1)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -253,7 +252,6 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange signature error')
-            print "Negative Test Passed (test_ethereum_exch_signature_error2)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -310,7 +308,6 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange signature error')
-            print "Negative Test Passed (test_ethereum_exch_signature_error3)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -365,7 +362,6 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
             )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange deposit address error')
-            print "Negative Test Passed (test_ethereum_exch_dep_addr_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -420,7 +416,6 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
             )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange deposit amount error')
-            print "Negative Test Passed (test_ethereum_exch_dep_amount_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -475,7 +470,6 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange withdrawal coin type error')
-            print "Negative Test Passed (test_ethereum_exch_withdrawal_cointype_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -532,7 +526,6 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange withdrawal address error')
-            print "Negative Test Passed (test_ethereum_exch_withdrawal_addr_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -588,7 +581,6 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Exchange return address error')
-            print "Negative Test Passed (test_ethereum_exch_return_addr_error)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 

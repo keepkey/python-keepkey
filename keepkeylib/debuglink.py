@@ -3,11 +3,13 @@ from __future__ import print_function
 from . import messages_pb2 as proto
 from .transport import NotImplementedException
 
-def pin_info(pin):
-    print("Device asks for PIN %s" % pin)
+def pin_info(pin, verbose):
+    if verbose:
+        print("Device asks for PIN %s" % pin)
 
-def button_press(yes_no):
-    print("User pressed", '"y"' if yes_no else '"n"')
+def button_press(yes_no, verbose):
+    if verbose:
+        print("User pressed", '"y"' if yes_no else '"n"')
 
 def pprint(msg):
     return "<%s> (%d bytes):\n%s" % (msg.__class__.__name__, msg.ByteSize(), msg)
@@ -15,33 +17,38 @@ def pprint(msg):
 class DebugLink(object):
     def __init__(self, transport, pin_func=pin_info, button_func=button_press):
         self.transport = transport
+        self.verbose = False
 
         self.pin_func = pin_func
         self.button_func = button_func
+
+    def log(self, what, why):
+        if self.verbose:
+            self.log(what, why)
 
     def close(self):
         self.transport.close()
 
     def _call(self, msg, nowait=False):
-        print("DEBUGLINK SEND", pprint(msg))
+        self.log("DEBUGLINK SEND", pprint(msg))
         self.transport.write(msg)
         if nowait:
             return
         ret = self.transport.read_blocking()
-        print("DEBUGLINK RECV", pprint(ret))
+        self.log("DEBUGLINK RECV", pprint(ret))
         return ret
 
     def read_pin(self):
         obj = self._call(proto.DebugLinkGetState())
-        print("Read PIN:", obj.pin)
-        print("Read matrix:", obj.matrix)
+        self.log("Read PIN:", obj.pin)
+        self.log("Read matrix:", obj.matrix)
 
         return (obj.pin, obj.matrix)
 
     def read_pin_encoded(self):
         pin, _ = self.read_pin()
         pin_encoded = self.encode_pin(pin)
-        self.pin_func(pin_encoded)
+        self.pin_func(pin_encoded, self.verbose)
         return pin_encoded
 
     def encode_pin(self, pin):
@@ -53,7 +60,7 @@ class DebugLink(object):
         # on keypad, not a real PIN.
         pin_encoded = ''.join([str(matrix.index(p) + 1) for p in pin])
 
-        print("Encoded PIN:", pin_encoded)
+        self.log("Encoded PIN:", pin_encoded)
         return pin_encoded
 
     def read_layout(self):
@@ -100,8 +107,8 @@ class DebugLink(object):
          self._call(proto.DebugLinkFillConfig(), nowait=True)
 
     def press_button(self, yes_no):
-        print("Pressing", yes_no)
-        self.button_func(yes_no)
+        self.log("Pressing", yes_no)
+        self.button_func(yes_no, self.verbose)
         self._call(proto.DebugLinkDecision(yes_no=yes_no), nowait=True)
 
     def press_yes(self):
