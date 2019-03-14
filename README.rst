@@ -1,4 +1,5 @@
-[![CircleCI](https://circleci.com/gh/keepkey/python-keepkey.svg?style=svg)](https://circleci.com/gh/keepkey/python-keepkey)
+.. image:: https://circleci.com/gh/keepkey/python-keepkey.svg?style=svg
+    :target: https://circleci.com/gh/keepkey/python-keepkey
 
 python-keepkey
 ==============
