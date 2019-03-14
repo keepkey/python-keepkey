@@ -31,7 +31,7 @@ import base64
 import urllib
 import tempfile
 
-from keepkeylib.client import KeepKeyClient, KeepKeyClientDebug, KeepKeyDebugClient
+from keepkeylib.client import KeepKeyClient, KeepKeyClientVerbose, KeepKeyDebuglinkClient, KeepKeyDebuglinkClientVerbose
 import keepkeylib.types_pb2 as types
 
 def parse_args(commands):
@@ -622,11 +622,16 @@ def main():
         debuglink_transport = get_transport(
             args.debuglink_transport,
             args.debuglink_path)
-        client = KeepKeyDebugClient(transport)
+        if args.verbose:
+            client = KeepKeyDebuglinkClientVerbose(transport)
+            client.verbose = True
+        else:
+            client = KeepKeyDebuglinkClient(transport)
         client.set_debuglink(debuglink_transport)
         client.auto_button = args.auto_button
     elif args.verbose:
-        client = KeepKeyClientDebug(transport)
+        client = KeepKeyClientVerbose(transport)
+        client.verbose = True
     else:
         client = KeepKeyClient(transport)
 
