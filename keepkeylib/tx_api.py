@@ -114,3 +114,5 @@ TxApiBitcoin = TxApiInsight(network='insight_bitcoin', url='https://btc.coinquer
 TxApiTestnet = TxApiInsight(network='insight_testnet', url='https://test-insight.bitpay.com/api')
 TxApiZcashTestnet = TxApiInsight(network='insight_zcashtestnet', url='https://explorer.testnet.z.cash/api', zcash=True)
 TxApiBitcoinGold = TxApiInsight(network='insight_bitcoingold', url='https://btg.coinquery.com/api')
+TxApiGroestlcoin = TxApiInsight(network='insight_groestlcoin', url='https://groestlsight.groestlcoin.org/api')
+TxApiGroestlcoinTestnet = TxApiInsight(network='insight_groestlcoin_testnet', url='https://groestlsight-test.groestlcoin.org/api')

@@ -523,6 +523,7 @@ class ProtocolMixin(object):
             "Dogecoin": 3,
             "Dash": 5,
             "Namecoin": 7,
+            "Groestlcoin": 17,
             "Zcash": 133,
             "BitcoinCash": 145,
             "Axe": 4242,

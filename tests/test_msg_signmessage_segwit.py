@@ -17,10 +17,12 @@
 import unittest
 
 from binascii import hexlify
+import base64
 
 from common import KeepKeyTest
 from keepkeylib import messages_pb2 as proto
 from keepkeylib import types_pb2 as proto_types
+from keepkeylib.tools import parse_path
 
 
 class TestMsgSignmessageSegwit(KeepKeyTest):
@@ -42,6 +44,12 @@ class TestMsgSignmessageSegwit(KeepKeyTest):
         sig = self.client.sign_message('Bitcoin', [0], "VeryLongMessage!" * 64, script_type=proto_types.SPENDP2SHWITNESS)
         self.assertEquals(sig.address, '3CwYaeWxhpXXiHue3ciQez1DLaTEAXcKa1')
         self.assertEquals(hexlify(sig.signature), b'245ff795c29aef7538f8b3bdb2e8add0d0722ad630a140b6aefd504a5a895cbd867cbb00981afc50edd0398211e8d7c304bb8efa461181bc0afa67ea4a720a89ed')
+
+    def test_sign_grs(self):
+        self.setup_mnemonic_allallall()
+        sig = self.client.sign_message('Groestlcoin', parse_path("49'/17'/0'/0/0"), "test", script_type=proto_types.SPENDP2SHWITNESS)
+        self.assertEqual(sig.address, '31inaRqambLsd9D7Ke4USZmGEVd3PHkh7P')
+        self.assertEqual(base64.b64encode(sig.signature), 'I/NA/J+epkaeE9vHQ7cDE+TQdrzYzoZ+3dcexBFg0CpKRiIF0h7G5JUCvz4qhGPUjolcpW9rOFsV7CzHVWKS7K4=')
 
     def test_sign_utf(self):
         self.setup_mnemonic_nopin_nopassphrase()

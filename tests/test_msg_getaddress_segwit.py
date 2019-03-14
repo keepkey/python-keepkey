@@ -33,6 +33,20 @@ class TestMsgGetaddressSegwit(common.KeepKeyTest):
         self.assertEquals(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDP2SHWITNESS), '2N6UeBoqYEEnybg4cReFYDammpsyDw8R2Mc')
         self.assertEquals(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDADDRESS), 'mvbu1Gdy8SUjTenqerxUaZyYjmveZvt33q')
 
+    def test_grs(self):
+        self.setup_mnemonic_allallall()
+        self.client.clear_session()
+        self.assertEqual(self.client.get_address('Groestlcoin', parse_path("49'/17'/0'/0/0"), True, None, script_type=proto.SPENDP2SHWITNESS), '31inaRqambLsd9D7Ke4USZmGEVd3PHkh7P')
+        self.assertEqual(self.client.get_address('Groestlcoin', parse_path("49'/17'/0'/1/0"), False, None, script_type=proto.SPENDP2SHWITNESS), '3NH9SuUAjw1ZocQdTDMuqm3My3Mcg3ovEV')
+        self.assertEqual(self.client.get_address('Groestlcoin', parse_path("49'/17'/0'/1/1"), False, None, script_type=proto.SPENDP2SHWITNESS), '3D65LEJYJ2Yda6UJr8tYBWspP5MZSeR5wz')
+
+    def test_tgrs(self):
+        self.setup_mnemonic_allallall()
+        self.client.clear_session()
+        self.assertEqual(self.client.get_address('GRS Testnet', parse_path("49'/1'/0'/0/0"), True, None, script_type=proto.SPENDP2SHWITNESS), '2N4Q5FhU2497BryFfUgbqkAJE87aKDv3V3e')
+        self.assertEqual(self.client.get_address('GRS Testnet', parse_path("49'/1'/0'/1/0"), False, None, script_type=proto.SPENDP2SHWITNESS), '2N1LGaGg836mqSQqiuUBLfcyGBhyZYBtBZ7')
+        self.assertEqual(self.client.get_address('GRS Testnet', parse_path("49'/1'/0'/1/1"), False, None, script_type=proto.SPENDP2SHWITNESS), '2NFWLCJQBSpz1oUJwwLpX8ECifFWGxQyzGu')
+
     def test_show_multisig_3(self):
         self.setup_mnemonic_allallall()
         self.client.clear_session()

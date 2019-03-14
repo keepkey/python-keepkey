@@ -32,6 +32,8 @@ class TestMsgGetaddressSegwitNative(common.KeepKeyTest):
         self.assertEquals(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), False, None, script_type=proto.SPENDWITNESS), 'tb1q694ccp5qcc0udmfwgp692u2s2hjpq5h407urtu')
         self.assertEquals(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDWITNESS), 'tb1q54un3q39sf7e7tlfq99d6ezys7qgc62a6rxllc')
         self.assertEquals(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDADDRESS), 'mvbu1Gdy8SUjTenqerxUaZyYjmveZvt33q')
+        self.assertEquals(self.client.get_address("Groestlcoin", parse_path("84'/17'/0'/0/0"), False, None, script_type=proto.SPENDWITNESS), 'grs1qw4teyraux2s77nhjdwh9ar8rl9dt7zww8r6lne')
+        self.assertEquals(self.client.get_address("GRS Testnet", parse_path("84'/1'/0'/0/0"), False, None, script_type=proto.SPENDWITNESS), 'tgrs1qkvwu9g3k2pdxewfqr7syz89r3gj557l3ued7ja')
 
     def test_show_multisig_3(self):
         self.setup_mnemonic_allallall()
