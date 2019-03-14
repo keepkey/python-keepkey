@@ -1,0 +1,43 @@
+version: 2
+jobs:
+  emulator-build-test:
+    docker:
+      - image: circleci/python:2.7
+    steps:
+      - checkout:
+          path: .pykk
+      - run:
+          name: Checkout Firmware & Inject python-keepkey
+          command: |
+            git config --global url."https://github.com/".insteadOf git@github.com:
+            git config --global url."https://".insteadOf git://
+            mv .pykk ../
+            git clone $FIRMWARE_REPO --depth 1 -b master .
+            git submodule update --init --recursive
+            rm -rf deps/python-keepkey
+            mv ../.pykk deps/python-keepkey
+            cd deps/python-keepkey
+            git submodule update --init --recursive
+      - setup_remote_docker
+      - run:
+          name: Emulator Tests
+          command: |
+            pushd ./scripts/emulator
+            set +e
+            docker-compose up --build firmware-unit
+            UNIT_RESULTS="$?"
+            docker-compose up --build python-keepkey
+            TEST_RESULTS="$?"
+            set -e
+            docker cp "$(docker-compose ps -q firmware-unit)":/kkemu/test-reports/. ../../test-reports/
+            docker cp "$(docker-compose ps -q python-keepkey)":/kkemu/test-reports/. ../../test-reports/
+            popd
+            (exit $UNIT_RESULTS) || (exit $TEST_RESULTS)
+      - store_test_results:
+          path: test-reports
+workflows:
+  version: 2
+  emulator:
+    jobs:
+      - emulator-build-test
+
