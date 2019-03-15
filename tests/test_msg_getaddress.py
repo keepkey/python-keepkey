@@ -41,6 +41,18 @@ class TestMsgGetaddress(common.KeepKeyTest):
         self.assertEqual(self.client.get_address('Litecoin', [-9, 0]), 'LZHVtcwAEDf1BR4d67551zUijyLUpDF9EX')
         self.assertEqual(self.client.get_address('Litecoin', [0, 9999999]), 'Laf5nGHSCT94C5dK6fw2RxuXPiw2ZuRR9S')
 
+    def test_grs(self):
+        self.setup_mnemonic_allallall()
+        self.assertEqual(self.client.get_address('Groestlcoin', [44 | 0x80000000, 17 | 0x80000000, 0 | 0x80000000, 0, 0]), 'Fj62rBJi8LvbmWu2jzkaUX1NFXLEqDLoZM')
+        self.assertEqual(self.client.get_address('Groestlcoin', [44 | 0x80000000, 17 | 0x80000000, 0 | 0x80000000, 1, 0]), 'FmRaqvVBRrAp2Umfqx9V1ectZy8gw54QDN')
+        self.assertEqual(self.client.get_address('Groestlcoin', [44 | 0x80000000, 17 | 0x80000000, 0 | 0x80000000, 1, 1]), 'Fmhtxeh7YdCBkyQF7AQG4QnY8y3rJg89di')
+
+    def test_tgrs(self):
+        self.setup_mnemonic_allallall()
+        self.assertEqual(self.client.get_address('GRS Testnet', [44 | 0x80000000, 1 | 0x80000000, 0 | 0x80000000, 0, 0]), 'mvbu1Gdy8SUjTenqerxUaZyYjmvedc787y')
+        self.assertEqual(self.client.get_address('GRS Testnet', [44 | 0x80000000, 1 | 0x80000000, 0 | 0x80000000, 1, 0]), 'mm6kLYbGEL1tGe4ZA8xacfgRPdW1LMq8cN')
+        self.assertEqual(self.client.get_address('GRS Testnet', [44 | 0x80000000, 1 | 0x80000000, 0 | 0x80000000, 1, 1]), 'mjXZwmEi1z1MzveZrKUAo4DBgbdq6ZhGD6')
+
     def test_ltc_m_address(self):
         # generate a 1 of 1 multisig and make sure we get an M address
         self.setup_mnemonic_nopin_nopassphrase()

@@ -47,6 +47,16 @@ class TestMsgVerifymessage(common.KeepKeyTest):
             'Ahoj')
         self.assertTrue(ret)
 
+    def test_message_grs(self):
+        self.setup_mnemonic_allallall()
+        sig = base64.b64decode('INOYaa/jj8Yxz3mD5k+bZfUmjkjB9VzoV4dNG7+RsBUyK30xL7I9yMgWWVvsL46C5yQtxtZY0cRRk7q9N6b+YTM=')
+        ret = self.client.verify_message(
+            'Groestlcoin',
+            'Fj62rBJi8LvbmWu2jzkaUX1NFXLEqDLoZM',
+            sig,
+            'test')
+        self.assertTrue(ret)
+
     def test_message_verify(self):
         self.setup_mnemonic_nopin_nopassphrase()
 
