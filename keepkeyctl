@@ -366,11 +366,15 @@ class Commands(object):
     def sign_message(self, args):
         address_n = self.client.expand_path(args.n)
         ret = self.client.sign_message(args.coin, address_n, args.message)
-        output = {
-            'message': args.message,
-            'address': ret.address,
-            'signature': base64.b64encode(ret.signature)
-        }
+        output = """
+-----BEGIN BITCOIN SIGNED MESSAGE-----
+%s
+-----BEGIN BITCOIN SIGNATURE-----
+Version: Bitcoin-qt (1.0)
+Address: %s
+
+%s
+-----END BITCOIN SIGNATURE-----""" % (args.message, ret.address, base64.b64encode(ret.signature))
         return output
 
     def verify_message(self, args):
