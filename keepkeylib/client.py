@@ -37,8 +37,10 @@ from . import tools
 from . import mapping
 from . import messages_pb2 as proto
 from . import messages_eos_pb2 as eos_proto
+from . import messages_nano_pb2 as nano_proto
 from . import types_pb2 as types
 from . import eos
+from . import nano
 from .debuglink import DebugLink
 
 
@@ -173,6 +175,7 @@ class BaseClient(object):
     # messages to device and getting its response back.
     def __init__(self, transport, **kwargs):
         self.transport = transport
+        self.verbose = False
         super(BaseClient, self).__init__()  # *args, **kwargs)
 
     def cancel(self):
@@ -351,6 +354,7 @@ class DebugLinkMixin(object):
 
         # Always press Yes and provide correct pin
         self.setup_debuglink(True, True)
+        self.auto_button = True
 
         # Do not expect any specific response from device
         self.expected_responses = None
@@ -443,13 +447,18 @@ class DebugLinkMixin(object):
                             "Expected %s, got %s" % (pprint(expected), pprint(msg)))
 
     def callback_ButtonRequest(self, msg):
-        log("ButtonRequest code: " + get_buttonrequest_value(msg.code))
+        if self.verbose:
+            log("ButtonRequest code: " + get_buttonrequest_value(msg.code))
 
-        log("Pressing button " + str(self.button))
-        if self.button_wait:
-            log("Waiting %d seconds " % self.button_wait)
-            time.sleep(self.button_wait)
-        self.debug.press_button(self.button)
+        if self.auto_button:
+            if self.verbose:
+                log("Pressing button " + str(self.button))
+            if self.button_wait:
+                if self.verbose:
+                    log("Waiting %d seconds " % self.button_wait)
+                time.sleep(self.button_wait)
+            self.debug.press_button(self.button)
+
         return proto.ButtonAck()
 
     def callback_PinMatrixRequest(self, msg):
@@ -460,7 +469,8 @@ class DebugLinkMixin(object):
         return proto.PinMatrixAck(pin=pin)
 
     def callback_PassphraseRequest(self, msg):
-        log("Provided passphrase: '%s'" % self.passphrase)
+        if self.verbose:
+            log("Provided passphrase: '%s'" % self.passphrase)
         return proto.PassphraseAck(passphrase=self.passphrase)
 
     def callback_WordRequest(self, msg):
@@ -519,6 +529,7 @@ class ProtocolMixin(object):
             "Dash": 5,
             "Namecoin": 7,
             "Bitsend": 91,
+            "Groestlcoin": 17,
             "Zcash": 133,
             "BitcoinCash": 145,
             "Bitcore": 160,
@@ -571,12 +582,7 @@ class ProtocolMixin(object):
 
     @session
     def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None, token_shortcut=None, token_value=None, token_to=None):
-        import rlp.utils
-
-        def int_to_big_endian(value):
-            if value == 0:
-                return b''
-            return rlp.utils.int_to_big_endian(value)
+        from keepkeylib.tools import int_to_big_endian
 
         n = self._convert_prime(n)
         if address_type == types.TRANSFER:   #Ethereum transfer transaction
@@ -626,7 +632,7 @@ class ProtocolMixin(object):
             else:
                 #erc20 token transfer
                 value_array = bytearray([0]*32)
-                for ii,i in enumerate(rlp.utils.int_to_big_endian(token_value)[::-1]):
+                for ii,i in enumerate(int_to_big_endian(token_value)[::-1]):
                     value_array[31 - ii] = i
                 msg = proto.EthereumSignTx(
                     address_n=n,
@@ -751,6 +757,51 @@ class ProtocolMixin(object):
 
         return response
 
+    @expect(nano_proto.NanoAddress)
+    def nano_get_address(self, coin_name, address_n, show_display=False):
+        msg = nano_proto.NanoGetAddress(
+            coin_name=coin_name,
+            address_n=address_n,
+            show_display=show_display)
+        return self.call(msg)
+
+    @expect(nano_proto.NanoSignedTx)
+    def nano_sign_tx(
+        self, coin_name, address_n,
+        grandparent_hash=None,
+        parent_link=None,
+        parent_representative=None,
+        parent_balance=None,
+        link_hash=None,
+        link_recipient=None,
+        link_recipient_n=None,
+        representative=None,
+        balance=None,
+    ):
+        parent_block = None
+        if (grandparent_hash is not None or
+               parent_link is not None or
+               parent_representative is not None or
+               parent_balance is not None):
+            parent_block = nano_proto.NanoSignTx.ParentBlock(
+                parent_hash=grandparent_hash,
+                link=parent_link,
+                representative=parent_representative,
+                balance=nano.encode_balance(parent_balance),
+            )
+
+        msg = nano_proto.NanoSignTx(
+            coin_name=coin_name,
+            address_n=address_n,
+            parent_block=parent_block,
+            link_hash=link_hash,
+            link_recipient=link_recipient,
+            link_recipient_n=link_recipient_n,
+            representative=representative,
+            balance=nano.encode_balance(balance),
+        )
+        return self.call(msg)
+
     @field('entropy')
     @expect(proto.Entropy)
     def get_entropy(self, size):
@@ -869,6 +920,10 @@ class ProtocolMixin(object):
         txes = {None: tx}
         txes[b''] = tx
 
+        force_bip143 = ['BitcoinGold', 'BitcoinCash', 'BitcoinSV']
+        if coin_name in force_bip143:
+            return txes
+
         known_hashes = []
         for inp in inputs:
             if inp.prev_hash in txes:
@@ -919,7 +974,8 @@ class ProtocolMixin(object):
 
             # If there's some part of signed transaction, let's add it
             if res.HasField('serialized') and res.serialized.HasField('serialized_tx'):
-                log("RECEIVED PART OF SERIALIZED TX (%d BYTES)" % len(res.serialized.serialized_tx))
+                if self.verbose:
+                    log("RECEIVED PART OF SERIALIZED TX (%d BYTES)" % len(res.serialized.serialized_tx))
                 serialized_tx += res.serialized.serialized_tx
 
             if res.HasField('serialized') and res.serialized.HasField('signature_index'):
@@ -995,7 +1051,8 @@ class ProtocolMixin(object):
         if None in signatures:
             raise Exception("Some signatures are missing!")
 
-        log("SIGNED IN %.03f SECONDS, CALLED %d MESSAGES, %d BYTES" % \
+        if self.verbose:
+            log("SIGNED IN %.03f SECONDS, CALLED %d MESSAGES, %d BYTES" % \
                 (time.time() - start, counter, len(serialized_tx)))
 
         return (signatures, serialized_tx)
@@ -1048,7 +1105,8 @@ class ProtocolMixin(object):
             raise Exception("Invalid response, expected EntropyRequest")
 
         external_entropy = self._get_local_entropy()
-        log("Computer generated entropy: " + binascii.hexlify(external_entropy).decode('ascii'))
+        if self.verbose:
+            log("Computer generated entropy: " + binascii.hexlify(external_entropy).decode('ascii'))
         ret = self.call(proto.EntropyAck(entropy=external_entropy))
         self.init_device()
         return ret
@@ -1145,8 +1203,11 @@ class ProtocolMixin(object):
 class KeepKeyClient(ProtocolMixin, TextUIMixin, BaseClient):
     pass
 
-class KeepKeyClientDebug(ProtocolMixin, TextUIMixin, DebugWireMixin, BaseClient):
+class KeepKeyClientVerbose(ProtocolMixin, TextUIMixin, DebugWireMixin, BaseClient):
     pass
 
-class KeepKeyDebugClient(ProtocolMixin, DebugLinkMixin, DebugWireMixin, BaseClient):
+class KeepKeyDebuglinkClient(ProtocolMixin, DebugLinkMixin, BaseClient):
+    pass
+
+class KeepKeyDebuglinkClientVerbose(ProtocolMixin, DebugLinkMixin, DebugWireMixin, BaseClient):
     pass

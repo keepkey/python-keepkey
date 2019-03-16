@@ -2,11 +2,8 @@ import hashlib
 import binascii
 import struct
 from datetime import datetime
-from .tools import b58decode, b58encode, parse_path
+from .tools import b58decode, b58encode, parse_path, int_to_big_endian
 from . import messages_eos_pb2 as proto
-
-def int_to_big_endian(value):
-    return value.to_bytes((value.bit_length() + 7) // 8, "big")
 
 def name_to_number(name):
     length = len(name)
@@ -172,11 +169,11 @@ def parse_sell_ram(data):
     )
 
 def parse_delegatebw(data):
-    amount_net, symbol_net = asset_to_number(data['stake_net_quantity'])
-    amount_cpu, symbol_cpu = asset_to_number(data['stake_cpu_quantity'])
+    amount_net, symbol_net = asset_to_number(data['stake_net'])
+    amount_cpu, symbol_cpu = asset_to_number(data['stake_cpu'])
 
     return proto.EosActionDelegate(
-        sender=name_to_number(data['sender']),
+        sender=name_to_number(data['from']),
         receiver=name_to_number(data['receiver']),
         net_quantity=proto.EosAsset(
             amount=amount_net,
@@ -194,7 +191,7 @@ def parse_undelegatebw(data):
     amount_cpu, symbol_cpu = asset_to_number(data['unstake_cpu_quantity'])
 
     return proto.EosActionUndelegate(
-        sender=name_to_number(data['sender']),
+        sender=name_to_number(data['from']),
         receiver=name_to_number(data['receiver']),
         net_quantity=proto.EosAsset(
             amount=amount_net,

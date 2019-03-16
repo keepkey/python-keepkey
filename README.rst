@@ -1,3 +1,6 @@
+.. image:: https://circleci.com/gh/keepkey/python-keepkey.svg?style=svg
+    :target: https://circleci.com/gh/keepkey/python-keepkey
+
 python-keepkey
 ==============
 
@@ -104,3 +107,14 @@ To run unit tests that don't require a device:
 .. code:: shell
 
     $ python tests/unit/*.py
+
+Release Process
+---------------
+
+* Check that the testsuite runs cleanly
+* Bump the version in setup.py
+* Tag the release
+* Build the release
+  * sudo python3 setup.py sdist bdist_wheel bdist_egg
+* Upload the release
+  * sudo python3 -m twine upload dist/* -s --sign-with gpg2

@@ -20,17 +20,28 @@
 
 from __future__ import print_function
 
+import os
+
 import sys
 sys.path = ['../',] + sys.path
 
 from keepkeylib.transport_pipe import PipeTransport
-from keepkeylib.transport_hid import HidTransport
 from keepkeylib.transport_socket import SocketTransportClient
-from keepkeylib.transport_webusb import WebUsbTransport
 from keepkeylib.transport_udp import UDPTransport
 
-hid_devices = HidTransport.enumerate()
-webusb_devices = WebUsbTransport.enumerate()
+try:
+    from keepkeylib.transport_hid import HidTransport
+    hid_devices = HidTransport.enumerate()
+except Exception:
+    print("Error loading HID. HID devices not enumerated.")
+    hid_devices = []
+
+try:
+    from keepkeylib.transport_webusb import WebUsbTransport
+    webusb_devices = WebUsbTransport.enumerate()
+except Exception:
+    print("Error loading WebUSB. WebUSB devices not enumerated.")
+    webusb_devices = []
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -68,16 +79,20 @@ elif len(webusb_devices) > 0:
 else:
     print('Using Emulator')
     TRANSPORT = UDPTransport
-    TRANSPORT_ARGS = ('127.0.0.1:21324',)
+    TRANSPORT_ARGS = (os.getenv('KK_TRANSPORT_MAIN', '127.0.0.1:21324'),)
     TRANSPORT_KWARGS = {}
     DEBUG_TRANSPORT = UDPTransport
-    DEBUG_TRANSPORT_ARGS = ('127.0.0.1:21325',)
+    DEBUG_TRANSPORT_ARGS = (os.getenv('KK_TRANSPORT_DEBUG', '127.0.0.1:21325'),)
     DEBUG_TRANSPORT_KWARGS = {}
 
 def enumerate_hid():
     global TRANSPORT, TRANSPORT_ARGS, TRANSPORT_KWARGS, DEBUG_TRANSPORT, DEBUG_TRANSPORT_ARGS, DEBUG_TRANSPORT_KWARGS
 
-    devices = HidTransport.enumerate()
+    try:
+        devices = HidTransport.enumerate()
+    except Exception:
+        print("Error loading HID. HID devices not enumerated.")
+        devices = []
 
     if len(devices) > 0:
         if devices[0][1] != None:

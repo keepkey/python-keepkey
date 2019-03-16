@@ -27,8 +27,7 @@ import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 import keepkeylib.exchange_pb2 as proto_exchange
 from keepkeylib.client import CallException
-
-from rlp.utils import int_to_big_endian
+from keepkeylib.tools import int_to_big_endian
 
 class TestMsgEthereumSigntx(common.KeepKeyTest):
     def test_ethereum_tx_xfer_acc1(self):
@@ -108,7 +107,6 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Failed to compile output')
-            print "Negative Test Passed (test_ethereum_xfer_account_path_error_0)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -137,7 +135,6 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Failed to compile output')
-            print "Negative Test Passed (test_ethereum_xfer_account_path_error_1)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -163,7 +160,6 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Failed to compile output')
-            print "Negative Test Passed (test_ethereum_xfer_account_path_error_2)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 
@@ -188,7 +184,6 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 )
         except CallException as e:
             self.assertEndsWith(e.args[1], 'Failed to compile output')
-            print "Negative Test Passed (test_ethereum_xfer_account_path_error_2)!"
         else:
             self.assert_(False, "Failed to detect error condition")
 

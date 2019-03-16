@@ -31,7 +31,7 @@ import base64
 import urllib
 import tempfile
 
-from keepkeylib.client import KeepKeyClient, KeepKeyClientDebug
+from keepkeylib.client import KeepKeyClient, KeepKeyClientVerbose, KeepKeyDebuglinkClient, KeepKeyDebuglinkClientVerbose
 import keepkeylib.types_pb2 as types
 
 def parse_args(commands):
@@ -39,10 +39,12 @@ def parse_args(commands):
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='Prints communication to device')
     parser.add_argument('-t', '--transport', dest='transport',  choices=['usb', 'serial', 'pipe', 'socket', 'bridge', 'udp', 'webusb'], help="Transport used for talking with the device")
     parser.add_argument('-p', '--path', dest='path', default='', help="Path used by the transport (usually serial port)")
-#    parser.add_argument('-dt', '--debuglink-transport', dest='debuglink_transport', choices=['usb', 'serial', 'pipe', 'socket'], default='usb', help="Debuglink transport")
-#    parser.add_argument('-dp', '--debuglink-path', dest='debuglink_path', default='', help="Path used by the transport (usually serial port)")
+    parser.add_argument('-Dt', '--debuglink-transport', dest='debuglink_transport', choices=['usb', 'serial', 'pipe', 'socket', 'bridge', 'udp', 'webusb'], default='usb', help="Debuglink transport")
+    parser.add_argument('-Dp', '--debuglink-path', dest='debuglink_path', default='', help="Path used by the transport (usually serial port)")
     parser.add_argument('-j', '--json', dest='json', action='store_true', help="Prints result as json object")
 #    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help='Enable low-level debugging')
+    parser.add_argument('-a', '--auto-button', dest='auto_button', action='store_true', help='Automatically press the button on Debuglink devices')
+    parser.add_argument('--no-auto-button', dest='auto_button', action='store_false')
 
     cmdparser = parser.add_subparsers(title='Available commands')
     cmdparser.required = True
@@ -275,6 +277,38 @@ class Commands(object):
         transaction['signatures'] = [signature]
         return json.dumps(transaction, indent=2, sort_keys=True)
 
+    def nano_get_address(self, args):
+        address_n = self.client.expand_path(args.n)
+        res = self.client.nano_get_address(args.coin, address_n, args.show_display)
+        return "Address: %s" % (res.address,)
+
+    def nano_sign_tx(self, args):
+        def decode_hex(value):
+            return value.decode('hex') if value else None
+
+        address_n = self.client.expand_path(args.n)
+        link_recipient_n = None
+        if args.link_recipient_n:
+            link_recipient_n = self.client.expand_path(args.link_recipient_n)
+
+        res = self.client.nano_sign_tx(
+            args.coin, address_n,
+            grandparent_hash=decode_hex(args.top_parent_hash),
+            parent_link=decode_hex(args.top_link),
+            parent_representative=args.top_representative,
+            parent_balance=args.top_balance,
+            link_hash=decode_hex(args.link_hash),
+            link_recipient=args.link_recipient,
+            link_recipient_n=link_recipient_n,
+            representative=args.representative,
+            balance=args.balance,
+        )
+
+        return "Block hash: %s\nSignature: %s" % (
+            res.block_hash.encode('hex'),
+            res.signature.encode('hex'),
+        )
+
     def get_entropy(self, args):
         return binascii.hexlify(self.client.get_entropy(args.size))
 
@@ -399,6 +433,8 @@ class Commands(object):
     ethereum_sign_tx.help = 'Sign (and optionally publish) Ethereum transaction'
     eos_get_public_key.help = 'Get EOS public key'
     eos_sign_tx.help = 'Sign EOS transaction'
+    nano_get_address.help = 'Get Nano address'
+    nano_sign_tx.help = 'Sign Nano transaction'
     get_entropy.help = 'Get example entropy'
     get_features.help = 'Retrieve device features and settings'
     get_public_node.help = 'Get public node of given path'
@@ -450,6 +486,25 @@ class Commands(object):
     eos_sign_tx.arguments = (
         (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/194'/0'/0/0"}),
         (('-f', '--file'), {'type': str}),
+    )
+
+    nano_get_address.arguments = (
+        (('-c', '--coin'), {'type': str, 'default': 'Nano'}),
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/165'/0'"}),
+        (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
+    )
+    nano_sign_tx.arguments = (
+        (('-c', '--coin'), {'type': str, 'default': 'Nano'}),
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/165'/0'"}),
+        (('--top-parent-hash',), {'type': str, 'help': "Current account top block parent block hash", 'default': None}),
+        (('--top-link',), {'type': str, 'help': "Current account top block link field", 'default': None}),
+        (('--top-representative',), {'type': str, 'help': "Current account top block representative address", 'default': None}),
+        (('--top-balance',), {'type': int, 'help': "Current account top block balance in raws", 'default': None}),
+        (('--link-hash',), {'type': str, 'help': "Block hash from which to receive funds", 'default': None}),
+        (('--link-recipient',), {'type': str, 'help': "Address of the recipient", 'default': None}),
+        (('--link-recipient-n',), {'type': str, 'help': "BIP-32 path for own account to use as recipient", 'default': None}),
+        (('--representative',), {'type': str, 'help': "Representative for the account"}),
+        (('--balance',), {'type': int, 'help': "New account balance in raws"}),
     )
 
     get_entropy.arguments = (
@@ -563,8 +618,20 @@ def main():
         return
 
     transport = get_transport(args.transport, args.path)
-    if args.verbose:
-        client = KeepKeyClientDebug(transport)
+    if args.debuglink_transport and args.debuglink_path:
+        debuglink_transport = get_transport(
+            args.debuglink_transport,
+            args.debuglink_path)
+        if args.verbose:
+            client = KeepKeyDebuglinkClientVerbose(transport)
+            client.verbose = True
+        else:
+            client = KeepKeyDebuglinkClient(transport)
+        client.set_debuglink(debuglink_transport)
+        client.auto_button = args.auto_button
+    elif args.verbose:
+        client = KeepKeyClientVerbose(transport)
+        client.verbose = True
     else:
         client = KeepKeyClient(transport)
 

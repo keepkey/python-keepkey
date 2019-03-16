@@ -47,7 +47,7 @@ class TxApi(object):
             raise Exception('URL error: %s' % url)
         if cache_file:
             try: # saving into cache
-                json.dump(j, open(cachefile, 'w'))
+                json.dump(j, open(cache_file, 'w'))
             except:
                 pass
         return j
@@ -109,42 +109,10 @@ class TxApiInsight(TxApi):
         data = self.fetch_json(self.url, 'rawtx', txhash)['rawtx']
         return data
 
-class TxApiSmartbit(TxApi):
 
-    def get_tx(self, txhash):
-
-        data = self.fetch_json(self.url, 'tx', txhash)
-
-        data = data['transaction']
-
-        t = proto_types.TransactionType()
-        t.version = int(data['version'])
-        t.lock_time = data['locktime']
-
-        for vin in data['inputs']:
-            i = t.inputs.add()
-            if 'coinbase' in vin.keys():
-                i.prev_hash = b"\0"*32
-                i.prev_index = 0xffffffff # signed int -1
-                i.script_sig = binascii.unhexlify(vin['coinbase'])
-                i.sequence = vin['sequence']
-
-            else:
-                i.prev_hash = binascii.unhexlify(vin['txid'])
-                i.prev_index = vin['vout']
-                i.script_sig = binascii.unhexlify(vin['script_sig']['hex'])
-                i.sequence = vin['sequence']
-
-        for vout in data['outputs']:
-            o = t.bin_outputs.add()
-            o.amount = int(Decimal(vout['value']) * 100000000)
-            o.script_pubkey = binascii.unhexlify(vout['script_pub_key']['hex'])
-
-        return t
-
-
-TxApiBitcoin = TxApiInsight(network='insight_bitcoin', url='https://btc.coinquery.com/api/')
-TxApiTestnet = TxApiInsight(network='insight_testnet', url='https://test-insight.bitpay.com/api/')
-TxApiSegnet = TxApiSmartbit(network='smartbit_segnet', url='https://segnet-api.smartbit.com.au/v1/blockchain/')
-TxApiZcashTestnet = TxApiInsight(network='insight_zcashtestnet', url='https://explorer.testnet.z.cash/api/', zcash=True)
-TxApiBitcoinGold = TxApiInsight(network='insight_bitcoingold', url='https://btg.coinquery.com/api/')
+TxApiBitcoin = TxApiInsight(network='insight_bitcoin', url='https://btc.coinquery.com/api')
+TxApiTestnet = TxApiInsight(network='insight_testnet', url='https://test-insight.bitpay.com/api')
+TxApiZcashTestnet = TxApiInsight(network='insight_zcashtestnet', url='https://explorer.testnet.z.cash/api', zcash=True)
+TxApiBitcoinGold = TxApiInsight(network='insight_bitcoingold', url='https://btg.coinquery.com/api')
+TxApiGroestlcoin = TxApiInsight(network='insight_groestlcoin', url='https://groestlsight.groestlcoin.org/api')
+TxApiGroestlcoinTestnet = TxApiInsight(network='insight_groestlcoin_testnet', url='https://groestlsight-test.groestlcoin.org/api')

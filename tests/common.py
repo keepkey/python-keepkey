@@ -24,18 +24,21 @@ import unittest
 import config
 import time
 
-from keepkeylib.client import KeepKeyClient, KeepKeyDebugClient
+from keepkeylib.client import KeepKeyClient, KeepKeyDebuglinkClient, KeepKeyDebuglinkClientVerbose
 from keepkeylib import tx_api
 
-tx_api.cache_dir = '../txcache'
-
+tx_api.cache_dir = 'txcache'
+VERBOSE = False
 
 class KeepKeyTest(unittest.TestCase):
     def setUp(self):
         transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
         if hasattr(config, 'DEBUG_TRANSPORT'):
             debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS, **config.DEBUG_TRANSPORT_KWARGS)
-            self.client = KeepKeyDebugClient(transport)
+            if VERBOSE:
+                self.client = KeepKeyDebuglinkClientVerbose(transport)
+            else:
+                self.client = KeepKeyDebuglinkClient(transport)
             self.client.set_debuglink(debug_transport)
         else:
             self.client = KeepKeyClient(transport)
@@ -55,8 +58,9 @@ class KeepKeyTest(unittest.TestCase):
 
         self.client.wipe_device()
 
-        print("Setup finished")
-        print("--------------")
+        if VERBOSE:
+            print("Setup finished")
+            print("--------------")
 
     def setup_mnemonic_allallall(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic_all, pin='', passphrase_protection=False, label='test', language='english')
@@ -83,11 +87,18 @@ class KeepKeyBootloaderTest(unittest.TestCase):
     def setUp(self):
         self.debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS, **config.DEBUG_TRANSPORT_KWARGS)
         self.transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
-        self.client = KeepKeyDebugClient(self.transport)
+        if VERBOSE:
+            self.client = KeepKeyDebuglinkClientVerbose(self.transport)
+        else:
+            self.client = KeepKeyDebuglinkClient(self.transport)
         self.client.set_debuglink(self.debug_transport)
 
-        print("Setup finished")
-        print("--------------")
+        if not self.client.features.bootloader_mode:
+            self.skipTest("Unsupported when not in bootloader mode")
+
+        if VERBOSE:
+            print("Setup finished")
+            print("--------------")
 
     def reconnect(self):
         self.client.close()
@@ -96,11 +107,19 @@ class KeepKeyBootloaderTest(unittest.TestCase):
 
         self.debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS, **config.DEBUG_TRANSPORT_KWARGS)
         self.transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
-        self.client = KeepKeyDebugClient(self.transport)
+        if VERBOSE:
+            self.client = KeepKeyDebuglinkClientVerbose(self.transport)
+        else:
+            self.client = KeepKeyDebuglinkClient(self.transport)
+
         self.client.set_debuglink(self.debug_transport)
 
-        print("Reconnected")
-        print("--------------")
+        if not self.client.features.bootloader_mode:
+            self.skipTest("Unsupported when not in bootloader mode")
+
+        if VERBOSE:
+            print("Reconnected")
+            print("--------------")
 
     def tearDown(self):
         self.client.close()

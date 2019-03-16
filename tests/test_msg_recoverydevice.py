@@ -58,8 +58,6 @@ class TestDeviceRecovery(common.KeepKeyTest):
                 ret = self.client.call_raw(proto.WordAck(word=word))
                 fakes += 1
 
-            print(mnemonic)
-
         # Workflow succesfully ended
         self.assertIsInstance(ret, proto.Success)
 
@@ -105,8 +103,6 @@ class TestDeviceRecovery(common.KeepKeyTest):
             else:
                 ret = self.client.call_raw(proto.WordAck(word=word))
                 fakes += 1
-
-            print(mnemonic)
 
         # Workflow succesfully ended
         self.assertIsInstance(ret, proto.Success)

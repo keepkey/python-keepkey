@@ -224,42 +224,64 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 proto.EosActionVoteProducer(
                     voter=eos.name_to_number('memememememe')))
 
-    def action_updateauth(self):
+    def action_updateauth(self, is_slip48):
         return (proto.EosActionCommon(
                     account=eos.name_to_number('eosio'),
                     name=eos.name_to_number('updateauth'),
                     authorization=[
                         proto.EosPermissionLevel(
                             actor=eos.name_to_number('eosio'),
-                            permission=eos.name_to_number('active'))
+                            permission=eos.name_to_number('owner'))
                     ]),
                 proto.EosActionUpdateAuth(
                     account=eos.name_to_number('memememememe'),
                     permission=eos.name_to_number('active'),
                     parent=eos.name_to_number('momomomomom'),
-                    auth=self.authorization()))
+                    auth=self.authorization(is_slip48)))
 
-    def authorization(self):
-        return proto.EosAuthorization(
-                    threshold=2,
-                    keys=[
-                        proto.EosAuthorizationKey(
-                            type=1,
-                            address_n=parse_path("m/44'/194'/0'/0/0"),
-                            weight=2)
-                    ],
-                    accounts=[
-                        proto.EosAuthorizationAccount(
-                            account=proto.EosPermissionLevel(
-                                actor=eos.name_to_number('memememememe'),
-                                permission=eos.name_to_number('active')),
-                            weight=1)
-                    ],
-                    waits=[
-                        proto.EosAuthorizationWait(
-                            wait_sec=3600,
-                            weight=1)
-                    ])
+    def authorization(self, is_slip48):
+        if is_slip48:
+            # SLIP48 permissions
+            return proto.EosAuthorization(
+                threshold=1,
+                keys=[
+                    proto.EosAuthorizationKey(
+                        type=1,
+                        address_n=parse_path("m/48'/4'/1'/0'/0'"),
+                        weight=1)
+                ],
+                accounts=[
+                    proto.EosAuthorizationAccount(
+                        account=proto.EosPermissionLevel(
+                            actor=eos.name_to_number('memememememe'),
+                            permission=eos.name_to_number('active')),
+                        weight=1)
+                ],
+                waits=[
+                ])
+
+        else:
+            # SLIP44 / Exodus-style permissions
+            return proto.EosAuthorization(
+                threshold=2,
+                keys=[
+                    proto.EosAuthorizationKey(
+                        type=1,
+                        address_n=parse_path("m/44'/194'/0'/0/0"),
+                        weight=2)
+                ],
+                accounts=[
+                    proto.EosAuthorizationAccount(
+                        account=proto.EosPermissionLevel(
+                            actor=eos.name_to_number('memememememe'),
+                            permission=eos.name_to_number('active')),
+                        weight=1)
+                ],
+                waits=[
+                    proto.EosAuthorizationWait(
+                        wait_sec=3600,
+                        weight=1)
+                ])
 
     def action_deleteauth(self):
         return (proto.EosActionCommon(
@@ -350,7 +372,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_action_surplus(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         try:
             self.client.eos_sign_tx_raw(
@@ -367,7 +388,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_action_deficit(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         try:
             self.client.eos_sign_tx_raw(
@@ -384,7 +404,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_wrong_account(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         try:
             self.client.eos_sign_tx_raw(
@@ -410,7 +429,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_transfer(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -424,7 +442,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_delegatebw(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -435,11 +452,10 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             [self.action_delegatebw(False),
              self.action_delegatebw(True)])
 
-        self.assertEqual(binascii.hexlify(res.hash), "59e407c075535f600ff24e1487f6fc0062d32bc507033f65d92ab6131f00074c")
+        self.assertEqual(binascii.hexlify(res.hash), "b4921554b1ae7a7960477e9b89cb4d410493cef8a71bc60ead48882721eadcbd")
 
     def test_undelegatebw(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -453,7 +469,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_refund(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -467,7 +482,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_buyram(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -481,7 +495,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_buyrambytes(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -495,7 +508,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_sellram(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -509,7 +521,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_voteproducer(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -525,7 +536,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_updateauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -533,13 +543,22 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 chain_id=EOS_CHAIN_ID,
                 header=self.header(),
                 num_actions=1),
-            [self.action_updateauth()])
+            [self.action_updateauth(False)])
 
-        self.assertEqual(binascii.hexlify(res.hash), "51afb4e1285b8a273a4ebe3feb8b8fb3c4d00c69ee0077e27a4cc36a0126754a")
+        self.assertEqual(binascii.hexlify(res.hash), "0282c00575f451a47e99902ab2a51243499ea004df309148d1f2e23c007520b7")
+
+        res = self.client.eos_sign_tx_raw(
+            proto.EosSignTx(
+                address_n=parse_path("m/48'/4'/0'/0'/0'"),
+                chain_id=EOS_CHAIN_ID,
+                header=self.header(),
+                num_actions=1),
+            [self.action_updateauth(True)])
+
+        self.assertEqual(binascii.hexlify(res.hash), "63e2440c33abb0dccce44d634d24c6fd33eecab879439c7995cf65d1cb7d9acc")
 
     def test_deleteauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -553,7 +572,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_linkauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -567,7 +585,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_unlinkauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -581,7 +598,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_newaccount(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -591,11 +607,10 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 num_actions=1),
             [self.action_newaccount()])
 
-        self.assertEqual(binascii.hexlify(res.hash), "8cebf868f235f99af457ea23b8e6dda6abf73d9321dfa4040707c94478f44690")
+        self.assertEqual(binascii.hexlify(res.hash), "8e0accde9fb6529b5d72b4d9a9859e1dae0c6ae9a159bb1ea8c8f579f942c291")
 
     def test_unknown_noadvanced(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         self.client.apply_policy('AdvancedMode', 0)
 
         try:
@@ -613,7 +628,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_unknown_advanced(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         self.client.apply_policy('AdvancedMode', 1)
 
         vec = [
@@ -634,12 +648,10 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                     num_actions=1),
                 self.action_unknown('acbdefghijkl', 'mnopqrstuvwx', binascii.unhexlify('AB' * i)))
 
-            print(i, binascii.hexlify(res.hash))
             self.assertEqual(binascii.hexlify(res.hash), h)
 
     def test_eos_signtx_transfer_token(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -683,7 +695,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_buyram(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -726,7 +737,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_buyrambytes(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -769,7 +779,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_sellram(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -811,7 +820,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_delegate(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -833,10 +841,10 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             }
             ],
                 "data": {
-                "sender": "miniminimini",
+                "from": "miniminimini",
                 "receiver": "maximaximaxi",
-                "stake_net_quantity": "1.0000 EOS",
-                "stake_cpu_quantity": "1.0000 EOS",
+                "stake_net": "1.0000 EOS",
+                "stake_cpu": "1.0000 EOS",
                 "transfer": true
             }
             }
@@ -856,7 +864,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_undelegate(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -878,7 +885,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             }
             ],
                 "data": {
-                "sender": "miniminimini",
+                "from": "miniminimini",
                 "receiver": "maximaximaxi",
                 "unstake_net_quantity": "1.0000 EOS",
                 "unstake_cpu_quantity": "1.0000 EOS"
@@ -900,7 +907,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_refund(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -941,7 +947,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_linkauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -985,7 +990,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_unlinkauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -1028,7 +1032,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_updateauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -1099,7 +1102,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_deleteauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -1141,7 +1143,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_vote(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -1217,7 +1218,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_vote_proxy(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -1260,7 +1260,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_unknown(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         self.client.apply_policy('AdvancedMode', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -1300,7 +1299,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_eos_signtx_newaccount(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
             "transaction": {
@@ -1373,10 +1371,10 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 }
                 ],
                 "data": {
-                "sender": "miniminimini",
+                "from": "miniminimini",
                 "receiver": "maximaximaxi",
-                "stake_net_quantity": "1.0000 EOS",
-                "stake_cpu_quantity": "1.0000 EOS",
+                "stake_net": "1.0000 EOS",
+                "stake_cpu": "1.0000 EOS",
                 "transfer": true
                 }
             }
@@ -1390,13 +1388,12 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             json.loads(data))
 
         assert isinstance(actionResp, proto.EosSignedTx)
-        self.assertEqual(binascii.hexlify(actionResp.signature_r), "16238c00b6fc82ca0d9212141a4b6607dfac0723d20ee208f124a6846cfc958c")
-        self.assertEqual(binascii.hexlify(actionResp.signature_s), "3cf158773bdf22f4d7e987cd0602e38ae108eb41efc2d8a595f159fcbeaa2e82")
-        self.assertEqual(actionResp.signature_v, 31)
+        self.assertEqual(binascii.hexlify(actionResp.signature_r), "61317ec7dc5c6e62ef7e45b4961ad89fe748c5a9076f23e0c6afc90ad1f93f47")
+        self.assertEqual(binascii.hexlify(actionResp.signature_s), "056996515e6c6e28be136821859cf2092f719a8da25171ce6534c2bf9a013d3d")
+        self.assertEqual(actionResp.signature_v, 32)
 
     def test_eos_signtx_setcontract(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('Experimental', 1)
         self.client.apply_policy('AdvancedMode', 1)
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",

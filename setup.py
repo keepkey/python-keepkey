@@ -3,8 +3,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='keepkey',
-    version='6.0.1',
-    author='Bitcoin TREZOR and KeepKey',
+    version='6.0.3',
+    author='TREZOR and KeepKey',
     author_email='support@keepkey.com',
     description='Python library for communicating with KeepKey Hardware Wallet',
     url='https://github.com/keepkey/python-keepkey',

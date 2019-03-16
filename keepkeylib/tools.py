@@ -159,3 +159,14 @@ def monkeypatch_google_protobuf_text_format():
 
     google.protobuf.text_format.PrintFieldValue = _customPrintFieldValue
 
+
+def int_to_big_endian(value):
+    import struct
+
+    res = b''
+    while 0 < value:
+        res = struct.pack("B", value & 0xff) + res
+        value = value >> 8
+
+    return res
+

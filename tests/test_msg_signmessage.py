@@ -21,8 +21,10 @@
 import unittest
 import common
 import binascii
+import base64
 
 from keepkeylib.client import CallException
+from keepkeylib.tools import parse_path
 
 class TestMsgSignmessage(common.KeepKeyTest):
 
@@ -44,6 +46,12 @@ class TestMsgSignmessage(common.KeepKeyTest):
         sig = self.client.sign_message('Bitcoin', [0], "VeryLongMessage!" * 64)
         self.assertEqual(sig.address, '14LmW5k4ssUrtbAB4255zdqv3b4w1TuX9e')
         self.assertEqual(binascii.hexlify(sig.signature), '205ff795c29aef7538f8b3bdb2e8add0d0722ad630a140b6aefd504a5a895cbd867cbb00981afc50edd0398211e8d7c304bb8efa461181bc0afa67ea4a720a89ed')
+
+    def test_sign_grs(self):
+        self.setup_mnemonic_allallall()
+        sig = self.client.sign_message('Groestlcoin', parse_path("44'/17'/0'/0/0"), "test")
+        self.assertEqual(sig.address, 'Fj62rBJi8LvbmWu2jzkaUX1NFXLEqDLoZM')
+        self.assertEqual(base64.b64encode(sig.signature), 'INOYaa/jj8Yxz3mD5k+bZfUmjkjB9VzoV4dNG7+RsBUyK30xL7I9yMgWWVvsL46C5yQtxtZY0cRRk7q9N6b+YTM=')
 
     """
     def test_sign_utf(self):
