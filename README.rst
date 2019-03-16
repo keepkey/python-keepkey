@@ -115,6 +115,6 @@ Release Process
 * Bump the version in setup.py
 * Tag the release
 * Build the release
-  * sudo python3 setup.py sdist bdist_wheel
+  * sudo python3 setup.py sdist bdist_wheel bdist_egg
 * Upload the release
   * sudo python3 -m twine upload dist/* -s --sign-with gpg2
