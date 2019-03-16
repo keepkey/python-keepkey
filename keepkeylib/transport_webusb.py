@@ -42,7 +42,7 @@ class WebUsbTransport(Transport):
     """
 
     def __init__(self, device, *args, **kwargs):
-        self.buffer = ''
+        self.buffer = bytearray()
 
         if kwargs.get("debug_link", False):
             self.interface = 1
@@ -124,7 +124,7 @@ class WebUsbTransport(Transport):
             if len(data) != 64:
                 raise TransportException("Unexpected chunk size: %d" % len(chunk))
 
-            self.buffer += data[1:]
+            self.buffer.extend(bytearray(data[1:]))
 
         ret = self.buffer[:length]
         self.buffer = self.buffer[length:]
