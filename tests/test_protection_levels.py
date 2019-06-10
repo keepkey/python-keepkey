@@ -112,6 +112,7 @@ class TestProtectionLevels(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses([proto.EntropyRequest(), \
                                       proto.ButtonRequest(),
+                                      proto.ButtonRequest(),
                                       proto.Success(),
                                       proto.Features()])
             self.client.reset_device(False, 128, True, False, 'label', 'english')

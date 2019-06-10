@@ -234,6 +234,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
             self.assertIsInstance(ret, proto.EntropyRequest)
             resp = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
 
+            # Explainer Dialog
+            self.assertIsInstance(resp, proto.ButtonRequest)
+            self.client.debug.press_yes()
+            resp = self.client.call_raw(proto.ButtonAck())
+
             mnemonic = []
             while isinstance(resp, proto.ButtonRequest):
                 mnemonic.append(self.client.debug.read_reset_word())

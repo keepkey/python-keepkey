@@ -75,6 +75,11 @@ class TestDeviceReset(common.KeepKeyTest):
         entropy = generate_entropy(strength, internal_entropy, external_entropy)
         expected_mnemonic = Mnemonic('english').to_mnemonic(entropy)
 
+        # Explainer Dialog
+        self.assertIsInstance(resp, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        resp = self.client.call_raw(proto.ButtonAck())
+
         mnemonic = []
         while isinstance(resp, proto.ButtonRequest):
             mnemonic.append(self.client.debug.read_reset_word())
@@ -138,6 +143,11 @@ class TestDeviceReset(common.KeepKeyTest):
         # Generate mnemonic locally
         entropy = generate_entropy(strength, internal_entropy, external_entropy)
         expected_mnemonic = Mnemonic('english').to_mnemonic(entropy)
+
+        # Explainer Dialog
+        self.assertIsInstance(resp, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        resp = self.client.call_raw(proto.ButtonAck())
 
         mnemonic = []
         while isinstance(resp, proto.ButtonRequest):
