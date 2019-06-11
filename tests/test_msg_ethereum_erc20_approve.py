@@ -26,8 +26,6 @@ import keepkeylib.types_pb2 as proto_types
 import keepkeylib.exchange_pb2 as proto_exchange
 from keepkeylib.client import CallException
 
-from rlp.utils import int_to_big_endian
-
 class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
 
     def test_approve_cvc_100(self):
