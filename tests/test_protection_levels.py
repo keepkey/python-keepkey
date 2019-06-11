@@ -123,7 +123,9 @@ class TestProtectionLevels(common.KeepKeyTest):
     def test_recovery_device(self):
         with self.client:
             self.client.set_mnemonic(self.mnemonic12)
-            self.client.set_expected_responses([proto.WordRequest()] * 24 + \
+            self.client.set_expected_responses(
+                                     [proto.ButtonRequest()] +
+                                     [proto.WordRequest()] * 24 +
                                      [proto.Success(),
                                       proto.Features()])
             self.client.recovery_device(True, 12, False, False, 'label', 'english')

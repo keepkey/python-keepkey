@@ -35,6 +35,11 @@ class TestDeviceRecoveryDryRun(common.KeepKeyTest):
             )
         )
 
+        # Reminder UI
+        assert isinstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
+
         fakes = 0
         for _ in range(int(12 * 2)):
             assert isinstance(ret, proto.WordRequest)

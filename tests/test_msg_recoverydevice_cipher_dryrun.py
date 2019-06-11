@@ -36,6 +36,11 @@ class TestDeviceRecoveryDryRun(common.KeepKeyTest):
             )
         )
 
+        # Reminder UI
+        assert isinstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
+
         for index, word in enumerate(mnemonic):
             for character in word:
                 self.assertIsInstance(ret, proto.CharacterRequest)

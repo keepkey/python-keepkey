@@ -46,6 +46,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
         pin_encoded = self.client.debug.encode_pin(self.pin6)
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
 
+        # Reminder UI
+        assert isinstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
+
         fakes = 0
         for _ in range(int(12 * 2)):
             self.assertIsInstance(ret, proto.WordRequest)
@@ -92,6 +97,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
                                    language='english',
                                    enforce_wordlist=True))
 
+        # Reminder UI
+        assert isinstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
+
         fakes = 0
         for _ in range(int(12 * 2)):
             self.assertIsInstance(ret, proto.WordRequest)
@@ -133,6 +143,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
                                    label='label',
                                    language='english',
                                    enforce_wordlist=True))
+
+        # Reminder UI
+        assert isinstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
 
         self.assertIsInstance(ret, proto.WordRequest)
         for _ in range(int(12 * 2)):

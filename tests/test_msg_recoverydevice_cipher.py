@@ -45,6 +45,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
         pin_encoded = self.client.debug.encode_pin(self.pin6)
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
 
+        # Reminder UI
+        assert isinstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
+
         mnemonic_words = mnemonic.split(' ')
 
         for index, word in enumerate(mnemonic_words):
@@ -98,6 +103,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
                                    enforce_wordlist=True,
                                    use_character_cipher=True))
 
+        # Reminder UI
+        assert isinstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
+
         mnemonic_words = mnemonic.split(' ')
 
         for index, word in enumerate(mnemonic_words):
@@ -146,6 +156,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
                                    enforce_wordlist=True,
                                    use_character_cipher=True))
 
+        # Reminder UI
+        assert isinstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
+
         self.assertIsInstance(ret, proto.CharacterRequest)
         ret = self.client.call_raw(proto.CharacterAck(character='1'))
         self.assertIsInstance(ret, proto.Failure)
@@ -159,6 +174,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
                                    language='english',
                                    enforce_wordlist=True,
                                    use_character_cipher=True))
+
+        # Reminder UI
+        assert isinstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
 
         mnemonic_words = mnemonic.split(' ')
 
@@ -260,6 +280,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
                                    language='english',
                                    enforce_wordlist=True,
                                    use_character_cipher=True))
+
+            # Reminder UI
+            assert isinstance(ret, proto.ButtonRequest)
+            self.client.debug.press_yes()
+            ret = self.client.call_raw(proto.ButtonAck())
 
             mnemonic_words = mnemonic.split(' ')
 
