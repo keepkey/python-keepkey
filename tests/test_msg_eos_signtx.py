@@ -555,7 +555,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 num_actions=1),
             [self.action_updateauth(True)])
 
-        self.assertEqual(binascii.hexlify(res.hash), "63e2440c33abb0dccce44d634d24c6fd33eecab879439c7995cf65d1cb7d9acc")
+        self.assertEqual(binascii.hexlify(res.hash), "fb936ef1be4bda680d93bd10b6d062357d8dd7272038a706dc0d61a91f39c5ee")
 
     def test_deleteauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
