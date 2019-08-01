@@ -23,6 +23,8 @@ from .transport import Transport, ConnectionError
 
 import usb1
 
+_libusb_version = usb1.getVersion()
+_libusb_version = (_libusb_version.major, _libusb_version.minor, _libusb_version.micro)
 
 class FakeRead(object):
     # Let's pretend we have a file-like interface
@@ -85,13 +87,15 @@ class WebUsbTransport(Transport):
             if usb_id not in DEVICE_IDS:
                 continue
             try:
-                # this windows workaround pulled from github.com/trezor/python-trezor
-                # workaround for issue #223:
-                # on certain combinations of Windows USB drivers and libusb versions,
-                # Trezor is returned twice (possibly because Windows know it as both
-                # a HID and a WebUSB device), and one of the returned devices is
-                # non-functional.
-                dev.getProduct()
+                # Workaround for libusb < 1.0.22 on windows
+                if sys.platform == 'win32' and _libusb_version < (1, 0, 22):
+                    # this windows workaround pulled from github.com/trezor/python-trezor
+                    # workaround for issue #223:
+                    # on certain combinations of Windows USB drivers and libusb versions,
+                    # Trezor is returned twice (possibly because Windows know it as both
+                    # a HID and a WebUSB device), and one of the returned devices is
+                    # non-functional.
+                    dev.getProduct()
                 devices.append(dev)
             except usb1.USBErrorNotSupported:
                 pass
