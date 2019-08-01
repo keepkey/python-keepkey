@@ -18,6 +18,7 @@ import importlib
 import logging
 import sys
 import time
+import atexit
 
 from .transport import Transport, ConnectionError
 
@@ -42,6 +43,8 @@ class WebUsbTransport(Transport):
     """
     WebUsbTransport implements transport over WebUSB interface.
     """
+
+    context = None
 
     def __init__(self, device, *args, **kwargs):
         self.buffer = bytearray()
@@ -77,8 +80,10 @@ class WebUsbTransport(Transport):
 
     @classmethod
     def enumerate(cls):
-        cls.context = usb1.USBContext()
-        cls.context.open() #TODO: are there any extra closing steps that need to be taken?
+        if not cls.context:
+            cls.context = usb1.USBContext()
+            cls.context.open()
+            atexit.register(cls.context.close)
 
         devices = []
         for dev in cls.context.getDeviceIterator(skip_on_error=True):
