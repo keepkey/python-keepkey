@@ -533,6 +533,7 @@ class ProtocolMixin(object):
             "Zcash": 133,
             "BitcoinCash": 145,
             "Bitcore": 160,
+            "Megacoin": 217,
             "Bitcloud": 218,
             "Axe": 4242,
         }
