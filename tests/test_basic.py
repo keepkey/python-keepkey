@@ -44,13 +44,5 @@ class TestBasic(common.KeepKeyTest):
         # Every resulf of UUID must be the same
         self.assertEqual(id1, id2)
 
-    def test_device_id_different(self):
-        id1 = self.client.get_device_id()
-        self.client.wipe_device()
-        id2 = self.client.get_device_id()
-
-        # Device ID must be fresh after every reset
-        self.assertNotEqual(id1, id2)
-
 if __name__ == '__main__':
     unittest.main()

@@ -60,41 +60,48 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.client.apply_policy('AdvancedMode', 0)
 
         with self.client:
-            ret = self.client.call_raw(proto.EthereumSignTx(
-                address_n=[0, 0],
-                nonce=int_to_big_endian(0),
-                gas_price=int_to_big_endian(20),
-                gas_limit=int_to_big_endian(20),
-                value=int_to_big_endian(10),
+            self.client.set_expected_responses([
+                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_Other),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
+                proto.EthereumTxRequest()
+            ])
+
+            sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+                n=[0, 0],
+                nonce=0,
+                gas_price=20,
+                gas_limit=20,
                 to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
-                data_initial_chunk='abcdefghijklmnop' * 64,
-                data_length=1024))
+                value=10,
+                data='abcdefghijklmnop' * 16)
+            self.assertEqual(sig_v, 28)
+            self.assertEqual(binascii.hexlify(sig_r), '6da89ed8627a491bedc9e0382f37707ac4e5102e25e7a1234cb697cedb7cd2c0')
+            self.assertEqual(binascii.hexlify(sig_s), '691f73b145647623e2d115b208a7c3455a6a8a83e3b4db5b9c6d9bc75825038a')
 
-            # Confirm the Output
-            self.assertEqual(ret, proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput))
-            self.client.debug.press_yes()
-            ret = self.client.call_raw(proto.ButtonAck())
-
-            # Confirm Warning about AdvancedMode being turned off
-            self.assertEqual(ret, proto.ButtonRequest(code=proto_types.ButtonRequest_Other))
-            self.client.debug.press_yes()
-            ret = self.client.call_raw(proto.ButtonAck())
-
-            self.assertEqual(ret.code, proto_types.Failure_ActionCancelled)
 
         self.client.apply_policy('AdvancedMode', 1)
 
-        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
-            n=[0, 0],
-            nonce=0,
-            gas_price=20,
-            gas_limit=20,
-            to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
-            value=10,
-            data='abcdefghijklmnop' * 16)
-        self.assertEqual(sig_v, 28)
-        self.assertEqual(binascii.hexlify(sig_r), '6da89ed8627a491bedc9e0382f37707ac4e5102e25e7a1234cb697cedb7cd2c0')
-        self.assertEqual(binascii.hexlify(sig_s), '691f73b145647623e2d115b208a7c3455a6a8a83e3b4db5b9c6d9bc75825038a')
+        with self.client:
+            self.client.set_expected_responses([
+                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
+                proto.EthereumTxRequest()
+            ])
+
+            sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+                n=[0, 0],
+                nonce=0,
+                gas_price=20,
+                gas_limit=20,
+                to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
+                value=10,
+                data='abcdefghijklmnop' * 16)
+            self.assertEqual(sig_v, 28)
+            self.assertEqual(binascii.hexlify(sig_r), '6da89ed8627a491bedc9e0382f37707ac4e5102e25e7a1234cb697cedb7cd2c0')
+            self.assertEqual(binascii.hexlify(sig_s), '691f73b145647623e2d115b208a7c3455a6a8a83e3b4db5b9c6d9bc75825038a')
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[0, 0],

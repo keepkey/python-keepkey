@@ -112,6 +112,7 @@ class TestProtectionLevels(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses([proto.EntropyRequest(), \
                                       proto.ButtonRequest(),
+                                      proto.ButtonRequest(),
                                       proto.Success(),
                                       proto.Features()])
             self.client.reset_device(False, 128, True, False, 'label', 'english')
@@ -122,7 +123,9 @@ class TestProtectionLevels(common.KeepKeyTest):
     def test_recovery_device(self):
         with self.client:
             self.client.set_mnemonic(self.mnemonic12)
-            self.client.set_expected_responses([proto.WordRequest()] * 24 + \
+            self.client.set_expected_responses(
+                                     [proto.ButtonRequest()] +
+                                     [proto.WordRequest()] * 24 +
                                      [proto.Success(),
                                       proto.Features()])
             self.client.recovery_device(True, 12, False, False, 'label', 'english')
@@ -153,6 +156,7 @@ class TestProtectionLevels(common.KeepKeyTest):
     def test_signtx(self):
         self.setup_mnemonic_pin_passphrase()
 
+
         inp1 = proto_types.TxInputType(address_n=[0],  # 14LmW5k4ssUrtbAB4255zdqv3b4w1TuX9e
                              prev_hash=binascii.unhexlify('d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882'),
                              prev_index=0,
@@ -162,25 +166,47 @@ class TestProtectionLevels(common.KeepKeyTest):
                               amount=390000 - 10000,
                               script_type=proto_types.PAYTOADDRESS,
                               )
+        tx_responses = [
+            proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
+            proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
+            proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
+            proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
+            proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
+            proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
+            proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
+            proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
+            proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
+            proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
+            proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
+            proto.TxRequest(request_type=proto_types.TXFINISHED),
+        ]
 
+        self.client.clear_session()
         with self.client:
 
+            # Pin & Passphrase are needed after device is locked
             self.client.set_expected_responses([
                 proto.PinMatrixRequest(),
                 proto.PassphraseRequest(),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXMETA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("d5f65ee80147b4bcc70b75e4bbf2d7382021b871bd8867ef8fa525ef50864882"))),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
-                proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
-                proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
-                proto.TxRequest(request_type=proto_types.TXFINISHED),
-            ])
+
+            ] + tx_responses)
+            self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
+
+        with self.client:
+
+            # Pin & Passphrase not needed, since they're cached, and the device is unlocked
+            self.client.set_expected_responses([
+            ] + tx_responses)
+            self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
+
+        self.client.clear_session()
+        with self.client:
+
+            # Pin & Passphrase needed again after session is cleared, and the device is locked
+            self.client.set_expected_responses([
+                proto.PinMatrixRequest(),
+                proto.PassphraseRequest(),
+            ] + tx_responses)
             self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
 
     # def test_firmware_erase(self):

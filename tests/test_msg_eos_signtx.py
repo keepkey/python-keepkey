@@ -555,7 +555,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 num_actions=1),
             [self.action_updateauth(True)])
 
-        self.assertEqual(binascii.hexlify(res.hash), "63e2440c33abb0dccce44d634d24c6fd33eecab879439c7995cf65d1cb7d9acc")
+        self.assertEqual(binascii.hexlify(res.hash), "fb936ef1be4bda680d93bd10b6d062357d8dd7272038a706dc0d61a91f39c5ee")
 
     def test_deleteauth(self):
         self.setup_mnemonic_nopin_nopassphrase()
@@ -608,23 +608,6 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             [self.action_newaccount()])
 
         self.assertEqual(binascii.hexlify(res.hash), "8e0accde9fb6529b5d72b4d9a9859e1dae0c6ae9a159bb1ea8c8f579f942c291")
-
-    def test_unknown_noadvanced(self):
-        self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('AdvancedMode', 0)
-
-        try:
-            self.client.eos_sign_tx_raw(
-                proto.EosSignTx(
-                    address_n=parse_path("m/44'/194'/0'/0/0"),
-                    chain_id=EOS_CHAIN_ID,
-                    header=self.header(),
-                    num_actions=1),
-                self.action_unknown('somecontract', 'someaction', binascii.unhexlify('AB' * 15)))
-        except Exception as e:
-            self.assertEndsWith(e.args[1], "Signing cancelled by user")
-        else:
-            self.assert_(False, "Negative test passed")
 
     def test_unknown_advanced(self):
         self.setup_mnemonic_nopin_nopassphrase()
