@@ -8,7 +8,6 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -21,7 +20,8 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x0emessages.proto\x1a\x0btypes.proto\"\x0c\n\nInitialize\"\r\n\x0bGetFeatures\"\xf0\x03\n\x08\x46\x65\x61tures\x12\x0e\n\x06vendor\x18\x01 \x01(\t\x12\x15\n\rmajor_version\x18\x02 \x01(\r\x12\x15\n\rminor_version\x18\x03 \x01(\r\x12\x15\n\rpatch_version\x18\x04 \x01(\r\x12\x17\n\x0f\x62ootloader_mode\x18\x05 \x01(\x08\x12\x11\n\tdevice_id\x18\x06 \x01(\t\x12\x16\n\x0epin_protection\x18\x07 \x01(\x08\x12\x1d\n\x15passphrase_protection\x18\x08 \x01(\x08\x12\x10\n\x08language\x18\t \x01(\t\x12\r\n\x05label\x18\n \x01(\t\x12\x18\n\x05\x63oins\x18\x0b \x03(\x0b\x32\t.CoinType\x12\x13\n\x0binitialized\x18\x0c \x01(\x08\x12\x10\n\x08revision\x18\r \x01(\x0c\x12\x17\n\x0f\x62ootloader_hash\x18\x0e \x01(\x0c\x12\x10\n\x08imported\x18\x0f \x01(\x08\x12\x12\n\npin_cached\x18\x10 \x01(\x08\x12\x19\n\x11passphrase_cached\x18\x11 \x01(\x08\x12\x1d\n\x08policies\x18\x12 \x03(\x0b\x32\x0b.PolicyType\x12\r\n\x05model\x18\x15 \x01(\t\x12\x18\n\x10\x66irmware_variant\x18\x16 \x01(\t\x12\x15\n\rfirmware_hash\x18\x17 \x01(\x0c\x12\x11\n\tno_backup\x18\x18 \x01(\x08\"*\n\x0cGetCoinTable\x12\r\n\x05start\x18\x01 \x01(\r\x12\x0b\n\x03\x65nd\x18\x02 \x01(\r\"L\n\tCoinTable\x12\x18\n\x05table\x18\x01 \x03(\x0b\x32\t.CoinType\x12\x11\n\tnum_coins\x18\x02 \x01(\r\x12\x12\n\nchunk_size\x18\x03 \x01(\r\"\x0e\n\x0c\x43learSession\"y\n\rApplySettings\x12\x10\n\x08language\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\t\x12\x16\n\x0euse_passphrase\x18\x03 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x04 \x01(\r\x12\x13\n\x0bu2f_counter\x18\x05 \x01(\r\"\x1b\n\tChangePin\x12\x0e\n\x06remove\x18\x01 \x01(\x08\"i\n\x04Ping\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x19\n\x11\x62utton_protection\x18\x02 \x01(\x08\x12\x16\n\x0epin_protection\x18\x03 \x01(\x08\x12\x1d\n\x15passphrase_protection\x18\x04 \x01(\x08\"\x1a\n\x07Success\x12\x0f\n\x07message\x18\x01 \x01(\t\"6\n\x07\x46\x61ilure\x12\x1a\n\x04\x63ode\x18\x01 \x01(\x0e\x32\x0c.FailureType\x12\x0f\n\x07message\x18\x02 \x01(\t\"?\n\rButtonRequest\x12 \n\x04\x63ode\x18\x01 \x01(\x0e\x32\x12.ButtonRequestType\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"\x0b\n\tButtonAck\"7\n\x10PinMatrixRequest\x12#\n\x04type\x18\x01 \x01(\x0e\x32\x15.PinMatrixRequestType\"\x1b\n\x0cPinMatrixAck\x12\x0b\n\x03pin\x18\x01 \x02(\t\"\x08\n\x06\x43\x61ncel\"\x13\n\x11PassphraseRequest\"#\n\rPassphraseAck\x12\x12\n\npassphrase\x18\x01 \x02(\t\"\x1a\n\nGetEntropy\x12\x0c\n\x04size\x18\x01 \x02(\r\"\x1a\n\x07\x45ntropy\x12\x0f\n\x07\x65ntropy\x18\x01 \x02(\x0c\"\xa2\x01\n\x0cGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x18\n\x10\x65\x63\x64sa_curve_name\x18\x02 \x01(\t\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\x12\x1a\n\tcoin_name\x18\x04 \x01(\t:\x07\x42itcoin\x12\x33\n\x0bscript_type\x18\x05 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\"4\n\tPublicKey\x12\x19\n\x04node\x18\x01 \x02(\x0b\x32\x0b.HDNodeType\x12\x0c\n\x04xpub\x18\x02 \x01(\t\"\xb3\x01\n\nGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\tcoin_name\x18\x02 \x01(\t:\x07\x42itcoin\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\x12+\n\x08multisig\x18\x04 \x01(\x0b\x32\x19.MultisigRedeemScriptType\x12\x33\n\x0bscript_type\x18\x05 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\"=\n\x12\x45thereumGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\"\x1a\n\x07\x41\x64\x64ress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\"7\n\x0f\x45thereumAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\x0c\x12\x13\n\x0b\x61\x64\x64ress_str\x18\x02 \x01(\t\"\x0c\n\nWipeDevice\"\xbb\x01\n\nLoadDevice\x12\x10\n\x08mnemonic\x18\x01 \x01(\t\x12\x19\n\x04node\x18\x02 \x01(\x0b\x32\x0b.HDNodeType\x12\x0b\n\x03pin\x18\x03 \x01(\t\x12\x1d\n\x15passphrase_protection\x18\x04 \x01(\x08\x12\x19\n\x08language\x18\x05 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x06 \x01(\t\x12\x15\n\rskip_checksum\x18\x07 \x01(\x08\x12\x13\n\x0bu2f_counter\x18\x08 \x01(\r\"\xe1\x01\n\x0bResetDevice\x12\x16\n\x0e\x64isplay_random\x18\x01 \x01(\x08\x12\x15\n\x08strength\x18\x02 \x01(\r:\x03\x32\x35\x36\x12\x1d\n\x15passphrase_protection\x18\x03 \x01(\x08\x12\x16\n\x0epin_protection\x18\x04 \x01(\x08\x12\x19\n\x08language\x18\x05 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x06 \x01(\t\x12\x11\n\tno_backup\x18\x07 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x08 \x01(\r\x12\x13\n\x0bu2f_counter\x18\t \x01(\r\"\x10\n\x0e\x45ntropyRequest\"\x1d\n\nEntropyAck\x12\x0f\n\x07\x65ntropy\x18\x01 \x01(\x0c\"\xff\x01\n\x0eRecoveryDevice\x12\x12\n\nword_count\x18\x01 \x01(\r\x12\x1d\n\x15passphrase_protection\x18\x02 \x01(\x08\x12\x16\n\x0epin_protection\x18\x03 \x01(\x08\x12\x19\n\x08language\x18\x04 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x05 \x01(\t\x12\x18\n\x10\x65nforce_wordlist\x18\x06 \x01(\x08\x12\x1c\n\x14use_character_cipher\x18\x07 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x08 \x01(\r\x12\x13\n\x0bu2f_counter\x18\t \x01(\r\x12\x0f\n\x07\x64ry_run\x18\n \x01(\x08\"\r\n\x0bWordRequest\"\x17\n\x07WordAck\x12\x0c\n\x04word\x18\x01 \x02(\t\";\n\x10\x43haracterRequest\x12\x10\n\x08word_pos\x18\x01 \x02(\r\x12\x15\n\rcharacter_pos\x18\x02 \x02(\r\"?\n\x0c\x43haracterAck\x12\x11\n\tcharacter\x18\x01 \x01(\t\x12\x0e\n\x06\x64\x65lete\x18\x02 \x01(\x08\x12\x0c\n\x04\x64one\x18\x03 \x01(\x08\"\x82\x01\n\x0bSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\x12\x33\n\x0bscript_type\x18\x04 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\"`\n\rVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x1a\n\tcoin_name\x18\x04 \x01(\t:\x07\x42itcoin\"6\n\x10MessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"v\n\x0e\x45ncryptMessage\x12\x0e\n\x06pubkey\x18\x01 \x01(\x0c\x12\x0f\n\x07message\x18\x02 \x01(\x0c\x12\x14\n\x0c\x64isplay_only\x18\x03 \x01(\x08\x12\x11\n\taddress_n\x18\x04 \x03(\r\x12\x1a\n\tcoin_name\x18\x05 \x01(\t:\x07\x42itcoin\"@\n\x10\x45ncryptedMessage\x12\r\n\x05nonce\x18\x01 \x01(\x0c\x12\x0f\n\x07message\x18\x02 \x01(\x0c\x12\x0c\n\x04hmac\x18\x03 \x01(\x0c\"Q\n\x0e\x44\x65\x63ryptMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x0c\n\x04hmac\x18\x04 \x01(\x0c\"4\n\x10\x44\x65\x63ryptedMessage\x12\x0f\n\x07message\x18\x01 \x01(\x0c\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\"\x8c\x01\n\x0e\x43ipherKeyValue\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x0c\x12\x0f\n\x07\x65ncrypt\x18\x04 \x01(\x08\x12\x16\n\x0e\x61sk_on_encrypt\x18\x05 \x01(\x08\x12\x16\n\x0e\x61sk_on_decrypt\x18\x06 \x01(\x08\x12\n\n\x02iv\x18\x07 \x01(\x0c\"!\n\x10\x43ipheredKeyValue\x12\r\n\x05value\x18\x01 \x01(\x0c\"Y\n\x0e\x45stimateTxSize\x12\x15\n\routputs_count\x18\x01 \x02(\r\x12\x14\n\x0cinputs_count\x18\x02 \x02(\r\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\"\x19\n\x06TxSize\x12\x0f\n\x07tx_size\x18\x01 \x01(\r\"\xbb\x01\n\x06SignTx\x12\x15\n\routputs_count\x18\x01 \x02(\r\x12\x14\n\x0cinputs_count\x18\x02 \x02(\r\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\x12\x12\n\x07version\x18\x04 \x01(\r:\x01\x31\x12\x14\n\tlock_time\x18\x05 \x01(\r:\x01\x30\x12\x0e\n\x06\x65xpiry\x18\x06 \x01(\r\x12\x14\n\x0coverwintered\x18\x07 \x01(\x08\x12\x18\n\x10version_group_id\x18\x08 \x01(\r\"\x85\x01\n\tTxRequest\x12\"\n\x0crequest_type\x18\x01 \x01(\x0e\x32\x0c.RequestType\x12&\n\x07\x64\x65tails\x18\x02 \x01(\x0b\x32\x15.TxRequestDetailsType\x12,\n\nserialized\x18\x03 \x01(\x0b\x32\x18.TxRequestSerializedType\"%\n\x05TxAck\x12\x1c\n\x02tx\x18\x01 \x01(\x0b\x32\x10.TransactionType\"+\n\x08RawTxAck\x12\x1f\n\x02tx\x18\x01 \x01(\x0b\x32\x13.RawTransactionType\"\xec\x02\n\x0e\x45thereumSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x11\n\tgas_price\x18\x03 \x01(\x0c\x12\x11\n\tgas_limit\x18\x04 \x01(\x0c\x12\n\n\x02to\x18\x05 \x01(\x0c\x12\r\n\x05value\x18\x06 \x01(\x0c\x12\x1a\n\x12\x64\x61ta_initial_chunk\x18\x07 \x01(\x0c\x12\x13\n\x0b\x64\x61ta_length\x18\x08 \x01(\r\x12\x14\n\x0cto_address_n\x18\t \x03(\r\x12(\n\x0c\x61\x64\x64ress_type\x18\n \x01(\x0e\x32\x12.OutputAddressType\x12$\n\rexchange_type\x18\x0b \x01(\x0b\x32\r.ExchangeType\x12\x10\n\x08\x63hain_id\x18\x0c \x01(\r\x12\x13\n\x0btoken_value\x18\x64 \x01(\x0c\x12\x10\n\x08token_to\x18\x65 \x01(\x0c\x12\x16\n\x0etoken_shortcut\x18\x66 \x01(\t\x12\x0f\n\x07tx_type\x18g \x01(\r\"\x8c\x01\n\x11\x45thereumTxRequest\x12\x13\n\x0b\x64\x61ta_length\x18\x01 \x01(\r\x12\x13\n\x0bsignature_v\x18\x02 \x01(\r\x12\x13\n\x0bsignature_r\x18\x03 \x01(\x0c\x12\x13\n\x0bsignature_s\x18\x04 \x01(\x0c\x12\x0c\n\x04hash\x18\x05 \x01(\x0c\x12\x15\n\rsignature_der\x18\x06 \x01(\x0c\"#\n\rEthereumTxAck\x12\x12\n\ndata_chunk\x18\x01 \x01(\x0c\"9\n\x13\x45thereumSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\"L\n\x15\x45thereumVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\">\n\x18\x45thereumMessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"}\n\x0cSignIdentity\x12\x1f\n\x08identity\x18\x01 \x01(\x0b\x32\r.IdentityType\x12\x18\n\x10\x63hallenge_hidden\x18\x02 \x01(\x0c\x12\x18\n\x10\x63hallenge_visual\x18\x03 \x01(\t\x12\x18\n\x10\x65\x63\x64sa_curve_name\x18\x04 \x01(\t\"H\n\x0eSignedIdentity\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x12\n\npublic_key\x18\x02 \x01(\x0c\x12\x11\n\tsignature\x18\x03 \x01(\x0c\",\n\rApplyPolicies\x12\x1b\n\x06policy\x18\x01 \x03(\x0b\x32\x0b.PolicyType\"?\n\tFlashHash\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\r\x12\x0e\n\x06length\x18\x02 \x01(\r\x12\x11\n\tchallenge\x18\x03 \x01(\x0c\":\n\nFlashWrite\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\r\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\r\n\x05\x65rase\x18\x03 \x01(\x08\"!\n\x11\x46lashHashResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\"5\n\x12\x44\x65\x62ugLinkFlashDump\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\r\x12\x0e\n\x06length\x18\x02 \x01(\r\"*\n\x1a\x44\x65\x62ugLinkFlashDumpResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\"\x0b\n\tSoftReset\"\x0f\n\rFirmwareErase\"7\n\x0e\x46irmwareUpload\x12\x14\n\x0cpayload_hash\x18\x01 \x02(\x0c\x12\x0f\n\x07payload\x18\x02 \x02(\x0c\"#\n\x11\x44\x65\x62ugLinkDecision\x12\x0e\n\x06yes_no\x18\x01 \x02(\x08\"\x13\n\x11\x44\x65\x62ugLinkGetState\"\xd7\x02\n\x0e\x44\x65\x62ugLinkState\x12\x0e\n\x06layout\x18\x01 \x01(\x0c\x12\x0b\n\x03pin\x18\x02 \x01(\t\x12\x0e\n\x06matrix\x18\x03 \x01(\t\x12\x10\n\x08mnemonic\x18\x04 \x01(\t\x12\x19\n\x04node\x18\x05 \x01(\x0b\x32\x0b.HDNodeType\x12\x1d\n\x15passphrase_protection\x18\x06 \x01(\x08\x12\x12\n\nreset_word\x18\x07 \x01(\t\x12\x15\n\rreset_entropy\x18\x08 \x01(\x0c\x12\x1a\n\x12recovery_fake_word\x18\t \x01(\t\x12\x19\n\x11recovery_word_pos\x18\n \x01(\r\x12\x17\n\x0frecovery_cipher\x18\x0b \x01(\t\x12$\n\x1crecovery_auto_completed_word\x18\x0c \x01(\t\x12\x15\n\rfirmware_hash\x18\r \x01(\x0c\x12\x14\n\x0cstorage_hash\x18\x0e \x01(\x0c\"\x0f\n\rDebugLinkStop\";\n\x0c\x44\x65\x62ugLinkLog\x12\r\n\x05level\x18\x01 \x01(\r\x12\x0e\n\x06\x62ucket\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\"\x15\n\x13\x44\x65\x62ugLinkFillConfig*\x91\x18\n\x0bMessageType\x12 \n\x16MessageType_Initialize\x10\x00\x1a\x04\x90\xb5\x18\x01\x12\x1a\n\x10MessageType_Ping\x10\x01\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Success\x10\x02\x1a\x04\x98\xb5\x18\x01\x12\x1d\n\x13MessageType_Failure\x10\x03\x1a\x04\x98\xb5\x18\x01\x12\x1f\n\x15MessageType_ChangePin\x10\x04\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_WipeDevice\x10\x05\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_FirmwareErase\x10\x06\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_FirmwareUpload\x10\x07\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_GetEntropy\x10\t\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Entropy\x10\n\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_GetPublicKey\x10\x0b\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_PublicKey\x10\x0c\x1a\x04\x98\xb5\x18\x01\x12 \n\x16MessageType_LoadDevice\x10\r\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_ResetDevice\x10\x0e\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_SignTx\x10\x0f\x1a\x04\x90\xb5\x18\x01\x12\x1e\n\x14MessageType_Features\x10\x11\x1a\x04\x98\xb5\x18\x01\x12&\n\x1cMessageType_PinMatrixRequest\x10\x12\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_PinMatrixAck\x10\x13\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_Cancel\x10\x14\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_TxRequest\x10\x15\x1a\x04\x98\xb5\x18\x01\x12\x1b\n\x11MessageType_TxAck\x10\x16\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_CipherKeyValue\x10\x17\x1a\x04\x90\xb5\x18\x01\x12\"\n\x18MessageType_ClearSession\x10\x18\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ApplySettings\x10\x19\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ButtonRequest\x10\x1a\x1a\x04\x98\xb5\x18\x01\x12\x1f\n\x15MessageType_ButtonAck\x10\x1b\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_GetAddress\x10\x1d\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Address\x10\x1e\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EntropyRequest\x10#\x1a\x04\x98\xb5\x18\x01\x12 \n\x16MessageType_EntropyAck\x10$\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_SignMessage\x10&\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_VerifyMessage\x10\'\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_MessageSignature\x10(\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1dMessageType_PassphraseRequest\x10)\x1a\x04\x98\xb5\x18\x01\x12#\n\x19MessageType_PassphraseAck\x10*\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_EstimateTxSize\x10+\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_TxSize\x10,\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_RecoveryDevice\x10-\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_WordRequest\x10.\x1a\x04\x98\xb5\x18\x01\x12\x1d\n\x13MessageType_WordAck\x10/\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_CipheredKeyValue\x10\x30\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EncryptMessage\x10\x31\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_EncryptedMessage\x10\x32\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_DecryptMessage\x10\x33\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_DecryptedMessage\x10\x34\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_SignIdentity\x10\x35\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_SignedIdentity\x10\x36\x1a\x04\x98\xb5\x18\x01\x12!\n\x17MessageType_GetFeatures\x10\x37\x1a\x04\x90\xb5\x18\x01\x12(\n\x1eMessageType_EthereumGetAddress\x10\x38\x1a\x04\x90\xb5\x18\x01\x12%\n\x1bMessageType_EthereumAddress\x10\x39\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EthereumSignTx\x10:\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1dMessageType_EthereumTxRequest\x10;\x1a\x04\x98\xb5\x18\x01\x12#\n\x19MessageType_EthereumTxAck\x10<\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_CharacterRequest\x10P\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_CharacterAck\x10Q\x1a\x04\x90\xb5\x18\x01\x12\x1e\n\x14MessageType_RawTxAck\x10R\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ApplyPolicies\x10S\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_FlashHash\x10T\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_FlashWrite\x10U\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1dMessageType_FlashHashResponse\x10V\x1a\x04\x98\xb5\x18\x01\x12(\n\x1eMessageType_DebugLinkFlashDump\x10W\x1a\x04\xa0\xb5\x18\x01\x12\x30\n&MessageType_DebugLinkFlashDumpResponse\x10X\x1a\x04\xa8\xb5\x18\x01\x12\x1f\n\x15MessageType_SoftReset\x10Y\x1a\x04\xa0\xb5\x18\x01\x12\'\n\x1dMessageType_DebugLinkDecision\x10\x64\x1a\x04\xa0\xb5\x18\x01\x12\'\n\x1dMessageType_DebugLinkGetState\x10\x65\x1a\x04\xa0\xb5\x18\x01\x12$\n\x1aMessageType_DebugLinkState\x10\x66\x1a\x04\xa8\xb5\x18\x01\x12#\n\x19MessageType_DebugLinkStop\x10g\x1a\x04\xa0\xb5\x18\x01\x12\"\n\x18MessageType_DebugLinkLog\x10h\x1a\x04\xa8\xb5\x18\x01\x12)\n\x1fMessageType_DebugLinkFillConfig\x10i\x1a\x04\xa8\xb5\x18\x01\x12\"\n\x18MessageType_GetCoinTable\x10j\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_CoinTable\x10k\x1a\x04\x98\xb5\x18\x01\x12)\n\x1fMessageType_EthereumSignMessage\x10l\x1a\x04\x90\xb5\x18\x01\x12+\n!MessageType_EthereumVerifyMessage\x10m\x1a\x04\x90\xb5\x18\x01\x12.\n$MessageType_EthereumMessageSignature\x10n\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_EosGetPublicKey\x10\xd8\x04\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_EosPublicKey\x10\xd9\x04\x1a\x04\x98\xb5\x18\x01\x12 \n\x15MessageType_EosSignTx\x10\xda\x04\x1a\x04\x90\xb5\x18\x01\x12)\n\x1eMessageType_EosTxActionRequest\x10\xdb\x04\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_EosTxActionAck\x10\xdc\x04\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_EosSignedTx\x10\xdd\x04\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_NanoGetAddress\x10\xbc\x05\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_NanoAddress\x10\xbd\x05\x1a\x04\x98\xb5\x18\x01\x12!\n\x16MessageType_NanoSignTx\x10\xbe\x05\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_NanoSignedTx\x10\xbf\x05\x1a\x04\x98\xb5\x18\x01\x42,\n\x1a\x63om.keepkey.deviceprotocolB\x0eKeepKeyMessage')
+  serialized_options=_b('\n\032com.keepkey.deviceprotocolB\016KeepKeyMessage'),
+  serialized_pb=_b('\n\x0emessages.proto\x1a\x0btypes.proto\"\x0c\n\nInitialize\"\r\n\x0bGetFeatures\"\xf0\x03\n\x08\x46\x65\x61tures\x12\x0e\n\x06vendor\x18\x01 \x01(\t\x12\x15\n\rmajor_version\x18\x02 \x01(\r\x12\x15\n\rminor_version\x18\x03 \x01(\r\x12\x15\n\rpatch_version\x18\x04 \x01(\r\x12\x17\n\x0f\x62ootloader_mode\x18\x05 \x01(\x08\x12\x11\n\tdevice_id\x18\x06 \x01(\t\x12\x16\n\x0epin_protection\x18\x07 \x01(\x08\x12\x1d\n\x15passphrase_protection\x18\x08 \x01(\x08\x12\x10\n\x08language\x18\t \x01(\t\x12\r\n\x05label\x18\n \x01(\t\x12\x18\n\x05\x63oins\x18\x0b \x03(\x0b\x32\t.CoinType\x12\x13\n\x0binitialized\x18\x0c \x01(\x08\x12\x10\n\x08revision\x18\r \x01(\x0c\x12\x17\n\x0f\x62ootloader_hash\x18\x0e \x01(\x0c\x12\x10\n\x08imported\x18\x0f \x01(\x08\x12\x12\n\npin_cached\x18\x10 \x01(\x08\x12\x19\n\x11passphrase_cached\x18\x11 \x01(\x08\x12\x1d\n\x08policies\x18\x12 \x03(\x0b\x32\x0b.PolicyType\x12\r\n\x05model\x18\x15 \x01(\t\x12\x18\n\x10\x66irmware_variant\x18\x16 \x01(\t\x12\x15\n\rfirmware_hash\x18\x17 \x01(\x0c\x12\x11\n\tno_backup\x18\x18 \x01(\x08\"*\n\x0cGetCoinTable\x12\r\n\x05start\x18\x01 \x01(\r\x12\x0b\n\x03\x65nd\x18\x02 \x01(\r\"L\n\tCoinTable\x12\x18\n\x05table\x18\x01 \x03(\x0b\x32\t.CoinType\x12\x11\n\tnum_coins\x18\x02 \x01(\r\x12\x12\n\nchunk_size\x18\x03 \x01(\r\"\x0e\n\x0c\x43learSession\"y\n\rApplySettings\x12\x10\n\x08language\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\t\x12\x16\n\x0euse_passphrase\x18\x03 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x04 \x01(\r\x12\x13\n\x0bu2f_counter\x18\x05 \x01(\r\"\x1b\n\tChangePin\x12\x0e\n\x06remove\x18\x01 \x01(\x08\"i\n\x04Ping\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x19\n\x11\x62utton_protection\x18\x02 \x01(\x08\x12\x16\n\x0epin_protection\x18\x03 \x01(\x08\x12\x1d\n\x15passphrase_protection\x18\x04 \x01(\x08\"\x1a\n\x07Success\x12\x0f\n\x07message\x18\x01 \x01(\t\"6\n\x07\x46\x61ilure\x12\x1a\n\x04\x63ode\x18\x01 \x01(\x0e\x32\x0c.FailureType\x12\x0f\n\x07message\x18\x02 \x01(\t\"?\n\rButtonRequest\x12 \n\x04\x63ode\x18\x01 \x01(\x0e\x32\x12.ButtonRequestType\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"\x0b\n\tButtonAck\"7\n\x10PinMatrixRequest\x12#\n\x04type\x18\x01 \x01(\x0e\x32\x15.PinMatrixRequestType\"\x1b\n\x0cPinMatrixAck\x12\x0b\n\x03pin\x18\x01 \x02(\t\"\x08\n\x06\x43\x61ncel\"\x13\n\x11PassphraseRequest\"#\n\rPassphraseAck\x12\x12\n\npassphrase\x18\x01 \x02(\t\"\x1a\n\nGetEntropy\x12\x0c\n\x04size\x18\x01 \x02(\r\"\x1a\n\x07\x45ntropy\x12\x0f\n\x07\x65ntropy\x18\x01 \x02(\x0c\"\xa2\x01\n\x0cGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x18\n\x10\x65\x63\x64sa_curve_name\x18\x02 \x01(\t\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\x12\x1a\n\tcoin_name\x18\x04 \x01(\t:\x07\x42itcoin\x12\x33\n\x0bscript_type\x18\x05 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\"4\n\tPublicKey\x12\x19\n\x04node\x18\x01 \x02(\x0b\x32\x0b.HDNodeType\x12\x0c\n\x04xpub\x18\x02 \x01(\t\"\xb3\x01\n\nGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\tcoin_name\x18\x02 \x01(\t:\x07\x42itcoin\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\x12+\n\x08multisig\x18\x04 \x01(\x0b\x32\x19.MultisigRedeemScriptType\x12\x33\n\x0bscript_type\x18\x05 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\"=\n\x12\x45thereumGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\";\n\x10\x43osmosGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\"\x1a\n\x07\x41\x64\x64ress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\"7\n\x0f\x45thereumAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\x0c\x12\x13\n\x0b\x61\x64\x64ress_str\x18\x02 \x01(\t\"5\n\rCosmosAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\x0c\x12\x13\n\x0b\x61\x64\x64ress_str\x18\x02 \x01(\t\"\x0c\n\nWipeDevice\"\xbb\x01\n\nLoadDevice\x12\x10\n\x08mnemonic\x18\x01 \x01(\t\x12\x19\n\x04node\x18\x02 \x01(\x0b\x32\x0b.HDNodeType\x12\x0b\n\x03pin\x18\x03 \x01(\t\x12\x1d\n\x15passphrase_protection\x18\x04 \x01(\x08\x12\x19\n\x08language\x18\x05 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x06 \x01(\t\x12\x15\n\rskip_checksum\x18\x07 \x01(\x08\x12\x13\n\x0bu2f_counter\x18\x08 \x01(\r\"\xe1\x01\n\x0bResetDevice\x12\x16\n\x0e\x64isplay_random\x18\x01 \x01(\x08\x12\x15\n\x08strength\x18\x02 \x01(\r:\x03\x32\x35\x36\x12\x1d\n\x15passphrase_protection\x18\x03 \x01(\x08\x12\x16\n\x0epin_protection\x18\x04 \x01(\x08\x12\x19\n\x08language\x18\x05 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x06 \x01(\t\x12\x11\n\tno_backup\x18\x07 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x08 \x01(\r\x12\x13\n\x0bu2f_counter\x18\t \x01(\r\"\x10\n\x0e\x45ntropyRequest\"\x1d\n\nEntropyAck\x12\x0f\n\x07\x65ntropy\x18\x01 \x01(\x0c\"\xff\x01\n\x0eRecoveryDevice\x12\x12\n\nword_count\x18\x01 \x01(\r\x12\x1d\n\x15passphrase_protection\x18\x02 \x01(\x08\x12\x16\n\x0epin_protection\x18\x03 \x01(\x08\x12\x19\n\x08language\x18\x04 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x05 \x01(\t\x12\x18\n\x10\x65nforce_wordlist\x18\x06 \x01(\x08\x12\x1c\n\x14use_character_cipher\x18\x07 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x08 \x01(\r\x12\x13\n\x0bu2f_counter\x18\t \x01(\r\x12\x0f\n\x07\x64ry_run\x18\n \x01(\x08\"\r\n\x0bWordRequest\"\x17\n\x07WordAck\x12\x0c\n\x04word\x18\x01 \x02(\t\";\n\x10\x43haracterRequest\x12\x10\n\x08word_pos\x18\x01 \x02(\r\x12\x15\n\rcharacter_pos\x18\x02 \x02(\r\"?\n\x0c\x43haracterAck\x12\x11\n\tcharacter\x18\x01 \x01(\t\x12\x0e\n\x06\x64\x65lete\x18\x02 \x01(\x08\x12\x0c\n\x04\x64one\x18\x03 \x01(\x08\"\x82\x01\n\x0bSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\x12\x33\n\x0bscript_type\x18\x04 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\"`\n\rVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x1a\n\tcoin_name\x18\x04 \x01(\t:\x07\x42itcoin\"6\n\x10MessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"v\n\x0e\x45ncryptMessage\x12\x0e\n\x06pubkey\x18\x01 \x01(\x0c\x12\x0f\n\x07message\x18\x02 \x01(\x0c\x12\x14\n\x0c\x64isplay_only\x18\x03 \x01(\x08\x12\x11\n\taddress_n\x18\x04 \x03(\r\x12\x1a\n\tcoin_name\x18\x05 \x01(\t:\x07\x42itcoin\"@\n\x10\x45ncryptedMessage\x12\r\n\x05nonce\x18\x01 \x01(\x0c\x12\x0f\n\x07message\x18\x02 \x01(\x0c\x12\x0c\n\x04hmac\x18\x03 \x01(\x0c\"Q\n\x0e\x44\x65\x63ryptMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x0c\n\x04hmac\x18\x04 \x01(\x0c\"4\n\x10\x44\x65\x63ryptedMessage\x12\x0f\n\x07message\x18\x01 \x01(\x0c\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\"\x8c\x01\n\x0e\x43ipherKeyValue\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x0c\x12\x0f\n\x07\x65ncrypt\x18\x04 \x01(\x08\x12\x16\n\x0e\x61sk_on_encrypt\x18\x05 \x01(\x08\x12\x16\n\x0e\x61sk_on_decrypt\x18\x06 \x01(\x08\x12\n\n\x02iv\x18\x07 \x01(\x0c\"!\n\x10\x43ipheredKeyValue\x12\r\n\x05value\x18\x01 \x01(\x0c\"\xce\x01\n\x06SignTx\x12\x15\n\routputs_count\x18\x01 \x02(\r\x12\x14\n\x0cinputs_count\x18\x02 \x02(\r\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\x12\x12\n\x07version\x18\x04 \x01(\r:\x01\x31\x12\x14\n\tlock_time\x18\x05 \x01(\r:\x01\x30\x12\x0e\n\x06\x65xpiry\x18\x06 \x01(\r\x12\x14\n\x0coverwintered\x18\x07 \x01(\x08\x12\x18\n\x10version_group_id\x18\x08 \x01(\r\x12\x11\n\tbranch_id\x18\n \x01(\r\"\x85\x01\n\tTxRequest\x12\"\n\x0crequest_type\x18\x01 \x01(\x0e\x32\x0c.RequestType\x12&\n\x07\x64\x65tails\x18\x02 \x01(\x0b\x32\x15.TxRequestDetailsType\x12,\n\nserialized\x18\x03 \x01(\x0b\x32\x18.TxRequestSerializedType\"%\n\x05TxAck\x12\x1c\n\x02tx\x18\x01 \x01(\x0b\x32\x10.TransactionType\"+\n\x08RawTxAck\x12\x1f\n\x02tx\x18\x01 \x01(\x0b\x32\x13.RawTransactionType\"\xec\x02\n\x0e\x45thereumSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x11\n\tgas_price\x18\x03 \x01(\x0c\x12\x11\n\tgas_limit\x18\x04 \x01(\x0c\x12\n\n\x02to\x18\x05 \x01(\x0c\x12\r\n\x05value\x18\x06 \x01(\x0c\x12\x1a\n\x12\x64\x61ta_initial_chunk\x18\x07 \x01(\x0c\x12\x13\n\x0b\x64\x61ta_length\x18\x08 \x01(\r\x12\x14\n\x0cto_address_n\x18\t \x03(\r\x12(\n\x0c\x61\x64\x64ress_type\x18\n \x01(\x0e\x32\x12.OutputAddressType\x12$\n\rexchange_type\x18\x0b \x01(\x0b\x32\r.ExchangeType\x12\x10\n\x08\x63hain_id\x18\x0c \x01(\r\x12\x13\n\x0btoken_value\x18\x64 \x01(\x0c\x12\x10\n\x08token_to\x18\x65 \x01(\x0c\x12\x16\n\x0etoken_shortcut\x18\x66 \x01(\t\x12\x0f\n\x07tx_type\x18g \x01(\r\"\xea\x02\n\x0c\x43osmosSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x11\n\tgas_price\x18\x03 \x01(\x0c\x12\x11\n\tgas_limit\x18\x04 \x01(\x0c\x12\n\n\x02to\x18\x05 \x01(\x0c\x12\r\n\x05value\x18\x06 \x01(\x0c\x12\x1a\n\x12\x64\x61ta_initial_chunk\x18\x07 \x01(\x0c\x12\x13\n\x0b\x64\x61ta_length\x18\x08 \x01(\r\x12\x14\n\x0cto_address_n\x18\t \x03(\r\x12(\n\x0c\x61\x64\x64ress_type\x18\n \x01(\x0e\x32\x12.OutputAddressType\x12$\n\rexchange_type\x18\x0b \x01(\x0b\x32\r.ExchangeType\x12\x10\n\x08\x63hain_id\x18\x0c \x01(\r\x12\x13\n\x0btoken_value\x18\x64 \x01(\x0c\x12\x10\n\x08token_to\x18\x65 \x01(\x0c\x12\x16\n\x0etoken_shortcut\x18\x66 \x01(\t\x12\x0f\n\x07tx_type\x18g \x01(\r\"\x8c\x01\n\x11\x45thereumTxRequest\x12\x13\n\x0b\x64\x61ta_length\x18\x01 \x01(\r\x12\x13\n\x0bsignature_v\x18\x02 \x01(\r\x12\x13\n\x0bsignature_r\x18\x03 \x01(\x0c\x12\x13\n\x0bsignature_s\x18\x04 \x01(\x0c\x12\x0c\n\x04hash\x18\x05 \x01(\x0c\x12\x15\n\rsignature_der\x18\x06 \x01(\x0c\"\x8a\x01\n\x0f\x43osmosTxRequest\x12\x13\n\x0b\x64\x61ta_length\x18\x01 \x01(\r\x12\x13\n\x0bsignature_v\x18\x02 \x01(\r\x12\x13\n\x0bsignature_r\x18\x03 \x01(\x0c\x12\x13\n\x0bsignature_s\x18\x04 \x01(\x0c\x12\x0c\n\x04hash\x18\x05 \x01(\x0c\x12\x15\n\rsignature_der\x18\x06 \x01(\x0c\"#\n\rEthereumTxAck\x12\x12\n\ndata_chunk\x18\x01 \x01(\x0c\"!\n\x0b\x43osmosTxAck\x12\x12\n\ndata_chunk\x18\x01 \x01(\x0c\"9\n\x13\x45thereumSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\"7\n\x11\x43osmosSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\"L\n\x15\x45thereumVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\"J\n\x13\x43osmosVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\">\n\x18\x45thereumMessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"<\n\x16\x43osmosMessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"}\n\x0cSignIdentity\x12\x1f\n\x08identity\x18\x01 \x01(\x0b\x32\r.IdentityType\x12\x18\n\x10\x63hallenge_hidden\x18\x02 \x01(\x0c\x12\x18\n\x10\x63hallenge_visual\x18\x03 \x01(\t\x12\x18\n\x10\x65\x63\x64sa_curve_name\x18\x04 \x01(\t\"H\n\x0eSignedIdentity\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x12\n\npublic_key\x18\x02 \x01(\x0c\x12\x11\n\tsignature\x18\x03 \x01(\x0c\",\n\rApplyPolicies\x12\x1b\n\x06policy\x18\x01 \x03(\x0b\x32\x0b.PolicyType\"?\n\tFlashHash\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\r\x12\x0e\n\x06length\x18\x02 \x01(\r\x12\x11\n\tchallenge\x18\x03 \x01(\x0c\":\n\nFlashWrite\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\r\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\r\n\x05\x65rase\x18\x03 \x01(\x08\"!\n\x11\x46lashHashResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\"5\n\x12\x44\x65\x62ugLinkFlashDump\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\r\x12\x0e\n\x06length\x18\x02 \x01(\r\"*\n\x1a\x44\x65\x62ugLinkFlashDumpResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\"\x0b\n\tSoftReset\"\x0f\n\rFirmwareErase\"7\n\x0e\x46irmwareUpload\x12\x14\n\x0cpayload_hash\x18\x01 \x02(\x0c\x12\x0f\n\x07payload\x18\x02 \x02(\x0c\"#\n\x11\x44\x65\x62ugLinkDecision\x12\x0e\n\x06yes_no\x18\x01 \x02(\x08\"\x13\n\x11\x44\x65\x62ugLinkGetState\"\xd7\x02\n\x0e\x44\x65\x62ugLinkState\x12\x0e\n\x06layout\x18\x01 \x01(\x0c\x12\x0b\n\x03pin\x18\x02 \x01(\t\x12\x0e\n\x06matrix\x18\x03 \x01(\t\x12\x10\n\x08mnemonic\x18\x04 \x01(\t\x12\x19\n\x04node\x18\x05 \x01(\x0b\x32\x0b.HDNodeType\x12\x1d\n\x15passphrase_protection\x18\x06 \x01(\x08\x12\x12\n\nreset_word\x18\x07 \x01(\t\x12\x15\n\rreset_entropy\x18\x08 \x01(\x0c\x12\x1a\n\x12recovery_fake_word\x18\t \x01(\t\x12\x19\n\x11recovery_word_pos\x18\n \x01(\r\x12\x17\n\x0frecovery_cipher\x18\x0b \x01(\t\x12$\n\x1crecovery_auto_completed_word\x18\x0c \x01(\t\x12\x15\n\rfirmware_hash\x18\r \x01(\x0c\x12\x14\n\x0cstorage_hash\x18\x0e \x01(\x0c\"\x0f\n\rDebugLinkStop\";\n\x0c\x44\x65\x62ugLinkLog\x12\r\n\x05level\x18\x01 \x01(\r\x12\x0e\n\x06\x62ucket\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\"\x15\n\x13\x44\x65\x62ugLinkFillConfig*\x92\x1a\n\x0bMessageType\x12 \n\x16MessageType_Initialize\x10\x00\x1a\x04\x90\xb5\x18\x01\x12\x1a\n\x10MessageType_Ping\x10\x01\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Success\x10\x02\x1a\x04\x98\xb5\x18\x01\x12\x1d\n\x13MessageType_Failure\x10\x03\x1a\x04\x98\xb5\x18\x01\x12\x1f\n\x15MessageType_ChangePin\x10\x04\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_WipeDevice\x10\x05\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_FirmwareErase\x10\x06\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_FirmwareUpload\x10\x07\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_GetEntropy\x10\t\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Entropy\x10\n\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_GetPublicKey\x10\x0b\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_PublicKey\x10\x0c\x1a\x04\x98\xb5\x18\x01\x12 \n\x16MessageType_LoadDevice\x10\r\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_ResetDevice\x10\x0e\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_SignTx\x10\x0f\x1a\x04\x90\xb5\x18\x01\x12\x1e\n\x14MessageType_Features\x10\x11\x1a\x04\x98\xb5\x18\x01\x12&\n\x1cMessageType_PinMatrixRequest\x10\x12\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_PinMatrixAck\x10\x13\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_Cancel\x10\x14\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_TxRequest\x10\x15\x1a\x04\x98\xb5\x18\x01\x12\x1b\n\x11MessageType_TxAck\x10\x16\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_CipherKeyValue\x10\x17\x1a\x04\x90\xb5\x18\x01\x12\"\n\x18MessageType_ClearSession\x10\x18\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ApplySettings\x10\x19\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ButtonRequest\x10\x1a\x1a\x04\x98\xb5\x18\x01\x12\x1f\n\x15MessageType_ButtonAck\x10\x1b\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_GetAddress\x10\x1d\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Address\x10\x1e\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EntropyRequest\x10#\x1a\x04\x98\xb5\x18\x01\x12 \n\x16MessageType_EntropyAck\x10$\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_SignMessage\x10&\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_VerifyMessage\x10\'\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_MessageSignature\x10(\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1dMessageType_PassphraseRequest\x10)\x1a\x04\x98\xb5\x18\x01\x12#\n\x19MessageType_PassphraseAck\x10*\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_RecoveryDevice\x10-\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_WordRequest\x10.\x1a\x04\x98\xb5\x18\x01\x12\x1d\n\x13MessageType_WordAck\x10/\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_CipheredKeyValue\x10\x30\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EncryptMessage\x10\x31\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_EncryptedMessage\x10\x32\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_DecryptMessage\x10\x33\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_DecryptedMessage\x10\x34\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_SignIdentity\x10\x35\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_SignedIdentity\x10\x36\x1a\x04\x98\xb5\x18\x01\x12!\n\x17MessageType_GetFeatures\x10\x37\x1a\x04\x90\xb5\x18\x01\x12(\n\x1eMessageType_EthereumGetAddress\x10\x38\x1a\x04\x90\xb5\x18\x01\x12%\n\x1bMessageType_EthereumAddress\x10\x39\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EthereumSignTx\x10:\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1dMessageType_EthereumTxRequest\x10;\x1a\x04\x98\xb5\x18\x01\x12#\n\x19MessageType_EthereumTxAck\x10<\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_CharacterRequest\x10P\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_CharacterAck\x10Q\x1a\x04\x90\xb5\x18\x01\x12\x1e\n\x14MessageType_RawTxAck\x10R\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ApplyPolicies\x10S\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_FlashHash\x10T\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_FlashWrite\x10U\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1dMessageType_FlashHashResponse\x10V\x1a\x04\x98\xb5\x18\x01\x12(\n\x1eMessageType_DebugLinkFlashDump\x10W\x1a\x04\xa0\xb5\x18\x01\x12\x30\n&MessageType_DebugLinkFlashDumpResponse\x10X\x1a\x04\xa8\xb5\x18\x01\x12\x1f\n\x15MessageType_SoftReset\x10Y\x1a\x04\xa0\xb5\x18\x01\x12\'\n\x1dMessageType_DebugLinkDecision\x10\x64\x1a\x04\xa0\xb5\x18\x01\x12\'\n\x1dMessageType_DebugLinkGetState\x10\x65\x1a\x04\xa0\xb5\x18\x01\x12$\n\x1aMessageType_DebugLinkState\x10\x66\x1a\x04\xa8\xb5\x18\x01\x12#\n\x19MessageType_DebugLinkStop\x10g\x1a\x04\xa0\xb5\x18\x01\x12\"\n\x18MessageType_DebugLinkLog\x10h\x1a\x04\xa8\xb5\x18\x01\x12)\n\x1fMessageType_DebugLinkFillConfig\x10i\x1a\x04\xa8\xb5\x18\x01\x12\"\n\x18MessageType_GetCoinTable\x10j\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_CoinTable\x10k\x1a\x04\x98\xb5\x18\x01\x12)\n\x1fMessageType_EthereumSignMessage\x10l\x1a\x04\x90\xb5\x18\x01\x12+\n!MessageType_EthereumVerifyMessage\x10m\x1a\x04\x90\xb5\x18\x01\x12.\n$MessageType_EthereumMessageSignature\x10n\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_EosGetPublicKey\x10\xd8\x04\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_EosPublicKey\x10\xd9\x04\x1a\x04\x98\xb5\x18\x01\x12 \n\x15MessageType_EosSignTx\x10\xda\x04\x1a\x04\x90\xb5\x18\x01\x12)\n\x1eMessageType_EosTxActionRequest\x10\xdb\x04\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_EosTxActionAck\x10\xdc\x04\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_EosSignedTx\x10\xdd\x04\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_NanoGetAddress\x10\xbc\x05\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_NanoAddress\x10\xbd\x05\x1a\x04\x98\xb5\x18\x01\x12!\n\x16MessageType_NanoSignTx\x10\xbe\x05\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_NanoSignedTx\x10\xbf\x05\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_CosmosGetAddress\x10\xa0\x06\x1a\x04\x90\xb5\x18\x01\x12$\n\x19MessageType_CosmosAddress\x10\xa1\x06\x1a\x04\x98\xb5\x18\x01\x12#\n\x18MessageType_CosmosSignTx\x10\xa2\x06\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_CosmosTxRequest\x10\xa3\x06\x1a\x04\x98\xb5\x18\x01\x12\"\n\x17MessageType_CosmosTxAck\x10\xa4\x06\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_CosmosSignMessage\x10\xa5\x06\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_CosmosVerifyMessage\x10\xa6\x06\x1a\x04\x90\xb5\x18\x01\x12-\n\"MessageType_CosmosMessageSignature\x10\xa7\x06\x1a\x04\x98\xb5\x18\x01\x42,\n\x1a\x63om.keepkey.deviceprotocolB\x0eKeepKeyMessage')
   ,
   dependencies=[types__pb2.DESCRIPTOR,])
 
@@ -33,345 +33,369 @@ _MESSAGETYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='MessageType_Initialize', index=0, number=0,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_Ping', index=1, number=1,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_Success', index=2, number=2,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_Failure', index=3, number=3,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_ChangePin', index=4, number=4,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_WipeDevice', index=5, number=5,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_FirmwareErase', index=6, number=6,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_FirmwareUpload', index=7, number=7,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_GetEntropy', index=8, number=9,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_Entropy', index=9, number=10,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_GetPublicKey', index=10, number=11,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_PublicKey', index=11, number=12,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_LoadDevice', index=12, number=13,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_ResetDevice', index=13, number=14,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_SignTx', index=14, number=15,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_Features', index=15, number=17,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_PinMatrixRequest', index=16, number=18,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_PinMatrixAck', index=17, number=19,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_Cancel', index=18, number=20,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_TxRequest', index=19, number=21,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_TxAck', index=20, number=22,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_CipherKeyValue', index=21, number=23,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_ClearSession', index=22, number=24,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_ApplySettings', index=23, number=25,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_ButtonRequest', index=24, number=26,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_ButtonAck', index=25, number=27,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_GetAddress', index=26, number=29,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_Address', index=27, number=30,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_EntropyRequest', index=28, number=35,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_EntropyAck', index=29, number=36,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_SignMessage', index=30, number=38,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_VerifyMessage', index=31, number=39,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_MessageSignature', index=32, number=40,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_PassphraseRequest', index=33, number=41,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MessageType_PassphraseAck', index=34, number=42,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EstimateTxSize', index=35, number=43,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_RecoveryDevice', index=35, number=45,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_TxSize', index=36, number=44,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_WordRequest', index=36, number=46,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_RecoveryDevice', index=37, number=45,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_WordAck', index=37, number=47,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_WordRequest', index=38, number=46,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_CipheredKeyValue', index=38, number=48,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_WordAck', index=39, number=47,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_EncryptMessage', index=39, number=49,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_CipheredKeyValue', index=40, number=48,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_EncryptedMessage', index=40, number=50,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EncryptMessage', index=41, number=49,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_DecryptMessage', index=41, number=51,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EncryptedMessage', index=42, number=50,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_DecryptedMessage', index=42, number=52,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DecryptMessage', index=43, number=51,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_SignIdentity', index=43, number=53,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DecryptedMessage', index=44, number=52,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_SignedIdentity', index=44, number=54,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_SignIdentity', index=45, number=53,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_GetFeatures', index=45, number=55,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_SignedIdentity', index=46, number=54,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_EthereumGetAddress', index=46, number=56,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_GetFeatures', index=47, number=55,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_EthereumAddress', index=47, number=57,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EthereumGetAddress', index=48, number=56,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_EthereumSignTx', index=48, number=58,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EthereumAddress', index=49, number=57,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_EthereumTxRequest', index=49, number=59,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EthereumSignTx', index=50, number=58,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_EthereumTxAck', index=50, number=60,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EthereumTxRequest', index=51, number=59,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_CharacterRequest', index=51, number=80,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EthereumTxAck', index=52, number=60,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_CharacterAck', index=52, number=81,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_CharacterRequest', index=53, number=80,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_RawTxAck', index=53, number=82,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_CharacterAck', index=54, number=81,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_ApplyPolicies', index=54, number=83,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_RawTxAck', index=55, number=82,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_FlashHash', index=55, number=84,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_ApplyPolicies', index=56, number=83,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_FlashWrite', index=56, number=85,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_FlashHash', index=57, number=84,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_FlashHashResponse', index=57, number=86,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_FlashWrite', index=58, number=85,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_DebugLinkFlashDump', index=58, number=87,
+      serialized_options=_b('\240\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_FlashHashResponse', index=59, number=86,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_DebugLinkFlashDumpResponse', index=59, number=88,
+      serialized_options=_b('\250\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkFlashDump', index=60, number=87,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\240\265\030\001')),
+      name='MessageType_SoftReset', index=60, number=89,
+      serialized_options=_b('\240\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkFlashDumpResponse', index=61, number=88,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\250\265\030\001')),
+      name='MessageType_DebugLinkDecision', index=61, number=100,
+      serialized_options=_b('\240\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_SoftReset', index=62, number=89,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\240\265\030\001')),
+      name='MessageType_DebugLinkGetState', index=62, number=101,
+      serialized_options=_b('\240\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkDecision', index=63, number=100,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\240\265\030\001')),
+      name='MessageType_DebugLinkState', index=63, number=102,
+      serialized_options=_b('\250\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkGetState', index=64, number=101,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\240\265\030\001')),
+      name='MessageType_DebugLinkStop', index=64, number=103,
+      serialized_options=_b('\240\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkState', index=65, number=102,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\250\265\030\001')),
+      name='MessageType_DebugLinkLog', index=65, number=104,
+      serialized_options=_b('\250\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkStop', index=66, number=103,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\240\265\030\001')),
+      name='MessageType_DebugLinkFillConfig', index=66, number=105,
+      serialized_options=_b('\250\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkLog', index=67, number=104,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\250\265\030\001')),
+      name='MessageType_GetCoinTable', index=67, number=106,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_DebugLinkFillConfig', index=68, number=105,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\250\265\030\001')),
+      name='MessageType_CoinTable', index=68, number=107,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_GetCoinTable', index=69, number=106,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_EthereumSignMessage', index=69, number=108,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_CoinTable', index=70, number=107,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_EthereumVerifyMessage', index=70, number=109,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EthereumSignMessage', index=71, number=108,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_EthereumMessageSignature', index=71, number=110,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EthereumVerifyMessage', index=72, number=109,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_EosGetPublicKey', index=72, number=600,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EthereumMessageSignature', index=73, number=110,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_EosPublicKey', index=73, number=601,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EosGetPublicKey', index=74, number=600,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_EosSignTx', index=74, number=602,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EosPublicKey', index=75, number=601,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_EosTxActionRequest', index=75, number=603,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EosSignTx', index=76, number=602,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_EosTxActionAck', index=76, number=604,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EosTxActionRequest', index=77, number=603,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_EosSignedTx', index=77, number=605,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EosTxActionAck', index=78, number=604,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_NanoGetAddress', index=78, number=700,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_EosSignedTx', index=79, number=605,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_NanoAddress', index=79, number=701,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_NanoGetAddress', index=80, number=700,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_NanoSignTx', index=80, number=702,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_NanoAddress', index=81, number=701,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_NanoSignedTx', index=81, number=703,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_NanoSignTx', index=82, number=702,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      name='MessageType_CosmosGetAddress', index=82, number=800,
+      serialized_options=_b('\220\265\030\001'),
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='MessageType_NanoSignedTx', index=83, number=703,
-      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      name='MessageType_CosmosAddress', index=83, number=801,
+      serialized_options=_b('\230\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_CosmosSignTx', index=84, number=802,
+      serialized_options=_b('\220\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_CosmosTxRequest', index=85, number=803,
+      serialized_options=_b('\230\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_CosmosTxAck', index=86, number=804,
+      serialized_options=_b('\220\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_CosmosSignMessage', index=87, number=805,
+      serialized_options=_b('\220\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_CosmosVerifyMessage', index=88, number=806,
+      serialized_options=_b('\220\265\030\001'),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_CosmosMessageSignature', index=89, number=807,
+      serialized_options=_b('\230\265\030\001'),
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=5945,
-  serialized_end=9034,
+  serialized_options=None,
+  serialized_start=6698,
+  serialized_end=10044,
 )
 _sym_db.RegisterEnumDescriptor(_MESSAGETYPE)
 
@@ -411,8 +435,6 @@ MessageType_VerifyMessage = 39
 MessageType_MessageSignature = 40
 MessageType_PassphraseRequest = 41
 MessageType_PassphraseAck = 42
-MessageType_EstimateTxSize = 43
-MessageType_TxSize = 44
 MessageType_RecoveryDevice = 45
 MessageType_WordRequest = 46
 MessageType_WordAck = 47
@@ -460,6 +482,14 @@ MessageType_NanoGetAddress = 700
 MessageType_NanoAddress = 701
 MessageType_NanoSignTx = 702
 MessageType_NanoSignedTx = 703
+MessageType_CosmosGetAddress = 800
+MessageType_CosmosAddress = 801
+MessageType_CosmosSignTx = 802
+MessageType_CosmosTxRequest = 803
+MessageType_CosmosTxAck = 804
+MessageType_CosmosSignMessage = 805
+MessageType_CosmosVerifyMessage = 806
+MessageType_CosmosMessageSignature = 807
 
 
 
@@ -476,7 +506,7 @@ _INITIALIZE = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -500,7 +530,7 @@ _GETFEATURES = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -524,161 +554,161 @@ _FEATURES = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='major_version', full_name='Features.major_version', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='minor_version', full_name='Features.minor_version', index=2,
       number=3, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='patch_version', full_name='Features.patch_version', index=3,
       number=4, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='bootloader_mode', full_name='Features.bootloader_mode', index=4,
       number=5, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='device_id', full_name='Features.device_id', index=5,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pin_protection', full_name='Features.pin_protection', index=6,
       number=7, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='passphrase_protection', full_name='Features.passphrase_protection', index=7,
       number=8, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='language', full_name='Features.language', index=8,
       number=9, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='label', full_name='Features.label', index=9,
       number=10, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='coins', full_name='Features.coins', index=10,
       number=11, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='initialized', full_name='Features.initialized', index=11,
       number=12, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='revision', full_name='Features.revision', index=12,
       number=13, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='bootloader_hash', full_name='Features.bootloader_hash', index=13,
       number=14, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='imported', full_name='Features.imported', index=14,
       number=15, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pin_cached', full_name='Features.pin_cached', index=15,
       number=16, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='passphrase_cached', full_name='Features.passphrase_cached', index=16,
       number=17, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='policies', full_name='Features.policies', index=17,
       number=18, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='model', full_name='Features.model', index=18,
       number=21, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='firmware_variant', full_name='Features.firmware_variant', index=19,
       number=22, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='firmware_hash', full_name='Features.firmware_hash', index=20,
       number=23, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='no_backup', full_name='Features.no_backup', index=21,
       number=24, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -702,21 +732,21 @@ _GETCOINTABLE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='end', full_name='GetCoinTable.end', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -740,28 +770,28 @@ _COINTABLE = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='num_coins', full_name='CoinTable.num_coins', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='chunk_size', full_name='CoinTable.chunk_size', index=2,
       number=3, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -785,7 +815,7 @@ _CLEARSESSION = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -809,42 +839,42 @@ _APPLYSETTINGS = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='label', full_name='ApplySettings.label', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='use_passphrase', full_name='ApplySettings.use_passphrase', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='auto_lock_delay_ms', full_name='ApplySettings.auto_lock_delay_ms', index=3,
       number=4, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='u2f_counter', full_name='ApplySettings.u2f_counter', index=4,
       number=5, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -868,14 +898,14 @@ _CHANGEPIN = _descriptor.Descriptor(
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -899,35 +929,35 @@ _PING = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='button_protection', full_name='Ping.button_protection', index=1,
       number=2, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pin_protection', full_name='Ping.pin_protection', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='passphrase_protection', full_name='Ping.passphrase_protection', index=3,
       number=4, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -951,14 +981,14 @@ _SUCCESS = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -982,21 +1012,21 @@ _FAILURE = _descriptor.Descriptor(
       has_default_value=False, default_value=1,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='message', full_name='Failure.message', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1020,21 +1050,21 @@ _BUTTONREQUEST = _descriptor.Descriptor(
       has_default_value=False, default_value=1,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='data', full_name='ButtonRequest.data', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1058,7 +1088,7 @@ _BUTTONACK = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1082,14 +1112,14 @@ _PINMATRIXREQUEST = _descriptor.Descriptor(
       has_default_value=False, default_value=1,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1113,14 +1143,14 @@ _PINMATRIXACK = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1144,7 +1174,7 @@ _CANCEL = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1168,7 +1198,7 @@ _PASSPHRASEREQUEST = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1192,14 +1222,14 @@ _PASSPHRASEACK = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1223,14 +1253,14 @@ _GETENTROPY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1254,14 +1284,14 @@ _ENTROPY = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1285,42 +1315,42 @@ _GETPUBLICKEY = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ecdsa_curve_name', full_name='GetPublicKey.ecdsa_curve_name', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='show_display', full_name='GetPublicKey.show_display', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='coin_name', full_name='GetPublicKey.coin_name', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=True, default_value=_b("Bitcoin").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='script_type', full_name='GetPublicKey.script_type', index=4,
       number=5, type=14, cpp_type=8, label=1,
       has_default_value=True, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1344,21 +1374,21 @@ _PUBLICKEY = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='xpub', full_name='PublicKey.xpub', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1382,42 +1412,42 @@ _GETADDRESS = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='coin_name', full_name='GetAddress.coin_name', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=True, default_value=_b("Bitcoin").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='show_display', full_name='GetAddress.show_display', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='multisig', full_name='GetAddress.multisig', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='script_type', full_name='GetAddress.script_type', index=4,
       number=5, type=14, cpp_type=8, label=1,
       has_default_value=True, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1441,21 +1471,21 @@ _ETHEREUMGETADDRESS = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='show_display', full_name='EthereumGetAddress.show_display', index=1,
       number=2, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -1463,6 +1493,44 @@ _ETHEREUMGETADDRESS = _descriptor.Descriptor(
   ],
   serialized_start=1729,
   serialized_end=1790,
+)
+
+
+_COSMOSGETADDRESS = _descriptor.Descriptor(
+  name='CosmosGetAddress',
+  full_name='CosmosGetAddress',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address_n', full_name='CosmosGetAddress.address_n', index=0,
+      number=1, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='show_display', full_name='CosmosGetAddress.show_display', index=1,
+      number=2, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1792,
+  serialized_end=1851,
 )
 
 
@@ -1479,21 +1547,21 @@ _ADDRESS = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1792,
-  serialized_end=1818,
+  serialized_start=1853,
+  serialized_end=1879,
 )
 
 
@@ -1510,28 +1578,66 @@ _ETHEREUMADDRESS = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='address_str', full_name='EthereumAddress.address_str', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1820,
-  serialized_end=1875,
+  serialized_start=1881,
+  serialized_end=1936,
+)
+
+
+_COSMOSADDRESS = _descriptor.Descriptor(
+  name='CosmosAddress',
+  full_name='CosmosAddress',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address', full_name='CosmosAddress.address', index=0,
+      number=1, type=12, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='address_str', full_name='CosmosAddress.address_str', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1938,
+  serialized_end=1991,
 )
 
 
@@ -1548,14 +1654,14 @@ _WIPEDEVICE = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1877,
-  serialized_end=1889,
+  serialized_start=1993,
+  serialized_end=2005,
 )
 
 
@@ -1572,70 +1678,70 @@ _LOADDEVICE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='node', full_name='LoadDevice.node', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pin', full_name='LoadDevice.pin', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='passphrase_protection', full_name='LoadDevice.passphrase_protection', index=3,
       number=4, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='language', full_name='LoadDevice.language', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=True, default_value=_b("english").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='label', full_name='LoadDevice.label', index=5,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='skip_checksum', full_name='LoadDevice.skip_checksum', index=6,
       number=7, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='u2f_counter', full_name='LoadDevice.u2f_counter', index=7,
       number=8, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1892,
-  serialized_end=2079,
+  serialized_start=2008,
+  serialized_end=2195,
 )
 
 
@@ -1652,77 +1758,77 @@ _RESETDEVICE = _descriptor.Descriptor(
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='strength', full_name='ResetDevice.strength', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=True, default_value=256,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='passphrase_protection', full_name='ResetDevice.passphrase_protection', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pin_protection', full_name='ResetDevice.pin_protection', index=3,
       number=4, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='language', full_name='ResetDevice.language', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=True, default_value=_b("english").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='label', full_name='ResetDevice.label', index=5,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='no_backup', full_name='ResetDevice.no_backup', index=6,
       number=7, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='auto_lock_delay_ms', full_name='ResetDevice.auto_lock_delay_ms', index=7,
       number=8, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='u2f_counter', full_name='ResetDevice.u2f_counter', index=8,
       number=9, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2082,
-  serialized_end=2307,
+  serialized_start=2198,
+  serialized_end=2423,
 )
 
 
@@ -1739,14 +1845,14 @@ _ENTROPYREQUEST = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2309,
-  serialized_end=2325,
+  serialized_start=2425,
+  serialized_end=2441,
 )
 
 
@@ -1763,21 +1869,21 @@ _ENTROPYACK = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2327,
-  serialized_end=2356,
+  serialized_start=2443,
+  serialized_end=2472,
 )
 
 
@@ -1794,84 +1900,84 @@ _RECOVERYDEVICE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='passphrase_protection', full_name='RecoveryDevice.passphrase_protection', index=1,
       number=2, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pin_protection', full_name='RecoveryDevice.pin_protection', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='language', full_name='RecoveryDevice.language', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=True, default_value=_b("english").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='label', full_name='RecoveryDevice.label', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='enforce_wordlist', full_name='RecoveryDevice.enforce_wordlist', index=5,
       number=6, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='use_character_cipher', full_name='RecoveryDevice.use_character_cipher', index=6,
       number=7, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='auto_lock_delay_ms', full_name='RecoveryDevice.auto_lock_delay_ms', index=7,
       number=8, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='u2f_counter', full_name='RecoveryDevice.u2f_counter', index=8,
       number=9, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='dry_run', full_name='RecoveryDevice.dry_run', index=9,
       number=10, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2359,
-  serialized_end=2614,
+  serialized_start=2475,
+  serialized_end=2730,
 )
 
 
@@ -1888,14 +1994,14 @@ _WORDREQUEST = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2616,
-  serialized_end=2629,
+  serialized_start=2732,
+  serialized_end=2745,
 )
 
 
@@ -1912,21 +2018,21 @@ _WORDACK = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2631,
-  serialized_end=2654,
+  serialized_start=2747,
+  serialized_end=2770,
 )
 
 
@@ -1943,28 +2049,28 @@ _CHARACTERREQUEST = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='character_pos', full_name='CharacterRequest.character_pos', index=1,
       number=2, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2656,
-  serialized_end=2715,
+  serialized_start=2772,
+  serialized_end=2831,
 )
 
 
@@ -1981,35 +2087,35 @@ _CHARACTERACK = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='delete', full_name='CharacterAck.delete', index=1,
       number=2, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='done', full_name='CharacterAck.done', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2717,
-  serialized_end=2780,
+  serialized_start=2833,
+  serialized_end=2896,
 )
 
 
@@ -2026,42 +2132,42 @@ _SIGNMESSAGE = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='message', full_name='SignMessage.message', index=1,
       number=2, type=12, cpp_type=9, label=2,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='coin_name', full_name='SignMessage.coin_name', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=True, default_value=_b("Bitcoin").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='script_type', full_name='SignMessage.script_type', index=3,
       number=4, type=14, cpp_type=8, label=1,
       has_default_value=True, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2783,
-  serialized_end=2913,
+  serialized_start=2899,
+  serialized_end=3029,
 )
 
 
@@ -2078,42 +2184,42 @@ _VERIFYMESSAGE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='signature', full_name='VerifyMessage.signature', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='message', full_name='VerifyMessage.message', index=2,
       number=3, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='coin_name', full_name='VerifyMessage.coin_name', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=True, default_value=_b("Bitcoin").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2915,
-  serialized_end=3011,
+  serialized_start=3031,
+  serialized_end=3127,
 )
 
 
@@ -2130,28 +2236,28 @@ _MESSAGESIGNATURE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='signature', full_name='MessageSignature.signature', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3013,
-  serialized_end=3067,
+  serialized_start=3129,
+  serialized_end=3183,
 )
 
 
@@ -2168,49 +2274,49 @@ _ENCRYPTMESSAGE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='message', full_name='EncryptMessage.message', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='display_only', full_name='EncryptMessage.display_only', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='address_n', full_name='EncryptMessage.address_n', index=3,
       number=4, type=13, cpp_type=3, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='coin_name', full_name='EncryptMessage.coin_name', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=True, default_value=_b("Bitcoin").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3069,
-  serialized_end=3187,
+  serialized_start=3185,
+  serialized_end=3303,
 )
 
 
@@ -2227,35 +2333,35 @@ _ENCRYPTEDMESSAGE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='message', full_name='EncryptedMessage.message', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='hmac', full_name='EncryptedMessage.hmac', index=2,
       number=3, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3189,
-  serialized_end=3253,
+  serialized_start=3305,
+  serialized_end=3369,
 )
 
 
@@ -2272,42 +2378,42 @@ _DECRYPTMESSAGE = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='nonce', full_name='DecryptMessage.nonce', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='message', full_name='DecryptMessage.message', index=2,
       number=3, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='hmac', full_name='DecryptMessage.hmac', index=3,
       number=4, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3255,
-  serialized_end=3336,
+  serialized_start=3371,
+  serialized_end=3452,
 )
 
 
@@ -2324,28 +2430,28 @@ _DECRYPTEDMESSAGE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='address', full_name='DecryptedMessage.address', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3338,
-  serialized_end=3390,
+  serialized_start=3454,
+  serialized_end=3506,
 )
 
 
@@ -2362,63 +2468,63 @@ _CIPHERKEYVALUE = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='key', full_name='CipherKeyValue.key', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='CipherKeyValue.value', index=2,
       number=3, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='encrypt', full_name='CipherKeyValue.encrypt', index=3,
       number=4, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ask_on_encrypt', full_name='CipherKeyValue.ask_on_encrypt', index=4,
       number=5, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ask_on_decrypt', full_name='CipherKeyValue.ask_on_decrypt', index=5,
       number=6, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='iv', full_name='CipherKeyValue.iv', index=6,
       number=7, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3393,
-  serialized_end=3533,
+  serialized_start=3509,
+  serialized_end=3649,
 )
 
 
@@ -2435,97 +2541,21 @@ _CIPHEREDKEYVALUE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3535,
-  serialized_end=3568,
-)
-
-
-_ESTIMATETXSIZE = _descriptor.Descriptor(
-  name='EstimateTxSize',
-  full_name='EstimateTxSize',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='outputs_count', full_name='EstimateTxSize.outputs_count', index=0,
-      number=1, type=13, cpp_type=3, label=2,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='inputs_count', full_name='EstimateTxSize.inputs_count', index=1,
-      number=2, type=13, cpp_type=3, label=2,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='coin_name', full_name='EstimateTxSize.coin_name', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=True, default_value=_b("Bitcoin").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3570,
-  serialized_end=3659,
-)
-
-
-_TXSIZE = _descriptor.Descriptor(
-  name='TxSize',
-  full_name='TxSize',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='tx_size', full_name='TxSize.tx_size', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=3661,
-  serialized_end=3686,
+  serialized_start=3651,
+  serialized_end=3684,
 )
 
 
@@ -2542,70 +2572,77 @@ _SIGNTX = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='inputs_count', full_name='SignTx.inputs_count', index=1,
       number=2, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='coin_name', full_name='SignTx.coin_name', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=True, default_value=_b("Bitcoin").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='version', full_name='SignTx.version', index=3,
       number=4, type=13, cpp_type=3, label=1,
       has_default_value=True, default_value=1,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='lock_time', full_name='SignTx.lock_time', index=4,
       number=5, type=13, cpp_type=3, label=1,
       has_default_value=True, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='expiry', full_name='SignTx.expiry', index=5,
       number=6, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='overwintered', full_name='SignTx.overwintered', index=6,
       number=7, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='version_group_id', full_name='SignTx.version_group_id', index=7,
       number=8, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='branch_id', full_name='SignTx.branch_id', index=8,
+      number=10, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3689,
-  serialized_end=3876,
+  serialized_start=3687,
+  serialized_end=3893,
 )
 
 
@@ -2622,35 +2659,35 @@ _TXREQUEST = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='details', full_name='TxRequest.details', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='serialized', full_name='TxRequest.serialized', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3879,
-  serialized_end=4012,
+  serialized_start=3896,
+  serialized_end=4029,
 )
 
 
@@ -2667,21 +2704,21 @@ _TXACK = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4014,
-  serialized_end=4051,
+  serialized_start=4031,
+  serialized_end=4068,
 )
 
 
@@ -2698,21 +2735,21 @@ _RAWTXACK = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4053,
-  serialized_end=4096,
+  serialized_start=4070,
+  serialized_end=4113,
 )
 
 
@@ -2729,126 +2766,262 @@ _ETHEREUMSIGNTX = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='nonce', full_name='EthereumSignTx.nonce', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='gas_price', full_name='EthereumSignTx.gas_price', index=2,
       number=3, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='gas_limit', full_name='EthereumSignTx.gas_limit', index=3,
       number=4, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='to', full_name='EthereumSignTx.to', index=4,
       number=5, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='EthereumSignTx.value', index=5,
       number=6, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='data_initial_chunk', full_name='EthereumSignTx.data_initial_chunk', index=6,
       number=7, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='data_length', full_name='EthereumSignTx.data_length', index=7,
       number=8, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='to_address_n', full_name='EthereumSignTx.to_address_n', index=8,
       number=9, type=13, cpp_type=3, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='address_type', full_name='EthereumSignTx.address_type', index=9,
       number=10, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='exchange_type', full_name='EthereumSignTx.exchange_type', index=10,
       number=11, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='chain_id', full_name='EthereumSignTx.chain_id', index=11,
       number=12, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='token_value', full_name='EthereumSignTx.token_value', index=12,
       number=100, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='token_to', full_name='EthereumSignTx.token_to', index=13,
       number=101, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='token_shortcut', full_name='EthereumSignTx.token_shortcut', index=14,
       number=102, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='tx_type', full_name='EthereumSignTx.tx_type', index=15,
       number=103, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4099,
-  serialized_end=4463,
+  serialized_start=4116,
+  serialized_end=4480,
+)
+
+
+_COSMOSSIGNTX = _descriptor.Descriptor(
+  name='CosmosSignTx',
+  full_name='CosmosSignTx',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address_n', full_name='CosmosSignTx.address_n', index=0,
+      number=1, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='nonce', full_name='CosmosSignTx.nonce', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='gas_price', full_name='CosmosSignTx.gas_price', index=2,
+      number=3, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='gas_limit', full_name='CosmosSignTx.gas_limit', index=3,
+      number=4, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='to', full_name='CosmosSignTx.to', index=4,
+      number=5, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='CosmosSignTx.value', index=5,
+      number=6, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='data_initial_chunk', full_name='CosmosSignTx.data_initial_chunk', index=6,
+      number=7, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='data_length', full_name='CosmosSignTx.data_length', index=7,
+      number=8, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='to_address_n', full_name='CosmosSignTx.to_address_n', index=8,
+      number=9, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='address_type', full_name='CosmosSignTx.address_type', index=9,
+      number=10, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='exchange_type', full_name='CosmosSignTx.exchange_type', index=10,
+      number=11, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='chain_id', full_name='CosmosSignTx.chain_id', index=11,
+      number=12, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='token_value', full_name='CosmosSignTx.token_value', index=12,
+      number=100, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='token_to', full_name='CosmosSignTx.token_to', index=13,
+      number=101, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='token_shortcut', full_name='CosmosSignTx.token_shortcut', index=14,
+      number=102, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='tx_type', full_name='CosmosSignTx.tx_type', index=15,
+      number=103, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=4483,
+  serialized_end=4845,
 )
 
 
@@ -2865,56 +3038,122 @@ _ETHEREUMTXREQUEST = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='signature_v', full_name='EthereumTxRequest.signature_v', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='signature_r', full_name='EthereumTxRequest.signature_r', index=2,
       number=3, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='signature_s', full_name='EthereumTxRequest.signature_s', index=3,
       number=4, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='hash', full_name='EthereumTxRequest.hash', index=4,
       number=5, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='signature_der', full_name='EthereumTxRequest.signature_der', index=5,
       number=6, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4466,
-  serialized_end=4606,
+  serialized_start=4848,
+  serialized_end=4988,
+)
+
+
+_COSMOSTXREQUEST = _descriptor.Descriptor(
+  name='CosmosTxRequest',
+  full_name='CosmosTxRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='data_length', full_name='CosmosTxRequest.data_length', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature_v', full_name='CosmosTxRequest.signature_v', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature_r', full_name='CosmosTxRequest.signature_r', index=2,
+      number=3, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature_s', full_name='CosmosTxRequest.signature_s', index=3,
+      number=4, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='hash', full_name='CosmosTxRequest.hash', index=4,
+      number=5, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature_der', full_name='CosmosTxRequest.signature_der', index=5,
+      number=6, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=4991,
+  serialized_end=5129,
 )
 
 
@@ -2931,21 +3170,52 @@ _ETHEREUMTXACK = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4608,
-  serialized_end=4643,
+  serialized_start=5131,
+  serialized_end=5166,
+)
+
+
+_COSMOSTXACK = _descriptor.Descriptor(
+  name='CosmosTxAck',
+  full_name='CosmosTxAck',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='data_chunk', full_name='CosmosTxAck.data_chunk', index=0,
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=5168,
+  serialized_end=5201,
 )
 
 
@@ -2962,28 +3232,66 @@ _ETHEREUMSIGNMESSAGE = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='message', full_name='EthereumSignMessage.message', index=1,
       number=2, type=12, cpp_type=9, label=2,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4645,
-  serialized_end=4702,
+  serialized_start=5203,
+  serialized_end=5260,
+)
+
+
+_COSMOSSIGNMESSAGE = _descriptor.Descriptor(
+  name='CosmosSignMessage',
+  full_name='CosmosSignMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address_n', full_name='CosmosSignMessage.address_n', index=0,
+      number=1, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='message', full_name='CosmosSignMessage.message', index=1,
+      number=2, type=12, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=5262,
+  serialized_end=5317,
 )
 
 
@@ -3000,35 +3308,80 @@ _ETHEREUMVERIFYMESSAGE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='signature', full_name='EthereumVerifyMessage.signature', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='message', full_name='EthereumVerifyMessage.message', index=2,
       number=3, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4704,
-  serialized_end=4780,
+  serialized_start=5319,
+  serialized_end=5395,
+)
+
+
+_COSMOSVERIFYMESSAGE = _descriptor.Descriptor(
+  name='CosmosVerifyMessage',
+  full_name='CosmosVerifyMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address', full_name='CosmosVerifyMessage.address', index=0,
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature', full_name='CosmosVerifyMessage.signature', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='message', full_name='CosmosVerifyMessage.message', index=2,
+      number=3, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=5397,
+  serialized_end=5471,
 )
 
 
@@ -3045,28 +3398,66 @@ _ETHEREUMMESSAGESIGNATURE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='signature', full_name='EthereumMessageSignature.signature', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4782,
-  serialized_end=4844,
+  serialized_start=5473,
+  serialized_end=5535,
+)
+
+
+_COSMOSMESSAGESIGNATURE = _descriptor.Descriptor(
+  name='CosmosMessageSignature',
+  full_name='CosmosMessageSignature',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address', full_name='CosmosMessageSignature.address', index=0,
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature', full_name='CosmosMessageSignature.signature', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=5537,
+  serialized_end=5597,
 )
 
 
@@ -3083,42 +3474,42 @@ _SIGNIDENTITY = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='challenge_hidden', full_name='SignIdentity.challenge_hidden', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='challenge_visual', full_name='SignIdentity.challenge_visual', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ecdsa_curve_name', full_name='SignIdentity.ecdsa_curve_name', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4846,
-  serialized_end=4971,
+  serialized_start=5599,
+  serialized_end=5724,
 )
 
 
@@ -3135,35 +3526,35 @@ _SIGNEDIDENTITY = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='public_key', full_name='SignedIdentity.public_key', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='signature', full_name='SignedIdentity.signature', index=2,
       number=3, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4973,
-  serialized_end=5045,
+  serialized_start=5726,
+  serialized_end=5798,
 )
 
 
@@ -3180,21 +3571,21 @@ _APPLYPOLICIES = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5047,
-  serialized_end=5091,
+  serialized_start=5800,
+  serialized_end=5844,
 )
 
 
@@ -3211,35 +3602,35 @@ _FLASHHASH = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='length', full_name='FlashHash.length', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='challenge', full_name='FlashHash.challenge', index=2,
       number=3, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5093,
-  serialized_end=5156,
+  serialized_start=5846,
+  serialized_end=5909,
 )
 
 
@@ -3256,35 +3647,35 @@ _FLASHWRITE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='data', full_name='FlashWrite.data', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='erase', full_name='FlashWrite.erase', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5158,
-  serialized_end=5216,
+  serialized_start=5911,
+  serialized_end=5969,
 )
 
 
@@ -3301,21 +3692,21 @@ _FLASHHASHRESPONSE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5218,
-  serialized_end=5251,
+  serialized_start=5971,
+  serialized_end=6004,
 )
 
 
@@ -3332,28 +3723,28 @@ _DEBUGLINKFLASHDUMP = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='length', full_name='DebugLinkFlashDump.length', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5253,
-  serialized_end=5306,
+  serialized_start=6006,
+  serialized_end=6059,
 )
 
 
@@ -3370,21 +3761,21 @@ _DEBUGLINKFLASHDUMPRESPONSE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5308,
-  serialized_end=5350,
+  serialized_start=6061,
+  serialized_end=6103,
 )
 
 
@@ -3401,14 +3792,14 @@ _SOFTRESET = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5352,
-  serialized_end=5363,
+  serialized_start=6105,
+  serialized_end=6116,
 )
 
 
@@ -3425,14 +3816,14 @@ _FIRMWAREERASE = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5365,
-  serialized_end=5380,
+  serialized_start=6118,
+  serialized_end=6133,
 )
 
 
@@ -3449,28 +3840,28 @@ _FIRMWAREUPLOAD = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='payload', full_name='FirmwareUpload.payload', index=1,
       number=2, type=12, cpp_type=9, label=2,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5382,
-  serialized_end=5437,
+  serialized_start=6135,
+  serialized_end=6190,
 )
 
 
@@ -3487,21 +3878,21 @@ _DEBUGLINKDECISION = _descriptor.Descriptor(
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5439,
-  serialized_end=5474,
+  serialized_start=6192,
+  serialized_end=6227,
 )
 
 
@@ -3518,14 +3909,14 @@ _DEBUGLINKGETSTATE = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5476,
-  serialized_end=5495,
+  serialized_start=6229,
+  serialized_end=6248,
 )
 
 
@@ -3542,112 +3933,112 @@ _DEBUGLINKSTATE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pin', full_name='DebugLinkState.pin', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='matrix', full_name='DebugLinkState.matrix', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='mnemonic', full_name='DebugLinkState.mnemonic', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='node', full_name='DebugLinkState.node', index=4,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='passphrase_protection', full_name='DebugLinkState.passphrase_protection', index=5,
       number=6, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='reset_word', full_name='DebugLinkState.reset_word', index=6,
       number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='reset_entropy', full_name='DebugLinkState.reset_entropy', index=7,
       number=8, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='recovery_fake_word', full_name='DebugLinkState.recovery_fake_word', index=8,
       number=9, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='recovery_word_pos', full_name='DebugLinkState.recovery_word_pos', index=9,
       number=10, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='recovery_cipher', full_name='DebugLinkState.recovery_cipher', index=10,
       number=11, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='recovery_auto_completed_word', full_name='DebugLinkState.recovery_auto_completed_word', index=11,
       number=12, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='firmware_hash', full_name='DebugLinkState.firmware_hash', index=12,
       number=13, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='storage_hash', full_name='DebugLinkState.storage_hash', index=13,
       number=14, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5498,
-  serialized_end=5841,
+  serialized_start=6251,
+  serialized_end=6594,
 )
 
 
@@ -3664,14 +4055,14 @@ _DEBUGLINKSTOP = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5843,
-  serialized_end=5858,
+  serialized_start=6596,
+  serialized_end=6611,
 )
 
 
@@ -3688,35 +4079,35 @@ _DEBUGLINKLOG = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='bucket', full_name='DebugLinkLog.bucket', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='text', full_name='DebugLinkLog.text', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5860,
-  serialized_end=5919,
+  serialized_start=6613,
+  serialized_end=6672,
 )
 
 
@@ -3733,14 +4124,14 @@ _DEBUGLINKFILLCONFIG = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5921,
-  serialized_end=5942,
+  serialized_start=6674,
+  serialized_end=6695,
 )
 
 _FEATURES.fields_by_name['coins'].message_type = types__pb2._COINTYPE
@@ -3762,6 +4153,8 @@ _TXACK.fields_by_name['tx'].message_type = types__pb2._TRANSACTIONTYPE
 _RAWTXACK.fields_by_name['tx'].message_type = types__pb2._RAWTRANSACTIONTYPE
 _ETHEREUMSIGNTX.fields_by_name['address_type'].enum_type = types__pb2._OUTPUTADDRESSTYPE
 _ETHEREUMSIGNTX.fields_by_name['exchange_type'].message_type = types__pb2._EXCHANGETYPE
+_COSMOSSIGNTX.fields_by_name['address_type'].enum_type = types__pb2._OUTPUTADDRESSTYPE
+_COSMOSSIGNTX.fields_by_name['exchange_type'].message_type = types__pb2._EXCHANGETYPE
 _SIGNIDENTITY.fields_by_name['identity'].message_type = types__pb2._IDENTITYTYPE
 _APPLYPOLICIES.fields_by_name['policy'].message_type = types__pb2._POLICYTYPE
 _DEBUGLINKSTATE.fields_by_name['node'].message_type = types__pb2._HDNODETYPE
@@ -3789,8 +4182,10 @@ DESCRIPTOR.message_types_by_name['GetPublicKey'] = _GETPUBLICKEY
 DESCRIPTOR.message_types_by_name['PublicKey'] = _PUBLICKEY
 DESCRIPTOR.message_types_by_name['GetAddress'] = _GETADDRESS
 DESCRIPTOR.message_types_by_name['EthereumGetAddress'] = _ETHEREUMGETADDRESS
+DESCRIPTOR.message_types_by_name['CosmosGetAddress'] = _COSMOSGETADDRESS
 DESCRIPTOR.message_types_by_name['Address'] = _ADDRESS
 DESCRIPTOR.message_types_by_name['EthereumAddress'] = _ETHEREUMADDRESS
+DESCRIPTOR.message_types_by_name['CosmosAddress'] = _COSMOSADDRESS
 DESCRIPTOR.message_types_by_name['WipeDevice'] = _WIPEDEVICE
 DESCRIPTOR.message_types_by_name['LoadDevice'] = _LOADDEVICE
 DESCRIPTOR.message_types_by_name['ResetDevice'] = _RESETDEVICE
@@ -3810,18 +4205,22 @@ DESCRIPTOR.message_types_by_name['DecryptMessage'] = _DECRYPTMESSAGE
 DESCRIPTOR.message_types_by_name['DecryptedMessage'] = _DECRYPTEDMESSAGE
 DESCRIPTOR.message_types_by_name['CipherKeyValue'] = _CIPHERKEYVALUE
 DESCRIPTOR.message_types_by_name['CipheredKeyValue'] = _CIPHEREDKEYVALUE
-DESCRIPTOR.message_types_by_name['EstimateTxSize'] = _ESTIMATETXSIZE
-DESCRIPTOR.message_types_by_name['TxSize'] = _TXSIZE
 DESCRIPTOR.message_types_by_name['SignTx'] = _SIGNTX
 DESCRIPTOR.message_types_by_name['TxRequest'] = _TXREQUEST
 DESCRIPTOR.message_types_by_name['TxAck'] = _TXACK
 DESCRIPTOR.message_types_by_name['RawTxAck'] = _RAWTXACK
 DESCRIPTOR.message_types_by_name['EthereumSignTx'] = _ETHEREUMSIGNTX
+DESCRIPTOR.message_types_by_name['CosmosSignTx'] = _COSMOSSIGNTX
 DESCRIPTOR.message_types_by_name['EthereumTxRequest'] = _ETHEREUMTXREQUEST
+DESCRIPTOR.message_types_by_name['CosmosTxRequest'] = _COSMOSTXREQUEST
 DESCRIPTOR.message_types_by_name['EthereumTxAck'] = _ETHEREUMTXACK
+DESCRIPTOR.message_types_by_name['CosmosTxAck'] = _COSMOSTXACK
 DESCRIPTOR.message_types_by_name['EthereumSignMessage'] = _ETHEREUMSIGNMESSAGE
+DESCRIPTOR.message_types_by_name['CosmosSignMessage'] = _COSMOSSIGNMESSAGE
 DESCRIPTOR.message_types_by_name['EthereumVerifyMessage'] = _ETHEREUMVERIFYMESSAGE
+DESCRIPTOR.message_types_by_name['CosmosVerifyMessage'] = _COSMOSVERIFYMESSAGE
 DESCRIPTOR.message_types_by_name['EthereumMessageSignature'] = _ETHEREUMMESSAGESIGNATURE
+DESCRIPTOR.message_types_by_name['CosmosMessageSignature'] = _COSMOSMESSAGESIGNATURE
 DESCRIPTOR.message_types_by_name['SignIdentity'] = _SIGNIDENTITY
 DESCRIPTOR.message_types_by_name['SignedIdentity'] = _SIGNEDIDENTITY
 DESCRIPTOR.message_types_by_name['ApplyPolicies'] = _APPLYPOLICIES
@@ -4010,6 +4409,13 @@ EthereumGetAddress = _reflection.GeneratedProtocolMessageType('EthereumGetAddres
   ))
 _sym_db.RegisterMessage(EthereumGetAddress)
 
+CosmosGetAddress = _reflection.GeneratedProtocolMessageType('CosmosGetAddress', (_message.Message,), dict(
+  DESCRIPTOR = _COSMOSGETADDRESS,
+  __module__ = 'messages_pb2'
+  # @@protoc_insertion_point(class_scope:CosmosGetAddress)
+  ))
+_sym_db.RegisterMessage(CosmosGetAddress)
+
 Address = _reflection.GeneratedProtocolMessageType('Address', (_message.Message,), dict(
   DESCRIPTOR = _ADDRESS,
   __module__ = 'messages_pb2'
@@ -4023,6 +4429,13 @@ EthereumAddress = _reflection.GeneratedProtocolMessageType('EthereumAddress', (_
   # @@protoc_insertion_point(class_scope:EthereumAddress)
   ))
 _sym_db.RegisterMessage(EthereumAddress)
+
+CosmosAddress = _reflection.GeneratedProtocolMessageType('CosmosAddress', (_message.Message,), dict(
+  DESCRIPTOR = _COSMOSADDRESS,
+  __module__ = 'messages_pb2'
+  # @@protoc_insertion_point(class_scope:CosmosAddress)
+  ))
+_sym_db.RegisterMessage(CosmosAddress)
 
 WipeDevice = _reflection.GeneratedProtocolMessageType('WipeDevice', (_message.Message,), dict(
   DESCRIPTOR = _WIPEDEVICE,
@@ -4157,20 +4570,6 @@ CipheredKeyValue = _reflection.GeneratedProtocolMessageType('CipheredKeyValue', 
   ))
 _sym_db.RegisterMessage(CipheredKeyValue)
 
-EstimateTxSize = _reflection.GeneratedProtocolMessageType('EstimateTxSize', (_message.Message,), dict(
-  DESCRIPTOR = _ESTIMATETXSIZE,
-  __module__ = 'messages_pb2'
-  # @@protoc_insertion_point(class_scope:EstimateTxSize)
-  ))
-_sym_db.RegisterMessage(EstimateTxSize)
-
-TxSize = _reflection.GeneratedProtocolMessageType('TxSize', (_message.Message,), dict(
-  DESCRIPTOR = _TXSIZE,
-  __module__ = 'messages_pb2'
-  # @@protoc_insertion_point(class_scope:TxSize)
-  ))
-_sym_db.RegisterMessage(TxSize)
-
 SignTx = _reflection.GeneratedProtocolMessageType('SignTx', (_message.Message,), dict(
   DESCRIPTOR = _SIGNTX,
   __module__ = 'messages_pb2'
@@ -4206,12 +4605,26 @@ EthereumSignTx = _reflection.GeneratedProtocolMessageType('EthereumSignTx', (_me
   ))
 _sym_db.RegisterMessage(EthereumSignTx)
 
+CosmosSignTx = _reflection.GeneratedProtocolMessageType('CosmosSignTx', (_message.Message,), dict(
+  DESCRIPTOR = _COSMOSSIGNTX,
+  __module__ = 'messages_pb2'
+  # @@protoc_insertion_point(class_scope:CosmosSignTx)
+  ))
+_sym_db.RegisterMessage(CosmosSignTx)
+
 EthereumTxRequest = _reflection.GeneratedProtocolMessageType('EthereumTxRequest', (_message.Message,), dict(
   DESCRIPTOR = _ETHEREUMTXREQUEST,
   __module__ = 'messages_pb2'
   # @@protoc_insertion_point(class_scope:EthereumTxRequest)
   ))
 _sym_db.RegisterMessage(EthereumTxRequest)
+
+CosmosTxRequest = _reflection.GeneratedProtocolMessageType('CosmosTxRequest', (_message.Message,), dict(
+  DESCRIPTOR = _COSMOSTXREQUEST,
+  __module__ = 'messages_pb2'
+  # @@protoc_insertion_point(class_scope:CosmosTxRequest)
+  ))
+_sym_db.RegisterMessage(CosmosTxRequest)
 
 EthereumTxAck = _reflection.GeneratedProtocolMessageType('EthereumTxAck', (_message.Message,), dict(
   DESCRIPTOR = _ETHEREUMTXACK,
@@ -4220,12 +4633,26 @@ EthereumTxAck = _reflection.GeneratedProtocolMessageType('EthereumTxAck', (_mess
   ))
 _sym_db.RegisterMessage(EthereumTxAck)
 
+CosmosTxAck = _reflection.GeneratedProtocolMessageType('CosmosTxAck', (_message.Message,), dict(
+  DESCRIPTOR = _COSMOSTXACK,
+  __module__ = 'messages_pb2'
+  # @@protoc_insertion_point(class_scope:CosmosTxAck)
+  ))
+_sym_db.RegisterMessage(CosmosTxAck)
+
 EthereumSignMessage = _reflection.GeneratedProtocolMessageType('EthereumSignMessage', (_message.Message,), dict(
   DESCRIPTOR = _ETHEREUMSIGNMESSAGE,
   __module__ = 'messages_pb2'
   # @@protoc_insertion_point(class_scope:EthereumSignMessage)
   ))
 _sym_db.RegisterMessage(EthereumSignMessage)
+
+CosmosSignMessage = _reflection.GeneratedProtocolMessageType('CosmosSignMessage', (_message.Message,), dict(
+  DESCRIPTOR = _COSMOSSIGNMESSAGE,
+  __module__ = 'messages_pb2'
+  # @@protoc_insertion_point(class_scope:CosmosSignMessage)
+  ))
+_sym_db.RegisterMessage(CosmosSignMessage)
 
 EthereumVerifyMessage = _reflection.GeneratedProtocolMessageType('EthereumVerifyMessage', (_message.Message,), dict(
   DESCRIPTOR = _ETHEREUMVERIFYMESSAGE,
@@ -4234,12 +4661,26 @@ EthereumVerifyMessage = _reflection.GeneratedProtocolMessageType('EthereumVerify
   ))
 _sym_db.RegisterMessage(EthereumVerifyMessage)
 
+CosmosVerifyMessage = _reflection.GeneratedProtocolMessageType('CosmosVerifyMessage', (_message.Message,), dict(
+  DESCRIPTOR = _COSMOSVERIFYMESSAGE,
+  __module__ = 'messages_pb2'
+  # @@protoc_insertion_point(class_scope:CosmosVerifyMessage)
+  ))
+_sym_db.RegisterMessage(CosmosVerifyMessage)
+
 EthereumMessageSignature = _reflection.GeneratedProtocolMessageType('EthereumMessageSignature', (_message.Message,), dict(
   DESCRIPTOR = _ETHEREUMMESSAGESIGNATURE,
   __module__ = 'messages_pb2'
   # @@protoc_insertion_point(class_scope:EthereumMessageSignature)
   ))
 _sym_db.RegisterMessage(EthereumMessageSignature)
+
+CosmosMessageSignature = _reflection.GeneratedProtocolMessageType('CosmosMessageSignature', (_message.Message,), dict(
+  DESCRIPTOR = _COSMOSMESSAGESIGNATURE,
+  __module__ = 'messages_pb2'
+  # @@protoc_insertion_point(class_scope:CosmosMessageSignature)
+  ))
+_sym_db.RegisterMessage(CosmosMessageSignature)
 
 SignIdentity = _reflection.GeneratedProtocolMessageType('SignIdentity', (_message.Message,), dict(
   DESCRIPTOR = _SIGNIDENTITY,
@@ -4361,174 +4802,95 @@ DebugLinkFillConfig = _reflection.GeneratedProtocolMessageType('DebugLinkFillCon
 _sym_db.RegisterMessage(DebugLinkFillConfig)
 
 
-DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\032com.keepkey.deviceprotocolB\016KeepKeyMessage'))
-_MESSAGETYPE.values_by_name["MessageType_Initialize"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_Initialize"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_Ping"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_Ping"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_Success"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_Success"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_Failure"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_Failure"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_ChangePin"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_ChangePin"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_WipeDevice"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_WipeDevice"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_FirmwareErase"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_FirmwareErase"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_FirmwareUpload"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_FirmwareUpload"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_GetEntropy"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_GetEntropy"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_Entropy"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_Entropy"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_GetPublicKey"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_GetPublicKey"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_PublicKey"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_PublicKey"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_LoadDevice"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_LoadDevice"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_ResetDevice"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_ResetDevice"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_SignTx"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_SignTx"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_Features"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_Features"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_PinMatrixRequest"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_PinMatrixRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_PinMatrixAck"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_PinMatrixAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_Cancel"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_Cancel"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_TxRequest"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_TxRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_TxAck"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_TxAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_CipherKeyValue"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_CipherKeyValue"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_ClearSession"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_ClearSession"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_ApplySettings"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_ApplySettings"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_ButtonRequest"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_ButtonRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_ButtonAck"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_ButtonAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_GetAddress"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_GetAddress"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_Address"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_Address"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EntropyRequest"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EntropyRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EntropyAck"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EntropyAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_SignMessage"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_SignMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_VerifyMessage"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_VerifyMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_MessageSignature"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_MessageSignature"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_PassphraseRequest"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_PassphraseRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_PassphraseAck"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_PassphraseAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EstimateTxSize"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EstimateTxSize"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_TxSize"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_TxSize"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_RecoveryDevice"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_RecoveryDevice"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_WordRequest"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_WordRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_WordAck"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_WordAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_CipheredKeyValue"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_CipheredKeyValue"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EncryptMessage"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EncryptMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EncryptedMessage"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EncryptedMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_DecryptMessage"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_DecryptMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_DecryptedMessage"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_DecryptedMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_SignIdentity"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_SignIdentity"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_SignedIdentity"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_SignedIdentity"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_GetFeatures"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_GetFeatures"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EthereumGetAddress"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EthereumGetAddress"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EthereumAddress"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EthereumAddress"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EthereumSignTx"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EthereumSignTx"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EthereumTxRequest"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EthereumTxRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EthereumTxAck"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EthereumTxAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_CharacterRequest"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_CharacterRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_CharacterAck"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_CharacterAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_RawTxAck"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_RawTxAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_ApplyPolicies"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_ApplyPolicies"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_FlashHash"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_FlashHash"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_FlashWrite"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_FlashWrite"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_FlashHashResponse"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_FlashHashResponse"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkFlashDump"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkFlashDump"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\240\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkFlashDumpResponse"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkFlashDumpResponse"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\250\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_SoftReset"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_SoftReset"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\240\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkDecision"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkDecision"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\240\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkGetState"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkGetState"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\240\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkState"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkState"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\250\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkStop"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkStop"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\240\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkLog"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkLog"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\250\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkFillConfig"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_DebugLinkFillConfig"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\250\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_GetCoinTable"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_GetCoinTable"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_CoinTable"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_CoinTable"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EthereumSignMessage"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EthereumSignMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EthereumVerifyMessage"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EthereumVerifyMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EthereumMessageSignature"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EthereumMessageSignature"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EosGetPublicKey"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EosGetPublicKey"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EosPublicKey"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EosPublicKey"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EosSignTx"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EosSignTx"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EosTxActionRequest"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EosTxActionRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EosTxActionAck"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EosTxActionAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_EosSignedTx"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_EosSignedTx"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_NanoGetAddress"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_NanoGetAddress"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_NanoAddress"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_NanoAddress"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_NanoSignTx"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_NanoSignTx"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
-_MESSAGETYPE.values_by_name["MessageType_NanoSignedTx"].has_options = True
-_MESSAGETYPE.values_by_name["MessageType_NanoSignedTx"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+DESCRIPTOR._options = None
+_MESSAGETYPE.values_by_name["MessageType_Initialize"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_Ping"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_Success"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_Failure"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_ChangePin"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_WipeDevice"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_FirmwareErase"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_FirmwareUpload"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_GetEntropy"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_Entropy"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_GetPublicKey"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_PublicKey"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_LoadDevice"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_ResetDevice"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_SignTx"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_Features"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_PinMatrixRequest"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_PinMatrixAck"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_Cancel"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_TxRequest"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_TxAck"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CipherKeyValue"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_ClearSession"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_ApplySettings"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_ButtonRequest"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_ButtonAck"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_GetAddress"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_Address"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EntropyRequest"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EntropyAck"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_SignMessage"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_VerifyMessage"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_MessageSignature"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_PassphraseRequest"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_PassphraseAck"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_RecoveryDevice"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_WordRequest"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_WordAck"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CipheredKeyValue"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EncryptMessage"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EncryptedMessage"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_DecryptMessage"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_DecryptedMessage"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_SignIdentity"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_SignedIdentity"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_GetFeatures"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EthereumGetAddress"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EthereumAddress"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EthereumSignTx"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EthereumTxRequest"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EthereumTxAck"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CharacterRequest"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CharacterAck"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_RawTxAck"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_ApplyPolicies"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_FlashHash"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_FlashWrite"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_FlashHashResponse"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_DebugLinkFlashDump"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_DebugLinkFlashDumpResponse"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_SoftReset"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_DebugLinkDecision"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_DebugLinkGetState"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_DebugLinkState"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_DebugLinkStop"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_DebugLinkLog"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_DebugLinkFillConfig"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_GetCoinTable"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CoinTable"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EthereumSignMessage"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EthereumVerifyMessage"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EthereumMessageSignature"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EosGetPublicKey"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EosPublicKey"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EosSignTx"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EosTxActionRequest"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EosTxActionAck"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_EosSignedTx"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_NanoGetAddress"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_NanoAddress"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_NanoSignTx"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_NanoSignedTx"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CosmosGetAddress"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CosmosAddress"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CosmosSignTx"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CosmosTxRequest"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CosmosTxAck"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CosmosSignMessage"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CosmosVerifyMessage"]._options = None
+_MESSAGETYPE.values_by_name["MessageType_CosmosMessageSignature"]._options = None
 # @@protoc_insertion_point(module_scope)

@@ -7,7 +7,6 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -20,6 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-nano.proto',
   package='',
   syntax='proto2',
+  serialized_options=_b('\n\032com.keepkey.deviceprotocolB\022KeepKeyMessageNano'),
   serialized_pb=_b('\n\x13messages-nano.proto\x1a\x0btypes.proto\"R\n\x0eNanoGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Nano\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\"\x1e\n\x0bNanoAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\xd6\x02\n\nNanoSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Nano\x12-\n\x0cparent_block\x18\x03 \x01(\x0b\x32\x17.NanoSignTx.ParentBlock\x12\x11\n\tlink_hash\x18\x04 \x01(\x0c\x12\x16\n\x0elink_recipient\x18\x05 \x01(\t\x12\x18\n\x10link_recipient_n\x18\x06 \x03(\r\x12\x16\n\x0erepresentative\x18\x07 \x01(\t\x12\x0f\n\x07\x62\x61lance\x18\x08 \x01(\x0c\x12$\n\rexchange_type\x18\t \x01(\x0b\x32\r.ExchangeType\x1aY\n\x0bParentBlock\x12\x13\n\x0bparent_hash\x18\x01 \x01(\x0c\x12\x0c\n\x04link\x18\x02 \x01(\x0c\x12\x16\n\x0erepresentative\x18\x04 \x01(\t\x12\x0f\n\x07\x62\x61lance\x18\x05 \x01(\x0c\"5\n\x0cNanoSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x12\n\nblock_hash\x18\x02 \x01(\x0c\x42\x30\n\x1a\x63om.keepkey.deviceprotocolB\x12KeepKeyMessageNano')
   ,
   dependencies=[types__pb2.DESCRIPTOR,])
@@ -40,28 +40,28 @@ _NANOGETADDRESS = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='coin_name', full_name='NanoGetAddress.coin_name', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=True, default_value=_b("Nano").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='show_display', full_name='NanoGetAddress.show_display', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -85,14 +85,14 @@ _NANOADDRESS = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -116,35 +116,35 @@ _NANOSIGNTX_PARENTBLOCK = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='link', full_name='NanoSignTx.ParentBlock.link', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='representative', full_name='NanoSignTx.ParentBlock.representative', index=2,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='balance', full_name='NanoSignTx.ParentBlock.balance', index=3,
       number=5, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -167,70 +167,70 @@ _NANOSIGNTX = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='coin_name', full_name='NanoSignTx.coin_name', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=True, default_value=_b("Nano").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='parent_block', full_name='NanoSignTx.parent_block', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='link_hash', full_name='NanoSignTx.link_hash', index=3,
       number=4, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='link_recipient', full_name='NanoSignTx.link_recipient', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='link_recipient_n', full_name='NanoSignTx.link_recipient_n', index=5,
       number=6, type=13, cpp_type=3, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='representative', full_name='NanoSignTx.representative', index=6,
       number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='balance', full_name='NanoSignTx.balance', index=7,
       number=8, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='exchange_type', full_name='NanoSignTx.exchange_type', index=8,
       number=9, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[_NANOSIGNTX_PARENTBLOCK, ],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -254,21 +254,21 @@ _NANOSIGNEDTX = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='block_hash', full_name='NanoSignedTx.block_hash', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -324,6 +324,5 @@ NanoSignedTx = _reflection.GeneratedProtocolMessageType('NanoSignedTx', (_messag
 _sym_db.RegisterMessage(NanoSignedTx)
 
 
-DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\032com.keepkey.deviceprotocolB\022KeepKeyMessageNano'))
+DESCRIPTOR._options = None
 # @@protoc_insertion_point(module_scope)

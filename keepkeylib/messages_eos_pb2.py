@@ -8,7 +8,6 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -20,7 +19,8 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-eos.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x12messages-eos.proto\"[\n\x0f\x45osGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12\x1f\n\x04kind\x18\x03 \x01(\x0e\x32\x11.EosPublicKeyKind\">\n\x0c\x45osPublicKey\x12\x16\n\x0ewif_public_key\x18\x01 \x01(\t\x12\x16\n\x0eraw_public_key\x18\x02 \x01(\x0c\"c\n\tEosSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\x0c\x12\x1c\n\x06header\x18\x03 \x01(\x0b\x32\x0c.EosTxHeader\x12\x13\n\x0bnum_actions\x18\x04 \x01(\r\"\x9c\x01\n\x0b\x45osTxHeader\x12\x12\n\nexpiration\x18\x01 \x02(\r\x12\x15\n\rref_block_num\x18\x02 \x02(\r\x12\x18\n\x10ref_block_prefix\x18\x03 \x02(\r\x12\x1b\n\x13max_net_usage_words\x18\x04 \x02(\r\x12\x18\n\x10max_cpu_usage_ms\x18\x05 \x02(\r\x12\x11\n\tdelay_sec\x18\x06 \x02(\r\"\x14\n\x12\x45osTxActionRequest\"\xe6\x04\n\x0e\x45osTxActionAck\x12 \n\x06\x63ommon\x18\x01 \x01(\x0b\x32\x10.EosActionCommon\x12$\n\x08transfer\x18\x02 \x01(\x0b\x32\x12.EosActionTransfer\x12$\n\x08\x64\x65legate\x18\x03 \x01(\x0b\x32\x12.EosActionDelegate\x12(\n\nundelegate\x18\x04 \x01(\x0b\x32\x14.EosActionUndelegate\x12 \n\x06refund\x18\x05 \x01(\x0b\x32\x10.EosActionRefund\x12!\n\x07\x62uy_ram\x18\x06 \x01(\x0b\x32\x10.EosActionBuyRam\x12,\n\rbuy_ram_bytes\x18\x07 \x01(\x0b\x32\x15.EosActionBuyRamBytes\x12#\n\x08sell_ram\x18\x08 \x01(\x0b\x32\x11.EosActionSellRam\x12-\n\rvote_producer\x18\t \x01(\x0b\x32\x16.EosActionVoteProducer\x12)\n\x0bupdate_auth\x18\n \x01(\x0b\x32\x14.EosActionUpdateAuth\x12)\n\x0b\x64\x65lete_auth\x18\x0b \x01(\x0b\x32\x14.EosActionDeleteAuth\x12%\n\tlink_auth\x18\x0c \x01(\x0b\x32\x12.EosActionLinkAuth\x12)\n\x0bunlink_auth\x18\r \x01(\x0b\x32\x14.EosActionUnlinkAuth\x12)\n\x0bnew_account\x18\x0e \x01(\x0b\x32\x14.EosActionNewAccount\x12\"\n\x07unknown\x18\x0f \x01(\x0b\x32\x11.EosActionUnknown\"*\n\x08\x45osAsset\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x12\x12\x0e\n\x06symbol\x18\x02 \x01(\x04\"7\n\x12\x45osPermissionLevel\x12\r\n\x05\x61\x63tor\x18\x01 \x01(\x04\x12\x12\n\npermission\x18\x02 \x01(\x04\"S\n\x13\x45osAuthorizationKey\x12\x0c\n\x04type\x18\x01 \x01(\r\x12\x0b\n\x03key\x18\x02 \x01(\x0c\x12\x0e\n\x06weight\x18\x03 \x01(\r\x12\x11\n\taddress_n\x18\x04 \x03(\r\"O\n\x17\x45osAuthorizationAccount\x12$\n\x07\x61\x63\x63ount\x18\x01 \x01(\x0b\x32\x13.EosPermissionLevel\x12\x0e\n\x06weight\x18\x02 \x01(\r\"8\n\x14\x45osAuthorizationWait\x12\x10\n\x08wait_sec\x18\x01 \x01(\r\x12\x0e\n\x06weight\x18\x02 \x01(\r\"\x9b\x01\n\x10\x45osAuthorization\x12\x11\n\tthreshold\x18\x01 \x01(\r\x12\"\n\x04keys\x18\x02 \x03(\x0b\x32\x14.EosAuthorizationKey\x12*\n\x08\x61\x63\x63ounts\x18\x03 \x03(\x0b\x32\x18.EosAuthorizationAccount\x12$\n\x05waits\x18\x04 \x03(\x0b\x32\x15.EosAuthorizationWait\"\\\n\x0f\x45osActionCommon\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\x04\x12*\n\rauthorization\x18\x03 \x03(\x0b\x32\x13.EosPermissionLevel\"`\n\x11\x45osActionTransfer\x12\x0e\n\x06sender\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\x1b\n\x08quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\x12\x0c\n\x04memo\x18\x04 \x01(\t\"\x89\x01\n\x11\x45osActionDelegate\x12\x0e\n\x06sender\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\x1f\n\x0cnet_quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\x12\x1f\n\x0c\x63pu_quantity\x18\x04 \x01(\x0b\x32\t.EosAsset\x12\x10\n\x08transfer\x18\x05 \x01(\x08\"y\n\x13\x45osActionUndelegate\x12\x0e\n\x06sender\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\x1f\n\x0cnet_quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\x12\x1f\n\x0c\x63pu_quantity\x18\x04 \x01(\x0b\x32\t.EosAsset\" \n\x0f\x45osActionRefund\x12\r\n\x05owner\x18\x01 \x01(\x04\"O\n\x0f\x45osActionBuyRam\x12\r\n\x05payer\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\x1b\n\x08quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\"F\n\x14\x45osActionBuyRamBytes\x12\r\n\x05payer\x18\x01 \x01(\x04\x12\x10\n\x08receiver\x18\x02 \x01(\x04\x12\r\n\x05\x62ytes\x18\x03 \x01(\r\"2\n\x10\x45osActionSellRam\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\r\n\x05\x62ytes\x18\x02 \x01(\x12\"H\n\x15\x45osActionVoteProducer\x12\r\n\x05voter\x18\x01 \x01(\x04\x12\r\n\x05proxy\x18\x02 \x01(\x04\x12\x11\n\tproducers\x18\x03 \x03(\x04\"k\n\x13\x45osActionUpdateAuth\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x12\n\npermission\x18\x02 \x01(\x04\x12\x0e\n\x06parent\x18\x03 \x01(\x04\x12\x1f\n\x04\x61uth\x18\x04 \x01(\x0b\x32\x11.EosAuthorization\":\n\x13\x45osActionDeleteAuth\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x12\n\npermission\x18\x02 \x01(\x04\"U\n\x11\x45osActionLinkAuth\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x0c\n\x04\x63ode\x18\x02 \x01(\x04\x12\x0c\n\x04type\x18\x03 \x01(\x04\x12\x13\n\x0brequirement\x18\x04 \x01(\x04\"B\n\x13\x45osActionUnlinkAuth\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x12\x0c\n\x04\x63ode\x18\x02 \x01(\x04\x12\x0c\n\x04type\x18\x03 \x01(\x04\"y\n\x13\x45osActionNewAccount\x12\x0f\n\x07\x63reator\x18\x01 \x01(\x04\x12\x0c\n\x04name\x18\x02 \x01(\x04\x12 \n\x05owner\x18\x03 \x01(\x0b\x32\x11.EosAuthorization\x12!\n\x06\x61\x63tive\x18\x04 \x01(\x0b\x32\x11.EosAuthorization\"9\n\x10\x45osActionUnknown\x12\x11\n\tdata_size\x18\x01 \x01(\r\x12\x12\n\ndata_chunk\x18\x02 \x01(\x0c\"Z\n\x0b\x45osSignedTx\x12\x13\n\x0bsignature_v\x18\x01 \x01(\r\x12\x13\n\x0bsignature_r\x18\x02 \x01(\x0c\x12\x13\n\x0bsignature_s\x18\x03 \x01(\x0c\x12\x0c\n\x04hash\x18\x04 \x01(\x0c*3\n\x10\x45osPublicKeyKind\x12\x07\n\x03\x45OS\x10\x00\x12\n\n\x06\x45OS_K1\x10\x01\x12\n\n\x06\x45OS_R1\x10\x02\x42\x38\n#com.shapeshift.keepkey.lib.protobufB\x11KeepKeyMessageEos')
+  serialized_options=_b('\n#com.shapeshift.keepkey.lib.protobufB\021KeepKeyMessageEos'),
+  serialized_pb=_b('\n\x12messages-eos.proto\"[\n\x0f\x45osGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12\x1f\n\x04kind\x18\x03 \x01(\x0e\x32\x11.EosPublicKeyKind\">\n\x0c\x45osPublicKey\x12\x16\n\x0ewif_public_key\x18\x01 \x01(\t\x12\x16\n\x0eraw_public_key\x18\x02 \x01(\x0c\"c\n\tEosSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\x0c\x12\x1c\n\x06header\x18\x03 \x01(\x0b\x32\x0c.EosTxHeader\x12\x13\n\x0bnum_actions\x18\x04 \x01(\r\"\x9c\x01\n\x0b\x45osTxHeader\x12\x12\n\nexpiration\x18\x01 \x02(\r\x12\x15\n\rref_block_num\x18\x02 \x02(\r\x12\x18\n\x10ref_block_prefix\x18\x03 \x02(\r\x12\x1b\n\x13max_net_usage_words\x18\x04 \x02(\r\x12\x18\n\x10max_cpu_usage_ms\x18\x05 \x02(\r\x12\x11\n\tdelay_sec\x18\x06 \x02(\r\"\x14\n\x12\x45osTxActionRequest\"\xe6\x04\n\x0e\x45osTxActionAck\x12 \n\x06\x63ommon\x18\x01 \x01(\x0b\x32\x10.EosActionCommon\x12$\n\x08transfer\x18\x02 \x01(\x0b\x32\x12.EosActionTransfer\x12$\n\x08\x64\x65legate\x18\x03 \x01(\x0b\x32\x12.EosActionDelegate\x12(\n\nundelegate\x18\x04 \x01(\x0b\x32\x14.EosActionUndelegate\x12 \n\x06refund\x18\x05 \x01(\x0b\x32\x10.EosActionRefund\x12!\n\x07\x62uy_ram\x18\x06 \x01(\x0b\x32\x10.EosActionBuyRam\x12,\n\rbuy_ram_bytes\x18\x07 \x01(\x0b\x32\x15.EosActionBuyRamBytes\x12#\n\x08sell_ram\x18\x08 \x01(\x0b\x32\x11.EosActionSellRam\x12-\n\rvote_producer\x18\t \x01(\x0b\x32\x16.EosActionVoteProducer\x12)\n\x0bupdate_auth\x18\n \x01(\x0b\x32\x14.EosActionUpdateAuth\x12)\n\x0b\x64\x65lete_auth\x18\x0b \x01(\x0b\x32\x14.EosActionDeleteAuth\x12%\n\tlink_auth\x18\x0c \x01(\x0b\x32\x12.EosActionLinkAuth\x12)\n\x0bunlink_auth\x18\r \x01(\x0b\x32\x14.EosActionUnlinkAuth\x12)\n\x0bnew_account\x18\x0e \x01(\x0b\x32\x14.EosActionNewAccount\x12\"\n\x07unknown\x18\x0f \x01(\x0b\x32\x11.EosActionUnknown\"2\n\x08\x45osAsset\x12\x12\n\x06\x61mount\x18\x01 \x01(\x12\x42\x02\x30\x01\x12\x12\n\x06symbol\x18\x02 \x01(\x04\x42\x02\x30\x01\"?\n\x12\x45osPermissionLevel\x12\x11\n\x05\x61\x63tor\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x16\n\npermission\x18\x02 \x01(\x04\x42\x02\x30\x01\"S\n\x13\x45osAuthorizationKey\x12\x0c\n\x04type\x18\x01 \x01(\r\x12\x0b\n\x03key\x18\x02 \x01(\x0c\x12\x0e\n\x06weight\x18\x03 \x01(\r\x12\x11\n\taddress_n\x18\x04 \x03(\r\"O\n\x17\x45osAuthorizationAccount\x12$\n\x07\x61\x63\x63ount\x18\x01 \x01(\x0b\x32\x13.EosPermissionLevel\x12\x0e\n\x06weight\x18\x02 \x01(\r\"8\n\x14\x45osAuthorizationWait\x12\x10\n\x08wait_sec\x18\x01 \x01(\r\x12\x0e\n\x06weight\x18\x02 \x01(\r\"\x9b\x01\n\x10\x45osAuthorization\x12\x11\n\tthreshold\x18\x01 \x01(\r\x12\"\n\x04keys\x18\x02 \x03(\x0b\x32\x14.EosAuthorizationKey\x12*\n\x08\x61\x63\x63ounts\x18\x03 \x03(\x0b\x32\x18.EosAuthorizationAccount\x12$\n\x05waits\x18\x04 \x03(\x0b\x32\x15.EosAuthorizationWait\"d\n\x0f\x45osActionCommon\x12\x13\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x04name\x18\x02 \x01(\x04\x42\x02\x30\x01\x12*\n\rauthorization\x18\x03 \x03(\x0b\x32\x13.EosPermissionLevel\"h\n\x11\x45osActionTransfer\x12\x12\n\x06sender\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x14\n\x08receiver\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x1b\n\x08quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\x12\x0c\n\x04memo\x18\x04 \x01(\t\"\x91\x01\n\x11\x45osActionDelegate\x12\x12\n\x06sender\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x14\n\x08receiver\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x1f\n\x0cnet_quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\x12\x1f\n\x0c\x63pu_quantity\x18\x04 \x01(\x0b\x32\t.EosAsset\x12\x10\n\x08transfer\x18\x05 \x01(\x08\"\x81\x01\n\x13\x45osActionUndelegate\x12\x12\n\x06sender\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x14\n\x08receiver\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x1f\n\x0cnet_quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\x12\x1f\n\x0c\x63pu_quantity\x18\x04 \x01(\x0b\x32\t.EosAsset\"$\n\x0f\x45osActionRefund\x12\x11\n\x05owner\x18\x01 \x01(\x04\x42\x02\x30\x01\"W\n\x0f\x45osActionBuyRam\x12\x11\n\x05payer\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x14\n\x08receiver\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x1b\n\x08quantity\x18\x03 \x01(\x0b\x32\t.EosAsset\"N\n\x14\x45osActionBuyRamBytes\x12\x11\n\x05payer\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x14\n\x08receiver\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\r\n\x05\x62ytes\x18\x03 \x01(\r\":\n\x10\x45osActionSellRam\x12\x13\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x11\n\x05\x62ytes\x18\x02 \x01(\x12\x42\x02\x30\x01\"T\n\x15\x45osActionVoteProducer\x12\x11\n\x05voter\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x11\n\x05proxy\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x15\n\tproducers\x18\x03 \x03(\x04\x42\x02\x30\x01\"w\n\x13\x45osActionUpdateAuth\x12\x13\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x16\n\npermission\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x12\n\x06parent\x18\x03 \x01(\x04\x42\x02\x30\x01\x12\x1f\n\x04\x61uth\x18\x04 \x01(\x0b\x32\x11.EosAuthorization\"B\n\x13\x45osActionDeleteAuth\x12\x13\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x16\n\npermission\x18\x02 \x01(\x04\x42\x02\x30\x01\"e\n\x11\x45osActionLinkAuth\x12\x13\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x04\x63ode\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x04type\x18\x03 \x01(\x04\x42\x02\x30\x01\x12\x17\n\x0brequirement\x18\x04 \x01(\x04\x42\x02\x30\x01\"N\n\x13\x45osActionUnlinkAuth\x12\x13\n\x07\x61\x63\x63ount\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x04\x63ode\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x04type\x18\x03 \x01(\x04\x42\x02\x30\x01\"\x81\x01\n\x13\x45osActionNewAccount\x12\x13\n\x07\x63reator\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x04name\x18\x02 \x01(\x04\x42\x02\x30\x01\x12 \n\x05owner\x18\x03 \x01(\x0b\x32\x11.EosAuthorization\x12!\n\x06\x61\x63tive\x18\x04 \x01(\x0b\x32\x11.EosAuthorization\"9\n\x10\x45osActionUnknown\x12\x11\n\tdata_size\x18\x01 \x01(\r\x12\x12\n\ndata_chunk\x18\x02 \x01(\x0c\"Z\n\x0b\x45osSignedTx\x12\x13\n\x0bsignature_v\x18\x01 \x01(\r\x12\x13\n\x0bsignature_r\x18\x02 \x01(\x0c\x12\x13\n\x0bsignature_s\x18\x03 \x01(\x0c\x12\x0c\n\x04hash\x18\x04 \x01(\x0c*3\n\x10\x45osPublicKeyKind\x12\x07\n\x03\x45OS\x10\x00\x12\n\n\x06\x45OS_K1\x10\x01\x12\n\n\x06\x45OS_R1\x10\x02\x42\x38\n#com.shapeshift.keepkey.lib.protobufB\x11KeepKeyMessageEos')
 )
 
 _EOSPUBLICKEYKIND = _descriptor.EnumDescriptor(
@@ -31,21 +31,21 @@ _EOSPUBLICKEYKIND = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='EOS', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='EOS_K1', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='EOS_R1', index=2, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=2927,
-  serialized_end=2978,
+  serialized_options=None,
+  serialized_start=3073,
+  serialized_end=3124,
 )
 _sym_db.RegisterEnumDescriptor(_EOSPUBLICKEYKIND)
 
@@ -69,28 +69,28 @@ _EOSGETPUBLICKEY = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='show_display', full_name='EosGetPublicKey.show_display', index=1,
       number=2, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='kind', full_name='EosGetPublicKey.kind', index=2,
       number=3, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -114,21 +114,21 @@ _EOSPUBLICKEY = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='raw_public_key', full_name='EosPublicKey.raw_public_key', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -152,35 +152,35 @@ _EOSSIGNTX = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='chain_id', full_name='EosSignTx.chain_id', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='header', full_name='EosSignTx.header', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='num_actions', full_name='EosSignTx.num_actions', index=3,
       number=4, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -204,49 +204,49 @@ _EOSTXHEADER = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ref_block_num', full_name='EosTxHeader.ref_block_num', index=1,
       number=2, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ref_block_prefix', full_name='EosTxHeader.ref_block_prefix', index=2,
       number=3, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='max_net_usage_words', full_name='EosTxHeader.max_net_usage_words', index=3,
       number=4, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='max_cpu_usage_ms', full_name='EosTxHeader.max_cpu_usage_ms', index=4,
       number=5, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='delay_sec', full_name='EosTxHeader.delay_sec', index=5,
       number=6, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -270,7 +270,7 @@ _EOSTXACTIONREQUEST = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -294,112 +294,112 @@ _EOSTXACTIONACK = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='transfer', full_name='EosTxActionAck.transfer', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='delegate', full_name='EosTxActionAck.delegate', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='undelegate', full_name='EosTxActionAck.undelegate', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='refund', full_name='EosTxActionAck.refund', index=4,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='buy_ram', full_name='EosTxActionAck.buy_ram', index=5,
       number=6, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='buy_ram_bytes', full_name='EosTxActionAck.buy_ram_bytes', index=6,
       number=7, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='sell_ram', full_name='EosTxActionAck.sell_ram', index=7,
       number=8, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='vote_producer', full_name='EosTxActionAck.vote_producer', index=8,
       number=9, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='update_auth', full_name='EosTxActionAck.update_auth', index=9,
       number=10, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='delete_auth', full_name='EosTxActionAck.delete_auth', index=10,
       number=11, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='link_auth', full_name='EosTxActionAck.link_auth', index=11,
       number=12, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='unlink_auth', full_name='EosTxActionAck.unlink_auth', index=12,
       number=13, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='new_account', full_name='EosTxActionAck.new_account', index=13,
       number=14, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='unknown', full_name='EosTxActionAck.unknown', index=14,
       number=15, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
@@ -423,28 +423,28 @@ _EOSASSET = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='symbol', full_name='EosAsset.symbol', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
   serialized_start=1078,
-  serialized_end=1120,
+  serialized_end=1128,
 )
 
 
@@ -461,28 +461,28 @@ _EOSPERMISSIONLEVEL = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='permission', full_name='EosPermissionLevel.permission', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1122,
-  serialized_end=1177,
+  serialized_start=1130,
+  serialized_end=1193,
 )
 
 
@@ -499,42 +499,42 @@ _EOSAUTHORIZATIONKEY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='key', full_name='EosAuthorizationKey.key', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='weight', full_name='EosAuthorizationKey.weight', index=2,
       number=3, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='address_n', full_name='EosAuthorizationKey.address_n', index=3,
       number=4, type=13, cpp_type=3, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1179,
-  serialized_end=1262,
+  serialized_start=1195,
+  serialized_end=1278,
 )
 
 
@@ -551,28 +551,28 @@ _EOSAUTHORIZATIONACCOUNT = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='weight', full_name='EosAuthorizationAccount.weight', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1264,
-  serialized_end=1343,
+  serialized_start=1280,
+  serialized_end=1359,
 )
 
 
@@ -589,28 +589,28 @@ _EOSAUTHORIZATIONWAIT = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='weight', full_name='EosAuthorizationWait.weight', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1345,
-  serialized_end=1401,
+  serialized_start=1361,
+  serialized_end=1417,
 )
 
 
@@ -627,42 +627,42 @@ _EOSAUTHORIZATION = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='keys', full_name='EosAuthorization.keys', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='accounts', full_name='EosAuthorization.accounts', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='waits', full_name='EosAuthorization.waits', index=3,
       number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1404,
-  serialized_end=1559,
+  serialized_start=1420,
+  serialized_end=1575,
 )
 
 
@@ -679,35 +679,35 @@ _EOSACTIONCOMMON = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='name', full_name='EosActionCommon.name', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='authorization', full_name='EosActionCommon.authorization', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1561,
-  serialized_end=1653,
+  serialized_start=1577,
+  serialized_end=1677,
 )
 
 
@@ -724,42 +724,42 @@ _EOSACTIONTRANSFER = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='receiver', full_name='EosActionTransfer.receiver', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='quantity', full_name='EosActionTransfer.quantity', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='memo', full_name='EosActionTransfer.memo', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1655,
-  serialized_end=1751,
+  serialized_start=1679,
+  serialized_end=1783,
 )
 
 
@@ -776,49 +776,49 @@ _EOSACTIONDELEGATE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='receiver', full_name='EosActionDelegate.receiver', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='net_quantity', full_name='EosActionDelegate.net_quantity', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='cpu_quantity', full_name='EosActionDelegate.cpu_quantity', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='transfer', full_name='EosActionDelegate.transfer', index=4,
       number=5, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1754,
-  serialized_end=1891,
+  serialized_start=1786,
+  serialized_end=1931,
 )
 
 
@@ -835,42 +835,42 @@ _EOSACTIONUNDELEGATE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='receiver', full_name='EosActionUndelegate.receiver', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='net_quantity', full_name='EosActionUndelegate.net_quantity', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='cpu_quantity', full_name='EosActionUndelegate.cpu_quantity', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1893,
-  serialized_end=2014,
+  serialized_start=1934,
+  serialized_end=2063,
 )
 
 
@@ -887,21 +887,21 @@ _EOSACTIONREFUND = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2016,
-  serialized_end=2048,
+  serialized_start=2065,
+  serialized_end=2101,
 )
 
 
@@ -918,35 +918,35 @@ _EOSACTIONBUYRAM = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='receiver', full_name='EosActionBuyRam.receiver', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='quantity', full_name='EosActionBuyRam.quantity', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2050,
-  serialized_end=2129,
+  serialized_start=2103,
+  serialized_end=2190,
 )
 
 
@@ -963,35 +963,35 @@ _EOSACTIONBUYRAMBYTES = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='receiver', full_name='EosActionBuyRamBytes.receiver', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='bytes', full_name='EosActionBuyRamBytes.bytes', index=2,
       number=3, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2131,
-  serialized_end=2201,
+  serialized_start=2192,
+  serialized_end=2270,
 )
 
 
@@ -1008,28 +1008,28 @@ _EOSACTIONSELLRAM = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='bytes', full_name='EosActionSellRam.bytes', index=1,
       number=2, type=18, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2203,
-  serialized_end=2253,
+  serialized_start=2272,
+  serialized_end=2330,
 )
 
 
@@ -1046,35 +1046,35 @@ _EOSACTIONVOTEPRODUCER = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='proxy', full_name='EosActionVoteProducer.proxy', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='producers', full_name='EosActionVoteProducer.producers', index=2,
       number=3, type=4, cpp_type=4, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2255,
-  serialized_end=2327,
+  serialized_start=2332,
+  serialized_end=2416,
 )
 
 
@@ -1091,42 +1091,42 @@ _EOSACTIONUPDATEAUTH = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='permission', full_name='EosActionUpdateAuth.permission', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='parent', full_name='EosActionUpdateAuth.parent', index=2,
       number=3, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='auth', full_name='EosActionUpdateAuth.auth', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2329,
-  serialized_end=2436,
+  serialized_start=2418,
+  serialized_end=2537,
 )
 
 
@@ -1143,28 +1143,28 @@ _EOSACTIONDELETEAUTH = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='permission', full_name='EosActionDeleteAuth.permission', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2438,
-  serialized_end=2496,
+  serialized_start=2539,
+  serialized_end=2605,
 )
 
 
@@ -1181,42 +1181,42 @@ _EOSACTIONLINKAUTH = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='code', full_name='EosActionLinkAuth.code', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='type', full_name='EosActionLinkAuth.type', index=2,
       number=3, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='requirement', full_name='EosActionLinkAuth.requirement', index=3,
       number=4, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2498,
-  serialized_end=2583,
+  serialized_start=2607,
+  serialized_end=2708,
 )
 
 
@@ -1233,35 +1233,35 @@ _EOSACTIONUNLINKAUTH = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='code', full_name='EosActionUnlinkAuth.code', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='type', full_name='EosActionUnlinkAuth.type', index=2,
       number=3, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2585,
-  serialized_end=2651,
+  serialized_start=2710,
+  serialized_end=2788,
 )
 
 
@@ -1278,42 +1278,42 @@ _EOSACTIONNEWACCOUNT = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='name', full_name='EosActionNewAccount.name', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=_b('0\001'), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='owner', full_name='EosActionNewAccount.owner', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='active', full_name='EosActionNewAccount.active', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2653,
-  serialized_end=2774,
+  serialized_start=2791,
+  serialized_end=2920,
 )
 
 
@@ -1330,28 +1330,28 @@ _EOSACTIONUNKNOWN = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='data_chunk', full_name='EosActionUnknown.data_chunk', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2776,
-  serialized_end=2833,
+  serialized_start=2922,
+  serialized_end=2979,
 )
 
 
@@ -1368,42 +1368,42 @@ _EOSSIGNEDTX = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='signature_r', full_name='EosSignedTx.signature_r', index=1,
       number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='signature_s', full_name='EosSignedTx.signature_s', index=2,
       number=3, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='hash', full_name='EosSignedTx.hash', index=3,
       number=4, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2835,
-  serialized_end=2925,
+  serialized_start=2981,
+  serialized_end=3071,
 )
 
 _EOSGETPUBLICKEY.fields_by_name['kind'].enum_type = _EOSPUBLICKEYKIND
@@ -1665,6 +1665,41 @@ EosSignedTx = _reflection.GeneratedProtocolMessageType('EosSignedTx', (_message.
 _sym_db.RegisterMessage(EosSignedTx)
 
 
-DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n#com.shapeshift.keepkey.lib.protobufB\021KeepKeyMessageEos'))
+DESCRIPTOR._options = None
+_EOSASSET.fields_by_name['amount']._options = None
+_EOSASSET.fields_by_name['symbol']._options = None
+_EOSPERMISSIONLEVEL.fields_by_name['actor']._options = None
+_EOSPERMISSIONLEVEL.fields_by_name['permission']._options = None
+_EOSACTIONCOMMON.fields_by_name['account']._options = None
+_EOSACTIONCOMMON.fields_by_name['name']._options = None
+_EOSACTIONTRANSFER.fields_by_name['sender']._options = None
+_EOSACTIONTRANSFER.fields_by_name['receiver']._options = None
+_EOSACTIONDELEGATE.fields_by_name['sender']._options = None
+_EOSACTIONDELEGATE.fields_by_name['receiver']._options = None
+_EOSACTIONUNDELEGATE.fields_by_name['sender']._options = None
+_EOSACTIONUNDELEGATE.fields_by_name['receiver']._options = None
+_EOSACTIONREFUND.fields_by_name['owner']._options = None
+_EOSACTIONBUYRAM.fields_by_name['payer']._options = None
+_EOSACTIONBUYRAM.fields_by_name['receiver']._options = None
+_EOSACTIONBUYRAMBYTES.fields_by_name['payer']._options = None
+_EOSACTIONBUYRAMBYTES.fields_by_name['receiver']._options = None
+_EOSACTIONSELLRAM.fields_by_name['account']._options = None
+_EOSACTIONSELLRAM.fields_by_name['bytes']._options = None
+_EOSACTIONVOTEPRODUCER.fields_by_name['voter']._options = None
+_EOSACTIONVOTEPRODUCER.fields_by_name['proxy']._options = None
+_EOSACTIONVOTEPRODUCER.fields_by_name['producers']._options = None
+_EOSACTIONUPDATEAUTH.fields_by_name['account']._options = None
+_EOSACTIONUPDATEAUTH.fields_by_name['permission']._options = None
+_EOSACTIONUPDATEAUTH.fields_by_name['parent']._options = None
+_EOSACTIONDELETEAUTH.fields_by_name['account']._options = None
+_EOSACTIONDELETEAUTH.fields_by_name['permission']._options = None
+_EOSACTIONLINKAUTH.fields_by_name['account']._options = None
+_EOSACTIONLINKAUTH.fields_by_name['code']._options = None
+_EOSACTIONLINKAUTH.fields_by_name['type']._options = None
+_EOSACTIONLINKAUTH.fields_by_name['requirement']._options = None
+_EOSACTIONUNLINKAUTH.fields_by_name['account']._options = None
+_EOSACTIONUNLINKAUTH.fields_by_name['code']._options = None
+_EOSACTIONUNLINKAUTH.fields_by_name['type']._options = None
+_EOSACTIONNEWACCOUNT.fields_by_name['creator']._options = None
+_EOSACTIONNEWACCOUNT.fields_by_name['name']._options = None
 # @@protoc_insertion_point(module_scope)
