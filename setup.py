@@ -13,7 +13,7 @@ setup(
     test_suite='tests/**/test_*.py',
     install_requires=[
         'ecdsa>=0.9',
-        'protobuf>=3.0.0',
+        'protobuf>=3.5.1',
         'mnemonic>=0.8',
         'hidapi>=0.7.99.post15',
         'libusb1>=1.6'

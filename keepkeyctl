@@ -174,6 +174,90 @@ class Commands(object):
         address = self.client.ethereum_get_address(address_n, args.show_display)
         return "0x%s" % (binascii.hexlify(address),)
 
+    def cosmos_get_address(self, args):
+        address_n = self.client.expand_path(args.n)
+        address = self.client.cosmos_get_address(address_n, args.show_display)
+        return "0x%s" % (binascii.hexlify(address),)
+
+    def cosmos_sign_tx(self, args):
+        from ethjsonrpc import EthJsonRpc
+        from ethjsonrpc.utils import hex_to_dec
+        import rlp
+
+        value = args.value
+        if ' ' in value:
+            value, unit = value.split(' ', 1)
+            if unit.lower() not in ether_units:
+                raise CallException(types.Failure_Other, "Unrecognized ether unit %r" % unit)
+            value = int(value) * ether_units[unit.lower()]
+        else:
+            value = int(value)
+
+        gas_price = args.gas_price
+        if gas_price is not None:
+            if ' ' in gas_price:
+                gas_price, unit = gas_price.split(' ', 1)
+                if unit.lower() not in ether_units:
+                    raise CallException(types.Failure_Other, "Unrecognized gas price unit %r" % unit)
+                gas_price = int(gas_price) * ether_units[unit.lower()]
+            else:
+                gas_price = int(gas_price)
+
+        gas_limit = args.gas
+        if gas_limit is not None:
+            gas_limit = int(gas_limit)
+
+        if args.to.startswith('0x') or args.to.startswith('0X'):
+            to_address = args.to[2:].decode('hex')
+        else:
+            to_address = args.to.decode('hex')
+
+        nonce = args.nonce
+        if nonce:
+            nonce = int(nonce)
+
+        address_n = self.client.expand_path(args.n)
+        address = "0x%s" % (binascii.hexlify(self.client.cosmos_get_address(address_n)),)
+
+        if gas_price is None or gas_limit is None or nonce is None:
+            host, port = args.host.split(':')
+            eth = EthJsonRpc(host, int(port))
+
+        if not args.data:
+            args.data = ''
+        elif args.data.startswith('0x'):
+            args.data = args.data[2:]
+        data = binascii.unhexlify(args.data)
+
+        if gas_price is None:
+            gas_price = eth.eth_gasPrice()
+
+        if gas_limit is None:
+            gas_limit = eth.eth_estimateGas(
+                to_address=args.to,
+                from_address=address,
+                value=("0x%x" % value),
+                data="0x"+args.data)
+
+        if nonce is None:
+            nonce = eth.eth_getTransactionCount(address)
+
+        sig = self.client.cosmos_sign_tx(
+            n=address_n,
+            nonce=nonce,
+            gas_price=gas_price,
+            gas_limit=gas_limit,
+            to=to_address,
+            value=value,
+            data=data,
+            chain_id=args.chain_id)
+
+        transaction = rlp.encode(
+            (nonce, gas_price, gas_limit, to_address, value, data) + sig)
+        tx_hex = '0x%s' % binascii.hexlify(transaction)
+
+        return 'Signed raw transaction: %s' % tx_hex
+
     def ethereum_sign_tx(self, args):
         from ethjsonrpc import EthJsonRpc
         from ethjsonrpc.utils import hex_to_dec
@@ -431,6 +515,8 @@ class Commands(object):
     get_address.help = 'Get bitcoin address in base58 encoding'
     ethereum_get_address.help = 'Get Ethereum address in hex encoding'
     ethereum_sign_tx.help = 'Sign (and optionally publish) Ethereum transaction'
+    cosmos_get_address.help = 'Get Cosmos address in hex encoding'
+    cosmos_sign_tx.help = 'Sign (and optionally publish) Cosmos transaction'
     eos_get_public_key.help = 'Get EOS public key'
     eos_sign_tx.help = 'Sign EOS transaction'
     nano_get_address.help = 'Get Nano address'
@@ -465,8 +551,26 @@ class Commands(object):
         (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
     )
 
+    cosmos_get_address.arguments = (
+        (('-n', '-address'), {'type': str}),
+        (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
+    )
+
     ethereum_sign_tx.arguments = (
         (('-a', '--host'), {'type': str, 'help': 'RPC port of ethereum node for automatic gas/nonce estimation', 'default': 'localhost:8545'}),
+        (('-c', '--chain-id'), {'type' : int, 'help': 'EIP-155 chain id (replay protection)', 'default': None}),
+        (('-n', '-address'), {'type': str, 'help': 'BIP-32 path to signing key'}),
+        (('-v', '--value'), {'type': str, 'help': 'Ether amount to transfer, e.g., "100 milliether"', 'default': "0"}),
+        (('-g', '--gas'), {'type': int, 'help': 'Gas limit - Required for offline signing', 'default': None}),
+        (('-t', '--gas-price'), {'type': str, 'help': 'Gas price, e.g., "20 nanoether" - Required for offline signing', 'default': None }),
+        (('-i', '--nonce'), {'type': int, 'help': 'Transaction counter - Required for offline signing', 'default': None}),
+        (('-d', '--data'), {'type': str, 'help': 'Data as hex string, e.g., 0x12345678', 'default': ''}),
+        (('-p', '--publish'), {'action': 'store_true', 'help': 'publish transaction via RPC', 'default': False}),
+        (('to',), {'type': str, 'help': 'Destination address; "" for contract creation'}),
+    )
+
+    cosmos_sign_tx.arguments = (
+        (('-a', '--host'), {'type': str, 'help': 'RPC port of cosmos node for automatic gas/nonce estimation', 'default': 'localhost:8545'}),
         (('-c', '--chain-id'), {'type' : int, 'help': 'EIP-155 chain id (replay protection)', 'default': None}),
         (('-n', '-address'), {'type': str, 'help': 'BIP-32 path to signing key'}),
         (('-v', '--value'), {'type': str, 'help': 'Ether amount to transfer, e.g., "100 milliether"', 'default': "0"}),

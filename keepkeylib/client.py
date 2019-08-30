@@ -581,6 +581,100 @@ class ProtocolMixin(object):
         n = self._convert_prime(n)
         return self.call(proto.EthereumGetAddress(address_n=n, show_display=show_display))
 
+    @field('address')
+    @expect(proto.EthereumAddress)
+    def cosmos_get_address(self, n, show_display=False, multisig=None):
+        n = self._convert_prime(n)
+        return self.call(proto.CosmosGetAddress(address_n=n, show_display=show_display))
+
+    @session
+    def cosmos_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None, token_shortcut=None, token_value=None, token_to=None):
+        from keepkeylib.tools import int_to_big_endian
+
+        n = self._convert_prime(n)
+        if address_type == types.TRANSFER:   #Ethereum transfer transaction
+            msg = proto.CosmosSignTx(
+                address_n=n,
+                nonce=int_to_big_endian(nonce),
+                gas_price=int_to_big_endian(gas_price),
+                gas_limit=int_to_big_endian(gas_limit),
+                value=int_to_big_endian(value),
+                to_address_n=to_n,
+                address_type=address_type
+                )
+        elif address_type == types.EXCHANGE and token_to is None:   #Ethereum exchange transaction
+            msg = proto.CosmosSignTx(
+                address_n=n,
+                nonce=int_to_big_endian(nonce),
+                gas_price=int_to_big_endian(gas_price),
+                gas_limit=int_to_big_endian(gas_limit),
+                value=int_to_big_endian(value),
+                to_address_n=to_n,
+                exchange_type=exchange_type,
+                address_type=address_type
+                )
+        elif address_type == types.EXCHANGE and token_to is not None:
+            msg = proto.CosmosSignTx(
+                address_n=n,
+                nonce=int_to_big_endian(nonce),
+                gas_price=int_to_big_endian(gas_price),
+                gas_limit=int_to_big_endian(gas_limit),
+                value=int_to_big_endian(value),
+                to_address_n=to_n,
+                exchange_type=exchange_type,
+                address_type=address_type,
+                token_value=token_value,
+                token_to=token_to,
+                token_shortcut=token_shortcut,
+                )
+        else:
+            if token_shortcut is None:
+                msg = proto.CosmosSignTx(
+                    address_n=n,
+                    nonce=int_to_big_endian(nonce),
+                    gas_price=int_to_big_endian(gas_price),
+                    gas_limit=int_to_big_endian(gas_limit),
+                    value=int_to_big_endian(value)
+                    )
+            else:
+                #erc20 token transfer
+                value_array = bytearray([0]*32)
+                for ii,i in enumerate(int_to_big_endian(token_value)[::-1]):
+                    value_array[31 - ii] = i
+                msg = proto.CosmosSignTx(
+                    address_n=n,
+                    nonce=int_to_big_endian(nonce),
+                    gas_price=int_to_big_endian(gas_price),
+                    gas_limit=int_to_big_endian(gas_limit),
+                    token_value=bytes(value_array),
+                    token_to=token_to,
+                    token_shortcut=token_shortcut,
+                    )
+
+
+        if to:
+            msg.to = to
+
+        if data:
+            msg.data_length = len(data)
+            data, chunk = data[1024:], data[:1024]
+            msg.data_initial_chunk = chunk
+
+        if chain_id:
+            msg.chain_id = chain_id
+
+        response = self.call(msg)
+
+        while response.HasField('data_length'):
+            data_length = response.data_length
+            data, chunk = data[data_length:], data[:data_length]
+            response = self.call(proto.CosmosTxAck(data_chunk=chunk))
+
+        if address_type:
+            return response.signature_v, response.signature_r, response.signature_s, response.hash, response.signature_der
+        else:
+            return response.signature_v, response.signature_r, response.signature_s
+
     @session
     def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None, token_shortcut=None, token_value=None, token_to=None):
         from keepkeylib.tools import int_to_big_endian

@@ -102,11 +102,12 @@ How to install (Debian-Ubuntu)
 Running Tests
 -------------
 
-To run unit tests that don't require a device:
+Start emulator [docs](https://github.com/keepkey/keepkey-firmware/blob/master/docs/Build.md)
 
-.. code:: shell
-
-    $ python tests/unit/*.py
+```
+cd tests
+pytest
+```
 
 Release Process
 ---------------

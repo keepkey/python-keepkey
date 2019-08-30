@@ -1,0 +1,28 @@
+{
+   "account_number":"12978",
+   "chain_id":"cosmoshub-2",
+   "fee":{
+      "amount":[
+         {
+            "amount":"100",
+            "denom":"uatom"
+         }
+      ],
+      "gas":"100000"
+   },
+   "memo":"delegation sent from the citadel",
+   "msgs":[
+      {
+         "type":"cosmos-sdk/MsgDelegate",
+         "value":{
+            "amount":{
+               "amount":"100",
+               "denom":"uatom"
+            },
+            "delegator_address":"cosmos1zymku32dmnwwy0gwggxzzqqvzzfa2r0xthdlw0",
+            "validator_address":"cosmosvaloper199mlc7fr6ll5t54w7tts7f4s0cvnqgc59nmuxf"
+         }
+      }
+   ],
+   "sequence":15
+}
