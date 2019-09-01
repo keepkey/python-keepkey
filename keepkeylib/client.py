@@ -582,7 +582,7 @@ class ProtocolMixin(object):
         return self.call(proto.EthereumGetAddress(address_n=n, show_display=show_display))
 
     @field('address')
-    @expect(proto.EthereumAddress)
+    @expect(proto.CosmosAddress)
     def cosmos_get_address(self, n, show_display=False, multisig=None):
         n = self._convert_prime(n)
         return self.call(proto.CosmosGetAddress(address_n=n, show_display=show_display))
