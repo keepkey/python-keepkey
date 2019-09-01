@@ -30,7 +30,7 @@ from keepkeylib.tools import int_to_big_endian
 class TestMsgCosmosSigntx(common.KeepKeyTest):
 
     def test_cosmos_signtx_nodata(self):
-        self.skipTest("Broke because I suck")
+        #self.skipTest("Broke because I suck")
 
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('AdvancedMode', 0)
