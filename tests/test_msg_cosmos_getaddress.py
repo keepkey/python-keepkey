@@ -22,12 +22,22 @@ import unittest
 import common
 import keepkeylib.ckd_public as bip32
 import binascii
+import keepkeylib.ckd_public as bip32
+from keepkeylib import types_pb2 as proto
 
-class TestMsgEthereumGetaddress(common.KeepKeyTest):
+
+class TestMsgCosmosGetaddress(common.KeepKeyTest):
+
+    def test_cosmos_address(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+        print self.client.get_address('Cosmos', [44 | 0x80000000, 118 | 0x80000000, 0 | 0x80000000, 0, 0],True, None, script_type=proto.SPENDWITNESS)
+
+        self.assertEqual(self.client.get_address('Cosmos', [44 | 0x80000000, 118 | 0x80000000, 0 | 0x80000000, 0, 0],True, None, script_type=proto.SPENDWITNESS), 'cosmos15cenya0tr7nm3tz2wn3h3zwkht2rxrq7q7h3dj')
+
 
     def test_cosmos_getaddress(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        print binascii.hexlify(self.client.cosmos_get_address([]))
+        # print binascii.hexlify(self.client.cosmos_get_address([]))
         # self.assertEqual(binascii.hexlify(self.client.cosmos_get_address([])), '1d1c328764a41bda0492b66baa30c4a339ff85ef')
         # self.assertEqual(binascii.hexlify(self.client.cosmos_get_address([1])), '437207ca3cf43bf2e47dea0756d736c5df4f597a')
         # self.assertEqual(binascii.hexlify(self.client.cosmos_get_address([0, -1])), 'e5d96dfa07bcf1a3ae43677840c31394258861bf')
