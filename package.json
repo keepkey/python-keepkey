@@ -1,0 +1,11 @@
+{
+  "name": "python-keepkey",
+  "version": "1.0.0",
+  "scripts": {
+    "install": "python setup.py install",
+    "test": "python -m pytest ./tests"
+  },
+  "dependencies": {
+    
+  }
+}
