@@ -22,6 +22,8 @@ import unittest
 import common
 
 from keepkeylib import messages_pb2 as proto
+from keepkeylib import types_pb2 as proto_types
+from keepkeylib.tools import parse_path
 
 class TestDeviceRecovery(common.KeepKeyTest):
     def test_pin_passphrase(self):
@@ -317,6 +319,23 @@ class TestDeviceRecovery(common.KeepKeyTest):
             ret = self.client.call_raw(proto.WipeDevice())
             self.client.debug.press_yes()
             ret = self.client.call_raw(proto.ButtonAck())
+
+    def test_vuln1971(self):
+        self.setup_mnemonic_allallall()
+
+        self.assertEquals(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), True, None, script_type=proto_types.SPENDP2SHWITNESS), '2N1LGaGg836mqSQqiuUBLfcyGBhyZbremDX')
+
+        # Previously, there weren't good checks on the expected state of the
+        # recovery cipher state machine, which led to this case triggering an
+        # out of bounds memory access, as well as setting the device's mnemonic
+        # to "".
+        self.client.call_raw(proto.CharacterAck(done=True))
+
+        # The emulator, with ASan enabled, crashes on the out of bounds
+        # memory access before even getting to the part where the empty
+        # mnemonic is pushed into storage, but for posterity, let's make sure
+        # we still get the correct address afterward:
+        self.assertEquals(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), True, None, script_type=proto_types.SPENDP2SHWITNESS), '2N1LGaGg836mqSQqiuUBLfcyGBhyZbremDX')
 
 if __name__ == '__main__':
     unittest.main()
