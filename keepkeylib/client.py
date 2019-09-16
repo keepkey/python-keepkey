@@ -536,6 +536,7 @@ class ProtocolMixin(object):
             "Megacoin": 217,
             "Bitcloud": 218,
             "Axe": 4242,
+            "Hatch": 88888888,
         }
 
         if n[0] in coins:
