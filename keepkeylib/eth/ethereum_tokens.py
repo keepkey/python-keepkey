@@ -15,15 +15,21 @@ class ETHTokenTable(object):
 
     def add_tokens(self, network):
         net_name = network['symbol'].lower()
-        filename = HERE + '/ethereum-lists/dist/tokens/%s/tokens-%s.json' % (net_name, net_name)
 
-        if not os.path.isfile(filename):
+        dirname = HERE + '/ethereum-lists/src/tokens/%s' % (net_name, )
+
+        if not os.path.exists(dirname):
             return
 
-        with open(filename, 'r') as f:
-            tokens = json.load(f)
+        for filename in os.listdir(dirname):
+            fullpath = os.path.join(dirname, filename)
 
-            for token in tokens:
+            if not os.path.isfile(fullpath):
+                return
+
+            with open(fullpath, 'r') as f:
+                token = json.load(f)
+
                 self.tokens.append(ETHToken(token, network))
 
     def build(self):
