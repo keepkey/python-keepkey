@@ -38,6 +38,7 @@ from . import mapping
 from . import messages_pb2 as proto
 from . import messages_eos_pb2 as eos_proto
 from . import messages_nano_pb2 as nano_proto
+from . import messages_stellar_pb2 as stellar_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -802,6 +803,12 @@ class ProtocolMixin(object):
             balance=nano.encode_balance(balance),
         )
         return self.call(msg)
+
+    @expect(stellar_proto.StellarAddress)
+    def stellar_get_address(self, address_n, show_display=False):
+        return self.call(
+            stellar_proto.StellarGetAddress(address_n=address_n, show_display=show_display)
+        )
 
     @field('entropy')
     @expect(proto.Entropy)
