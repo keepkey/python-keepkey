@@ -54,6 +54,7 @@ from .debuglink import DebugLink
 SCREENSHOT = False
 
 DEFAULT_CURVE = 'secp256k1'
+STELLAR_DEFAULT_NETWORK_PASSPHRASE = "Public Global Stellar Network ; September 2015"
 
 # monkeypatching: text formatting of protobuf messages
 tools.monkeypatch_google_protobuf_text_format()
@@ -809,6 +810,41 @@ class ProtocolMixin(object):
         return self.call(
             stellar_proto.StellarGetAddress(address_n=address_n, show_display=show_display)
         )
+
+    def stellar_sign_tx(
+        self, tx, operations, address_n, network_passphrase=STELLAR_DEFAULT_NETWORK_PASSPHRASE
+    ):
+        tx.network_passphrase = network_passphrase
+        tx.address_n.extend(address_n)
+        tx.num_operations = len(operations)
+        # Signing loop works as follows:
+        #
+        # 1. Start with tx (header information for the transaction) and operations (an array of operation protobuf messagess)
+        # 2. Send the tx header to the device
+        # 3. Receive a StellarTxOpRequest message
+        # 4. Send operations one by one until all operations have been sent. If there are more operations to sign, the device will send a StellarTxOpRequest message
+        # 5. The final message received will be StellarSignedTx which is returned from this method
+        resp = self.call(tx)
+        try:
+            while isinstance(resp, stellar_proto.StellarTxOpRequest):
+                resp = self.call(operations.pop(0))
+        except IndexError:
+            # pop from empty list
+            raise CallException(
+                "Stellar.UnexpectedEndOfOperations",
+                "Reached end of operations without a signature.",
+            )
+
+        if not isinstance(resp, stellar_proto.StellarSignedTx):
+            raise CallException(proto.FailureType.UnexpectedMessage, resp)
+
+        if operations:
+            raise CallException(
+                "Stellar.UnprocessedOperations",
+                "Received a signature before processing all operations.",
+            )
+
+        return resp
 
     @field('entropy')
     @expect(proto.Entropy)
