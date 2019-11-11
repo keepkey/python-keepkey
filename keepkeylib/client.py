@@ -39,6 +39,7 @@ from . import messages_pb2 as proto
 from . import messages_eos_pb2 as eos_proto
 from . import messages_nano_pb2 as nano_proto
 from . import messages_stellar_pb2 as stellar_proto
+from . import messages_cosmos_pb2 as cosmos_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -845,6 +846,12 @@ class ProtocolMixin(object):
             )
 
         return resp
+
+    @expect(cosmos_proto.CosmosAddress)
+    def cosmos_get_address(self, address_n, show_display=False):
+        return self.call(
+            cosmos_proto.CosmosGetAddress(address_n=address_n, show_display=show_display)
+        )
 
     @field('entropy')
     @expect(proto.Entropy)
