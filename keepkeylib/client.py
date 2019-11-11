@@ -853,6 +853,23 @@ class ProtocolMixin(object):
             cosmos_proto.CosmosGetAddress(address_n=address_n, show_display=show_display)
         )
 
+    @expect(cosmos_proto.CosmosSignedTx)
+    def cosmos_sign_tx(
+        self,
+        address_n,
+        account_number,
+        chain_id,
+        fee_amount,
+        fee_gas,
+        msg_from_address,
+        msg_to_address,
+        msg_amount,
+        memo,
+        sequence
+    ):
+        req = cosmos_proto.CosmosSignTx(address_n=address_n, account_number=account_number, chain_id=chain_id, fee_amount=fee_amount, gas=fee_gas, from_address=msg_from_address, to_address=msg_to_address, amount=msg_amount, memo=memo, sequence=sequence)
+        return self.call(req)
+
     @field('entropy')
     @expect(proto.Entropy)
     def get_entropy(self, size):

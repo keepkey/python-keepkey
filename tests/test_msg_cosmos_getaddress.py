@@ -12,7 +12,6 @@ DEFAULT_BIP32_PATH = "m/44h/118h/0h/0/0"
 class TestMsgCosmosGetAddress(common.KeepKeyTest):
     def test_cosmos_get_address(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        print self.mnemonic12
         address = self.client.cosmos_get_address(parse_path(DEFAULT_BIP32_PATH))
         assert address.address == "cosmos15cenya0tr7nm3tz2wn3h3zwkht2rxrq7q7h3dj"
 
