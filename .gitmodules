@@ -1,6 +1,6 @@
 [submodule "device-protocol"]
 	path = device-protocol
-	url = https://github.com/Start9Labs/device-protocol.git
+	url = https://github.com/keepkey/device-protocol.git
 [submodule "keepkeylib/eth/ethereum-lists"]
 	path = keepkeylib/eth/ethereum-lists
 	url = https://github.com/keepkey/ethereum-lists.git
