@@ -853,7 +853,6 @@ class ProtocolMixin(object):
             cosmos_proto.CosmosGetAddress(address_n=address_n, show_display=show_display)
         )
 
-    @expect(cosmos_proto.CosmosSignedTx)
     def cosmos_sign_tx(
         self,
         address_n,
@@ -867,8 +866,36 @@ class ProtocolMixin(object):
         memo,
         sequence
     ):
-        req = cosmos_proto.CosmosSignTx(address_n=address_n, account_number=account_number, chain_id=chain_id, fee_amount=fee_amount, gas=fee_gas, from_address=msg_from_address, to_address=msg_to_address, amount=msg_amount, memo=memo, sequence=sequence)
-        return self.call(req)
+        resp = self.call(cosmos_proto.CosmosSignTx(
+            address_n=address_n,
+            account_number=account_number,
+            chain_id=chain_id,
+            fee_amount=fee_amount,
+            gas=fee_gas,
+            memo=memo,
+            sequence=sequence,
+            msg_count=1
+        ))
+        if isinstance(resp, cosmos_proto.CosmosMsgRequest):
+            resp = self.call(cosmos_proto.CosmosMsgAck(
+                send=cosmos_proto.CosmosMsgSend(
+                    from_address=msg_from_address,
+                    to_address=msg_to_address,
+                    amount=msg_amount
+                )
+            ))
+        else:
+            raise CallException(
+                "Cosmos.ExpectedMsgRequest",
+                "Message request expected but not received.",
+            )
+        if isinstance(resp, cosmos_proto.CosmosSignedTx):
+            return resp
+        else:
+            raise CallException(
+                "Cosmos.UnexpectedEndOfOperations",
+                "Reached end of operations without a signature.",
+            )
 
     @field('entropy')
     @expect(proto.Entropy)
