@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-cosmos.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x15messages-cosmos.proto\x1a\x0btypes.proto\";\n\x10\x43osmosGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\" \n\rCosmosAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\xc6\x01\n\x0c\x43osmosSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x16\n\x0e\x61\x63\x63ount_number\x18\x02 \x02(\x04\x12\x10\n\x08\x63hain_id\x18\x03 \x02(\t\x12\x12\n\nfee_amount\x18\x04 \x02(\r\x12\x0b\n\x03gas\x18\x05 \x02(\r\x12\x14\n\x0c\x66rom_address\x18\x06 \x02(\t\x12\x12\n\nto_address\x18\x07 \x02(\t\x12\x0e\n\x06\x61mount\x18\x08 \x02(\x04\x12\x0c\n\x04memo\x18\t \x02(\t\x12\x10\n\x08sequence\x18\n \x02(\x04\"7\n\x0e\x43osmosSignedTx\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42\x32\n\x1a\x63om.keepkey.deviceprotocolB\x14KeepKeyMessageCosmos')
+  serialized_pb=_b('\n\x15messages-cosmos.proto\x1a\x0btypes.proto\";\n\x10\x43osmosGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\" \n\rCosmosAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\x9f\x01\n\x0c\x43osmosSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x16\n\x0e\x61\x63\x63ount_number\x18\x02 \x01(\x04\x12\x10\n\x08\x63hain_id\x18\x03 \x01(\t\x12\x12\n\nfee_amount\x18\x04 \x01(\r\x12\x0b\n\x03gas\x18\x05 \x01(\r\x12\x0c\n\x04memo\x18\x06 \x01(\t\x12\x10\n\x08sequence\x18\x07 \x01(\x04\x12\x11\n\tmsg_count\x18\x08 \x01(\r\"\x12\n\x10\x43osmosMsgRequest\",\n\x0c\x43osmosMsgAck\x12\x1c\n\x04send\x18\x01 \x01(\x0b\x32\x0e.CosmosMsgSend\"I\n\rCosmosMsgSend\x12\x14\n\x0c\x66rom_address\x18\x06 \x01(\t\x12\x12\n\nto_address\x18\x07 \x01(\t\x12\x0e\n\x06\x61mount\x18\x08 \x01(\x04\"7\n\x0e\x43osmosSignedTx\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42\x32\n\x1a\x63om.keepkey.deviceprotocolB\x14KeepKeyMessageCosmos')
   ,
   dependencies=[types__pb2.DESCRIPTOR,])
 
@@ -112,63 +112,49 @@ _COSMOSSIGNTX = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='account_number', full_name='CosmosSignTx.account_number', index=1,
-      number=2, type=4, cpp_type=4, label=2,
+      number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='chain_id', full_name='CosmosSignTx.chain_id', index=2,
-      number=3, type=9, cpp_type=9, label=2,
+      number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='fee_amount', full_name='CosmosSignTx.fee_amount', index=3,
-      number=4, type=13, cpp_type=3, label=2,
+      number=4, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='gas', full_name='CosmosSignTx.gas', index=4,
-      number=5, type=13, cpp_type=3, label=2,
+      number=5, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='from_address', full_name='CosmosSignTx.from_address', index=5,
-      number=6, type=9, cpp_type=9, label=2,
+      name='memo', full_name='CosmosSignTx.memo', index=5,
+      number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='to_address', full_name='CosmosSignTx.to_address', index=6,
-      number=7, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='amount', full_name='CosmosSignTx.amount', index=7,
-      number=8, type=4, cpp_type=4, label=2,
+      name='sequence', full_name='CosmosSignTx.sequence', index=6,
+      number=7, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='memo', full_name='CosmosSignTx.memo', index=8,
-      number=9, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='sequence', full_name='CosmosSignTx.sequence', index=9,
-      number=10, type=4, cpp_type=4, label=2,
+      name='msg_count', full_name='CosmosSignTx.msg_count', index=7,
+      number=8, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -186,7 +172,107 @@ _COSMOSSIGNTX = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=134,
-  serialized_end=332,
+  serialized_end=293,
+)
+
+
+_COSMOSMSGREQUEST = _descriptor.Descriptor(
+  name='CosmosMsgRequest',
+  full_name='CosmosMsgRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=295,
+  serialized_end=313,
+)
+
+
+_COSMOSMSGACK = _descriptor.Descriptor(
+  name='CosmosMsgAck',
+  full_name='CosmosMsgAck',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='send', full_name='CosmosMsgAck.send', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=315,
+  serialized_end=359,
+)
+
+
+_COSMOSMSGSEND = _descriptor.Descriptor(
+  name='CosmosMsgSend',
+  full_name='CosmosMsgSend',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='from_address', full_name='CosmosMsgSend.from_address', index=0,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='to_address', full_name='CosmosMsgSend.to_address', index=1,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='amount', full_name='CosmosMsgSend.amount', index=2,
+      number=8, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=361,
+  serialized_end=434,
 )
 
 
@@ -223,13 +309,17 @@ _COSMOSSIGNEDTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=334,
-  serialized_end=389,
+  serialized_start=436,
+  serialized_end=491,
 )
 
+_COSMOSMSGACK.fields_by_name['send'].message_type = _COSMOSMSGSEND
 DESCRIPTOR.message_types_by_name['CosmosGetAddress'] = _COSMOSGETADDRESS
 DESCRIPTOR.message_types_by_name['CosmosAddress'] = _COSMOSADDRESS
 DESCRIPTOR.message_types_by_name['CosmosSignTx'] = _COSMOSSIGNTX
+DESCRIPTOR.message_types_by_name['CosmosMsgRequest'] = _COSMOSMSGREQUEST
+DESCRIPTOR.message_types_by_name['CosmosMsgAck'] = _COSMOSMSGACK
+DESCRIPTOR.message_types_by_name['CosmosMsgSend'] = _COSMOSMSGSEND
 DESCRIPTOR.message_types_by_name['CosmosSignedTx'] = _COSMOSSIGNEDTX
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -253,6 +343,27 @@ CosmosSignTx = _reflection.GeneratedProtocolMessageType('CosmosSignTx', (_messag
   # @@protoc_insertion_point(class_scope:CosmosSignTx)
   ))
 _sym_db.RegisterMessage(CosmosSignTx)
+
+CosmosMsgRequest = _reflection.GeneratedProtocolMessageType('CosmosMsgRequest', (_message.Message,), dict(
+  DESCRIPTOR = _COSMOSMSGREQUEST,
+  __module__ = 'messages_cosmos_pb2'
+  # @@protoc_insertion_point(class_scope:CosmosMsgRequest)
+  ))
+_sym_db.RegisterMessage(CosmosMsgRequest)
+
+CosmosMsgAck = _reflection.GeneratedProtocolMessageType('CosmosMsgAck', (_message.Message,), dict(
+  DESCRIPTOR = _COSMOSMSGACK,
+  __module__ = 'messages_cosmos_pb2'
+  # @@protoc_insertion_point(class_scope:CosmosMsgAck)
+  ))
+_sym_db.RegisterMessage(CosmosMsgAck)
+
+CosmosMsgSend = _reflection.GeneratedProtocolMessageType('CosmosMsgSend', (_message.Message,), dict(
+  DESCRIPTOR = _COSMOSMSGSEND,
+  __module__ = 'messages_cosmos_pb2'
+  # @@protoc_insertion_point(class_scope:CosmosMsgSend)
+  ))
+_sym_db.RegisterMessage(CosmosMsgSend)
 
 CosmosSignedTx = _reflection.GeneratedProtocolMessageType('CosmosSignedTx', (_message.Message,), dict(
   DESCRIPTOR = _COSMOSSIGNEDTX,
