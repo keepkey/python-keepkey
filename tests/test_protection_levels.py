@@ -120,19 +120,6 @@ class TestProtectionLevels(common.KeepKeyTest):
         # This must fail, because device is already initialized
         self.assertRaises(Exception, self.client.reset_device, False, 128, True, False, 'label', 'english')
 
-    def test_recovery_device(self):
-        with self.client:
-            self.client.set_mnemonic(self.mnemonic12)
-            self.client.set_expected_responses(
-                                     [proto.ButtonRequest()] +
-                                     [proto.WordRequest()] * 24 +
-                                     [proto.Success(),
-                                      proto.Features()])
-            self.client.recovery_device(True, 12, False, False, 'label', 'english')
-
-        # This must fail, because device is already initialized
-        self.assertRaises(Exception, self.client.recovery_device, 12, False, False, 'label', 'english')
-
     def test_sign_message(self):
         with self.client:
             self.setup_mnemonic_pin_passphrase()
