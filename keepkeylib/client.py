@@ -831,6 +831,7 @@ class ProtocolMixin(object):
 
         return resp
 
+    @field('address')
     @expect(cosmos_proto.CosmosAddress)
     def cosmos_get_address(self, address_n, show_display=False):
         return self.call(
