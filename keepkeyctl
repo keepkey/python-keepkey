@@ -341,7 +341,7 @@ class Commands(object):
         return self.client.wipe_device()
 
     def recovery_device(self, args):
-        return self.client.recovery_device(args.use_trezor_method, args.words, args.passphrase_protection,
+        return self.client.recovery_device(False, args.words, args.passphrase_protection,
                                     args.pin_protection, args.label, 'english')
 
     def load_device(self, args):
@@ -543,7 +543,6 @@ class Commands(object):
         (('-p', '--pin-protection'), {'action': 'store_true', 'default': False}),
         (('-r', '--passphrase-protection'), {'action': 'store_true', 'default': False}),
         (('-l', '--label'), {'type': str, 'default': ''}),
-        (('-t', '--use-trezor-method'), {'action': 'store_true', 'default': False}),
     )
 
     load_device.arguments = (
