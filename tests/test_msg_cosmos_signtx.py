@@ -5,7 +5,6 @@ from base64 import b64encode
 from binascii import hexlify
 
 import keepkeylib.messages_pb2 as proto
-import keepkeylib.messages_stellar_pb2 as stellar_proto
 from keepkeylib.tools import parse_path
 
 DEFAULT_BIP32_PATH = "m/44h/118h/0h/0/0"
