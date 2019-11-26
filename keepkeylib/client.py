@@ -38,6 +38,7 @@ from . import mapping
 from . import messages_pb2 as proto
 from . import messages_eos_pb2 as eos_proto
 from . import messages_nano_pb2 as nano_proto
+from . import messages_cosmos_pb2 as cosmos_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -786,6 +787,57 @@ class ProtocolMixin(object):
             balance=nano.encode_balance(balance),
         )
         return self.call(msg)
+
+    @field('address')
+    @expect(cosmos_proto.CosmosAddress)
+    def cosmos_get_address(self, address_n, show_display=False):
+        return self.call(
+            cosmos_proto.CosmosGetAddress(address_n=address_n, show_display=show_display)
+        )
+
+    def cosmos_sign_tx(
+        self,
+        address_n,
+        account_number,
+        chain_id,
+        fee_amount,
+        fee_gas,
+        msg_from_address,
+        msg_to_address,
+        msg_amount,
+        memo,
+        sequence
+    ):
+        resp = self.call(cosmos_proto.CosmosSignTx(
+            address_n=address_n,
+            account_number=account_number,
+            chain_id=chain_id,
+            fee_amount=fee_amount,
+            gas=fee_gas,
+            memo=memo,
+            sequence=sequence,
+            msg_count=1
+        ))
+        if isinstance(resp, cosmos_proto.CosmosMsgRequest):
+            resp = self.call(cosmos_proto.CosmosMsgAck(
+                send=cosmos_proto.CosmosMsgSend(
+                    from_address=msg_from_address,
+                    to_address=msg_to_address,
+                    amount=msg_amount
+                )
+            ))
+        else:
+            raise CallException(
+                "Cosmos.ExpectedMsgRequest",
+                "Message request expected but not received.",
+            )
+        if isinstance(resp, cosmos_proto.CosmosSignedTx):
+            return resp
+        else:
+            raise CallException(
+                "Cosmos.UnexpectedEndOfOperations",
+                "Reached end of operations without a signature.",
+            )
 
     @field('entropy')
     @expect(proto.Entropy)
