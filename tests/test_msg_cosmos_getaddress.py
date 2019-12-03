@@ -68,8 +68,14 @@ class TestMsgCosmosGetAddress(common.KeepKeyTest):
 
 
     def test_cosmos_get_address_sep(self):
-        self.mnemonic12 = 'illness spike retreat truth genius clock brain pass fit cave bargain toe'
-        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.load_device_by_mnemonic(
+          mnemonic='illness spike retreat truth genius clock brain pass fit cave bargain toe',
+          pin='',
+          passphrase_protection=False,
+          label='test',
+          language='english'
+        )
+
         address = self.client.cosmos_get_address(parse_path(DEFAULT_BIP32_PATH))
         assert address == "cosmos1jcwdsdelc4cwvall0twl974sfkpqmzrgkszu9l"
 
@@ -78,13 +84,19 @@ class TestMsgCosmosGetAddress(common.KeepKeyTest):
         )
         assert address == "cosmos1280uphuty5rxr2m05t6xujvylkkftlrvdnw0pp"
 
-    def test_cosmos_get_address_fail(self):
-        self.setup_mnemonic_nopin_nopassphrase()
-        try:
-            self.client.cosmos_get_address(parse_path("m/0/1"))
-        except CallException as exc:
-            assert exc.args[0] == proto_types.FailureType.Failure_FirmwareError
-            assert exc.args[1].endswith("Failed to derive private key")
+    def test_onchain(self):
+        self.client.load_device_by_mnemonic(
+          mnemonic='hybrid anger habit story vibrant grit ill sense duck butter heavy frame',
+          pin='',
+          passphrase_protection=False,
+          label='test',
+          language='english'
+        )
+
+        self.assertEquals(
+          "cosmos1934nqs0ke73lm5ej8hs9uuawkl3ztesg9jp5c5",
+          self.client.cosmos_get_address(parse_path(DEFAULT_BIP32_PATH)))
+
 
 if __name__ == '__main__':
     unittest.main()
