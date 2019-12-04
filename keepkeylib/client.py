@@ -38,6 +38,7 @@ from . import mapping
 from . import messages_pb2 as proto
 from . import messages_eos_pb2 as eos_proto
 from . import messages_nano_pb2 as nano_proto
+from . import messages_cosmos_pb2 as cosmos_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -284,14 +285,6 @@ class TextUIMixin(object):
             log("Passphrase did not match! ")
             exit()
 
-    def callback_WordRequest(self, msg):
-        log("Enter one word of mnemonic: ")
-        try:
-            word = raw_input()
-        except NameError:
-            word = input() # Python 3
-        return proto.WordAck(word=word)
-
     def callback_CharacterRequest(self, msg):
         if self.character_request_first_pass:
             self.character_request_first_pass = False
@@ -473,14 +466,6 @@ class DebugLinkMixin(object):
             log("Provided passphrase: '%s'" % self.passphrase)
         return proto.PassphraseAck(passphrase=self.passphrase)
 
-    def callback_WordRequest(self, msg):
-        (word, pos) = self.debug.read_recovery_word()
-        if word != '':
-            return proto.WordAck(word=word)
-        if pos != 0:
-            return proto.WordAck(word=self.mnemonic[pos - 1])
-
-        raise Exception("Unexpected call")
 
 class ProtocolMixin(object):
     PRIME_DERIVATION_FLAG = 0x80000000
@@ -803,6 +788,72 @@ class ProtocolMixin(object):
         )
         return self.call(msg)
 
+    @field('address')
+    @expect(cosmos_proto.CosmosAddress)
+    def cosmos_get_address(self, address_n, show_display=False):
+        return self.call(
+            cosmos_proto.CosmosGetAddress(address_n=address_n, show_display=show_display)
+        )
+
+    def cosmos_sign_tx(
+        self,
+        address_n,
+        account_number,
+        chain_id,
+        fee,
+        gas,
+        msgs,
+        memo,
+        sequence
+    ):
+        resp = self.call(cosmos_proto.CosmosSignTx(
+            address_n=address_n,
+            account_number=account_number,
+            chain_id=chain_id,
+            fee_amount=fee,
+            gas=gas,
+            memo=memo,
+            sequence=sequence,
+            msg_count=len(msgs)
+        ))
+
+        for msg in msgs:
+            if not isinstance(resp, cosmos_proto.CosmosMsgRequest):
+                raise CallException(
+                    "Cosmos.ExpectedMsgRequest",
+                    "Message request expected but not received.",
+                )
+
+            if msg['type'] == "cosmos-sdk/MsgSend":
+                if len(msg['value']['amount']) != 1:
+                    raise CallException("Cosmos.MsgSend", "Multiple amounts per msg not supported")
+
+                denom = msg['value']['amount'][0]['denom']
+                if denom != 'uatom':
+                    raise CallException("Cosmos.MsgSend", "Unsupported denomination: " + denom)
+
+                resp = self.call(cosmos_proto.CosmosMsgAck(
+                    send=cosmos_proto.CosmosMsgSend(
+                        from_address=msg['value']['from_address'],
+                        to_address=msg['value']['to_address'],
+                        amount=long(msg['value']['amount'][0]['amount'])
+                    )
+                ))
+            else:
+                raise CallException(
+                    "Cosmos.UnknownMsg",
+                    "Cosmos message %s is not yet supported" % (msg['type'],)
+                )
+
+        if not isinstance(resp, cosmos_proto.CosmosSignedTx):
+            raise CallException(
+                "Cosmos.UnexpectedEndOfOperations",
+                "Reached end of operations without a signature.",
+            )
+
+        return resp
+
+
     @field('entropy')
     @expect(proto.Entropy)
     def get_entropy(self, size):
@@ -1062,7 +1113,7 @@ class ProtocolMixin(object):
         if self.features.initialized:
             raise Exception("Device is initialized already. Call wipe_device() and try again.")
         if not use_trezor_method:
-            word_count = 0
+            raise Exception("Trezor-style recovery is no longer supported")
         elif word_count not in (12, 18, 24):
             raise Exception("Invalid word count. Use 12/18/24")
 
@@ -1072,7 +1123,7 @@ class ProtocolMixin(object):
                                     label=label,
                                     language=language,
                                     enforce_wordlist=True,
-                                    use_character_cipher=bool(not use_trezor_method)))
+                                    use_character_cipher=True))
 
         self.init_device()
         return res

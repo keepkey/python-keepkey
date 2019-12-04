@@ -3,7 +3,7 @@
 from __future__ import print_function
 from io import StringIO
 import json
-import md5
+import hashlib
 import os.path
 import sys
 
@@ -77,8 +77,8 @@ def main():
 
     if os.path.isfile(out_filename):
         with open(out_filename, 'r') as inf:
-            in_digest = md5.new(inf.read()).digest()
-            out_digest = md5.new(outf.getvalue().encode('utf-8')).digest()
+            in_digest = hashlib.sha256(inf.read()).hexdigest()
+            out_digest = hashlib.sha256(outf.getvalue().encode('utf-8')).hexdigest()
             if in_digest == out_digest:
                 print(out_filename + ": Already up to date")
                 return
