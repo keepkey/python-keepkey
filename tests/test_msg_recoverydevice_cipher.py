@@ -355,6 +355,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
             mnemonic_words = ['all'] * n
 
             for index, word in enumerate(mnemonic_words):
+                if index >= 12:
+                    self.assertIsInstance(ret, proto.Failure)
+                    self.assertEndsWith(ret.message, "Too many words entered")
+                    return
+
                 for character in word:
                     self.assertIsInstance(ret, proto.CharacterRequest)
                     cipher = self.client.debug.read_recovery_cipher()
@@ -398,7 +403,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
         for index, word in enumerate(mnemonic_words):
             for character in word:
                 if isinstance(ret, proto.Failure):
-                    self.assertEndsWith(ret.message, "Too many characters attempted during recovery")
+                    self.assertEndsWith(ret.message, "Too many words entered")
                     return
 
                 self.assertIsInstance(ret, proto.CharacterRequest)
