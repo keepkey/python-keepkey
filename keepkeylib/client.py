@@ -804,7 +804,8 @@ class ProtocolMixin(object):
         gas,
         msgs,
         memo,
-        sequence
+        sequence,
+        exchange_types=[]
     ):
         resp = self.call(cosmos_proto.CosmosSignTx(
             address_n=address_n,
@@ -817,7 +818,7 @@ class ProtocolMixin(object):
             msg_count=len(msgs)
         ))
 
-        for msg in msgs:
+        for (msg, exchange_type) in zip(msgs, exchange_types):
             if not isinstance(resp, cosmos_proto.CosmosMsgRequest):
                 raise CallException(
                     "Cosmos.ExpectedMsgRequest",
@@ -836,7 +837,9 @@ class ProtocolMixin(object):
                     send=cosmos_proto.CosmosMsgSend(
                         from_address=msg['value']['from_address'],
                         to_address=msg['value']['to_address'],
-                        amount=long(msg['value']['amount'][0]['amount'])
+                        amount=long(msg['value']['amount'][0]['amount']),
+                        address_type=types.EXCHANGE if exchange_type is not None else types.SPEND,
+                        exchange_type=exchange_type
                     )
                 ))
             else:
