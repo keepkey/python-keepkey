@@ -26,6 +26,7 @@ def make_send(from_address, to_address, amount):
 
 class TestMsgCosmosSignTx(common.KeepKeyTest):
     def test_cosmos_sign_tx(self):
+        self.requires_firmware("6.3.0")
         self.setup_mnemonic_nopin_nopassphrase()
         signature = self.client.cosmos_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
@@ -46,6 +47,7 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
 
 
     def test_cosmos_sign_tx_memo(self):
+        self.requires_firmware("6.3.0")
         self.setup_mnemonic_nopin_nopassphrase()
         signature = self.client.cosmos_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
@@ -66,6 +68,7 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
 
 
     def test_onchain1(self):
+        self.requires_firmware("6.3.0")
         self.client.load_device_by_mnemonic(
           mnemonic='hybrid anger habit story vibrant grit ill sense duck butter heavy frame',
           pin='',
@@ -94,6 +97,7 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
 
 
     def test_onchain2(self):
+        self.requires_firmware("6.3.0")
         self.client.load_device_by_mnemonic(
           mnemonic='hybrid anger habit story vibrant grit ill sense duck butter heavy frame',
           pin='',
@@ -122,6 +126,7 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
 
 
     def test_exchange_src(self):
+        self.requires_firmware("6.3.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         signed_exchange_out=proto_exchange.SignedExchangeResponse(
@@ -177,6 +182,7 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
         self.assertEqual(hexlify(signature.public_key), "03bee3af30e53a73f38abc5a2fcdac426d7b04eb72a8ebd3b01992e2d206e24ad8")
 
     def test_exchange_dst(self):
+        self.requires_firmware("6.3.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         signed_exchange_out=proto_exchange.SignedExchangeResponse(

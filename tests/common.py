@@ -23,6 +23,7 @@ from __future__ import print_function
 import unittest
 import config
 import time
+import semver
 
 from keepkeylib.client import KeepKeyClient, KeepKeyDebuglinkClient, KeepKeyDebuglinkClientVerbose
 from keepkeylib import tx_api
@@ -82,4 +83,11 @@ class KeepKeyTest(unittest.TestCase):
 
     def assertEndsWith(self, s, suffix):
         self.assertTrue(s.endswith(suffix), "'{}'.endswith('{}')".format(s, suffix))
+
+    def requires_firmware(self, ver_required):
+        self.client.init_device()
+        features = self.client.features
+        version = "%s.%s.%s" % (features.major_version, features.minor_version, features.patch_version)
+        if semver.compare(version, ver_required) < 0:
+            self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
 
