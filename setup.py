@@ -21,6 +21,9 @@ setup(
     extras_require={
         "ethereum": ["rlp>=0.4.4", "ethjsonrpc>=0.3.0"],
     },
+    tests_require=[
+        'semver==2.9.0'
+    ],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
