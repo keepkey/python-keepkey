@@ -1115,7 +1115,7 @@ class ProtocolMixin(object):
     def recovery_device(self, use_trezor_method, word_count, passphrase_protection, pin_protection, label, language):
         if self.features.initialized:
             raise Exception("Device is initialized already. Call wipe_device() and try again.")
-        if not use_trezor_method:
+        if use_trezor_method:
             raise Exception("Trezor-style recovery is no longer supported")
         elif word_count not in (12, 18, 24):
             raise Exception("Invalid word count. Use 12/18/24")
