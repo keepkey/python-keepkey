@@ -3,7 +3,7 @@
 Get your address:
 
 ```
-keepkeyctl get_address -d
+keepkeyctl cosmos_get_address -d
 ```
 
 Create unsigned transaction:
