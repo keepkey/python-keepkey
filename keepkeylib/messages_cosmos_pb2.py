@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-cosmos.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x15messages-cosmos.proto\x1a\x0btypes.proto\";\n\x10\x43osmosGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\" \n\rCosmosAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\xa7\x01\n\x0c\x43osmosSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\x0e\x61\x63\x63ount_number\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x08\x63hain_id\x18\x03 \x01(\t\x12\x12\n\nfee_amount\x18\x04 \x01(\r\x12\x0b\n\x03gas\x18\x05 \x01(\r\x12\x0c\n\x04memo\x18\x06 \x01(\t\x12\x14\n\x08sequence\x18\x07 \x01(\x04\x42\x02\x30\x01\x12\x11\n\tmsg_count\x18\x08 \x01(\r\"\x12\n\x10\x43osmosMsgRequest\",\n\x0c\x43osmosMsgAck\x12\x1c\n\x04send\x18\x01 \x01(\x0b\x32\x0e.CosmosMsgSend\"M\n\rCosmosMsgSend\x12\x14\n\x0c\x66rom_address\x18\x06 \x01(\t\x12\x12\n\nto_address\x18\x07 \x01(\t\x12\x12\n\x06\x61mount\x18\x08 \x01(\x04\x42\x02\x30\x01\"7\n\x0e\x43osmosSignedTx\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42\x32\n\x1a\x63om.keepkey.deviceprotocolB\x14KeepKeyMessageCosmos')
+  serialized_pb=_b('\n\x15messages-cosmos.proto\x1a\x0btypes.proto\";\n\x10\x43osmosGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\" \n\rCosmosAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\xa7\x01\n\x0c\x43osmosSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\x0e\x61\x63\x63ount_number\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x08\x63hain_id\x18\x03 \x01(\t\x12\x12\n\nfee_amount\x18\x04 \x01(\r\x12\x0b\n\x03gas\x18\x05 \x01(\r\x12\x0c\n\x04memo\x18\x06 \x01(\t\x12\x14\n\x08sequence\x18\x07 \x01(\x04\x42\x02\x30\x01\x12\x11\n\tmsg_count\x18\x08 \x01(\r\"\x12\n\x10\x43osmosMsgRequest\",\n\x0c\x43osmosMsgAck\x12\x1c\n\x04send\x18\x01 \x01(\x0b\x32\x0e.CosmosMsgSend\"\x9d\x01\n\rCosmosMsgSend\x12\x14\n\x0c\x66rom_address\x18\x06 \x01(\t\x12\x12\n\nto_address\x18\x07 \x01(\t\x12\x12\n\x06\x61mount\x18\x08 \x01(\x04\x42\x02\x30\x01\x12(\n\x0c\x61\x64\x64ress_type\x18\t \x01(\x0e\x32\x12.OutputAddressType\x12$\n\rexchange_type\x18\n \x01(\x0b\x32\r.ExchangeType\"7\n\x0e\x43osmosSignedTx\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42\x32\n\x1a\x63om.keepkey.deviceprotocolB\x14KeepKeyMessageCosmos')
   ,
   dependencies=[types__pb2.DESCRIPTOR,])
 
@@ -259,6 +259,20 @@ _COSMOSMSGSEND = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='address_type', full_name='CosmosMsgSend.address_type', index=3,
+      number=9, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='exchange_type', full_name='CosmosMsgSend.exchange_type', index=4,
+      number=10, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -271,8 +285,8 @@ _COSMOSMSGSEND = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=369,
-  serialized_end=446,
+  serialized_start=370,
+  serialized_end=527,
 )
 
 
@@ -309,11 +323,13 @@ _COSMOSSIGNEDTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=448,
-  serialized_end=503,
+  serialized_start=529,
+  serialized_end=584,
 )
 
 _COSMOSMSGACK.fields_by_name['send'].message_type = _COSMOSMSGSEND
+_COSMOSMSGSEND.fields_by_name['address_type'].enum_type = types__pb2._OUTPUTADDRESSTYPE
+_COSMOSMSGSEND.fields_by_name['exchange_type'].message_type = types__pb2._EXCHANGETYPE
 DESCRIPTOR.message_types_by_name['CosmosGetAddress'] = _COSMOSGETADDRESS
 DESCRIPTOR.message_types_by_name['CosmosAddress'] = _COSMOSADDRESS
 DESCRIPTOR.message_types_by_name['CosmosSignTx'] = _COSMOSSIGNTX

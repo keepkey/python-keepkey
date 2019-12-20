@@ -22,6 +22,8 @@ import unittest
 import common
 
 from keepkeylib import messages_pb2 as proto
+from keepkeylib import types_pb2 as proto_types
+from keepkeylib.tools import parse_path
 
 class TestDeviceRecovery(common.KeepKeyTest):
     def test_pin_passphrase(self):
@@ -317,6 +319,108 @@ class TestDeviceRecovery(common.KeepKeyTest):
             ret = self.client.call_raw(proto.WipeDevice())
             self.client.debug.press_yes()
             ret = self.client.call_raw(proto.ButtonAck())
+
+    def test_vuln1971(self):
+        self.setup_mnemonic_allallall()
+
+        self.assertEquals(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), True, None, script_type=proto_types.SPENDP2SHWITNESS), '2N1LGaGg836mqSQqiuUBLfcyGBhyZbremDX')
+
+        # Previously, there weren't good checks on the expected state of the
+        # recovery cipher state machine, which led to this case triggering an
+        # out of bounds memory access, as well as setting the device's mnemonic
+        # to "".
+        self.client.call_raw(proto.CharacterAck(done=True))
+
+        # The emulator, with ASan enabled, crashes on the out of bounds
+        # memory access before even getting to the part where the empty
+        # mnemonic is pushed into storage, but for posterity, let's make sure
+        # we still get the correct address afterward:
+        self.assertEquals(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), True, None, script_type=proto_types.SPENDP2SHWITNESS), '2N1LGaGg836mqSQqiuUBLfcyGBhyZbremDX')
+
+    def test_wrong_number_of_words(self):
+        def check_n_words(n):
+            ret = self.client.call_raw(proto.RecoveryDevice(word_count=12,
+                                       passphrase_protection=False,
+                                       pin_protection=False,
+                                       label='label',
+                                       language='english',
+                                       enforce_wordlist=True,
+                                       use_character_cipher=True))
+
+            # Reminder UI
+            assert isinstance(ret, proto.ButtonRequest)
+            self.client.debug.press_yes()
+            ret = self.client.call_raw(proto.ButtonAck())
+
+            mnemonic_words = ['all'] * n
+
+            for index, word in enumerate(mnemonic_words):
+                if index >= 12:
+                    self.assertIsInstance(ret, proto.Failure)
+                    self.assertEndsWith(ret.message, "Too many words entered")
+                    return
+
+                for character in word:
+                    self.assertIsInstance(ret, proto.CharacterRequest)
+                    cipher = self.client.debug.read_recovery_cipher()
+
+                    encoded_character = cipher[ord(character) - 97]
+                    ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
+
+                    auto_completed = self.client.debug.read_recovery_auto_completed_word()
+
+                    if word == auto_completed:
+                        if len(mnemonic_words) != index + 1:
+                            ret = self.client.call_raw(proto.CharacterAck(character=' '))
+                        break
+
+            # Send final ack
+            self.assertIsInstance(ret, proto.CharacterRequest)
+            ret = self.client.call_raw(proto.CharacterAck(done=True))
+
+            self.assertIsInstance(ret, proto.Failure)
+            self.assertEndsWith(ret.message, "words entered")
+
+        for n in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14]:
+            check_n_words(n)
+
+    def test_too_many_characters(self):
+        ret = self.client.call_raw(proto.RecoveryDevice(word_count=12,
+                                   passphrase_protection=False,
+                                   pin_protection=False,
+                                   label='label',
+                                   language='english',
+                                   enforce_wordlist=True,
+                                   use_character_cipher=True))
+
+        # Reminder UI
+        assert isinstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
+
+        mnemonic_words = ['all'] * 100
+
+        for index, word in enumerate(mnemonic_words):
+            for character in word:
+                if isinstance(ret, proto.Failure):
+                    self.assertEndsWith(ret.message, "Too many words entered")
+                    return
+
+                self.assertIsInstance(ret, proto.CharacterRequest)
+                cipher = self.client.debug.read_recovery_cipher()
+
+                encoded_character = cipher[ord(character) - 97]
+                ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
+
+                auto_completed = self.client.debug.read_recovery_auto_completed_word()
+
+                if word == auto_completed:
+                    if len(mnemonic_words) != index + 1:
+                        ret = self.client.call_raw(proto.CharacterAck(character=' '))
+                    break
+
+        # Shouldn't ever get here, assuming the test worked
+        self.assertEquals(True, False)
 
 if __name__ == '__main__':
     unittest.main()

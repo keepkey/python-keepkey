@@ -800,44 +800,62 @@ class ProtocolMixin(object):
         address_n,
         account_number,
         chain_id,
-        fee_amount,
-        fee_gas,
-        msg_from_address,
-        msg_to_address,
-        msg_amount,
+        fee,
+        gas,
+        msgs,
         memo,
-        sequence
+        sequence,
+        exchange_types=None
     ):
         resp = self.call(cosmos_proto.CosmosSignTx(
             address_n=address_n,
             account_number=account_number,
             chain_id=chain_id,
-            fee_amount=fee_amount,
-            gas=fee_gas,
+            fee_amount=fee,
+            gas=gas,
             memo=memo,
             sequence=sequence,
-            msg_count=1
+            msg_count=len(msgs)
         ))
-        if isinstance(resp, cosmos_proto.CosmosMsgRequest):
-            resp = self.call(cosmos_proto.CosmosMsgAck(
-                send=cosmos_proto.CosmosMsgSend(
-                    from_address=msg_from_address,
-                    to_address=msg_to_address,
-                    amount=msg_amount
+
+        for (msg, exchange_type) in zip(msgs, exchange_types or [None] * len(msgs)):
+            if not isinstance(resp, cosmos_proto.CosmosMsgRequest):
+                raise CallException(
+                    "Cosmos.ExpectedMsgRequest",
+                    "Message request expected but not received.",
                 )
-            ))
-        else:
-            raise CallException(
-                "Cosmos.ExpectedMsgRequest",
-                "Message request expected but not received.",
-            )
-        if isinstance(resp, cosmos_proto.CosmosSignedTx):
-            return resp
-        else:
+
+            if msg['type'] == "cosmos-sdk/MsgSend":
+                if len(msg['value']['amount']) != 1:
+                    raise CallException("Cosmos.MsgSend", "Multiple amounts per msg not supported")
+
+                denom = msg['value']['amount'][0]['denom']
+                if denom != 'uatom':
+                    raise CallException("Cosmos.MsgSend", "Unsupported denomination: " + denom)
+
+                resp = self.call(cosmos_proto.CosmosMsgAck(
+                    send=cosmos_proto.CosmosMsgSend(
+                        from_address=msg['value']['from_address'],
+                        to_address=msg['value']['to_address'],
+                        amount=long(msg['value']['amount'][0]['amount']),
+                        address_type=types.EXCHANGE if exchange_type is not None else types.SPEND,
+                        exchange_type=exchange_type
+                    )
+                ))
+            else:
+                raise CallException(
+                    "Cosmos.UnknownMsg",
+                    "Cosmos message %s is not yet supported" % (msg['type'],)
+                )
+
+        if not isinstance(resp, cosmos_proto.CosmosSignedTx):
             raise CallException(
                 "Cosmos.UnexpectedEndOfOperations",
                 "Reached end of operations without a signature.",
             )
+
+        return resp
+
 
     @field('entropy')
     @expect(proto.Entropy)
