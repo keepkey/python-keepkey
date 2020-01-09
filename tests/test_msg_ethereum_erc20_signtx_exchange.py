@@ -54,28 +54,6 @@ class TestMsgEthereumtxERC20_exch(common.KeepKeyTest):
             return_address_n=[2147483692,2147483708,2147483648,0,0]
             )
 
-        # First sign using the deprecated token_to stuff (how the KeepKey client does it)
-        sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
-            n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
-            gas_price=20,
-            gas_limit=20,
-            value=0,
-            address_type=3,
-            exchange_type=exchange_type_out1,
-            chain_id=1,
-            token_shortcut='CVC',
-            token_to=binascii.unhexlify('1d8ce9022f6284c3a5c317f8f34620107214e545'),
-            token_value=binascii.unhexlify('02540be400'),
-            )
-
-        self.assertEqual(sig_v, 37)
-        self.assertEqual(binascii.hexlify(sig_r), '1238fd332545415f09a01470350a5a20abc784dbf875cf58f7460560e66c597f')
-        self.assertEqual(binascii.hexlify(sig_s), '10efa4dd6fdb381c317db8f815252c2ac0d2a883bd364901dee3dec5b7d3660a')
-        self.assertEqual(binascii.hexlify(hash), '3878462365df8bd2253c72dfe6e5cb744c64915e23fd5556f7077e43950a1afd')
-        self.assertEqual(binascii.hexlify(signature_der), '304402201238fd332545415f09a01470350a5a20abc784dbf875cf58f7460560e66c597f022010efa4dd6fdb381c317db8f815252c2ac0d2a883bd364901dee3dec5b7d3660a')
-
-        # Then do it through data_initial_chunk
         sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
             nonce=01,
