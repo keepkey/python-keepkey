@@ -375,6 +375,9 @@ class Commands(object):
         return self.client.recovery_device(False, args.words, args.passphrase_protection,
                                     args.pin_protection, args.label, 'english')
 
+    def test_recovery_sentence(self, args):
+        return self.client.test_recovery_seed(args.words, 'english')
+
     def load_device(self, args):
         if not args.mnemonic and not args.xprv:
             raise CallException(types.Failure_Other, "Please provide mnemonic or xprv")
@@ -478,6 +481,7 @@ class Commands(object):
     list_coins.help = 'List all supported coin types by the device'
     wipe_device.help = 'Reset device to factory defaults and remove all private data.'
     recovery_device.help = 'Start safe recovery workflow'
+    test_recovery_sentence.help = 'Start dry-run recovery workflow (for safe mnemonic validation)'
     load_device.help = 'Load custom configuration to the device'
     reset_device.help = 'Perform device setup and generate new seed'
     sign_message.help = 'Sign message using address of given path'
@@ -589,6 +593,10 @@ class Commands(object):
         (('-p', '--pin-protection'), {'action': 'store_true', 'default': False}),
         (('-r', '--passphrase-protection'), {'action': 'store_true', 'default': False}),
         (('-l', '--label'), {'type': str, 'default': ''}),
+    )
+
+    test_recovery_sentence.arguments = (
+        (('-w', '--words'), {'type': int, 'choices': [12, 18, 24], 'default': 24}),
     )
 
     load_device.arguments = (
