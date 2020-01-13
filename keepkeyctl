@@ -596,7 +596,7 @@ class Commands(object):
     )
 
     test_recovery_sentence.arguments = (
-        (('-w', '--words'), {'type': int, 'choices': [12, 18, 24], 'default': 24}),
+        (('-w', '--words'), {'type': int, 'choices': [12, 18, 24], 'default': 12}),
     )
 
     load_device.arguments = (
