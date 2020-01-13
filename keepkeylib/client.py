@@ -1103,6 +1103,22 @@ class ProtocolMixin(object):
 
     @field('message')
     @expect(proto.Success)
+    def test_recovery_seed(self, word_count, language):
+        if not self.features.initialized:
+            raise Exception("Device must already be initialized in order to perform test recovery")
+        elif word_count not in (12, 18, 24):
+            raise Exception("Invalid word count. Use 12/18/24")
+        res = self.call(proto.RecoveryDevice(word_count=int(word_count),
+                                    language=language,
+                                    enforce_wordlist=True,
+                                    use_character_cipher=True,
+                                    dry_run=True))
+
+        self.init_device()
+        return res
+
+    @field('message')
+    @expect(proto.Success)
     @session
     def reset_device(self, display_random, strength, passphrase_protection, pin_protection, label, language):
         if self.features.initialized:
