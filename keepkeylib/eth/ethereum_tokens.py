@@ -73,11 +73,11 @@ def main():
     table = ETHTokenTable()
     table.build()
     table.serialize_c(outf)
-    print(unicode('#undef X'), file=outf)
+    print('#undef X', file=outf)
 
     if os.path.isfile(out_filename):
         with open(out_filename, 'r') as inf:
-            in_digest = hashlib.sha256(inf.read()).hexdigest()
+            in_digest = hashlib.sha256(inf.read().encode('utf-8')).hexdigest()
             out_digest = hashlib.sha256(outf.getvalue().encode('utf-8')).hexdigest()
             if in_digest == out_digest:
                 print(out_filename + ": Already up to date")
