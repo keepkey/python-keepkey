@@ -1,11 +1,15 @@
 #!/bin/env python
 
 from __future__ import print_function
-from io import StringIO
 import json
 import hashlib
 import os.path
 import sys
+
+if sys.version_info[0] < 3:
+    from io import BytesIO as StringIO
+else:
+    from io import StringIO
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
