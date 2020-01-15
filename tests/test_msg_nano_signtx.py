@@ -19,7 +19,7 @@
 
 import unittest
 import common
-from binascii import hexlify
+from binascii import hexlify, unhexlify
 from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
 from keepkeylib import messages_pb2 as proto
@@ -57,7 +57,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             ])
             res = self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                link_hash='491fca2c69a84607d374aaf1f6acd3ce70744c5be0721b5ed394653e85233507'.decode('hex'),
+                link_hash=unhexlify('491fca2c69a84607d374aaf1f6acd3ce70744c5be0721b5ed394653e85233507'),
                 representative=REP_OFFICIAL_1,
                 balance=96242336390000000000000000000,
             )
@@ -75,7 +75,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             ])
             res = self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                parent_link='491fca2c69a84607d374aaf1f6acd3ce70744c5be0721b5ed394653e85233507'.decode('hex'),
+                parent_link=unhexlify('491fca2c69a84607d374aaf1f6acd3ce70744c5be0721b5ed394653e85233507'),
                 parent_representative=REP_OFFICIAL_1,
                 parent_balance=96242336390000000000000000000,
                 representative=REP_NANODE,
@@ -95,11 +95,11 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             ])
             res = self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='f9a323153daefe041efb94d69b9669c882c935530ed953bbe8a665dfedda9696'.decode('hex'),
-                parent_link='0000000000000000000000000000000000000000000000000000000000000000'.decode('hex'),
+                grandparent_hash=unhexlify('f9a323153daefe041efb94d69b9669c882c935530ed953bbe8a665dfedda9696'),
+                parent_link=unhexlify('0000000000000000000000000000000000000000000000000000000000000000'),
                 parent_representative=REP_NANODE,
                 parent_balance=96242336390000000000000000000,
-                link_hash='d7384845d2ae530b45a5dd50ee50757f988329f652781767af3f1bc2322f52b9'.decode('hex'),
+                link_hash=unhexlify('d7384845d2ae530b45a5dd50ee50757f988329f652781767af3f1bc2322f52b9'),
                 representative=REP_NANODE,
                 balance=196242336390000000000000000000,
             )
@@ -117,8 +117,8 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             ])
             res = self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='2568bf76336f7a415ca236dab97c1df9de951ca057a2e79df1322e647a259e7b'.decode('hex'),
-                parent_link='d7384845d2ae530b45a5dd50ee50757f988329f652781767af3f1bc2322f52b9'.decode('hex'),
+                grandparent_hash=unhexlify('2568bf76336f7a415ca236dab97c1df9de951ca057a2e79df1322e647a259e7b'),
+                parent_link=unhexlify('d7384845d2ae530b45a5dd50ee50757f988329f652781767af3f1bc2322f52b9'),
                 parent_representative=REP_NANODE,
                 parent_balance=196242336390000000000000000000,
                 link_recipient=RECIPIENT_DONATIONS,
@@ -139,8 +139,8 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             ])
             res = self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='1ca240212838d053ecaa9dceee598c52a6080067edecaeede3319eb0b7db6525'.decode('hex'),
-                parent_link=RECIPIENT_DONATIONS_PUBLICKEY.decode('hex'),
+                grandparent_hash=unhexlify('1ca240212838d053ecaa9dceee598c52a6080067edecaeede3319eb0b7db6525'),
+                parent_link=unhexlify(RECIPIENT_DONATIONS_PUBLICKEY),
                 parent_representative=REP_NANODE,
                 parent_balance=126242336390000000000000000000,
                 link_recipient_n=NANO_ACCOUNT_1_PATH,
@@ -161,8 +161,8 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             ])
             res = self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='32ac7d8f5a16a498abf203b8dfee623c9e111ff25e7339f8cd69ec7492b23edd'.decode('hex'),
-                parent_link=NANO_ACCOUNT_1_PUBLICKEY.decode('hex'),
+                grandparent_hash=unhexlify('32ac7d8f5a16a498abf203b8dfee623c9e111ff25e7339f8cd69ec7492b23edd'),
+                parent_link=unhexlify(NANO_ACCOUNT_1_PUBLICKEY),
                 parent_representative=REP_NANODE,
                 parent_balance=86242336390000000000000000000,
                 link_recipient_n=OTHER_ACCOUNT_3_PATH,
@@ -189,7 +189,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             # Missing representative
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
+                link_hash=unhexlify('2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'),
                 balance=9624176000000000000000000000000,
             )
 
@@ -199,7 +199,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             # Missing balance
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
+                link_hash=unhexlify('2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'),
                 representative=REP_OFFICIAL_1,
             )
 
@@ -209,7 +209,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             # Account first block cannot be 0 balance
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
+                link_hash=unhexlify('2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'),
                 representative=REP_OFFICIAL_1,
                 balance=0,
             )
@@ -242,7 +242,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             # Only one of link_* fields can be specified
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
+                link_hash=unhexlify('2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'),
                 link_recipient_n=NANO_ACCOUNT_1_PATH,
                 representative=REP_OFFICIAL_1,
                 balance=9624176000000000000000000000000,
@@ -254,7 +254,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             # Only one of link_* fields can be specified
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                link_hash='2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'.decode('hex'),
+                link_hash=unhexlify('2e3249f1ffc09608d369e01a701bf03bd05509fab262086a59d09994d315e840'),
                 link_recipient=RECIPIENT_DONATIONS,
                 representative=REP_OFFICIAL_1,
                 balance=9624176000000000000000000000000,
@@ -278,10 +278,10 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             # Missing parent_representative
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'.decode('hex'),
-                parent_link='0000000000000000000000000000000000000000000000000000000000000000'.decode('hex'),
+                grandparent_hash=unhexlify('517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'),
+                parent_link=unhexlify('0000000000000000000000000000000000000000000000000000000000000000'),
                 parent_balance=9624176000000000000000000000000,
-                link_hash='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
+                link_hash=unhexlify('4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'),
                 representative=REP_NANODE,
                 balance=19624176000000000000000000000000,
             )
@@ -292,10 +292,10 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             # Missing parent_balance
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'.decode('hex'),
-                parent_link='0000000000000000000000000000000000000000000000000000000000000000'.decode('hex'),
+                grandparent_hash=unhexlify('517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'),
+                parent_link=unhexlify('0000000000000000000000000000000000000000000000000000000000000000'),
                 parent_representative=REP_NANODE,
-                link_hash='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
+                link_hash=unhexlify('4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'),
                 representative=REP_NANODE,
                 balance=19624176000000000000000000000000,
             )
@@ -306,11 +306,11 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             # Invalid parent_representative value
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'.decode('hex'),
-                parent_link='0000000000000000000000000000000000000000000000000000000000000000'.decode('hex'),
+                grandparent_hash=unhexlify('517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'),
+                parent_link=unhexlify('0000000000000000000000000000000000000000000000000000000000000000'),
                 parent_representative=REP_NANODE[:-2],
                 parent_balance=9624176000000000000000000000000,
-                link_hash='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
+                link_hash=unhexlify('4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'),
                 representative=REP_NANODE,
                 balance=19624176000000000000000000000000,
             )
@@ -321,11 +321,11 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             # Invalid representative value
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'.decode('hex'),
-                parent_link='0000000000000000000000000000000000000000000000000000000000000000'.decode('hex'),
+                grandparent_hash=unhexlify('517565abb71bdccf03754421b1bcaee8327cfce7a571a844ae5392e851531ece'),
+                parent_link=unhexlify('0000000000000000000000000000000000000000000000000000000000000000'),
                 parent_representative=REP_NANODE,
                 parent_balance=9624176000000000000000000000000,
-                link_hash='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
+                link_hash=unhexlify('4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'),
                 representative=REP_NANODE[:-2],
                 balance=19624176000000000000000000000000,
             )
@@ -336,8 +336,8 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             # Invalid link_recipient value
             self.client.nano_sign_tx(
                 'Nano', NANO_ACCOUNT_0_PATH,
-                grandparent_hash='1a3ec7d5d246aa987d99fde40ff3cadb8833941391611ec9125014d7458ac406'.decode('hex'),
-                parent_link='4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'.decode('hex'),
+                grandparent_hash=unhexlify('1a3ec7d5d246aa987d99fde40ff3cadb8833941391611ec9125014d7458ac406'),
+                parent_link=unhexlify('4f3d6ce7553bd16d0c03314efeb696dde1b2ae92a28e6346b5ed2cf6a8ff0d8b'),
                 parent_representative=REP_NANODE,
                 parent_balance=19624176000000000000000000000000,
                 link_recipient=RECIPIENT_DONATIONS[:-2],

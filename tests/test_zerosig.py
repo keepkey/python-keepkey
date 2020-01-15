@@ -78,7 +78,7 @@ class TestZeroSig(common.KeepKeyTest):
                               )
 
         (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
-        siglen = ord(serialized_tx[44])
+        siglen = serialized_tx[44]
 
         # KeepKey must strip leading zero from signature
         self.assertEqual(siglen, 67)
@@ -99,7 +99,7 @@ class TestZeroSig(common.KeepKeyTest):
                               )
 
         (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
-        siglen = ord(serialized_tx[44])
+        siglen = serialized_tx[44]
 
         # KeepKey must strip leading zero from signature
         self.assertEqual(siglen, 66)

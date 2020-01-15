@@ -64,7 +64,7 @@ class TestMsgVerifymessage(common.KeepKeyTest):
 
         signature = base64.b64decode('IFP/nvQalDo9lWCI7kScOzRkz/fiiScdkw7tFAKPoGbl6S8AY3wEws43s2gR57AfwZP8/8y7+F+wvGK9phQghN4=')
         address = 'moRDikgmxcpouFtqnKnVVzLYgkDD2gQ3sk'
-        message ='Ahoj'
+        message = b'Ahoj'
 
         # Null pointer dereference caused the emulator to crash at this point.
         # After the fix, this shoud raise a CallException to signify that the

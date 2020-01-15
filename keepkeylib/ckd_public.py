@@ -17,7 +17,7 @@ def point_to_pubkey(point):
     x_str = number_to_string(point.x(), order)
     y_str = number_to_string(point.y(), order)
     vk = x_str + y_str
-    return chr((ord(vk[63]) & 1) + 2) + vk[0:32]  # To compressed key
+    return bytes([(vk[63] & 1) + 2]) + vk[0:32]  # To compressed key
 
 def sec_to_public_pair(pubkey):
     """Convert a public key in sec binary format to a public pair."""
@@ -91,7 +91,7 @@ def get_subnode(node, i):
     return node_out
 
 def serialize(node, version=0x0488B21E):
-    s = ''
+    s = b''
     s += struct.pack('>I', version)
     s += struct.pack('>B', node.depth)
     s += struct.pack('>I', node.fingerprint)

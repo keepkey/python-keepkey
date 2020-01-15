@@ -28,7 +28,7 @@ def hash_160(public_key):
 
 
 def hash_160_to_bc_address(h160, address_type):
-    vh160 = chr(address_type) + h160
+    vh160 = bytes([address_type]) + h160
     h = Hash(vh160)
     addr = vh160 + h[0:4]
     return b58encode(addr)

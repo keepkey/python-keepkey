@@ -67,7 +67,7 @@ class TestMultisig(common.KeepKeyTest):
                             pubkeys=[proto_types.HDNodePathType(node=node, address_n=[1]),
                                      proto_types.HDNodePathType(node=node, address_n=[2]),
                                      proto_types.HDNodePathType(node=node, address_n=[3])],
-                            signatures=['', '', ''],
+                            signatures=[b'', b'', b''],
                             m=2,
                             )
 
@@ -111,7 +111,7 @@ class TestMultisig(common.KeepKeyTest):
                             pubkeys=[proto_types.HDNodePathType(node=node, address_n=[1]),
                                      proto_types.HDNodePathType(node=node, address_n=[2]),
                                      proto_types.HDNodePathType(node=node, address_n=[3])],
-                            signatures=[signatures1[0], '', ''], # Fill signature from previous signing process
+                            signatures=[signatures1[0], b'', b''], # Fill signature from previous signing process
                             m=2,
                             )
 
@@ -169,7 +169,7 @@ class TestMultisig(common.KeepKeyTest):
         # multisig address
         # 3QaKF8zobqcqY8aS6nxCD5ZYdiRfL3RCmU
 
-        signatures = [''] * 15
+        signatures = [b''] * 15
 
         out1 = proto_types.TxOutputType(address='17kTB7qSk3MupQxWdiv5ZU3zcrZc2Azes1',
                               amount=10000,
@@ -219,7 +219,7 @@ class TestMultisig(common.KeepKeyTest):
                             pubkeys=[proto_types.HDNodePathType(node=node, address_n=[1]),
                                      proto_types.HDNodePathType(node=node, address_n=[2]),
                                      proto_types.HDNodePathType(node=node, address_n=[3])],
-                            signatures=['', '', ''],
+                            signatures=[b'', b'', b''],
                             m=2,
                             )
 

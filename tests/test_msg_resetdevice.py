@@ -46,7 +46,7 @@ def generate_entropy(strength, internal_entropy, external_entropy):
         raise Exception("External entropy too short")
 
     entropy = hashlib.sha256(internal_entropy + external_entropy).digest()
-    entropy_stripped = entropy[:strength / 8]
+    entropy_stripped = entropy[:int(strength / 8)]
 
     if len(entropy_stripped) * 8 != strength:
         raise Exception("Entropy length mismatch")
@@ -56,7 +56,7 @@ def generate_entropy(strength, internal_entropy, external_entropy):
 class TestDeviceReset(common.KeepKeyTest):
     def test_reset_device(self):
         # No PIN, no passphrase
-        external_entropy = 'zlutoucky kun upel divoke ody' * 2
+        external_entropy = b'zlutoucky kun upel divoke ody' * 2
         strength = 128
 
         ret = self.client.call_raw(proto.ResetDevice(display_random=False,
@@ -110,7 +110,7 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertIsInstance(resp, proto.Success)
 
     def test_reset_device_pin(self):
-        external_entropy = 'zlutoucky kun upel divoke ody' * 2
+        external_entropy = b'zlutoucky kun upel divoke ody' * 2
         strength = 128
 
         ret = self.client.call_raw(proto.ResetDevice(display_random=True,

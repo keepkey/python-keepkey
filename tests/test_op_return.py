@@ -47,7 +47,7 @@ class TestOpReturn(common.KeepKeyTest):
                               script_type=proto_types.PAYTOADDRESS,
                               )
 
-        out2 = proto_types.TxOutputType(op_return_data='test of the op_return data',
+        out2 = proto_types.TxOutputType(op_return_data=b'test of the op_return data',
                               amount=0,
                               script_type=proto_types.PAYTOOPRETURN,
                               )
@@ -92,7 +92,7 @@ class TestOpReturn(common.KeepKeyTest):
                               script_type=proto_types.PAYTOADDRESS,
                               )
 
-        out2 = proto_types.TxOutputType(op_return_data='FOXY' * 20,
+        out2 = proto_types.TxOutputType(op_return_data=b'FOXY' * 20,
                               amount=0,
                               script_type=proto_types.PAYTOOPRETURN,
                               )
@@ -137,7 +137,7 @@ class TestOpReturn(common.KeepKeyTest):
                               script_type=proto_types.PAYTOADDRESS,
                               )
 
-        out2 = proto_types.TxOutputType(op_return_data='\x00\x01\x02\x03\x04I Declare A Thumb War',
+        out2 = proto_types.TxOutputType(op_return_data=b'\x00\x01\x02\x03\x04I Declare A Thumb War',
                               amount=0,
                               script_type=proto_types.PAYTOOPRETURN,
                               )
@@ -183,7 +183,7 @@ class TestOpReturn(common.KeepKeyTest):
                               script_type=proto_types.PAYTOADDRESS,
                               )
 
-        out1 = proto_types.TxOutputType(op_return_data='test of the op_return data',
+        out1 = proto_types.TxOutputType(op_return_data=b'test of the op_return data',
                               amount=10000,
                               script_type=proto_types.PAYTOOPRETURN,
                               )

@@ -275,7 +275,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
             ret = self.client.call_raw(proto.ButtonAck())
 
             # recover devce
-            ret = self.client.call_raw(proto.RecoveryDevice(word_count=(strength/32*3),
+            ret = self.client.call_raw(proto.RecoveryDevice(word_count=int(strength/32*3),
                                    passphrase_protection=False,
                                    pin_protection=False,
                                    label='label',

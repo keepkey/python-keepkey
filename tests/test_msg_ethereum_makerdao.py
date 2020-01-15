@@ -33,7 +33,7 @@ class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
+            nonce=1,
             gas_price=20,
             gas_limit=20,
             value=0,
@@ -52,7 +52,7 @@ class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
+            nonce=1,
             gas_price=20,
             gas_limit=20,
             value=2000000000000000,
@@ -72,7 +72,7 @@ class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
+            nonce=1,
             gas_price=20,
             gas_limit=20,
             value=0,
@@ -92,7 +92,7 @@ class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
+            nonce=1,
             gas_price=20,
             gas_limit=20,
             value=0,

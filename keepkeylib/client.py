@@ -807,7 +807,7 @@ class ProtocolMixin(object):
                     send=cosmos_proto.CosmosMsgSend(
                         from_address=msg['value']['from_address'],
                         to_address=msg['value']['to_address'],
-                        amount=long(msg['value']['amount'][0]['amount']),
+                        amount=int(msg['value']['amount'][0]['amount']),
                         address_type=types.EXCHANGE if exchange_type is not None else types.SPEND,
                         exchange_type=exchange_type
                     )

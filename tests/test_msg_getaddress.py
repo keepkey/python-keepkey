@@ -59,7 +59,7 @@ class TestMsgGetaddress(common.KeepKeyTest):
         node = bip32.deserialize('xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy')
         multisig = proto_types.MultisigRedeemScriptType(
                             pubkeys=[proto_types.HDNodePathType(node=node, address_n=[])],
-                            signatures=[''],
+                            signatures=[b''],
                             m=1,
                             )
         self.assertEqual(self.client.get_address('Litecoin', [], multisig=multisig), 'MBFFn5LyWatMVt2aoXbLkFJHRsnNJcaxba')

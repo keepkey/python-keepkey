@@ -75,7 +75,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 gas_limit=20,
                 to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
                 value=10,
-                data='abcdefghijklmnop' * 16)
+                data=b'abcdefghijklmnop' * 16)
             self.assertEqual(sig_v, 28)
             self.assertEqual(binascii.hexlify(sig_r), '6da89ed8627a491bedc9e0382f37707ac4e5102e25e7a1234cb697cedb7cd2c0')
             self.assertEqual(binascii.hexlify(sig_s), '691f73b145647623e2d115b208a7c3455a6a8a83e3b4db5b9c6d9bc75825038a')
@@ -98,7 +98,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 gas_limit=20,
                 to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
                 value=10,
-                data='abcdefghijklmnop' * 16)
+                data=b'abcdefghijklmnop' * 16)
             self.assertEqual(sig_v, 28)
             self.assertEqual(binascii.hexlify(sig_r), '6da89ed8627a491bedc9e0382f37707ac4e5102e25e7a1234cb697cedb7cd2c0')
             self.assertEqual(binascii.hexlify(sig_s), '691f73b145647623e2d115b208a7c3455a6a8a83e3b4db5b9c6d9bc75825038a')
@@ -110,7 +110,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=20000,
             to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
             value=12345678901234567890,
-            data='ABCDEFGHIJKLMNOP' * 256 + '!!!')
+            data=b'ABCDEFGHIJKLMNOP' * 256 + b'!!!')
         self.assertEqual(sig_v, 28)
         self.assertEqual(binascii.hexlify(sig_r), '4e90b13c45c6a9bf4aaad0e5427c3e62d76692b36eb727c78d332441b7400404')
         self.assertEqual(binascii.hexlify(sig_s), '3ff236e7d05f0f9b1ee3d70599bb4200638f28388a8faf6bb36db9e04dc544be')
@@ -129,7 +129,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=20000,
             to=binascii.unhexlify('1d1c328764a41bda0492b66baa30c4a339ff85ef'),
             value=0,
-            data='ABCDEFGHIJKLMNOP' * 256 + '!!!')
+            data=b'ABCDEFGHIJKLMNOP' * 256 + b'!!!')
         self.assertEqual(sig_v, 28)
         self.assertEqual(binascii.hexlify(sig_r), '070e9dafda4d9e733fa7b6747a75f8a4916459560efb85e3e73cd39f31aa160d')
         self.assertEqual(binascii.hexlify(sig_s), '7842db33ef15c27049ed52741db41fe3238a6fa3a6a0888fcfb74d6917600e41')
@@ -154,7 +154,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=20000,
             to='',
             value=12345678901234567890,
-            data='ABCDEFGHIJKLMNOP' * 256 + '!!!')
+            data=b'ABCDEFGHIJKLMNOP' * 256 + b'!!!')
         self.assertEqual(sig_v, 28)
         self.assertEqual(binascii.hexlify(sig_r), 'b401884c10ae435a2e792303b5fc257a09f94403b2883ad8c0ac7a7282f5f1f9')
         self.assertEqual(binascii.hexlify(sig_s), '4742fc9e6a5fa8db3db15c2d856914a7f3daab21603a6c1ce9e9927482f8352e')
@@ -235,7 +235,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=21004,
             to=binascii.unhexlify('8ea7a3fccc211ed48b763b4164884ddbcf3b0a98'),
             value=100000000000000000,
-            data='\0',
+            data=b'\0',
             chain_id=3)
         self.assertEqual(sig_v, 42)
         self.assertEqual(binascii.hexlify(sig_r), 'ba85b622a8bb82606ba96c132e81fa8058172192d15bc41d7e57c031bca17df4')
@@ -248,7 +248,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=299732,
             to=binascii.unhexlify('8ea7a3fccc211ed48b763b4164884ddbcf3b0a98'),
             value=100000000000000000,
-            data='ABCDEFGHIJKLMNOP' * 256 + '!!!',
+            data=b'ABCDEFGHIJKLMNOP' * 256 + b'!!!',
             chain_id=3)
         self.assertEqual(sig_v, 42)
         self.assertEqual(binascii.hexlify(sig_r), 'd021c98f92859c8db5e4de2f0e410a8deb0c977eb1a631e323ebf7484bd0d79a')
@@ -261,7 +261,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=21004,
             to=binascii.unhexlify('8ea7a3fccc211ed48b763b4164884ddbcf3b0a98'),
             value=0,
-            data='\0',
+            data=b'\0',
             chain_id=3)
         self.assertEqual(sig_v, 42)
         self.assertEqual(binascii.hexlify(sig_r), 'dd52f026972a83c56b7dea356836fcfc70a68e3b879cdc8ef2bb5fea23e0a7aa')
@@ -274,7 +274,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=21004,
             to=binascii.unhexlify('8ea7a3fccc211ed48b763b4164884ddbcf3b0a98'),
             value=0,
-            data='\0',
+            data=b'\0',
             chain_id=3)
         self.assertEqual(sig_v, 42)
         self.assertEqual(binascii.hexlify(sig_r), 'f7505f709d5999343aea3c384034c62d0514336ff6c6af65582006f708f81503')

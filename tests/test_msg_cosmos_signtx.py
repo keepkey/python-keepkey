@@ -152,7 +152,7 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
                 miner_fee=unhexlify('0186a0'),   #100000
                 order_id=unhexlify('b026bddb3e74470bbab9146c4db58019'),
             ),
-            signature='FAKE_SIG'
+            signature=b'FAKE_SIG'
         )
 
         exchange_type_out=proto_types.ExchangeType(
@@ -208,7 +208,7 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
                 miner_fee=unhexlify('0186a0'),   #100000
                 order_id=unhexlify('b026bddb3e74470bbab9146c4db58019'),
             ),
-            signature='FAKE_SIG'
+            signature=b'FAKE_SIG'
         )
 
         exchange_type_out=proto_types.ExchangeType(
@@ -220,7 +220,7 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
 
         sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
+            nonce=1,
             gas_price=20,
             gas_limit=20,
             value=0,

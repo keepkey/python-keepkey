@@ -50,8 +50,9 @@ class TxApi(object):
         if cache_dir:
             cache_file = '%s/%s_%s_%s.json' % (cache_dir, self.network, resource, resourceid)
             try: # looking into cache first
-                j = json.load(open(cache_file))
-                return j
+                with open(cache_file) as f:
+                    j = json.load(f)
+                    return j
             except:
                 pass
         try:

@@ -30,28 +30,28 @@ class TestMsgCipherkeyvalue(common.KeepKeyTest):
         self.setup_mnemonic_nopin_nopassphrase()
 
         # different ask values
-        res = self.client.encrypt_keyvalue([0, 1, 2], "test", "testing message!", ask_on_encrypt=True, ask_on_decrypt=True)
+        res = self.client.encrypt_keyvalue([0, 1, 2], "test", b"testing message!", ask_on_encrypt=True, ask_on_decrypt=True)
         self.assertEqual(binascii.hexlify(res), '676faf8f13272af601776bc31bc14e8f')
 
-        res = self.client.encrypt_keyvalue([0, 1, 2], "test", "testing message!", ask_on_encrypt=True, ask_on_decrypt=False)
+        res = self.client.encrypt_keyvalue([0, 1, 2], "test", b"testing message!", ask_on_encrypt=True, ask_on_decrypt=False)
         self.assertEqual(binascii.hexlify(res), '5aa0fbcb9d7fa669880745479d80c622')
 
-        res = self.client.encrypt_keyvalue([0, 1, 2], "test", "testing message!", ask_on_encrypt=False, ask_on_decrypt=True)
+        res = self.client.encrypt_keyvalue([0, 1, 2], "test", b"testing message!", ask_on_encrypt=False, ask_on_decrypt=True)
         self.assertEqual(binascii.hexlify(res), '958d4f63269b61044aaedc900c8d6208')
 
-        res = self.client.encrypt_keyvalue([0, 1, 2], "test", "testing message!", ask_on_encrypt=False, ask_on_decrypt=False)
+        res = self.client.encrypt_keyvalue([0, 1, 2], "test", b"testing message!", ask_on_encrypt=False, ask_on_decrypt=False)
         self.assertEqual(binascii.hexlify(res), 'e0cf0eb0425947000eb546cc3994bc6c')
 
         # different key
-        res = self.client.encrypt_keyvalue([0, 1, 2], "test2", "testing message!", ask_on_encrypt=True, ask_on_decrypt=True)
+        res = self.client.encrypt_keyvalue([0, 1, 2], "test2", b"testing message!", ask_on_encrypt=True, ask_on_decrypt=True)
         self.assertEqual(binascii.hexlify(res), 'de247a6aa6be77a134bb3f3f925f13af')
 
         # different message
-        res = self.client.encrypt_keyvalue([0, 1, 2], "test", "testing message! it is different", ask_on_encrypt=True, ask_on_decrypt=True)
+        res = self.client.encrypt_keyvalue([0, 1, 2], "test", b"testing message! it is different", ask_on_encrypt=True, ask_on_decrypt=True)
         self.assertEqual(binascii.hexlify(res), '676faf8f13272af601776bc31bc14e8f3ae1c88536bf18f1b44f1e4c2c4a613d')
 
         # different path
-        res = self.client.encrypt_keyvalue([0, 1, 3], "test", "testing message!", ask_on_encrypt=True, ask_on_decrypt=True)
+        res = self.client.encrypt_keyvalue([0, 1, 3], "test", b"testing message!", ask_on_encrypt=True, ask_on_decrypt=True)
         self.assertEqual(binascii.hexlify(res), 'b4811a9d492f5355a5186ddbfccaae7b')
 
     def test_decrypt(self):

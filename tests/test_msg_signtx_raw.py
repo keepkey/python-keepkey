@@ -389,7 +389,7 @@ class TestMsgSigntx(common.KeepKeyTest):
         cnt = 255
         for _ in range(cnt):
             out = proto_types.TxOutputType(address='1NwN6UduuVkJi6sw3gSiKZaCY5rHgVXC2h',
-                              amount=(100000 + 2540000 - 39000) / cnt,
+                              amount=int((100000 + 2540000 - 39000) / cnt),
                               script_type=proto_types.PAYTOADDRESS,
                               )
             outputs.append(out)

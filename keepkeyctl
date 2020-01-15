@@ -325,7 +325,7 @@ class Commands(object):
             address_n=address_n,
             account_number=account_number,
             chain_id=chain_id,
-            fee=long(parsed['fee']),
+            fee=int(parsed['fee']),
             gas=int(parsed['gas']),
             msgs=parsed['msgs'],
             memo=parsed['memo'],

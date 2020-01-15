@@ -370,7 +370,7 @@ class TestMsgSigntx(common.KeepKeyTest):
         cnt = 255
         for _ in range(cnt):
             out = proto_types.TxOutputType(address='1NwN6UduuVkJi6sw3gSiKZaCY5rHgVXC2h',
-                              amount=(100000 + 2540000 - 39000) / cnt,
+                              amount=int((100000 + 2540000 - 39000) / cnt),
                               script_type=proto_types.PAYTOADDRESS,
                               )
             outputs.append(out)
@@ -389,7 +389,7 @@ class TestMsgSigntx(common.KeepKeyTest):
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0, tx_hash=binascii.unhexlify("39a29e954977662ab3879c66fb251ef753e0912223a83d1dcb009111d28265e5"))),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=1, tx_hash=binascii.unhexlify("39a29e954977662ab3879c66fb251ef753e0912223a83d1dcb009111d28265e5"))),
             ] + [
-                item for items in itertools.izip(
+                item for items in zip(
                     [proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=I)) for I in range(cnt)],
                     [proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput)] * cnt
                 ) for item in items
@@ -560,7 +560,7 @@ class TestMsgSigntx(common.KeepKeyTest):
         def attack_processor(req, msg):
             global run_attack
 
-            if req.details.tx_hash != '':
+            if req.details.tx_hash != b'':
                 return msg
 
             if req.details.request_index != 1:

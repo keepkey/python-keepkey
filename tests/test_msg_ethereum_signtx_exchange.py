@@ -69,7 +69,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                             )
         sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
+            nonce=1,
             gas_price=20,
             gas_limit=20,
             to=binascii.unhexlify('3d55d68b75d98ac3ac0d2ddf61554f00703d6357'),
@@ -125,7 +125,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
                             )
         sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
+            nonce=1,
             gas_price=20,
             gas_limit=20,
             to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
@@ -183,7 +183,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
+            nonce=1,
             gas_price=20,
             gas_limit=20,
             to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
@@ -242,7 +242,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
                 n=[2147483692,2147483708,2147483648,0,0],
-                nonce=01,
+                nonce=1,
                 gas_price=20,
                 gas_limit=20,
                 to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
@@ -298,7 +298,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
                 n=[2147483692,2147483708,2147483648,0,0],
-                nonce=01,
+                nonce=1,
                 gas_price=20,
                 gas_limit=20,
                 to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
@@ -351,7 +351,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
+            nonce=1,
             gas_price=20,
             gas_limit=20,
             to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206744'),
@@ -405,7 +405,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
-            nonce=01,
+            nonce=1,
             gas_price=20,
             gas_limit=20,
             to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
@@ -460,7 +460,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
                 n=[2147483692,2147483708,2147483648,0,0],
-                nonce=01,
+                nonce=1,
                 gas_price=20,
                 gas_limit=20,
                 to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
@@ -516,7 +516,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
                 n=[2147483692,2147483708,2147483648,0,0],
-                nonce=01,
+                nonce=1,
                 gas_price=20,
                 gas_limit=20,
                 to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),
@@ -571,7 +571,7 @@ class TestMsgEthereumtx_exch(common.KeepKeyTest):
         try:
             sig_v, sig_r, sig_s, hash, signature_der = self.client.ethereum_sign_tx(
                 n=[2147483692,2147483708,2147483648,0,0],
-                nonce=01,
+                nonce=1,
                 gas_price=20,
                 gas_limit=20,
                 to=binascii.unhexlify('8cfbb7ef910936ac801e4d07ae46599041206743'),

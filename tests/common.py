@@ -81,6 +81,12 @@ class KeepKeyTest(unittest.TestCase):
     def tearDown(self):
         self.client.close()
 
+    def assertEqual(self, lhs, rhs):
+        if type(lhs) == type(b'') and type(rhs) == type(''):
+            super().assertEqual(lhs, rhs.encode('utf-8'))
+        else:
+            super().assertEqual(lhs, rhs)
+
     def assertEndsWith(self, s, suffix):
         self.assertTrue(s.endswith(suffix), "'{}'.endswith('{}')".format(s, suffix))
 
