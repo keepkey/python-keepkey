@@ -76,11 +76,11 @@ def pprint(msg):
         return "<%s> (%d bytes):\n%s" % (msg_class, msg_size, msg)
 
 def log(msg):
-    sys.stderr.write("%s\n" % msg.encode('utf-8'))
+    sys.stderr.write(msg + '\n')
     sys.stderr.flush()
 
 def log_cr(msg):
-    sys.stdout.write('\r%s' % msg.encode('utf-8'))
+    sys.stdout.write('\r' + msg)
     sys.stdout.flush()
 
 def format_mnemonic(word_pos, character_pos):
