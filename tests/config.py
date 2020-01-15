@@ -43,9 +43,6 @@ except Exception:
     print("Error loading WebUSB. WebUSB devices not enumerated.")
     webusb_devices = []
 
-reload(sys)
-sys.setdefaultencoding('utf8')
-
 # Only count a hid device if it has more than just the U2F interface exposed
 onlyU2F = len(hid_devices) > 0 and \
     hid_devices[0][0] == None and hid_devices[0][1] == None and hid_devices[0][2] != None
