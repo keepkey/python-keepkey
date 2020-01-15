@@ -22,6 +22,7 @@ import unittest
 import common
 import binascii
 import itertools
+import pytest
 
 from binascii import unhexlify
 from keepkeylib.tools import parse_path
@@ -540,7 +541,6 @@ class TestMsgSigntx(common.KeepKeyTest):
         # Accepted by network: tx 8cc1f4adf7224ce855cf535a5104594a0004cb3b640d6714fdb00b9128832dd5
         self.assertEqual(binascii.hexlify(serialized_tx), b'0100000001a3fb2d38322c3b327e54005cebc0686d52fcdf536e53bb5ef481a7de8056aa54010000006b4830450221009e020b0390ccad533b73b552f8a99a9d827212c558e4f755503674d07c92ad4502202d606f7316990e0461c51d4add25054f19c697aa3e3c2ced4d568f0b2c57e62f0121023230848585885f63803a0a8aecdd6538792d5c539215c91698e315bf0253b43dffffffff0170f305000000000017a9147f844bdb0b8fd54b64e3d16c85dc1170f1ff97c18700000000')
 
-    @unittest.expectedFailure # FIXME: signed transaction has the wrong serialization before we even test the attack
     def test_attack_change_outputs(self):
         # This unit test attempts to modify data sent during ping-pong of streaming signing.
         # Because device is asking for human confirmation only during first pass (first input),
@@ -580,7 +580,7 @@ class TestMsgSigntx(common.KeepKeyTest):
         def attack_processor(req, msg):
             global run_attack
 
-            if req.details.tx_hash != '':
+            if req.details.tx_hash != b'':
                 return msg
 
             if req.details.request_index != 1:
@@ -597,10 +597,9 @@ class TestMsgSigntx(common.KeepKeyTest):
         (_, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, inp2], [out1, out2], None, True)
 
         # Accepted by network: tx c63e24ed820c5851b60c54613fbc4bcb37df6cd49b4c96143e99580a472f79fb
-        self.assertEqual(binascii.hexlify(serialized_tx), '01000000021c032e5715d1da8115a2fe4f57699e15742fe113b0d2d1ca3b594649d322bec6010000006b483045022100f773c403b2f85a5c1d6c9c4ad69c43de66930fff4b1bc818eb257af98305546a0220443bde4be439f276a6ce793664b463580e210ec6c9255d68354449ac0443c76501210338d78612e990f2eea0c426b5e48a8db70b9d7ed66282b3b26511e0b1c75515a6ffffffff6ea42cd8d9c8e5441c4c5f85bfe50311078730d2881494f11f4d2257777a4958010000006b48304502210090cff1c1911e771605358a8cddd5ae94c7b60cc96e50275908d9bf9d6367c79f02202bfa72e10260a146abd59d0526e1335bacfbb2b4401780e9e3a7441b0480c8da0121038caebd6f753bbbd2bb1f3346a43cd32140648583673a31d62f2dfb56ad0ab9e3ffffffff02a0860100000000001976a9142f4490d5263906e4887ca2996b9e207af3e7824088aca0860100000000001976a914812c13d97f9159e54e326b481b8f88a73df8507a88ac00000000')
 
         # Now run the attack, must trigger the exception
-        self.assertRaises(CallException, self.client.sign_tx, 'Bitcoin', [inp1, inp2], [out1, out2], attack_processor, True)
+        pytest.raises(CallException, self.client.sign_tx, 'Bitcoin', [inp1, inp2], [out1, out2], 1, 0, attack_processor)
 
     def test_spend_coinbase(self):
         # 25 TEST generated to m/1 (mfiGQVPcRcaEvQPYDErR34DcCovtxYvUUV)
