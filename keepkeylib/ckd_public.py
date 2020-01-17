@@ -21,7 +21,7 @@ def point_to_pubkey(point):
 
     # To compressed key
     if sys.version_info[0] < 3:
-        return bytes([(ord(vk[63]) & 1) + 2]) + vk[0:32]
+        return chr((ord(vk[63]) & 1) + 2) + vk[0:32]
     else:
         return bytes([(vk[63] & 1) + 2]) + vk[0:32]
 
