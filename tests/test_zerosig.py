@@ -81,7 +81,7 @@ class TestZeroSig(common.KeepKeyTest):
         siglen = serialized_tx[44]
 
         # KeepKey must strip leading zero from signature
-        self.assertEqual(int(siglen), 67)
+        self.assertEqual(ord(siglen), 67)
 
     def test_two_zero_signature(self):
         self.setup_mnemonic_nopin_nopassphrase()
@@ -102,7 +102,7 @@ class TestZeroSig(common.KeepKeyTest):
         siglen = serialized_tx[44]
 
         # KeepKey must strip leading zero from signature
-        self.assertEqual(int(siglen), 66)
+        self.assertEqual(ord(siglen), 66)
 
 if __name__ == '__main__':
     unittest.main()
