@@ -78,7 +78,7 @@ class TestMsgGetaddress(common.KeepKeyTest):
         node_sub2 = bip32.public_ckd(node, [1])
 
         self.assertEqual(binascii.hexlify(node_sub1.chain_code), binascii.hexlify(node_sub2.chain_code))
-        self.assertEqual(node_sub1.public_key, node_sub2.public_key)
+        self.assertEqual(binascii.hexlify(node_sub1.public_key), binascii.hexlify(node_sub2.public_key))
 
         address1 = self.client.get_address('Bitcoin', [1])
         address2 = bip32.get_address(node_sub2, 0)
