@@ -23,6 +23,7 @@ from __future__ import print_function
 import unittest
 import common
 import binascii
+import sys
 
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
@@ -80,8 +81,11 @@ class TestZeroSig(common.KeepKeyTest):
         (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
         siglen = serialized_tx[44]
 
+        if sys.version_info[0] < 3:
+            siglen = ord(siglen)
+
         # KeepKey must strip leading zero from signature
-        self.assertEqual(bytes([siglen]), b'\x43')
+        self.assertEqual(siglen, 67)
 
     def test_two_zero_signature(self):
         self.setup_mnemonic_nopin_nopassphrase()
@@ -101,8 +105,11 @@ class TestZeroSig(common.KeepKeyTest):
         (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
         siglen = serialized_tx[44]
 
+        if sys.version_info[0] < 3:
+            siglen = ord(siglen)
+
         # KeepKey must strip leading zero from signature
-        self.assertEqual(bytes([siglen]), b'\x42')
+        self.assertEqual(siglen, 66)
 
 if __name__ == '__main__':
     unittest.main()
