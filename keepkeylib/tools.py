@@ -35,7 +35,10 @@ def hash_160_to_bc_address(h160, address_type):
 
 def compress_pubkey(public_key):
     if public_key[0] == '\x04':
-        return bytes((public_key[64] & 1) + 2) + public_key[1:33]
+        if sys.version_info[0] < 3:
+            return chr((ord(public_key[64]) & 1) + 2) + public_key[1:33]
+        else:
+            return bytes((public_key[64] & 1) + 2) + public_key[1:33]
     raise Exception("Pubkey is already compressed")
 
 def public_key_to_bc_address(public_key, address_type, compress=True):
