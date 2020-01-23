@@ -765,6 +765,7 @@ class ProtocolMixin(object):
             cosmos_proto.CosmosGetAddress(address_n=address_n, show_display=show_display)
         )
 
+    @session
     def cosmos_sign_tx(
         self,
         address_n,
@@ -825,7 +826,6 @@ class ProtocolMixin(object):
             )
 
         return resp
-
 
     @field('entropy')
     @expect(proto.Entropy)
