@@ -113,7 +113,7 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
 
         with pytest.raises(CallException) as exc:
             self.client.call(msg)
-        self.assertEqual(exc.value.args[0], types.FailureType.Failure_SyntaxError)
+        self.assertEqual(exc.value.args[0], types.Failure_SyntaxError)
         self.assertEndsWith(exc.value.args[1], "Fee must be between 10 and 1,000,000 drops")
 
 if __name__ == '__main__':
