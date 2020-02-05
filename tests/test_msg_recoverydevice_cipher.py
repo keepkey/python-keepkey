@@ -323,7 +323,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
     def test_vuln1971(self):
         self.setup_mnemonic_allallall()
 
-        self.assertEquals(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), True, None, script_type=proto_types.SPENDP2SHWITNESS), '2N1LGaGg836mqSQqiuUBLfcyGBhyZbremDX')
+        self.assertEqual(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), True, None, script_type=proto_types.SPENDP2SHWITNESS), '2N1LGaGg836mqSQqiuUBLfcyGBhyZbremDX')
 
         # Previously, there weren't good checks on the expected state of the
         # recovery cipher state machine, which led to this case triggering an
@@ -335,7 +335,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
         # memory access before even getting to the part where the empty
         # mnemonic is pushed into storage, but for posterity, let's make sure
         # we still get the correct address afterward:
-        self.assertEquals(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), True, None, script_type=proto_types.SPENDP2SHWITNESS), '2N1LGaGg836mqSQqiuUBLfcyGBhyZbremDX')
+        self.assertEqual(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), True, None, script_type=proto_types.SPENDP2SHWITNESS), '2N1LGaGg836mqSQqiuUBLfcyGBhyZbremDX')
 
     def test_wrong_number_of_words(self):
         def check_n_words(n):

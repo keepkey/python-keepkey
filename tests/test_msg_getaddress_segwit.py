@@ -28,10 +28,10 @@ class TestMsgGetaddressSegwit(common.KeepKeyTest):
     def test_show_segwit(self):
         self.setup_mnemonic_allallall()
         self.client.clear_session()
-        self.assertEquals(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), True, None, script_type=proto.SPENDP2SHWITNESS), '2N1LGaGg836mqSQqiuUBLfcyGBhyZbremDX')
-        self.assertEquals(self.client.get_address("Testnet", parse_path("49'/1'/0'/0/0"), False, None, script_type=proto.SPENDP2SHWITNESS), '2N4Q5FhU2497BryFfUgbqkAJE87aKHUhXMp')
-        self.assertEquals(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDP2SHWITNESS), '2N6UeBoqYEEnybg4cReFYDammpsyDw8R2Mc')
-        self.assertEquals(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDADDRESS), 'mvbu1Gdy8SUjTenqerxUaZyYjmveZvt33q')
+        self.assertEqual(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), True, None, script_type=proto.SPENDP2SHWITNESS), '2N1LGaGg836mqSQqiuUBLfcyGBhyZbremDX')
+        self.assertEqual(self.client.get_address("Testnet", parse_path("49'/1'/0'/0/0"), False, None, script_type=proto.SPENDP2SHWITNESS), '2N4Q5FhU2497BryFfUgbqkAJE87aKHUhXMp')
+        self.assertEqual(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDP2SHWITNESS), '2N6UeBoqYEEnybg4cReFYDammpsyDw8R2Mc')
+        self.assertEqual(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDADDRESS), 'mvbu1Gdy8SUjTenqerxUaZyYjmveZvt33q')
 
     def test_grs(self):
         self.setup_mnemonic_allallall()
@@ -62,7 +62,7 @@ class TestMsgGetaddressSegwit(common.KeepKeyTest):
         #     m=2,
         # )
         for i in [1, 2, 3]:
-            self.assertEquals(self.client.get_address("Testnet", parse_path("999'/1'/%d'/2/0" % i), False, multisig1, script_type=proto.SPENDP2SHWITNESS), '2N2MxyAfifVhb3AMagisxaj3uij8bfXqf4Y')
+            self.assertEqual(self.client.get_address("Testnet", parse_path("999'/1'/%d'/2/0" % i), False, multisig1, script_type=proto.SPENDP2SHWITNESS), '2N2MxyAfifVhb3AMagisxaj3uij8bfXqf4Y')
 
 if __name__ == '__main__':
     unittest.main()

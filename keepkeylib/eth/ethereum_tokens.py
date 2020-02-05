@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/bin/env python3
 
 from __future__ import print_function
 import json
@@ -44,7 +44,7 @@ class ETHTokenTable(object):
                 self.add_tokens(network)
 
     def serialize_c(self, outf):
-        for token in self.tokens:
+        for token in sorted(self.tokens, key=lambda t: t.token['address']):
             token.serialize_c(outf)
 
 def is_ascii(s):

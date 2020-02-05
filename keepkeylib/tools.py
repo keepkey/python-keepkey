@@ -28,14 +28,20 @@ def hash_160(public_key):
 
 
 def hash_160_to_bc_address(h160, address_type):
-    vh160 = bytes([address_type]) + h160
+    if sys.version_info[0] < 3:
+        vh160 = chr(address_type) + h160
+    else:
+        vh160 = bytes([address_type]) + h160
     h = Hash(vh160)
     addr = vh160 + h[0:4]
     return b58encode(addr)
 
 def compress_pubkey(public_key):
     if public_key[0] == '\x04':
-        return chr((ord(public_key[64]) & 1) + 2) + public_key[1:33]
+        if sys.version_info[0] < 3:
+            return chr((ord(public_key[64]) & 1) + 2) + public_key[1:33]
+        else:
+            return bytes((public_key[64] & 1) + 2) + public_key[1:33]
     raise Exception("Pubkey is already compressed")
 
 def public_key_to_bc_address(public_key, address_type, compress=True):
