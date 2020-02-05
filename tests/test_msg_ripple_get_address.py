@@ -26,11 +26,11 @@ class TestMsgRippleGetAddress(KeepKeyTest):
         self.setup_mnemonic_allallall()
 
         address = self.client.ripple_get_address(parse_path("m/44'/144'/0'/0/0"))
-        self.assertEquals(address, "rNaqKtKrMSwpwZSzRckPf7S96DkimjkF4H")
+        self.assertEqual(address, "rNaqKtKrMSwpwZSzRckPf7S96DkimjkF4H")
         address = self.client.ripple_get_address(parse_path("m/44'/144'/0'/0/1"))
-        self.assertEquals(address, "rBKz5MC2iXdoS3XgnNSYmF69K1Yo4NS3Ws")
+        self.assertEqual(address, "rBKz5MC2iXdoS3XgnNSYmF69K1Yo4NS3Ws")
         address = self.client.ripple_get_address(parse_path("m/44'/144'/1'/0/0"))
-        self.assertEquals(address, "rJX2KwzaLJDyFhhtXKi3htaLfaUH2tptEX")
+        self.assertEqual(address, "rJX2KwzaLJDyFhhtXKi3htaLfaUH2tptEX")
 
     def test_ripple_get_address_other(self):
         # data from https://github.com/you21979/node-ripple-bip32/blob/master/test/test.js
@@ -42,9 +42,9 @@ class TestMsgRippleGetAddress(KeepKeyTest):
             language="english",
         )
         address = self.client.ripple_get_address(parse_path("m/44'/144'/0'/0/0"))
-        self.assertEquals(address, "r4ocGE47gm4G4LkA9mriVHQqzpMLBTgnTY")
+        self.assertEqual(address, "r4ocGE47gm4G4LkA9mriVHQqzpMLBTgnTY")
         address = self.client.ripple_get_address(parse_path("m/44'/144'/0'/0/1"))
-        self.assertEquals(address, "rUt9ULSrUvfCmke8HTFU1szbmFpWzVbBXW")
+        self.assertEqual(address, "rUt9ULSrUvfCmke8HTFU1szbmFpWzVbBXW")
 
 if __name__ == '__main__':
     unittest.main()
