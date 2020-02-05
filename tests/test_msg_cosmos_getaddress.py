@@ -27,14 +27,14 @@ class TestMsgCosmosGetAddress(common.KeepKeyTest):
                     cosmos_proto.CosmosAddress(address=expected)
                 ])
 
-                self.assertEquals(expected, self.client.cosmos_get_address(path, show_display=True))
+                self.assertEqual(expected, self.client.cosmos_get_address(path, show_display=True))
 
             with self.client:
                 self.client.set_expected_responses([
                     cosmos_proto.CosmosAddress(address=expected)
                 ])
 
-                self.assertEquals(expected, self.client.cosmos_get_address(path, show_display=False))
+                self.assertEqual(expected, self.client.cosmos_get_address(path, show_display=False))
 
 
     def test_nonstandard(self):
@@ -59,14 +59,14 @@ class TestMsgCosmosGetAddress(common.KeepKeyTest):
                     cosmos_proto.CosmosAddress(address=expected)
                 ])
 
-                self.assertEquals(expected, self.client.cosmos_get_address(path, show_display=True))
+                self.assertEqual(expected, self.client.cosmos_get_address(path, show_display=True))
 
             with self.client:
                 self.client.set_expected_responses([
                     cosmos_proto.CosmosAddress(address=expected)
                 ])
 
-                self.assertEquals(expected, self.client.cosmos_get_address(path, show_display=False))
+                self.assertEqual(expected, self.client.cosmos_get_address(path, show_display=False))
 
 
     def test_cosmos_get_address_sep(self):
@@ -97,7 +97,7 @@ class TestMsgCosmosGetAddress(common.KeepKeyTest):
           language='english'
         )
 
-        self.assertEquals(
+        self.assertEqual(
           "cosmos1934nqs0ke73lm5ej8hs9uuawkl3ztesg9jp5c5",
           self.client.cosmos_get_address(parse_path(DEFAULT_BIP32_PATH)))
 
