@@ -491,7 +491,7 @@ class Commands(object):
     firmware_update.help = 'Upload new firmware to device (must be in bootloader mode)'
 
     get_address.arguments = (
-        (('-c', '--coin'), {'type': str, 'default': 'Bitcoin'}),
+        (('-c', '--coin'), {'type': str, 'default': 'Omotenashicoin'}),
         (('-n', '-address'), {'type': str}),
         (('-t', '--script-type'), {'type': str, 'choices': ['address', 'segwit', 'p2shsegwit'], 'default': 'address'}),
         (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
@@ -616,13 +616,13 @@ class Commands(object):
     )
 
     sign_message.arguments = (
-        (('-c', '--coin'), {'type': str, 'default': 'Bitcoin'}),
+        (('-c', '--coin'), {'type': str, 'default': 'Omotenashicoin'}),
         (('-n', '-address'), {'type': str}),
         (('message',), {'type': str}),
     )
 
     verify_message.arguments = (
-        (('-c', '--coin'), {'type': str, 'default': 'Bitcoin'}),
+        (('-c', '--coin'), {'type': str, 'default': 'Omotenashicoin'}),
         (('address',), {'type': str}),
         (('signature',), {'type': str}),
         (('message',), {'type': str}),
