@@ -475,6 +475,7 @@ class Commands(object):
     nano_get_address.help = 'Get Nano address'
     nano_sign_tx.help = 'Sign Nano transaction'
     cosmos_get_address.help = 'Get Cosmos address'
+    binance_get_address.help = 'Get Binance address'
     cosmos_sign_tx.help = 'Sign Cosmos transaction'
     get_entropy.help = 'Get example entropy'
     get_features.help = 'Retrieve device features and settings'
@@ -550,6 +551,12 @@ class Commands(object):
     )
 
     cosmos_get_address.arguments = (
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/118'/0'/0/0"}),
+        (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
+    )
+
+
+    binance_get_address.arguments = (
         (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/118'/0'/0/0"}),
         (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
     )

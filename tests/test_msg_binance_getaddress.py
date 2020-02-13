@@ -1,13 +1,9 @@
 import unittest
 import common
 
-import keepkeylib.messages_pb2 as proto
-import keepkeylib.types_pb2 as proto_types
-import keepkeylib.messages_binance_pb2 as binance_proto
-from keepkeylib.client import CallException
-from keepkeylib.tools import parse_path
 
-DEFAULT_BIP32_PATH = "m/44h/118h/0h/0/0"
+import keepkeylib.messages_binance_pb2 as binance_proto
+from keepkeylib.tools import parse_path
 
 class TestMsgBinanceGetAddress(common.KeepKeyTest):
     def test_standard(self):
