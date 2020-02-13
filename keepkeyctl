@@ -557,7 +557,7 @@ class Commands(object):
 
 
     binance_get_address.arguments = (
-        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/118'/0'/0/0"}),
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/714'/0'/0/0"}),
         (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
     )
 
