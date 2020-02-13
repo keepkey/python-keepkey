@@ -40,6 +40,7 @@ from . import messages_eos_pb2 as eos_proto
 from . import messages_nano_pb2 as nano_proto
 from . import messages_cosmos_pb2 as cosmos_proto
 from . import messages_binance_pb2 as binance_proto
+from . import messages_ripple_pb2 as ripple_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -714,6 +715,7 @@ class ProtocolMixin(object):
 
         return response
 
+
     @expect(nano_proto.NanoAddress)
     def nano_get_address(self, coin_name, address_n, show_display=False):
         msg = nano_proto.NanoGetAddress(
@@ -721,6 +723,7 @@ class ProtocolMixin(object):
             address_n=address_n,
             show_display=show_display)
         return self.call(msg)
+
 
     @expect(nano_proto.NanoSignedTx)
     def nano_sign_tx(
@@ -773,6 +776,8 @@ class ProtocolMixin(object):
             binance_proto.BinanceGetAddress(address_n=address_n, show_display=show_display)
         )
 
+
+    @session
     def cosmos_sign_tx(
         self,
         address_n,
@@ -834,6 +839,19 @@ class ProtocolMixin(object):
 
         return resp
 
+    @field('address')
+    @expect(ripple_proto.RippleAddress)
+    def ripple_get_address(self, address_n, show_display=False):
+        return self.call(
+            ripple_proto.RippleGetAddress(address_n=address_n, show_display=show_display)
+        )
+
+
+    @session
+    @expect(ripple_proto.RippleSignedTx)
+    def ripple_sign_tx(self, address_n, msg):
+        msg.address_n = address_n
+        return self.call(msg)
 
     @field('entropy')
     @expect(proto.Entropy)
