@@ -309,6 +309,11 @@ class Commands(object):
         address = self.client.cosmos_get_address(address_n, args.show_display)
         return address
 
+    def binance_get_address(self, args):
+        address_n = self.client.expand_path(args.n)
+        address = self.client.binance_get_address(address_n, args.show_display)
+        return address
+
     def cosmos_sign_tx(self, args):
         address_n = self.client.expand_path(args.n)
         chain_id = args.chain_id
