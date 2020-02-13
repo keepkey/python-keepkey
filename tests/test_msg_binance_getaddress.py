@@ -7,7 +7,7 @@ from keepkeylib.tools import parse_path
 
 class TestMsgBinanceGetAddress(common.KeepKeyTest):
     def test_standard(self):
-        self.requires_firmware("6.3.0")
+        self.requires_firmware("6.4.0")
 
         self.client.load_device_by_mnemonic(
             mnemonic='offer caution gift cross surge pretty orange during eye soldier popular holiday mention east eight office fashion ill parrot vault rent devote earth cousin',
