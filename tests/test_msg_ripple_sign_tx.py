@@ -27,6 +27,8 @@ from keepkeylib.tools import parse_path
 
 class TestMsgRippleSignTx(common.KeepKeyTest):
     def test_sign(self):
+        self.requires_firmware("6.4.0")
+
         self.setup_mnemonic_allallall()
 
         msg = messages.RippleSignTx(
@@ -98,6 +100,8 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
 
 
     def test_ripple_sign_invalid_fee(self):
+        self.requires_firmware("6.4.0")
+
         self.setup_mnemonic_allallall()
 
         msg = messages.RippleSignTx(
