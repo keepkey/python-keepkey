@@ -31,7 +31,8 @@ from keepkeylib import tx_api
 
 cur_dir = os.path.dirname(os.path.realpath(__file__))
 tx_api.cache_dir = os.path.join(cur_dir, 'txcache')
-VERBOSE = False
+
+VERBOSE = os.environ.get('VERBOSE', False)
 
 class KeepKeyTest(unittest.TestCase):
     def setUp(self):
