@@ -1,4 +1,4 @@
-'''USB HID implementation of Transport.'''
+"""USB HID implementation of Transport."""
 import math
 from hashlib import sha256
 import time, json, base64, struct
@@ -9,7 +9,8 @@ import platform
 import hid
 
 DEVICE_IDS = [
-    (0x2B24, 0x0001),  # KeepKey
+    (0x2B24, 0x0001),  # KeepKey with firmware version <  6.4.0
+    (0x2B24, 0x0002),  # KeepKey with firmware version >= 6.4.0
 ]
 
 
@@ -18,7 +19,8 @@ MAX_MSG_SIZE = 59
 INTERFACE_MAPPING = {
     "normal_usb": 0,
     "debug_link": 1,
-    }
+}
+
 
 class FakeRead(object):
     # Let's pretend we have a file-like interface
@@ -28,45 +30,49 @@ class FakeRead(object):
     def read(self, size):
         return self.func(size)
 
+
 def is_normal_link(device):
-    if device['usage_page'] == 0xff00:
+    if device["usage_page"] == 0xFF00:
         return True
 
-    if device['interface_number'] == 0:
+    if device["interface_number"] == 0:
         return True
 
     # MacOS reports -1 as the interface_number for everything,
     # inspect based on the path instead.
-    if platform.system() == 'Darwin':
-        if device['interface_number'] == -1:
-            return device['path'].endswith(b'0')
+    if platform.system() == "Darwin":
+        if device["interface_number"] == -1:
+            return device["path"].endswith(b"0")
 
     return False
+
 
 def is_debug_link(device):
-    if device['usage_page'] == 0xff01:
+    if device["usage_page"] == 0xFF01:
         return True
 
-    if device['interface_number'] == 1:
+    if device["interface_number"] == 1:
         return True
 
     # MacOS reports -1 as the interface_number for everything,
     # inspect based on the path instead.
-    if platform.system() == 'Darwin':
-        if device['interface_number'] == -1:
-            return device['path'].endswith(b'1')
+    if platform.system() == "Darwin":
+        if device["interface_number"] == -1:
+            return device["path"].endswith(b"1")
 
     return False
+
 
 class HidTransport(Transport):
     def __init__(self, device_paths, *args, **kwargs):
         self.hid = None
-        self.buffer = ''
-        #select the appropriate transport
+        self.buffer = ""
+        # select the appropriate transport
         self.use_debug_link = kwargs.get("debug_link", False)
         self.interface_index = 0
-        if self.use_debug_link: self.interface_index += 1
-        #stale device paths are a problem here unless we re-enumerate
+        if self.use_debug_link:
+            self.interface_index += 1
+        # stale device paths are a problem here unless we re-enumerate
         device_paths = self.enumerate()[0]
         self.path = device_paths[self.interface_index]
         super(HidTransport, self).__init__(self.path, *args, **kwargs)
@@ -78,16 +84,18 @@ class HidTransport(Transport):
         """
         devices = {}
         for d in hid.enumerate(0, 0):
-            vendor_id = d['vendor_id']
-            product_id = d['product_id']
-            serial_number = d['serial_number']
-            interface_number = d['interface_number']
-            path = d['path']
+            vendor_id = d["vendor_id"]
+            product_id = d["product_id"]
+            serial_number = d["serial_number"]
+            interface_number = d["interface_number"]
+            path = d["path"]
 
             # HIDAPI on Mac cannot detect correct HID interfaces, so device with
             # DebugLink doesn't work on Mac...
             if devices.get(serial_number) != None and devices[serial_number][0] == path:
-                raise Exception("Two devices with the same path and S/N found. This is Mac, right? :-/")
+                raise Exception(
+                    "Two devices with the same path and S/N found. This is Mac, right? :-/"
+                )
 
             if (vendor_id, product_id) in DEVICE_IDS:
                 devices.setdefault(serial_number, [None, None, None])
@@ -96,7 +104,9 @@ class HidTransport(Transport):
                 elif is_debug_link(d):
                     devices[serial_number][1] = path
                 else:
-                    raise Exception("Unknown USB interface number: %d" % interface_number)
+                    raise Exception(
+                        "Unknown USB interface number: %d" % interface_number
+                    )
 
         # List of two-tuples (path_normal, path_debuglink)
         return list(devices.values())
@@ -106,7 +116,7 @@ class HidTransport(Transport):
         Check if the device is still connected.
         """
         for d in hid.enumerate(0, 0):
-            if d['path'] == self.device:
+            if d["path"] == self.device:
                 return True
         return False
 
@@ -130,27 +140,37 @@ class HidTransport(Transport):
         return False
 
     def _msg_to_apdus(self, msg):
-        #generate app/client data
-        app_id  = 'https://www.keepkey.com'
-        window_location = 'navigator.id.getAssertion'
-        challenge = 'KPKYKPKYKPKYKPKYKPKYKPKYKPKYKPKY'
-        client_data = '{{"typ": "{}", "challenge": "{}", "origin": "{}"}}'.format(window_location, challenge, app_id)
-        app_param = sha256(app_id.encode('utf8')).digest()
-        client_param = sha256(client_data.encode('utf8')).digest()
-        total_frames = math.ceil(len(msg)/float(MAX_MSG_SIZE))
+        # generate app/client data
+        app_id = "https://www.keepkey.com"
+        window_location = "navigator.id.getAssertion"
+        challenge = "KPKYKPKYKPKYKPKYKPKYKPKYKPKYKPKY"
+        client_data = '{{"typ": "{}", "challenge": "{}", "origin": "{}"}}'.format(
+            window_location, challenge, app_id
+        )
+        app_param = sha256(app_id.encode("utf8")).digest()
+        client_param = sha256(client_data.encode("utf8")).digest()
+        total_frames = math.ceil(len(msg) / float(MAX_MSG_SIZE))
         frame_i = 0
         chunks = []
         while len(msg):
             flags = 0
             flags = flags | (0x40 if self.use_debug_link else 0)
-            chunks.append(struct.pack("<BBBBB", int(total_frames), int(frame_i), 0, flags, 63) +
-                          msg[:MAX_MSG_SIZE] + b"\x00" * (MAX_MSG_SIZE - len(msg[:MAX_MSG_SIZE])))
+            chunks.append(
+                struct.pack("<BBBBB", int(total_frames), int(frame_i), 0, flags, 63)
+                + msg[:MAX_MSG_SIZE]
+                + b"\x00" * (MAX_MSG_SIZE - len(msg[:MAX_MSG_SIZE]))
+            )
             frame_i += 1
             msg = msg[MAX_MSG_SIZE:]
         apdus = []
         for this_wire_msg in chunks:
             key_handle = this_wire_msg
-            auth_request = client_param + app_param + struct.pack("B", len(key_handle)) + key_handle
+            auth_request = (
+                client_param
+                + app_param
+                + struct.pack("B", len(key_handle))
+                + key_handle
+            )
             hex_request = binascii.hexlify(auth_request)
             apdus.append(str(auth_request))
         self.apdus = apdus
@@ -170,7 +190,7 @@ class HidTransport(Transport):
         msg = bytearray(msg)
         while len(msg):
             # Report ID, data padded to 63 bytes
-            self.hid.write([63, ] + list(msg[:63]) + [0] * (63 - len(msg[:63])))
+            self.hid.write([63,] + list(msg[:63]) + [0] * (63 - len(msg[:63])))
             msg = msg[63:]
 
     def _read(self):
