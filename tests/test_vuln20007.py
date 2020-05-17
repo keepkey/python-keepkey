@@ -28,12 +28,6 @@ from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
 from keepkeylib import tx_api
 
-
-TXHASH_c6be22 = unhexlify('c6be22d34946593bcad1d2b013e12f74159e69574ffea21581dad115572e031c')
-TXHASH_c63e24 = unhexlify('c63e24ed820c5851b60c54613fbc4bcb37df6cd49b4c96143e99580a472f79fb')
-TXHASH_t = unhexlify('c6be22d34946593bcad1d2b013e12f74159e69574ffea21581dad115572e031c')
-#TXHASH_t = unhexlify('6f90f3c7cbec2258b0971056ef3fe34128dbde30daa9c0639a898f9977299d54')
-
 def Vuln20007TrapPrevent(client):
     ###################################################################################
     # vuln-20007 fix: 
