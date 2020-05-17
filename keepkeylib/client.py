@@ -480,6 +480,9 @@ class ProtocolMixin(object):
     def set_tx_api(self, tx_api):
         self.tx_api = tx_api
 
+    def get_tx_api(self):
+        return self.tx_api
+
     def init_device(self):
         self.features = expect(proto.Features)(self.call)(proto.Initialize())
         if str(self.features.vendor) not in self.VENDORS:
