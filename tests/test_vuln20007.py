@@ -73,6 +73,7 @@ def Vuln20007TrapPrevent(client):
 class TestVuln20007(KeepKeyTest):
 
     def test_vuln(self):
+      self.requires_firmware("6.4.1")
 
       PREVHASH_1 = unhexlify("b6973acd5876ba8b050ae2d4c7d8b5c710ee4879af938be3c2c61a262f1730e0")
       PREVHASH_2 = unhexlify("3a3322e60f2f4c55394fe05dddacafd6e55ff6d40859fd98d64adefc8c169ac8")
