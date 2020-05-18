@@ -28,6 +28,7 @@ from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
 from keepkeylib.tx_api import TxApiTestnet
 
+from test_vuln20007 import Vuln20007TrapPrevent
 
 class TestMsgSigntxSegwit(KeepKeyTest):
 
@@ -309,6 +310,8 @@ class TestMsgSigntxSegwit(KeepKeyTest):
             (signatures, serialized_tx) = self.client.sign_tx('Testnet', [inp1], [out1, out2])
 
         self.assertEqual(hexlify(serialized_tx), b'0100000000010137c361fb8f2d9056ba8c98c5611930fcb48cacfdd0fe2e0449d83eea982f91200000000017160014d16b8c0680c61fc6ed2e407455715055e41052f5ffffffff02e0aebb00000000001976a91414fdede0ddc3be652a0ce1afbc1b509a55b6b94888ac3df39f060000000017a914dae9e09a7fc3bbe5a716fffec1bbb340b82a4fb9870248304502210099b5c4f8fd4402c9c0136fee5f711137d64fc9f14587e01bfa7798f5428f845d0220253e21c98f5b1b64efae69bc2ea9799c5620a43450baa6762a0c3cf4fdc886e5012103e7bfe10708f715e8538c92d46ca50db6f657bbc455b7494e6a0303ccdb868b7900000000')
+
+        Vuln20007TrapPrevent(self.client)
 
         # Now run the attack, must trigger the exception
         with self.client:
