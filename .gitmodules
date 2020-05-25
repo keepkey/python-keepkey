@@ -1,6 +1,7 @@
 [submodule "device-protocol"]
 	path = device-protocol
 	url = https://github.com/keepkey/device-protocol.git
+	branch = block-1961-implement-wipe-code-feature
 [submodule "keepkeylib/eth/ethereum-lists"]
 	path = keepkeylib/eth/ethereum-lists
 	url = https://github.com/keepkey/ethereum-lists.git

@@ -1,0 +1,4 @@
+#!/Users/nicholasmorrow/Work/python-keepkey/venv/bin/python3
+# EASY-INSTALL-SCRIPT: 'keepkey==6.3.2','keepkeyctl'
+__requires__ = 'keepkey==6.3.2'
+__import__('pkg_resources').run_script('keepkey==6.3.2', 'keepkeyctl')
