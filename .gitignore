@@ -16,3 +16,4 @@ docs/.docs-build-environment
 tests/nose_report.html
 .idea/
 venv
+.vscode
