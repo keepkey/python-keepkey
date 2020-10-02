@@ -31,7 +31,6 @@ jobs:
             docker cp "$(docker-compose ps -q firmware-unit)":/kkemu/test-reports/. ../../test-reports/
             docker cp "$(docker-compose ps -q python-keepkey)":/kkemu/test-reports/. ../../test-reports/
             popd
-            [ "$(cat test-reports/firmware-unit/status)" == "00" ] || exit 1
       - store_test_results:
           path: test-reports
 workflows:
