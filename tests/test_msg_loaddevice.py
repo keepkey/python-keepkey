@@ -22,6 +22,7 @@ import unittest
 import common
 
 from keepkeylib import messages_pb2 as messages
+from keepkeylib import types_pb2 as proto_types
 
 class TestDeviceLoad(common.KeepKeyTest):
 
@@ -68,6 +69,25 @@ class TestDeviceLoad(common.KeepKeyTest):
 
         address = self.client.get_address('Bitcoin', [])
         self.assertEqual(address, '1CHUbFa4wTTPYgkYaw2LHSd5D4qJjMU8ri')
+
+    def test_load_device_8(self):
+        self.client.load_device_by_mnemonic(mnemonic=self.mnemonic12, pin='', passphrase_protection=True, label='test', language='english')
+        self.client.set_passphrase('passphrase')
+        passphrase_protection = self.client.debug.read_passphrase_protection()
+        self.assertEqual(passphrase_protection, True)
+
+        address = self.client.get_address('Bitcoin', [])
+
+        self.assertEqual(address, '15fiTDFwZd2kauHYYseifGi9daH2wniDHH')
+
+    def test_load_device_9(self):
+        self.client.load_device_by_mnemonic(mnemonic=self.mnemonic12, pin='', passphrase_protection=False, label='test', language='english')
+
+        passphrase_protection = self.client.debug.read_passphrase_protection()
+        self.assertEqual(passphrase_protection, False)
+
+        address = self.client.get_address('Bitcoin', [])
+        self.assertEqual(address, '1EfKbQupktEMXf4gujJ9kCFo83k1iMqwqK')
 
     def test_load_device_utf(self):
         words_nfkd = u'Pr\u030ci\u0301s\u030cerne\u030c z\u030clut\u030couc\u030cky\u0301 ku\u030an\u030c u\u0301pe\u030cl d\u030ca\u0301belske\u0301 o\u0301dy za\u0301ker\u030cny\u0301 uc\u030cen\u030c be\u030cz\u030ci\u0301 pode\u0301l zo\u0301ny u\u0301lu\u030a'

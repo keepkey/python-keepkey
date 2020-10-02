@@ -2,7 +2,7 @@ version: 2
 jobs:
   emulator-build-test:
     docker:
-      - image: circleci/python:2.7
+      - image: circleci/python:3.7
     steps:
       - checkout:
           path: .pykk
@@ -12,7 +12,7 @@ jobs:
             git config --global url."https://github.com/".insteadOf git@github.com:
             git config --global url."https://".insteadOf git://
             mv .pykk ../
-            git clone $FIRMWARE_REPO --depth 1 -b master .
+            git clone $FIRMWARE_REPO --depth 1 -b version-6.5.1 .
             git submodule update --init --recursive
             rm -rf deps/python-keepkey
             mv ../.pykk deps/python-keepkey
