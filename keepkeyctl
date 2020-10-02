@@ -674,7 +674,8 @@ def main():
     if args.debuglink_transport and args.debuglink_path:
         debuglink_transport = get_transport(
             args.debuglink_transport,
-            args.debuglink_path)
+            args.debuglink_path,
+            debug_link = True)
         if args.verbose:
             client = KeepKeyDebuglinkClientVerbose(transport)
             client.verbose = True
