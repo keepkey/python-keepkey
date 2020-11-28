@@ -67,6 +67,7 @@ class TestMsgBinanceSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(response.signature), b"faf5b908d6c4ec0c7e2e7d8f7e1b9ca56ac8b1a22b01655813c62ce89bf84a4c7b14f58ce51e85d64c13f47e67d6a9187b8f79f09e0a9b82019f47ae190a4db3")
 
     def test_transfer_bep2(self):
+        self.requires_firmware("6.6.0")
         self.setup_binance()
 
         message = {
