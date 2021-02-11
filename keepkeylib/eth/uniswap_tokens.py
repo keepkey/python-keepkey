@@ -12,13 +12,15 @@ if sys.version_info[0] < 3:
 else:
     from io import StringIO
 
+HERE = os.path.dirname(os.path.realpath(__file__))
+
 class USETHTokenTable(object):
     def __init__(self):
         self.ustoks = []
 
     def build(self):
         # uniswap_tokens.json is exported from the shapeshift axiom database.
-        with open('uniswap_tokens.json') as json_file:
+        with open(HERE + '/uniswap_tokens.json', 'r') as json_file:
             ustoksjson = json.load(json_file)
 
         for token in ustoksjson:
@@ -33,7 +35,9 @@ class USETHTokenTable(object):
 
 def writeout(toklist, outf):
     for line in toklist:
-        print(line, file=outf)
+        pline = 'X(%d, "%s", " %s", %d) // %s / %s' % (line[0], line[1], line[2], line[3], line[4], line[5])
+        print(pline, file=outf)
+
 
 def is_ascii(s):
     return all(ord(c) < 128 for c in s)
@@ -48,7 +52,7 @@ class USETHToken(object):
             return
 
         # exported json file must match format in uniswap_tokens.def
-        chain_id = '1'  # all on main eth chain
+        chain_id = 1  # all on main eth chain
         address = str(self.token['contractAddress'][2:])
         address = '\\x' + '\\x'.join([address[i:i+2] for i in range(0, len(address), 2)])
         symbol = str(self.token['symbol'])
