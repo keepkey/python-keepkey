@@ -7,7 +7,7 @@ tx_schema = schema.Schema({
     "value": schema.Schema({
         "fee": schema.Schema({
             "amount": schema.Schema([{
-                "denom": "uatom",
+                "denom": "rune",
                 "amount": unicode
             }]),
             "gas": unicode
@@ -19,7 +19,7 @@ tx_schema = schema.Schema({
                 "from_address": unicode,
                 "to_address": unicode,
                 "amount": schema.Schema([{
-                    "denom": "uatom",
+                    "denom": "rune",
                     "amount": unicode
                 }])
             })

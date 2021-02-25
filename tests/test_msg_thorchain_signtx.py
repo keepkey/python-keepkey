@@ -9,7 +9,7 @@ import keepkeylib.types_pb2 as proto_types
 import keepkeylib.exchange_pb2 as proto_exchange
 from keepkeylib.tools import parse_path
 
-DEFAULT_BIP32_PATH = "m/44h/118h/0h/0/0"
+DEFAULT_BIP32_PATH = "m/44h/934h/0h/0/0"
 
 def make_send(from_address, to_address, amount):
     return {
@@ -31,7 +31,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
             account_number=19637,
-            chain_id="cosmoshub-2",
+            chain_id="thorchain",
             fee=5000,
             gas=200000,
             msgs=[make_send(
@@ -52,7 +52,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
             account_number=19637,
-            chain_id="cosmoshub-2",
+            chain_id="thorchain",
             fee=5000,
             gas=200000,
             msgs=[make_send(
@@ -81,7 +81,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
             account_number=24250,
-            chain_id="cosmoshub-2",
+            chain_id="thorchain",
             fee=1000,
             gas=28000,
             msgs=[make_send(
@@ -110,7 +110,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
             account_number=24250,
-            chain_id="cosmoshub-2",
+            chain_id="thorchain",
             fee=1000,
             gas=28000,
             msgs=[make_send(
@@ -136,13 +136,13 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
                     coin_type='ltc',
                     address='LhvxkkwMCjDAwyprNHhYW8PE9oNf6wSd2V'),
 
-                deposit_amount=unhexlify('0186a0'), # 100000 uATOM
+                deposit_amount=unhexlify('0186a0'), # 100000 RUNE
                 deposit_address=proto_exchange.ExchangeAddress(
-                    coin_type='atom',
+                    coin_type='rune',
                     address='thor18vhdczjut44gpsy804crfhnd5nq003nz0nf20v'),
 
                 return_address=proto_exchange.ExchangeAddress(
-                    coin_type='atom',
+                    coin_type='rune',
                     address='thor15cenya0tr7nm3tz2wn3h3zwkht2rxrq7q7h3dj'),
 
                 expiration=1480964590181,
@@ -159,13 +159,13 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             signed_exchange_response=signed_exchange_out,
             withdrawal_coin_name='Litecoin',
             withdrawal_address_n=parse_path("m/44'/2'/1'/0/1"),
-            return_address_n=parse_path("m/44'/118'/0'/0/0")
+            return_address_n=parse_path("m/44'/934'/0'/0/0")
         )
 
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
             account_number=19637,
-            chain_id="cosmoshub-2",
+            chain_id="thorchain",
             fee=5000,
             gas=200000,
             msgs=[make_send(
@@ -189,7 +189,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             responseV2=proto_exchange.ExchangeResponseV2(
                 withdrawal_amount=unhexlify('03cfd863'),
                 withdrawal_address=proto_exchange.ExchangeAddress(
-                    coin_type='atom',
+                    coin_type='rune',
                     address='thor15cenya0tr7nm3tz2wn3h3zwkht2rxrq7q7h3dj'),
 
                 deposit_amount=unhexlify('00000000000000000000000000000000000000000000000000000002540be400'),
@@ -213,8 +213,8 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
 
         exchange_type_out=proto_types.ExchangeType(
             signed_exchange_response=signed_exchange_out,
-            withdrawal_coin_name='ThorChain',
-            withdrawal_address_n=parse_path("m/44'/118'/0'/0/0"),
+            withdrawal_coin_name='THORChain',
+            withdrawal_address_n=parse_path("m/44'/934'/0'/0/0"),
             return_address_n=parse_path("m/44'/60'/0'/0/0")
         )
 
