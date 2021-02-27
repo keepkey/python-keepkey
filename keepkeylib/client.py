@@ -40,6 +40,7 @@ from . import messages_eos_pb2 as eos_proto
 from . import messages_nano_pb2 as nano_proto
 from . import messages_cosmos_pb2 as cosmos_proto
 from . import messages_ripple_pb2 as ripple_proto
+from . import messages_thorchain_pb2 as thorchain_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -832,6 +833,13 @@ class ProtocolMixin(object):
             )
 
         return resp
+
+    @field('address')
+    @expect(thorchain_proto.ThorchainAddress)
+    def thorchain_get_address(self, address_n, show_display=False):
+        return self.call(
+            thorchain_proto.ThorchainGetAddress(address_n=address_n, show_display=show_display)
+        )
 
     @field('address')
     @expect(ripple_proto.RippleAddress)
