@@ -852,7 +852,8 @@ class ProtocolMixin(object):
         msgs,
         memo,
         sequence,
-        exchange_types=None
+        exchange_types=None,
+        testnet=None
     ):
         resp = self.call(thorchain_proto.ThorchainSignTx(
             address_n=address_n,
@@ -862,7 +863,8 @@ class ProtocolMixin(object):
             gas=gas,
             memo=memo,
             sequence=sequence,
-            msg_count=len(msgs)
+            msg_count=len(msgs),
+            testnet=testnet
         ))
 
         for (msg, exchange_type) in zip(msgs, exchange_types or [None] * len(msgs)):

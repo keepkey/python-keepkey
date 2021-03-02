@@ -8,24 +8,24 @@ tx_schema = schema.Schema({
         "fee": schema.Schema({
             "amount": schema.Schema([{
                 "denom": "uatom",
-                "amount": unicode
+                "amount": str
             }]),
-            "gas": unicode
+            "gas": str
         }),
         # NOTE: this needs to be 'msgs' when signing, but 'msg' when broadcasting.
         "msg": schema.Schema([{
             "type": "cosmos-sdk/MsgSend",
             "value": schema.Schema({
-                "from_address": unicode,
-                "to_address": unicode,
+                "from_address": str,
+                "to_address": str,
                 "amount": schema.Schema([{
                     "denom": "uatom",
-                    "amount": unicode
+                    "amount": str
                 }])
             })
         }]),
         schema.Optional("signatures"): None,
-        "memo": unicode
+        "memo": str
     })
 })
 

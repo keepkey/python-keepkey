@@ -3,36 +3,37 @@ import schema
 import copy
 
 tx_schema = schema.Schema({
-    "type": "auth/StdTx",
-    "value": schema.Schema({
+    "tx": schema.Schema({
         "fee": schema.Schema({
             "amount": schema.Schema([{
                 "denom": "rune",
-                "amount": unicode
+                "amount": str
             }]),
-            "gas": unicode
+            "gas": str
         }),
+        "memo": str,
         # NOTE: this needs to be 'msgs' when signing, but 'msg' when broadcasting.
         "msg": schema.Schema([{
             "type": "thorchain/MsgSend",
             "value": schema.Schema({
-                "from_address": unicode,
-                "to_address": unicode,
+                "from_address": str,
+                "to_address": str,
                 "amount": schema.Schema([{
                     "denom": "rune",
-                    "amount": unicode
+                    "amount": str
                 }])
             })
         }]),
         schema.Optional("signatures"): None,
-        "memo": unicode
-    })
+    }),
+    "type": "cosmos-sdk/StdTx",
+    "mode": "sync"
 })
 
 def thorchain_parse_tx(tx):
     validated = tx_schema.validate(tx)
 
-    stdtx = validated['value']
+    stdtx = validated['tx']
 
     return {
         'fee': stdtx['fee']['amount'][0]['amount'],
@@ -45,7 +46,7 @@ def thorchain_parse_tx(tx):
 def thorchain_append_sig(tx, public_key, signature):
     tx = copy.deepcopy(tx)
 
-    tx['value']['signatures'] = [{
+    tx['tx']['signatures'] = [{
         "pub_key": {
             "type": "tendermint/PubKeySecp256k1",
             "value": base64.b64encode(public_key)

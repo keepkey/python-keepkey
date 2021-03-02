@@ -365,12 +365,13 @@ class Commands(object):
             gas=int(parsed['gas']),
             msgs=parsed['msgs'],
             memo=parsed['memo'],
-            sequence=sequence
+            sequence=sequence,
+            testnet=args.testnet
         )
 
-        unsigned['value']['chain_id'] = chain_id
-        unsigned['value']['account_number'] = account_number
-        unsigned['value']['sequence'] = sequence
+        unsigned['tx']['chain_id'] = chain_id
+        unsigned['tx']['account_number'] = account_number
+        unsigned['tx']['sequence'] = sequence
 
         signed = thorchain_append_sig(unsigned, res.public_key, res.signature)
 
@@ -607,6 +608,7 @@ class Commands(object):
         (('--account-number',), {'type': int, 'help': 'THORchain account number', 'dest': 'account_number', 'required': True}),
         (('--sequence', ), {'type': int, 'help': 'THORchain account sequence', 'dest': 'sequence', 'required': True}),
         (('-f', '--file'), {'type': str, 'required': True}),
+        (('-t', '--testnet'), {'action': 'store_true', 'default': False}),
     )
 
     get_entropy.arguments = (
