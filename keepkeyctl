@@ -509,7 +509,7 @@ class Commands(object):
     cosmos_get_address.help = 'Get Cosmos address'
     cosmos_sign_tx.help = 'Sign Cosmos transaction'
     thorchain_get_address.help = 'Get THORchain address'
-    thorchain_sign_tx.help = 'Sign THORchain transaction'
+    thorchain_sign_tx.help = 'Sign THORChain transaction'
     get_entropy.help = 'Get example entropy'
     get_features.help = 'Retrieve device features and settings'
     get_public_node.help = 'Get public node of given path'
