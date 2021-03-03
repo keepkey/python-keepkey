@@ -40,6 +40,7 @@ from . import messages_eos_pb2 as eos_proto
 from . import messages_nano_pb2 as nano_proto
 from . import messages_cosmos_pb2 as cosmos_proto
 from . import messages_ripple_pb2 as ripple_proto
+from . import messages_thorchain_pb2 as thorchain_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -834,12 +835,83 @@ class ProtocolMixin(object):
         return resp
 
     @field('address')
+    @expect(thorchain_proto.ThorchainAddress)
+    def thorchain_get_address(self, address_n, show_display=False, testnet=False):
+        return self.call(
+            thorchain_proto.ThorchainGetAddress(address_n=address_n, show_display=show_display, testnet=testnet)
+        )
+
+    @session
+    def thorchain_sign_tx(
+        self,
+        address_n,
+        account_number,
+        chain_id,
+        fee,
+        gas,
+        msgs,
+        memo,
+        sequence,
+        exchange_types=None,
+        testnet=None
+    ):
+        resp = self.call(thorchain_proto.ThorchainSignTx(
+            address_n=address_n,
+            account_number=account_number,
+            chain_id=chain_id,
+            fee_amount=fee,
+            gas=gas,
+            memo=memo,
+            sequence=sequence,
+            msg_count=len(msgs),
+            testnet=testnet
+        ))
+
+        for (msg, exchange_type) in zip(msgs, exchange_types or [None] * len(msgs)):
+            if not isinstance(resp, thorchain_proto.ThorchainMsgRequest):
+                raise CallException(
+                    "Thorchain.ExpectedMsgRequest",
+                    "Message request expected but not received.",
+                )
+
+            if msg['type'] == "thorchain/MsgSend":
+                if len(msg['value']['amount']) != 1:
+                    raise CallException("Thorchain.MsgSend", "Multiple amounts per msg not supported")
+
+                denom = msg['value']['amount'][0]['denom']
+                if denom != 'rune':
+                    raise CallException("Thorchain.MsgSend", "Unsupported denomination: " + denom)
+
+                resp = self.call(thorchain_proto.ThorchainMsgAck(
+                    send=thorchain_proto.ThorchainMsgSend(
+                        from_address=msg['value']['from_address'],
+                        to_address=msg['value']['to_address'],
+                        amount=int(msg['value']['amount'][0]['amount']),
+                        address_type=types.EXCHANGE if exchange_type is not None else types.SPEND,
+                        exchange_type=exchange_type
+                    )
+                ))
+            else:
+                raise CallException(
+                    "Thorchain.UnknownMsg",
+                    "Thorchain message %s is not yet supported" % (msg['type'],)
+                )
+
+        if not isinstance(resp, thorchain_proto.ThorchainSignedTx):
+            raise CallException(
+                "Thorchain.UnexpectedEndOfOperations",
+                "Reached end of operations without a signature.",
+            )
+
+        return resp
+
+
+    @field('address')
     @expect(ripple_proto.RippleAddress)
     def ripple_get_address(self, address_n, show_display=False):
         return self.call(
             ripple_proto.RippleGetAddress(address_n=address_n, show_display=show_display)
         )
-
 
     @session
     @expect(ripple_proto.RippleSignedTx)
