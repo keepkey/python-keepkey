@@ -26,7 +26,7 @@ def make_send(from_address, to_address, amount):
 
 class TestMsgThorChainSignTx(common.KeepKeyTest):
     def test_thorchain_sign_tx(self):
-        self.requires_firmware("7.0.1")
+        self.requires_firmware("7.0.2")
         self.setup_mnemonic_nopin_nopassphrase()
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
