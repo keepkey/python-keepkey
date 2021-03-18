@@ -62,6 +62,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
                               script_type=proto_types.PAYTOOPRETURN,
                               )
 
+
         (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
         self.assertEqual(hexlify(serialized_tx), '010000000182488650ef25a58fef6788bd71b8212038d7f2bbe4750bc7bcb44701e85ef6d5000000006b483045022100c1cf12191f0a50398dae21553d14d5c796ff3e2e1c378bce3d0a7d43fa9bdf4402201245f76291db518dd8b496b4406128ca0e07165c64d2fe927161eee17402f9c40121023230848585885f63803a0a8aecdd6538792d5c539215c91698e315bf0253b43dffffffff0100000000000000003d6a3b535741503a4554482e4554483a3078343165353536303035343832346561366230373332653635366533616436346532306539346534353a34323000000000')
 
@@ -90,6 +91,29 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         self.assertEqual(sig_v, 38)
         self.assertEqual(hexlify(sig_r), '30c4d80ebf1c9e214370bae286a9cee9384788080bcfb773afb75cb2573ef433')
         self.assertEqual(hexlify(sig_s), '104f5b60cf6f8ab3a511fb98ddbbfdc9b8837a7b6d8d8627ca65510ca3733b08')
+
+    def test_thorchain_sign_tx(self):
+        self.requires_firmware("7.0.2")
+        self.setup_mnemonic_nopin_nopassphrase()
+        signature = self.client.thorchain_sign_tx(
+            address_n=parse_path(DEFAULT_BIP32_PATH),
+            account_number=92,
+            chain_id="thorchain",
+            fee=3000,
+            gas=200000,
+            msgs=[make_send(
+                "tthor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8",
+                "tthor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
+                10000
+            )],
+            memo="SWAP:ETH.ETH:0x41e5560054824ea6b0732e656e3ad64e20e94e45:420",
+            sequence=3,
+            testnet = True
+        )
+
+        self.assertEqual(hexlify(signature.signature), "04aa436dc0fd837a03e5bdfb8b49d574ce38e25c4b64350761965649503b9d38383172ba28e7999c8d39dbb568c27c17a5a74eda51d475a186854ef09bf49d19")
+        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+        return
 
     
 if __name__ == '__main__':
