@@ -65,7 +65,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
 
         (signatures, serialized_tx) = self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
         self.assertEqual(hexlify(serialized_tx), '010000000182488650ef25a58fef6788bd71b8212038d7f2bbe4750bc7bcb44701e85ef6d5000000006b483045022100c1cf12191f0a50398dae21553d14d5c796ff3e2e1c378bce3d0a7d43fa9bdf4402201245f76291db518dd8b496b4406128ca0e07165c64d2fe927161eee17402f9c40121023230848585885f63803a0a8aecdd6538792d5c539215c91698e315bf0253b43dffffffff0100000000000000003d6a3b535741503a4554482e4554483a3078343165353536303035343832346561366230373332653635366533616436346532306539346534353a34323000000000')
-
+  
     def test_sign_eth_btc_swap(self):
         self.requires_firmware("7.0.2")
         self.setup_mnemonic_nopin_nopassphrase()
@@ -95,6 +95,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
     def test_thorchain_sign_tx(self):
         self.requires_firmware("7.0.2")
         self.setup_mnemonic_nopin_nopassphrase()
+
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
             account_number=92,
@@ -106,15 +107,91 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
                 "tthor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
                 10000
             )],
-            memo="SWAP:ETH.ETH:0x41e5560054824ea6b0732e656e3ad64e20e94e45:420",
+            # full memo
+            memo="SWAP:ETH.USDT-0xdac17f958d2ee523a2206206994597c13d831ec7:0x41e5560054824ea6b0732e656e3ad64e20e94e45:420",
             sequence=3,
             testnet = True
         )
-
-        self.assertEqual(hexlify(signature.signature), "04aa436dc0fd837a03e5bdfb8b49d574ce38e25c4b64350761965649503b9d38383172ba28e7999c8d39dbb568c27c17a5a74eda51d475a186854ef09bf49d19")
+        self.assertEqual(hexlify(signature.signature), "a1b9082c6817d4c80b82a2d955f2be26a39b8a5e6909c5fcc52114a5c5e5476e68df191c2be5c88e35ef3090c3bafbd44083e32fbf4d26a809218aeec42ec8a9")
         self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+
+        signature = self.client.thorchain_sign_tx(
+            address_n=parse_path(DEFAULT_BIP32_PATH),
+            account_number=92,
+            chain_id="thorchain",
+            fee=3000,
+            gas=200000,
+            msgs=[make_send(
+                "tthor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8",
+                "tthor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
+                10000
+            )],
+            # no limit
+            memo="SWAP:ETH.USDT-0xdac17f958d2ee523a2206206994597c13d831ec7:0x41e5560054824ea6b0732e656e3ad64e20e94e45:",
+            sequence=3,
+            testnet = True
+        )
+        self.assertEqual(hexlify(signature.signature), "1f01d0b31acf0201f6c388f7b9d96b0fb40429e75b9f1192bacd54fe4d69573158fc6d392f9115c42a3e0c8178ebcdf9edb616a5897670504e7801a3b06d1ad1")
+        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+
+        signature = self.client.thorchain_sign_tx(
+            address_n=parse_path(DEFAULT_BIP32_PATH),
+            account_number=92,
+            chain_id="thorchain",
+            fee=3000,
+            gas=200000,
+            msgs=[make_send(
+                "tthor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8",
+                "tthor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
+                10000
+            )],
+            # swap to self
+            memo="SWAP:ETH.USDT-0xdac17f958d2ee523a2206206994597c13d831ec7::420",
+            sequence=3,
+            testnet = True
+        )
+        self.assertEqual(hexlify(signature.signature), "20f78a381454f04dc9bfa1f55a46b228527f4a41a2e892e43c43761d8ea31e22294b076c7e8a9512fe11c598bf8b6cc8e6cfb668e78d21802e377f5a15a8897e")
+        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+        
+        signature = self.client.thorchain_sign_tx(
+            address_n=parse_path(DEFAULT_BIP32_PATH),
+            account_number=92,
+            chain_id="thorchain",
+            fee=3000,
+            gas=200000,
+            msgs=[make_send(
+                "tthor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8",
+                "tthor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
+                10000
+            )],
+            # swap to self, no limit
+            memo="SWAP:BTC.BTC",
+            sequence=3,
+            testnet = True
+        )
+        self.assertEqual(hexlify(signature.signature), "6e6908262ae5f268e104a567f64b4be18297cc68577962925a1dcbcc2333f7ba5a5446f623a774359d68335804e88448bf432c95dc9777b26effecb339a790a9")
+        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+
+        signature = self.client.thorchain_sign_tx(
+            address_n=parse_path(DEFAULT_BIP32_PATH),
+            account_number=92,
+            chain_id="thorchain",
+            fee=3000,
+            gas=200000,
+            msgs=[make_send(
+                "tthor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8",
+                "tthor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
+                10000
+            )],
+            # just a memo
+            memo="KeepKey",
+            sequence=3,
+            testnet = True
+        )
+        self.assertEqual(hexlify(signature.signature), "e370f4d386ac9672f4b490895531d01e8726a3775d49e5218b972c37d7540c163165023d58397d5dc571b3f835ab80a8d03db15dd0e623e5a33d9a6960110bf7")
+        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+
         return
 
-    
 if __name__ == '__main__':
     unittest.main()
