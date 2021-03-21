@@ -172,25 +172,6 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         self.assertEqual(hexlify(signature.signature), "6e6908262ae5f268e104a567f64b4be18297cc68577962925a1dcbcc2333f7ba5a5446f623a774359d68335804e88448bf432c95dc9777b26effecb339a790a9")
         self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
 
-        signature = self.client.thorchain_sign_tx(
-            address_n=parse_path(DEFAULT_BIP32_PATH),
-            account_number=92,
-            chain_id="thorchain",
-            fee=3000,
-            gas=200000,
-            msgs=[make_send(
-                "tthor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8",
-                "tthor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
-                10000
-            )],
-            # just a memo
-            memo="KeepKey",
-            sequence=3,
-            testnet = True
-        )
-        self.assertEqual(hexlify(signature.signature), "e370f4d386ac9672f4b490895531d01e8726a3775d49e5218b972c37d7540c163165023d58397d5dc571b3f835ab80a8d03db15dd0e623e5a33d9a6960110bf7")
-        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
-
         return
 
 if __name__ == '__main__':
