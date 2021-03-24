@@ -84,6 +84,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             '0000000000000000000000000000000000000000000000000000000000000000' +
             '0000000000000000000000000000000000000000000000000000000000000080' +
             '000000000000000000000000000000000000000000000000000000000000003b' +
+            # SWAP:BTC.BTC:0x41e5560054824ea6b0732e656e3ad64e20e94e45:420
             '535741503a4254432e4254433a30783431653535363030353438323465613662' +
             '30373332653635366533616436346532306539346534353a3432300000000000')
 
@@ -126,12 +127,12 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
                 "tthor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
                 10000
             )],
-            # no limit
-            memo="SWAP:ETH.USDT-0xdac17f958d2ee523a2206206994597c13d831ec7:0x41e5560054824ea6b0732e656e3ad64e20e94e45:",
+            # no limit, 'S' for swap token
+            memo="S:ETH.USDT-0xdac17f958d2ee523a2206206994597c13d831ec7:0x41e5560054824ea6b0732e656e3ad64e20e94e45:",
             sequence=3,
             testnet = True
         )
-        self.assertEqual(hexlify(signature.signature), "1f01d0b31acf0201f6c388f7b9d96b0fb40429e75b9f1192bacd54fe4d69573158fc6d392f9115c42a3e0c8178ebcdf9edb616a5897670504e7801a3b06d1ad1")
+        self.assertEqual(hexlify(signature.signature), "b8895908812a34ed71155203dfdf14efa747cba70b31a3d95dfb72120159b89932857b2c1acc892850e79469c516e5e6db4b558d6718e8dd6357afb618608830")
         self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
 
         signature = self.client.thorchain_sign_tx(
@@ -145,12 +146,12 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
                 "tthor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
                 10000
             )],
-            # swap to self
-            memo="SWAP:ETH.USDT-0xdac17f958d2ee523a2206206994597c13d831ec7::420",
+            # swap to self, "=" for swap token
+            memo="=:ETH.USDT-0xdac17f958d2ee523a2206206994597c13d831ec7::420",
             sequence=3,
             testnet = True
         )
-        self.assertEqual(hexlify(signature.signature), "20f78a381454f04dc9bfa1f55a46b228527f4a41a2e892e43c43761d8ea31e22294b076c7e8a9512fe11c598bf8b6cc8e6cfb668e78d21802e377f5a15a8897e")
+        self.assertEqual(hexlify(signature.signature), "67ca2ad82a276645bea14fa9ae7d3f947fefe15906f93a605387d21db37c51f46f2961b62efcb7762d9008b1dbb723b2156294f35031cdd16e8e6931f68e4844")
         self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
         
         signature = self.client.thorchain_sign_tx(
