@@ -27,40 +27,9 @@ from keepkeylib.client import CallException
 from keepkeylib.tools import int_to_big_endian
 
 class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
-
-    def test_sign_0x_swap_ERC20_to_ERC20(self):
-        self.setup_mnemonic_nopin_nopassphrase()
-
-        # swap 1 USDC for FOX
-        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
-            n=[2147483692,2147483708,2147483648,0,0],
-            nonce=0x3,
-            gas_price=0x3b23946c00,
-            gas_limit=0x34c7f,
-            value=0x0,
-            to=binascii.unhexlify('def1c0ded9bec7f1a1670819833240f027b25eff'),
-            address_type=0,
-            chain_id=1,
-            # The data below is generally broken into 32-byte chunks except for the function selector (4 bytes_ and 
-            # keccak signatures (4 bytes)
-            data=binascii.unhexlify('d9627aa4' +                                        # SellToUniswap
-                '0000000000000000000000000000000000000000000000000000000000000080' +    # offset of dynamic params
-                '00000000000000000000000000000000000000000000000000000000000f4240' +    # sell amount
-                '000000000000000000000000000000000000000000000000160fcc023c539cf9' +    # min buy amount
-                '0000000000000000000000000000000000000000000000000000000000000000' +    # isSushi
-                '0000000000000000000000000000000000000000000000000000000000000003' +    # number of dynamic params
-                '000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' +    # USDC contract
-                '000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' +    # WETH (Wrapped ether) contract
-                '000000000000000000000000c770eefad204b5180df6a14ee197d99d808ee52d' +    # FOX contract
-                '869584cd' +
-                '000000000000000000000000c770eefad204b5180df6a14ee197d99d808ee52d' +    # Affiliate address? (FOX)
-                '00000000000000000000000000000000000000000000005173811ab76050e805')
-        )        
-        self.assertEqual(sig_v, 38)
-        self.assertEqual(binascii.hexlify(sig_r), 'fea073853877532315cad4cc17b04982dd5af62f8af79b8ed4fa568ed094760b')
-        self.assertEqual(binascii.hexlify(sig_s), '70f1150d5cabeb15d719d33e370fdbdea0a641ae11774fa2cff2aad29ef461cb')
-
+    
     def test_sign_0x_swap_ETH_to_ERC20(self):
+        self.requires_firmware("7.0.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # swap $2 of ETH to USDC
@@ -92,6 +61,7 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '51ef1578d4f4bece1ffe3759209088f02cb9d2b21e64d5c32c8b4ebce95417e0')
 
     def test_sign_0x_swap_ERC20_to_ETH(self):
+        self.requires_firmware("7.0.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # swap $2 to USDC to ETH
@@ -124,6 +94,7 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '1ec122b3e92daa3b5e5e17e9c775644448831f8af3228d80c2de0cec301715a5')
 
     def test_sign_longdata_swap(self):
+        self.requires_firmware("7.0.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
