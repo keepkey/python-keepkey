@@ -25,6 +25,7 @@ def make_send(from_address, to_address, amount):
     }
 
 class TestMsgThorChainSignTx(common.KeepKeyTest):
+
     def test_thorchain_sign_tx(self):
         self.requires_firmware("7.0.2")
         self.setup_mnemonic_nopin_nopassphrase()
@@ -138,6 +139,29 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         self.assertEqual(sig_v, 37)
         self.assertEqual(hexlify(sig_r), '638f9f42c099d0d47f7fc70d248249d2db24ecabc2fdee5bf2f5ad73b5bbfd30')
         self.assertEqual(hexlify(sig_s), '3dae036aabbe0ec55f7b9e4eef54e2b5335f62544d8c2ed041797a9397f185c7')
+
+    def test_thorchain_remove_liquidity(self):
+        self.requires_firmware("7.1.1")
+        self.setup_mnemonic_nopin_nopassphrase()
+        signature = self.client.thorchain_sign_tx(
+            address_n=parse_path(DEFAULT_BIP32_PATH),
+            account_number=92,
+            chain_id="thorchain",
+            fee=3000,
+            gas=200000,
+            msgs=[make_send(
+                "tthor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8",
+                "tthor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
+                10000
+            )],
+            memo="WITHDRAW:ETH.USDT-0xdac17f958d2ee523a2206206994597c13d831ec7:10000",
+            sequence=3,
+            testnet = True
+        )
+        self.assertEqual(hexlify(signature.signature), "13d8ab1a8514c6163064a3e097dd8c33d7063b5994f2ce1c71c691f6fdcf4f1e54860ca7c6d8a478e15b2b07274d9752d8df0af0cd48a6113adf9ecf881ff20e")
+        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+        return
+
 
     def test_thorchain_sign_tx(self):
         self.requires_firmware("7.0.2")
