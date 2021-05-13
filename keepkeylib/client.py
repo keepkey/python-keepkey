@@ -41,6 +41,7 @@ from . import messages_nano_pb2 as nano_proto
 from . import messages_cosmos_pb2 as cosmos_proto
 from . import messages_ripple_pb2 as ripple_proto
 from . import messages_thorchain_pb2 as thorchain_proto
+from . import messages_tendermint_pb2 as tendermint_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -349,7 +350,7 @@ class DebugLinkMixin(object):
 
         # Always press Yes and provide correct pin
         self.setup_debuglink(True, True)
-        self.auto_button = True
+        self.auto_button = False
 
         # Do not expect any specific response from device
         self.expected_responses = None
@@ -833,6 +834,100 @@ class ProtocolMixin(object):
             )
 
         return resp
+
+    @field('address')
+    @expect(tendermint_proto.TendermintAddress)
+    def tendermint_get_address(self, address_n, show_display=False, testnet=False, address_prefix="terra", chain_name="Terra"):
+        return self.call(
+            tendermint_proto.TendermintGetAddress(address_n=address_n, show_display=show_display,
+                                                  testnet=testnet, address_prefix=address_prefix, chain_name=chain_name)
+        )
+
+    @session
+    def tendermint_sign_tx(
+        self,
+        address_n,
+        account_number,
+        chain_id,
+        fee,
+        gas,
+        msgs,
+        memo,
+        sequence,
+        exchange_types=None,
+        testnet=None,
+        denom=None,
+        decimals=None,
+        chain_name=None,
+        message_type_prefix=None
+    ):
+        resp = self.call(tendermint_proto.TendermintSignTx(
+            address_n=address_n,
+            account_number=account_number,
+            chain_id=chain_id,
+            fee_amount=fee,
+            gas=gas,
+            memo=memo,
+            sequence=sequence,
+            msg_count=len(msgs),
+            testnet=testnet,
+            denom=denom,
+            decimals=decimals,
+            chain_name=chain_name,
+            message_type_prefix=message_type_prefix
+        ))
+
+        for (msg, exchange_type) in zip(msgs, exchange_types or [None] * len(msgs)):
+            if not isinstance(resp, tendermint_proto.TendermintMsgRequest):
+                raise CallException(
+                    chain_name+".ExpectedMsgRequest",
+                    "Message request expected but not received.",
+                )
+
+            if msg['type'] == message_type_prefix+"/MsgSend":
+                if len(msg['value']['amount']) != 1:
+                    raise CallException(message_type_prefix+".MsgSend", "Multiple amounts per msg not supported")
+
+                denommsg = msg['value']['amount'][0]['denom']
+                if denommsg != denom.split(",", 1)[1]:
+                     raise CallException(message_type_prefix+".MsgSend", "Unsupported denomination: " + denommsg)
+
+                resp = self.call(tendermint_proto.TendermintMsgAck(
+                    send=tendermint_proto.TendermintMsgSend(
+                        from_address=msg['value']['from_address'],
+                        to_address=msg['value']['to_address'],
+                        amount=int(msg['value']['amount'][0]['amount']),
+                        address_type=types.EXCHANGE if exchange_type is not None else types.SPEND,
+                        exchange_type=exchange_type
+                    ),
+                    denom = denom,
+                    chain_name = chain_name,
+                    message_type_prefix = message_type_prefix
+                ))
+            else:
+                raise CallException(
+                    chain_name+".UnknownMsg",
+                    chain_name+" message %s is not yet supported" % (msg['type'],)
+                )
+
+        if not isinstance(resp, tendermint_proto.TendermintSignedTx):
+            raise CallException(
+                chain_name+"UnexpectedEndOfOperations",
+                "Reached end of operations without a signature.",
+            )
+
+        return resp
+
+
+
+
+
+
+
+
+
+
+
 
     @field('address')
     @expect(thorchain_proto.ThorchainAddress)
