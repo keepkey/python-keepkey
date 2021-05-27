@@ -141,7 +141,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         self.assertEqual(hexlify(sig_s), '3dae036aabbe0ec55f7b9e4eef54e2b5335f62544d8c2ed041797a9397f185c7')
 
     def test_thorchain_remove_liquidity(self):
-        self.requires_firmware("7.1.1")
+        self.requires_firmware("7.1.3")
         self.setup_mnemonic_nopin_nopassphrase()
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
