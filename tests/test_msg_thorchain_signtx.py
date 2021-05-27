@@ -27,7 +27,7 @@ def make_send(from_address, to_address, amount):
 class TestMsgThorChainSignTx(common.KeepKeyTest):
 
     def test_thorchain_sign_tx(self):
-        self.requires_firmware("7.0.2")
+        self.requires_firmware("7.1.3")
         self.setup_mnemonic_nopin_nopassphrase()
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
@@ -49,7 +49,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         return
 
     def test_sign_btc_eth_swap(self):
-        self.requires_firmware("7.0.2")
+        self.requires_firmware("7.1.3")
         self.setup_mnemonic_nopin_nopassphrase()
 
         inp1 = proto_types.TxInputType(address_n=[0],  # 14LmW5k4ssUrtbAB4255zdqv3b4w1TuX9e
@@ -95,7 +95,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
 
 
     def test_sign_btc_add_liquidity(self):
-        self.requires_firmware("7.0.2")
+        self.requires_firmware("7.1.3")
         self.setup_mnemonic_nopin_nopassphrase()
 
         inp1 = proto_types.TxInputType(address_n=[0],  # 14LmW5k4ssUrtbAB4255zdqv3b4w1TuX9e
@@ -114,7 +114,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         self.assertEqual(hexlify(serialized_tx), '010000000182488650ef25a58fef6788bd71b8212038d7f2bbe4750bc7bcb44701e85ef6d5000000006b483045022100ed9206af5ba7fe82dda17cf20574197924a120be5b415f875f7d9880f4591e4202201081cb688cceadad65dc20e9843d910d895342ce9316f792b748b0e4a0f757870121023230848585885f63803a0a8aecdd6538792d5c539215c91698e315bf0253b43dffffffff0100000000000000005e6a4c5b4144443a4254432e4254433a74686f7270756231616464776e7065707132796e717435303066616733777978736a7576373537307178723872717470783933687733637071617178747778657379373675746774656d703a34323000000000')
   
     def test_sign_eth_add_liquidity(self):
-        self.requires_firmware("7.0.2")
+        self.requires_firmware("7.1.3")
         self.setup_mnemonic_nopin_nopassphrase()
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
                         n=[2147483692,2147483708,2147483648,0,0],
@@ -164,7 +164,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
 
 
     def test_thorchain_sign_tx(self):
-        self.requires_firmware("7.0.2")
+        self.requires_firmware("7.1.3")
         self.setup_mnemonic_nopin_nopassphrase()
 
         signature = self.client.thorchain_sign_tx(
