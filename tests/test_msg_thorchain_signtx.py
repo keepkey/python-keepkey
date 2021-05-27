@@ -150,16 +150,16 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             fee=3000,
             gas=200000,
             msgs=[make_send(
-                "tthor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8",
-                "tthor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
+                "thor1x00pfwyx8xld45sdlmyn29vjf7ev0mv3rcn9al",
+                "thor1zfjv26zx08s6skjwq20clxs076hptp45aktjm0",
                 10000
             )],
             memo="WITHDRAW:ETH.USDT-0xdac17f958d2ee523a2206206994597c13d831ec7:10000",
             sequence=3,
-            testnet = True
+            testnet = False
         )
-        self.assertEqual(hexlify(signature.signature), "13d8ab1a8514c6163064a3e097dd8c33d7063b5994f2ce1c71c691f6fdcf4f1e54860ca7c6d8a478e15b2b07274d9752d8df0af0cd48a6113adf9ecf881ff20e")
-        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+        self.assertEqual(b64encode(signature.signature), "vGgRuLYO9auhdphbqJVarVbVoKzuaP4eyjvzofoiegluiBQLq8gXY7eWUosA6+trvPYnHOUxzF00Rk+xXdwIMg==")
+        self.assertEqual(b64encode(signature.public_key), "AxUZcTuLQr3DZxEtMxMs8Uzt+SisV3HURLpFm5SXEXuj")
         return
 
 
@@ -183,8 +183,8 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             sequence=3,
             testnet = True
         )
-        self.assertEqual(hexlify(signature.signature), "a1b9082c6817d4c80b82a2d955f2be26a39b8a5e6909c5fcc52114a5c5e5476e68df191c2be5c88e35ef3090c3bafbd44083e32fbf4d26a809218aeec42ec8a9")
-        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+        self.assertEqual(b64encode(signature.signature), "DPVRuKqAx9OL5cBMB3pF799zPzGlNXdosRY+ecAmPN4LnoRUKpPOGtI2kKtM8Q/YvR6KKASmGw19UbM8IVEWJg==")
+        self.assertEqual(b64encode(signature.public_key), "AxUZcTuLQr3DZxEtMxMs8Uzt+SisV3HURLpFm5SXEXuj")
 
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
@@ -202,8 +202,8 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             sequence=3,
             testnet = True
         )
-        self.assertEqual(hexlify(signature.signature), "77f24a90428d104fcb0b2bd5ffe1f05e800c032e01a0f1de883616ba8e26c3781044bc8ce1497d24b1b0997061ed664d378c62e04bac54b4ffe5699177c7387f")
-        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+        self.assertEqual(b64encode(signature.signature), "dm/zzIlTOMd09tsuZA2zwBwK5MZrEsNbGnv27RikcZdzhsucot83vQlNopotDb6p+e48QVw3DxerB0rMixyN8g==")
+        self.assertEqual(b64encode(signature.public_key), "AxUZcTuLQr3DZxEtMxMs8Uzt+SisV3HURLpFm5SXEXuj")
 
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
@@ -221,8 +221,8 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             sequence=3,
             testnet = True
         )
-        self.assertEqual(hexlify(signature.signature), "67ca2ad82a276645bea14fa9ae7d3f947fefe15906f93a605387d21db37c51f46f2961b62efcb7762d9008b1dbb723b2156294f35031cdd16e8e6931f68e4844")
-        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+        self.assertEqual(b64encode(signature.signature), "WLGLhMzNksxcBy5UlfKNdIXiH/9V0lEF3wcVv59Jzg00knCJ0/ndMmY3McmgyTdFgX/MJ1ox9RFGXGozuYXqYA==")
+        self.assertEqual(b64encode(signature.public_key), "AxUZcTuLQr3DZxEtMxMs8Uzt+SisV3HURLpFm5SXEXuj")
         
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
@@ -240,8 +240,8 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             sequence=3,
             testnet = True
         )
-        self.assertEqual(hexlify(signature.signature), "6e6908262ae5f268e104a567f64b4be18297cc68577962925a1dcbcc2333f7ba5a5446f623a774359d68335804e88448bf432c95dc9777b26effecb339a790a9")
-        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+        self.assertEqual(b64encode(signature.signature), "41X+5ZrYWuWRfJA0kBMx1LwJ9BGCvKTvgeCGJtiiH8JStXyX1RQqlTVbuuIrVG3q5jHkXgzgfLXyCYoRsS4UJw==")
+        self.assertEqual(b64encode(signature.public_key), "AxUZcTuLQr3DZxEtMxMs8Uzt+SisV3HURLpFm5SXEXuj")
 
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
@@ -259,8 +259,8 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             sequence=3,
             testnet = True
         )
-        self.assertEqual(hexlify(signature.signature), "186e81a054517ce4f5134fa5ed6acc6398bd15d5c58361babadd9087fafd7a9122c7978ecc6710f76bebd46df72523f3409c33af387473f61ef167575f11a68b")
-        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+        self.assertEqual(b64encode(signature.signature), "mv8z8mOMuF70hbOwMVabwN3SJwErnRZ7P6grFn56b7UCf2OiZlv1eICLkSlcn9rl5uubHm45ytRPnHkjQwYF2g==")
+        self.assertEqual(b64encode(signature.public_key), "AxUZcTuLQr3DZxEtMxMs8Uzt+SisV3HURLpFm5SXEXuj")
 
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
@@ -279,8 +279,8 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             sequence=3,
             testnet = True
         )
-        self.assertEqual(hexlify(signature.signature), "a98354ed6ee626603cd4416d314d1b875c5ab6a6af83fe1be05a6ac56d620e8f2322d500bba6a7f6e0e2fae810016ebc00be5a580766f171cd5f4a5b2e67263f")
-        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+        self.assertEqual(b64encode(signature.signature), "2zEP/SgcL6yWHBtcb+q+xWJ15FOKIe2Kueaa5f1b9TIlXdxMceHaauDyMzoD7sxwW/6jQ9WvmnzWZGfAuMK1dw==")
+        self.assertEqual(b64encode(signature.public_key), "AxUZcTuLQr3DZxEtMxMs8Uzt+SisV3HURLpFm5SXEXuj")
 
         signature = self.client.thorchain_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
@@ -298,8 +298,8 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             sequence=3,
             testnet = True
         )
-        self.assertEqual(hexlify(signature.signature), "0409d104aaafe400e86b6172811bf1b44b6cc0065c13df10083a86d02b13b8ce7d40a4935bc022c76dae4793223c0c7d8446c83acdbd8d0188d35d2b7b8e22fc")
-        self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
+        self.assertEqual(b64encode(signature.signature), "f0p5jp/8UinilCOD6YDw58oFi1AQJEOIeY0MmD903igeIP3OW2/6ktg03rPXkJfXmIzia5jOinaR8sytthXHpQ==")
+        self.assertEqual(b64encode(signature.public_key), "AxUZcTuLQr3DZxEtMxMs8Uzt+SisV3HURLpFm5SXEXuj")
 
         return
 

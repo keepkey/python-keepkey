@@ -40,6 +40,7 @@ from . import messages_eos_pb2 as eos_proto
 from . import messages_nano_pb2 as nano_proto
 from . import messages_cosmos_pb2 as cosmos_proto
 from . import messages_ripple_pb2 as ripple_proto
+from . import messages_tendermint_pb2 as tendermint_proto
 from . import messages_thorchain_pb2 as thorchain_proto
 from . import types_pb2 as types
 from . import eos
@@ -876,7 +877,7 @@ class ProtocolMixin(object):
 
             if msg['type'] == "thorchain/MsgSend":
                 if len(msg['value']['amount']) != 1:
-                    raise CallException("Thorchain.MsgSend", "Multiple amounts per msg not supported")
+                    raise CallException("Thorchain.MsgSend", "Multiple amounts per send msg not supported")
 
                 denom = msg['value']['amount'][0]['denom']
                 if denom != 'rune':
@@ -891,6 +892,24 @@ class ProtocolMixin(object):
                         exchange_type=exchange_type
                     )
                 ))
+
+            elif msg['type'] == "thorchain/MsgDeposit":
+                if len(msg['value']['coins']) != 1:
+                    raise CallException("Thorchain.MsgDeposit", "Multiple coins per deposit msg not supported")
+
+                asset = msg['value']['coins'][0]['asset']
+                if asset != 'THOR.RUNE':
+                    raise CallException("Thorchain.MsgDeposit", "Unsupported asset: " + asset)
+
+                resp = self.call(thorchain_proto.ThorchainMsgAck(
+                    deposit=thorchain_proto.ThorchainMsgDeposit(
+                        asset=asset,
+                        amount=int(msg['value']['coins'][0]['amount']),
+                        memo=msg['value']['memo'],
+                        signer=msg['value']['signer']
+                    )
+                ))
+
             else:
                 raise CallException(
                     "Thorchain.UnknownMsg",
