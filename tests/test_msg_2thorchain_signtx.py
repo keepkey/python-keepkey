@@ -45,7 +45,7 @@ class TestMsg2ThorChainSignTx(common.KeepKeyTest):
             sequence=4,
             testnet = False
         )
-        self.assertEqual(b64encode(signature.signature), "/1Gv4PzMoe7bHjpp/WKMDOb7AMFJKRMwa3VRb88Osgd32WOvRbxlqd/1HTW/89FE/IFEzAa92aElxJNwKp9caA==")
+        self.assertEqual(b64encode(signature.signature), "ZRRXwAGESNaon0pYE1GZjU1qGsCXZkpKZJpdkAicNyN7J7ywDoGjsVD/lNhrKyrmCj51wmH3unOW7NFi+jcJXw==")
         self.assertEqual(b64encode(signature.public_key), "AxUZcTuLQr3DZxEtMxMs8Uzt+SisV3HURLpFm5SXEXuj")
         return
 
