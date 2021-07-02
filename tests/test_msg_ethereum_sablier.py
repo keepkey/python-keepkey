@@ -29,7 +29,7 @@ from keepkeylib.tools import int_to_big_endian
 
 class TestMsgEthereumSablier(common.KeepKeyTest):
     
-    def test_sign_salarywithdrawl(self):
+    def test_sign_salarywithdrawal(self):
         self.requires_firmware("7.1.5")
         self.setup_mnemonic_nopin_nopassphrase()
 
