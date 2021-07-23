@@ -331,21 +331,21 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[0x80000000 | 44, 0x80000000 | 1, 0x80000000, 0, 0],
             nonce=5,
-            gas_price=0,
+            gas_price=100000,
             gas_limit=21004,
             to=binascii.unhexlify("8ea7a3fccc211ed48b763b4164884ddbcf3b0a98"),
             value=0,
             data=b"\0",
             chain_id=3,
         )
-        self.assertEqual(sig_v, 42)
+        self.assertEqual(sig_v, 41)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "f7505f709d5999343aea3c384034c62d0514336ff6c6af65582006f708f81503",
+            "f402df670b79efba59fd8314ded5e0130263bdee0fe35da6ced4e03c85faf63d",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "44e09e29a4b6247000b46ddc94fe391e94deb2b39ad6ac6398e6db5bec095ba9",
+            "0fb9e6bc9243daf5017fc26f8ee2747f0ffd76fb277d451d2dfd5ccfa1e8b438",
         )
 
     def test_ethereum_signtx_no_data_eip_1559(self):
