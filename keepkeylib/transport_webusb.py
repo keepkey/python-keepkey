@@ -115,9 +115,22 @@ class WebUsbTransport(Transport):
             self.handle.interruptWrite(self.endpoint, [63, ] + list(msg[:63]) + [0] * (63 - len(msg[:63])))
             msg = msg[63:]
 
+    def bridgeWrite(self, msg):
+
+        while len(msg):
+            self.handle.interruptWrite(self.endpoint, list(msg[:64]) + [0] * (64 - len(msg[:64])))
+            msg = msg[64:]
+
+
     def _read(self):
+        print("legacy read")
         (msg_type, datalen) = self._read_headers(FakeRead(self._raw_read))
         return (msg_type, self._raw_read(datalen))
+
+    def _bridgeRead(self):
+        print("bridge read")
+        #(msg_type, datalen) = self._read_headers(FakeRead(self._raw_bridgeRead))
+        return (self._raw_bridgeRead())
 
     def _raw_read(self, length):
         start = time.time()
@@ -125,6 +138,8 @@ class WebUsbTransport(Transport):
         while len(self.buffer) < length:
             while True:
                 data = self.handle.interruptRead(endpoint, 64)
+                print("raw read")
+                print(data)
                 if data:
                     break
                 else:
@@ -138,4 +153,23 @@ class WebUsbTransport(Transport):
         ret = self.buffer[:length]
         self.buffer = self.buffer[length:]
         return bytes(ret)
+
+    def _raw_bridgeRead(self):
+        start = time.time()
+        endpoint = 0x80 | self.endpoint
+        while True:
+            data = self.handle.interruptRead(endpoint, 64)
+            print("raw read bridge")
+            print(data)
+            if data:
+                break
+            else:
+                time.sleep(0.001)
+
+        if len(data) != 64:
+            raise TransportException("Unexpected chunk size: %d" % len(chunk))
+
+        print("raw data")
+        print(data)
+        return data
 

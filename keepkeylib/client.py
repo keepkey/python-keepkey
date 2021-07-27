@@ -191,8 +191,21 @@ class BaseClient(object):
         return self.transport.read_blocking()
 
     @session
+    def call_bridge(self, msg):
+        print("before bridgewrite")
+        self.transport.bridgeWrite(msg)
+        print("after bridgewrite\n")
+        #return self.transport.bridge_read_blocking()
+        return
+
+    @session
+    def call_bridge_read(self):
+        return self.transport.bridge_read_blocking()
+
+    @session
     def call(self, msg):
         resp = self.call_raw(msg)
+        print(resp)
         handler_name = "callback_%s" % resp.__class__.__name__
         handler = getattr(self, handler_name, None)
 
@@ -350,7 +363,7 @@ class DebugLinkMixin(object):
 
         # Always press Yes and provide correct pin
         self.setup_debuglink(True, True)
-        self.auto_button = True
+        self.auto_button = False
 
         # Do not expect any specific response from device
         self.expected_responses = None
