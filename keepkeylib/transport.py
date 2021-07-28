@@ -78,8 +78,6 @@ class Transport(object):
         """
         Write mesage to tansport.  msg should be a member of a valid `protobuf class <https://developers.google.com/protocol-buffers/docs/pythontutorial>`_ with a SerializeToString() method.
         """
-        print("bridgewrite")
-        print(msg)
         self._bridgeWrite(msg)
 
     def read(self):
@@ -109,9 +107,8 @@ class Transport(object):
 
     def bridge_read_blocking(self):
         """
-        Same as read, except blocks untill data is available to be read.
+        blocks untill data is available to be read.
         """
-        print("bridge read blocking")
         while True:
             data = self._bridgeRead()
             if data != None:
