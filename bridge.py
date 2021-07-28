@@ -10,7 +10,7 @@ app = Flask(__name__)
 import json
 import binascii
 
-from keepkeylib.client import KeepKeyClient, KeepKeyDebuglinkClient
+from keepkeylib.client import KeepKeyClient
 from keepkeylib.transport_webusb import WebUsbTransport
 from keepkeylib import messages_pb2 as messages
 
