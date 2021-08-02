@@ -23,6 +23,7 @@ from __future__ import print_function
 import unittest
 import config
 import time
+import semver
 
 from keepkeylib.client import KeepKeyClient, KeepKeyDebuglinkClient, KeepKeyDebuglinkClientVerbose
 from keepkeylib import tx_api
@@ -49,6 +50,7 @@ class KeepKeyTest(unittest.TestCase):
         self.mnemonic12 = 'alcohol woman abuse must during monitor noble actual mixed trade anger aisle'
         self.mnemonic18 = 'owner little vague addict embark decide pink prosper true fork panda embody mixture exchange choose canoe electric jewel'
         self.mnemonic24 = 'dignity pass list indicate nasty swamp pool script soccer toe leaf photo multiply desk host tomato cradle drill spread actor shine dismiss champion exotic'
+        self.mnemonic20007 = 'fix spot clown mobile oven eagle pond arrest opera buyer muffin myself'
         self.mnemonic_all = ' '.join(['all'] * 12)
         self.mnemonic_abandon = ' '.join(['abandon'] * 11) + ' about'
 
@@ -71,6 +73,9 @@ class KeepKeyTest(unittest.TestCase):
     def setup_mnemonic_nopin_nopassphrase(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic12, pin='', passphrase_protection=False, label='test', language='english')
 
+    def setup_mnemonic_vuln20007(self):
+        self.client.load_device_by_mnemonic(mnemonic=self.mnemonic20007, pin='', passphrase_protection=False, label='test', language='english')
+
     def setup_mnemonic_pin_nopassphrase(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic12, pin=self.pin4, passphrase_protection=False, label='test', language='english')
 
@@ -80,48 +85,19 @@ class KeepKeyTest(unittest.TestCase):
     def tearDown(self):
         self.client.close()
 
+    def assertEqual(self, lhs, rhs):
+        if type(lhs) == type(b'') and type(rhs) == type(''):
+            super(KeepKeyTest, self).assertEqual(lhs, rhs.encode('utf-8'))
+        else:
+            super(KeepKeyTest, self).assertEqual(lhs, rhs)
+
     def assertEndsWith(self, s, suffix):
         self.assertTrue(s.endswith(suffix), "'{}'.endswith('{}')".format(s, suffix))
 
-class KeepKeyBootloaderTest(unittest.TestCase):
-    def setUp(self):
-        self.debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS, **config.DEBUG_TRANSPORT_KWARGS)
-        self.transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
-        if VERBOSE:
-            self.client = KeepKeyDebuglinkClientVerbose(self.transport)
-        else:
-            self.client = KeepKeyDebuglinkClient(self.transport)
-        self.client.set_debuglink(self.debug_transport)
+    def requires_firmware(self, ver_required):
+        self.client.init_device()
+        features = self.client.features
+        version = "%s.%s.%s" % (features.major_version, features.minor_version, features.patch_version)
+        if semver.compare(version, ver_required) < 0:
+            self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
 
-        if not self.client.features.bootloader_mode:
-            self.skipTest("Unsupported when not in bootloader mode")
-
-        if VERBOSE:
-            print("Setup finished")
-            print("--------------")
-
-    def reconnect(self):
-        self.client.close()
-        time.sleep(10)
-        config.enumerate_hid()
-
-        self.debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS, **config.DEBUG_TRANSPORT_KWARGS)
-        self.transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
-        if VERBOSE:
-            self.client = KeepKeyDebuglinkClientVerbose(self.transport)
-        else:
-            self.client = KeepKeyDebuglinkClient(self.transport)
-
-        self.client.set_debuglink(self.debug_transport)
-
-        if not self.client.features.bootloader_mode:
-            self.skipTest("Unsupported when not in bootloader mode")
-
-        if VERBOSE:
-            print("Reconnected")
-            print("--------------")
-
-    def tearDown(self):
-        self.client.close()
-        time.sleep(10)
-        config.enumerate_hid()

@@ -148,7 +148,6 @@ class TestMsgSigntx(common.KeepKeyTest):
 
         self.assertEqual(binascii.hexlify(serialized_tx), b'0100000001caae725e6b8d60a72523836a692aaf1febc484757026873664175dbba533d143000000006b483045022100e3118845371537bcdcbe9071327769aea86704b0574adcd808673d53bdd1a18f022070903ffa067b3ae02613f4652d2a8101a946c2c87157ff08272ae50e25d91cbe0121030e669acac1f280d1ddf441cd2ba5e97417bf2689e4bbec86df4f831bf9f7ffd0ffffffff0141963177000000001976a9145b157a678a10021243307e4bb58f36375aa80e1088ac00000000')
 
-    @unittest.expectedFailure # ZCash not yet supported
     def test_shieldedIn_one_one_fee_2(self):
         self.setup_mnemonic_allallall()
 
@@ -176,6 +175,7 @@ class TestMsgSigntx(common.KeepKeyTest):
                 proto.TxRequest(request_type=proto_types.TXEXTRADATA, details=proto_types.TxRequestDetailsType(tx_hash=binascii.unhexlify(b"c6eddfbedd5821baea352b79fbd0d793a55257111c46a79002844b86a1c872e1"),extra_data_offset=1024, extra_data_len=875)),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
+                proto.ButtonRequest(code=proto_types.ButtonRequest_FeeOverThreshold),
                 proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
                 proto.TxRequest(request_type=proto_types.TXINPUT, details=proto_types.TxRequestDetailsType(request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXOUTPUT, details=proto_types.TxRequestDetailsType(request_index=0)),

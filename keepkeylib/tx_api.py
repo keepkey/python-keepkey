@@ -21,9 +21,23 @@ import binascii
 from decimal import Decimal
 import requests
 import json
+import struct
+
 from . import types_pb2 as proto_types
 
 cache_dir = None
+
+
+def pack_varint(n):
+    if n < 253:
+        return struct.pack("<B", n)
+    elif n <= 0xFFFF:
+        return struct.pack("<BH", 253, n)
+    elif n <= 0xFFFFFFFF:
+        return struct.pack("<BL", 254, n)
+    else:
+        return struct.pack("<BQ", 255, n)
+
 
 class TxApi(object):
 
@@ -36,8 +50,9 @@ class TxApi(object):
         if cache_dir:
             cache_file = '%s/%s_%s_%s.json' % (cache_dir, self.network, resource, resourceid)
             try: # looking into cache first
-                j = json.load(open(cache_file))
-                return j
+                with open(cache_file) as f:
+                    j = json.load(f)
+                    return j
             except:
                 pass
         try:
@@ -103,6 +118,26 @@ class TxApiInsight(TxApi):
                     raw = binascii.unhexlify(raw['rawtx'])
                     t.extra_data = raw[-extra_data_len:]
 
+        if "_dash" in self.network:
+            dip2_type = data.get("type", 0)
+
+            if t.version == 3 and dip2_type != 0:
+                # It's a DIP2 special TX with payload
+
+                if "extraPayloadSize" not in data or "extraPayload" not in data:
+                    raise ValueError("Payload data missing in DIP2 transaction")
+
+                if data["extraPayloadSize"] * 2 != len(data["extraPayload"]):
+                    raise ValueError("length mismatch")
+                t.extra_data = pack_varint(data["extraPayloadSize"]) + binascii.unhexlify(
+                    data["extraPayload"]
+                )
+
+            # Trezor (and therefore KeepKey) firmware doesn't understand the
+            # split of version and type, so let's mimic the old serialization
+            # format
+            t.version |= dip2_type << 16
+
         return t
 
     def get_raw_tx(self, txhash):
@@ -116,3 +151,4 @@ TxApiZcashTestnet = TxApiInsight(network='insight_zcashtestnet', url='https://ex
 TxApiBitcoinGold = TxApiInsight(network='insight_bitcoingold', url='https://btg.coinquery.com/api')
 TxApiGroestlcoin = TxApiInsight(network='insight_groestlcoin', url='https://groestlsight.groestlcoin.org/api')
 TxApiGroestlcoinTestnet = TxApiInsight(network='insight_groestlcoin_testnet', url='https://groestlsight-test.groestlcoin.org/api')
+TxApiDash = TxApiInsight(network='insight_dash', url='https://dash.coinquery.com/api')

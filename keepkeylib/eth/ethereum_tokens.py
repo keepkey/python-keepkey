@@ -1,11 +1,15 @@
-#!/bin/env python
+#!/bin/env python3
 
 from __future__ import print_function
-from io import StringIO
 import json
-import md5
+import hashlib
 import os.path
 import sys
+
+if sys.version_info[0] < 3:
+    from io import BytesIO as StringIO
+else:
+    from io import StringIO
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -15,15 +19,21 @@ class ETHTokenTable(object):
 
     def add_tokens(self, network):
         net_name = network['symbol'].lower()
-        filename = HERE + '/ethereum-lists/dist/tokens/%s/tokens-%s.json' % (net_name, net_name)
 
-        if not os.path.isfile(filename):
+        dirname = HERE + '/ethereum-lists/src/tokens/%s' % (net_name, )
+
+        if not os.path.exists(dirname):
             return
 
-        with open(filename, 'r') as f:
-            tokens = json.load(f)
+        for filename in os.listdir(dirname):
+            fullpath = os.path.join(dirname, filename)
 
-            for token in tokens:
+            if not os.path.isfile(fullpath):
+                return
+
+            with open(fullpath, 'r') as f:
+                token = json.load(f)
+
                 self.tokens.append(ETHToken(token, network))
 
     def build(self):
@@ -34,9 +44,11 @@ class ETHTokenTable(object):
                 self.add_tokens(network)
 
     def serialize_c(self, outf):
-        for token in self.tokens:
+        for token in sorted(self.tokens, key=lambda t: t.token['address']):
             token.serialize_c(outf)
 
+def is_ascii(s):
+    return all(ord(c) < 128 for c in s)
 
 class ETHToken(object):
     def __init__(self, token, network):
@@ -44,13 +56,17 @@ class ETHToken(object):
         self.token = token
 
     def serialize_c(self, outf):
+        # Device doesn't support printing non-ascii characters
+        if not is_ascii(self.token['symbol']):
+            return
+
         chain_id = self.network['chain_id']
-        address = self.token['address'][2:]
+        address = str(self.token['address'][2:])
         address = '\\x' + '\\x'.join([address[i:i+2] for i in range(0, len(address), 2)])
-        symbol = self.token['symbol']
+        symbol = str(self.token['symbol'])
         decimals = self.token['decimals']
-        net_name = self.network['symbol'].lower()
-        tok_name = self.token['name']
+        net_name = self.network['symbol'].lower().encode('utf-8')
+        tok_name = self.token['name'].encode('utf-8')
 
         line = 'X(%d, "%s", " %s", %d) // %s / %s' % (chain_id, address, symbol, decimals, net_name, tok_name)
         print(line, file=outf)
@@ -67,12 +83,12 @@ def main():
     table = ETHTokenTable()
     table.build()
     table.serialize_c(outf)
-    print(unicode('#undef X'), file=outf)
+    print('#undef X', file=outf)
 
     if os.path.isfile(out_filename):
         with open(out_filename, 'r') as inf:
-            in_digest = md5.new(inf.read()).digest()
-            out_digest = md5.new(outf.getvalue().encode('utf-8')).digest()
+            in_digest = hashlib.sha256(inf.read().encode('utf-8')).hexdigest()
+            out_digest = hashlib.sha256(outf.getvalue().encode('utf-8')).hexdigest()
             if in_digest == out_digest:
                 print(out_filename + ": Already up to date")
                 return
@@ -80,7 +96,7 @@ def main():
     print(out_filename + ": Updating")
 
     with open(out_filename, 'w') as f:
-        print(outf.getvalue().encode('utf-8'), file=f, end='')
+        print(outf.getvalue(), file=f, end='')
 
 if __name__ == "__main__":
     main()

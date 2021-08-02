@@ -97,7 +97,6 @@ def get_transport(transport_string, path, **kwargs):
 
     # if no transport is specified try both hid and webusb
     if transport_string is None:
-        print("No transport specified, attempting to detect device...")
         transport = None
         try:
             transport = get_hid_transport(path, **kwargs)
@@ -105,7 +104,6 @@ def get_transport(transport_string, path, **kwargs):
             pass
 
         if transport is not None:
-            print("Device detected over HID")
             return transport
 
         try:
@@ -114,12 +112,9 @@ def get_transport(transport_string, path, **kwargs):
             pass
 
         if transport is not None:
-            print("Device detected over webUSB")
             return transport
 
         raise Exception("Device not found")
-
-
 
     if transport_string == 'usb':
         return get_hid_transport(path, **kwargs)
@@ -280,7 +275,7 @@ class Commands(object):
     def nano_get_address(self, args):
         address_n = self.client.expand_path(args.n)
         res = self.client.nano_get_address(args.coin, address_n, args.show_display)
-        return "Address: %s" % (res.address,)
+        return res.address
 
     def nano_sign_tx(self, args):
         def decode_hex(value):
@@ -308,6 +303,79 @@ class Commands(object):
             res.block_hash.encode('hex'),
             res.signature.encode('hex'),
         )
+
+    def cosmos_get_address(self, args):
+        address_n = self.client.expand_path(args.n)
+        address = self.client.cosmos_get_address(address_n, args.show_display)
+        return address
+
+    def cosmos_sign_tx(self, args):
+        address_n = self.client.expand_path(args.n)
+        chain_id = args.chain_id
+        account_number = args.account_number
+        sequence = args.sequence
+        with open(args.file, 'r') as f:
+            unsigned = json.load(f)
+
+        from keepkeylib.cosmos import cosmos_parse_tx, cosmos_append_sig
+
+        parsed = cosmos_parse_tx(unsigned)
+
+        res = self.client.cosmos_sign_tx(
+            address_n=address_n,
+            account_number=account_number,
+            chain_id=chain_id,
+            fee=int(parsed['fee']),
+            gas=int(parsed['gas']),
+            msgs=parsed['msgs'],
+            memo=parsed['memo'],
+            sequence=sequence
+        )
+
+        unsigned['value']['chain_id'] = chain_id
+        unsigned['value']['account_number'] = account_number
+        unsigned['value']['sequence'] = sequence
+
+        signed = cosmos_append_sig(unsigned, res.public_key, res.signature)
+
+        return signed
+
+    def thorchain_get_address(self, args):
+        address_n = self.client.expand_path(args.n)
+        address = self.client.thorchain_get_address(address_n, args.show_display, args.testnet)
+        return address
+
+    def thorchain_sign_tx(self, args):
+        address_n = self.client.expand_path(args.n)
+        chain_id = args.chain_id
+        account_number = args.account_number
+        sequence = args.sequence
+        with open(args.file, 'r') as f:
+            unsigned = json.load(f)
+
+        from keepkeylib.thorchain import thorchain_parse_tx, thorchain_append_sig
+
+        parsed = thorchain_parse_tx(unsigned)
+
+        res = self.client.thorchain_sign_tx(
+            address_n=address_n,
+            account_number=account_number,
+            chain_id=chain_id,
+            fee=int(parsed['fee']),
+            gas=int(parsed['gas']),
+            msgs=parsed['msgs'],
+            memo=parsed['memo'],
+            sequence=sequence,
+            testnet=args.testnet
+        )
+
+        unsigned['tx']['chain_id'] = chain_id
+        unsigned['tx']['account_number'] = account_number
+        unsigned['tx']['sequence'] = sequence
+
+        signed = thorchain_append_sig(unsigned, res.public_key, res.signature)
+
+        return signed
 
     def get_entropy(self, args):
         return binascii.hexlify(self.client.get_entropy(args.size))
@@ -341,8 +409,11 @@ class Commands(object):
         return self.client.wipe_device()
 
     def recovery_device(self, args):
-        return self.client.recovery_device(args.use_trezor_method, args.words, args.passphrase_protection,
+        return self.client.recovery_device(False, args.words, args.passphrase_protection,
                                     args.pin_protection, args.label, 'english')
+
+    def test_recovery_sentence(self, args):
+        return self.client.test_recovery_seed(args.words, 'english')
 
     def load_device(self, args):
         if not args.mnemonic and not args.xprv:
@@ -439,6 +510,10 @@ Address: %s
     eos_sign_tx.help = 'Sign EOS transaction'
     nano_get_address.help = 'Get Nano address'
     nano_sign_tx.help = 'Sign Nano transaction'
+    cosmos_get_address.help = 'Get Cosmos address'
+    cosmos_sign_tx.help = 'Sign Cosmos transaction'
+    thorchain_get_address.help = 'Get THORchain address'
+    thorchain_sign_tx.help = 'Sign THORChain transaction'
     get_entropy.help = 'Get example entropy'
     get_features.help = 'Retrieve device features and settings'
     get_public_node.help = 'Get public node of given path'
@@ -449,6 +524,7 @@ Address: %s
     list_coins.help = 'List all supported coin types by the device'
     wipe_device.help = 'Reset device to factory defaults and remove all private data.'
     recovery_device.help = 'Start safe recovery workflow'
+    test_recovery_sentence.help = 'Start dry-run recovery workflow (for safe mnemonic validation)'
     load_device.help = 'Load custom configuration to the device'
     reset_device.help = 'Perform device setup and generate new seed'
     sign_message.help = 'Sign message using address of given path'
@@ -511,6 +587,34 @@ Address: %s
         (('--balance',), {'type': int, 'help': "New account balance in raws"}),
     )
 
+    cosmos_get_address.arguments = (
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/118'/0'/0/0"}),
+        (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
+    )
+
+    cosmos_sign_tx.arguments = (
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/118'/0'/0/0"}),
+        (('--chain-id',), {'type': str, 'help': "Chain ID of tendermint node", 'dest': 'chain_id', 'default': 'cosmoshub-2'}),
+        (('--account-number',), {'type': int, 'help': 'Cosmos account number', 'dest': 'account_number', 'required': True}),
+        (('--sequence', ), {'type': int, 'help': 'Cosmost account sequence', 'dest': 'sequence', 'required': True}),
+        (('-f', '--file'), {'type': str, 'required': True}),
+    )
+
+    thorchain_get_address.arguments = (
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/931'/0'/0/0"}),
+        (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
+        (('-t', '--testnet'), {'action': 'store_true', 'default': False}),
+    )
+
+    thorchain_sign_tx.arguments = (
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/931'/0'/0/0"}),
+        (('--chain-id',), {'type': str, 'help': "Chain ID of tendermint node", 'dest': 'chain_id', 'default': 'thorchain'}),
+        (('--account-number',), {'type': int, 'help': 'THORchain account number', 'dest': 'account_number', 'required': True}),
+        (('--sequence', ), {'type': int, 'help': 'THORchain account sequence', 'dest': 'sequence', 'required': True}),
+        (('-f', '--file'), {'type': str, 'required': True}),
+        (('-t', '--testnet'), {'action': 'store_true', 'default': False}),
+    )
+
     get_entropy.arguments = (
         (('size',), {'type': int}),
     )
@@ -547,7 +651,10 @@ Address: %s
         (('-p', '--pin-protection'), {'action': 'store_true', 'default': False}),
         (('-r', '--passphrase-protection'), {'action': 'store_true', 'default': False}),
         (('-l', '--label'), {'type': str, 'default': ''}),
-        (('-t', '--use-trezor-method'), {'action': 'store_true', 'default': False}),
+    )
+
+    test_recovery_sentence.arguments = (
+        (('-w', '--words'), {'type': int, 'choices': [12, 18, 24], 'default': 12}),
     )
 
     load_device.arguments = (
@@ -625,7 +732,8 @@ def main():
     if args.debuglink_transport and args.debuglink_path:
         debuglink_transport = get_transport(
             args.debuglink_transport,
-            args.debuglink_path)
+            args.debuglink_path,
+            debug_link = True)
         if args.verbose:
             client = KeepKeyDebuglinkClientVerbose(transport)
             client.verbose = True

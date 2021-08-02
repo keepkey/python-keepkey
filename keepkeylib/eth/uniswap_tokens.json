@@ -1,0 +1,4546 @@
+[
+  {
+    "symbol": "1INCH",
+    "identifier": "1inch",
+    "displayName": "1inch",
+    "contractAddress": "0x111111111117dC0aa78b770fA6A738034120C302",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RUNE",
+    "identifier": "thorchain-erc20",
+    "displayName": "THORChain (ERC20)",
+    "contractAddress": "0x3155BA85D5F96b2d030a4966AF206230e46849cb",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GIM",
+    "identifier": "gimli",
+    "displayName": "Gimli",
+    "contractAddress": "0xaE4f56F072c34C0a65B3ae3E4DB797D831439D93",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ZRX",
+    "identifier": "0x",
+    "displayName": "0x",
+    "contractAddress": "0xe41d2489571d322189246dafa5ebde1f4699f498",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DSD",
+    "identifier": "defi-nation-signals-dao",
+    "displayName": "DeFi Nation Signals DAO",
+    "contractAddress": "0x1e3a2446C729D34373B87FD2C9CBb39A93198658",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "COVAL",
+    "identifier": "circuits-of-value",
+    "displayName": "Circuits of Value",
+    "contractAddress": "0x3D658390460295FB963f54dC0899cfb1c30776Df",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TIME",
+    "identifier": "chrono-tech",
+    "displayName": "chrono tech",
+    "contractAddress": "0x485d17A6f1B8780392d53D64751824253011A260",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "USDC",
+    "identifier": "usd-coin",
+    "displayName": "USD Coin",
+    "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PAX",
+    "identifier": "paxos-standard-token",
+    "displayName": "Paxos Standard Token",
+    "contractAddress": "0x8e870d67f660d95d5be530380d0ec0bd388289e1",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LINK",
+    "identifier": "chainlink",
+    "displayName": "Chainlink",
+    "contractAddress": "0x514910771af9ca656af840dff83e8264ecf986ca",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MEESH",
+    "identifier": "meesh-coin",
+    "displayName": "MEESH Coin",
+    "contractAddress": "0xadd4a0dd63e08f5874762e647ad8cd4dc26c9724",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HTB",
+    "identifier": "hotbit-token",
+    "displayName": "Hotbit Token",
+    "contractAddress": "0x6be61833FC4381990e82D7D4a9F4c9B3F67eA941",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BOXX",
+    "identifier": "blockparty",
+    "displayName": "Blockparty",
+    "contractAddress": "0x780116D91E5592E58a3b3c76A351571b39abCEc6",
+    "precision": 15,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DFS",
+    "identifier": "fantasy-sports",
+    "displayName": "Fantasy Sports",
+    "contractAddress": "0xcec38306558a31cdbb2a9d6285947C5b44A24f3e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LTO",
+    "identifier": "lto-network",
+    "displayName": "LTO Network",
+    "contractAddress": "0x3DB6Ba6ab6F95efed1a6E794caD492fAAabF294D",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ANKR",
+    "identifier": "ankr",
+    "displayName": "Ankr",
+    "contractAddress": "0x8290333ceF9e6D528dD5618Fb97a76f268f3EDD4",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CELR",
+    "identifier": "celer-network",
+    "displayName": "Celer Network",
+    "contractAddress": "0x4F9254C83EB525f9FCf346490bbb3ed28a81C667",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FACE",
+    "identifier": "faceter",
+    "displayName": "Faceter",
+    "contractAddress": "0x1CCAA0F2a7210d76E1fDec740d5F323E2E1b1672",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "0XBTC",
+    "identifier": "0xbtc",
+    "displayName": "0xBitcoin",
+    "contractAddress": "0xB6eD7644C69416d67B522e20bC294A9a9B405B31",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ARIA20",
+    "identifier": "arianee",
+    "displayName": "Arianee",
+    "contractAddress": "0xeDF6568618A00C6F0908Bf7758A16F76B6E04aF9",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "EC",
+    "identifier": "eternal-cash",
+    "displayName": "Eternal Cash",
+    "contractAddress": "0xf0196985601598A35a48606b643FD2C34Fb861E1",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "2KEY",
+    "identifier": "2key-network",
+    "displayName": "2key network",
+    "contractAddress": "0xE48972fCd82a274411c01834e2f031D4377Fa2c0",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "VIDT",
+    "identifier": "vidt-datalink",
+    "displayName": "VIDT Datalink",
+    "contractAddress": "0xfeF4185594457050cC9c23980d301908FE057Bb1",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "THRN",
+    "identifier": "thorncoin",
+    "displayName": "Thorncoin",
+    "contractAddress": "0x35A735B7D1d811887966656855F870c05fD0A86D",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CVL",
+    "identifier": "civil",
+    "displayName": "Civil",
+    "contractAddress": "0x01FA555c97D7958Fa6f771f3BbD5CCD508f81e22",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "OKB",
+    "identifier": "okb",
+    "displayName": "OKB",
+    "contractAddress": "0x75231F58b43240C9718Dd58B4967c5114342a86c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XYO",
+    "identifier": "xyo-network",
+    "displayName": "XYO Network",
+    "contractAddress": "0x55296f69f40Ea6d20E478533C15A6B08B654E758",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ZIP",
+    "identifier": "zip",
+    "displayName": "Zipper Network",
+    "contractAddress": "0xA9d2927d3a04309E008B6af6E2e282AE2952e7fD",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MXC",
+    "identifier": "mxc",
+    "displayName": "MXC",
+    "contractAddress": "0x5Ca381bBfb58f0092df149bD3D243b08B9a8386e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ROYA",
+    "identifier": "royale",
+    "displayName": "Royale",
+    "contractAddress": "0x7eaF9C89037e4814DC0d9952Ac7F888C784548DB",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "QUO",
+    "identifier": "quoxent",
+    "displayName": "Quoxent",
+    "contractAddress": "0xefd720C94659F2cCb767809347245F917A145ed8",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TEL",
+    "identifier": "telcoin",
+    "displayName": "Telcoin",
+    "contractAddress": "0x467Bccd9d29f223BcE8043b84E8C8B282827790F",
+    "precision": 2,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ORBS",
+    "identifier": "orbs",
+    "displayName": "Orbs",
+    "contractAddress": "0xff56Cc6b1E6dEd347aA0B7676C85AB0B3D08B0FA",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XMX",
+    "identifier": "xmax",
+    "displayName": "XMax",
+    "contractAddress": "0x0f8c45B896784A1E408526B9300519ef8660209c",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DX",
+    "identifier": "dxchain-token",
+    "displayName": "DxChain Token",
+    "contractAddress": "0x973e52691176d36453868D9d86572788d27041A9",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MATIC",
+    "identifier": "matic-network",
+    "displayName": "Matic Network",
+    "contractAddress": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ZCN",
+    "identifier": "0chain",
+    "displayName": "0chain",
+    "contractAddress": "0xb9EF770B6A5e12E45983C5D80545258aA38F3B78",
+    "precision": 10,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BTMX",
+    "identifier": "bitmax-token",
+    "displayName": "Bitmax Token",
+    "contractAddress": "0xcca0c9c383076649604eE31b20248BC04FdF61cA",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BKBT",
+    "identifier": "beekan",
+    "displayName": "BeeKan Beenews",
+    "contractAddress": "0x6A27348483D59150aE76eF4C0f3622A78B0cA698",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ZCC",
+    "identifier": "zero-carbon-project",
+    "displayName": "Zero Carbon Project",
+    "contractAddress": "0x6737fE98389Ffb356F64ebB726aA1a92390D94Fb",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BTSG",
+    "identifier": "bitsong",
+    "displayName": "BitSong",
+    "contractAddress": "0x05079687D35b93538cbd59fe5596380cae9054A9",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PRT",
+    "identifier": "portion",
+    "displayName": "Portion",
+    "contractAddress": "0x6D0F5149c502faf215C89ab306ec3E50b15e2892",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XDEF2",
+    "identifier": "xdef-finance",
+    "displayName": "Xdef Finance",
+    "contractAddress": "0x5166d4ce79b9bf7Df477da110C560cE3045Aa889",
+    "precision": 9,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FCX",
+    "identifier": "fission-cash",
+    "displayName": "Fission Cash",
+    "contractAddress": "0x0B66015bC42601d5986b540373B4e02D7383C7c1",
+    "precision": 9,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BIO",
+    "identifier": "biocrypt",
+    "displayName": "BioCrypt",
+    "contractAddress": "0xf18432Ef894Ef4b2a5726F933718F5A8cf9fF831",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DSLA",
+    "identifier": "dsla-protocol",
+    "displayName": "DSLA Protocol",
+    "contractAddress": "0x3aFfCCa64c2A6f4e3B6Bd9c64CD2C969EFd1ECBe",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PROPS",
+    "identifier": "props-token",
+    "displayName": "Props Token",
+    "contractAddress": "0x6fe56C0bcdD471359019FcBC48863d6c3e9d4F41",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PROB",
+    "identifier": "probit-token",
+    "displayName": "Probit Token",
+    "contractAddress": "0xfB559CE67Ff522ec0b9Ba7f5dC9dc7EF6c139803",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NTK",
+    "identifier": "netkoin",
+    "displayName": "Netkoin",
+    "contractAddress": "0x5D4d57cd06Fa7fe99e26fdc481b468f77f05073C",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "EURS",
+    "identifier": "stasis-euro",
+    "displayName": "STASIS EURO",
+    "contractAddress": "0xdB25f211AB05b1c97D595516F45794528a807ad8",
+    "precision": 2,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BMX",
+    "identifier": "bitmart-token",
+    "displayName": "BitMart Token",
+    "contractAddress": "0x986EE2B944c42D017F52Af21c4c69B84DBeA35d8",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UNI",
+    "identifier": "uniswap",
+    "displayName": "Uniswap",
+    "contractAddress": "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ZEST",
+    "identifier": "zest-token",
+    "displayName": "Zest Token",
+    "contractAddress": "0x757703bD5B2c4BBCfde0BE2C0b0E7C2f31FCf4E9",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XRT",
+    "identifier": "robonomics-network",
+    "displayName": "Robonomics Network",
+    "contractAddress": "0x7dE91B204C1C737bcEe6F000AAA6569Cf7061cb7",
+    "precision": 9,
+    "network": "ETH"
+  },
+  {
+    "symbol": "OMG",
+    "identifier": "omg",
+    "displayName": "OmiseGO",
+    "contractAddress": "0xd26114cd6EE289AccF82350c8d8487fedB8A0C07",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GUSD",
+    "identifier": "gemini-dollar",
+    "displayName": "Gemini Dollar",
+    "contractAddress": "0x056fd409e1d7a124bd7017459dfea2f387b6d5cd",
+    "precision": 2,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PAXG",
+    "identifier": "pax-gold",
+    "displayName": "Paxos Gold",
+    "contractAddress": "0x45804880de22913dafe09f4980848ece6ecbaf78",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HUSD",
+    "identifier": "husd",
+    "displayName": "Huobi Stable Coin",
+    "contractAddress": "0xdf574c24545e5ffecb9a659c229253d4111d87e1",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HT",
+    "identifier": "huobi-token",
+    "displayName": "Huobi Token",
+    "contractAddress": "0x6f259637dcd74c767781e37bc6133cd6a68aa161",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "COMP",
+    "identifier": "compound",
+    "displayName": "Compound",
+    "contractAddress": "0xc00e94cb662c3520282e6f5717214004a7f26888",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "REPv2",
+    "identifier": "augur-v2",
+    "displayName": "Augur v2",
+    "contractAddress": "0x221657776846890989a759BA2973e427DfF5C9bB",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SNGLS",
+    "identifier": "singulardtv",
+    "displayName": "Singular DTV",
+    "contractAddress": "0xaec2e87e0a235266d9c5adc9deb4b2e29b54d009",
+    "precision": 0,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PPT",
+    "identifier": "populous",
+    "displayName": "Populous",
+    "contractAddress": "0xd4fa1460f537bb9085d22c7bccb5dd450ef28e3a",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PRE",
+    "identifier": "presearch",
+    "displayName": "Presearch",
+    "contractAddress": "0xEC213F83defB583af3A000B1c0ada660b1902A0F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UQC",
+    "identifier": "uquid-coin",
+    "displayName": "Uquid Coin",
+    "contractAddress": "0x8806926Ab68EB5a7b909DcAf6FdBe5d93271D6e2",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "STMX",
+    "identifier": "stormx",
+    "displayName": "StormX",
+    "contractAddress": "0xbE9375C6a420D2eEB258962efB95551A5b722803",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "EDG",
+    "identifier": "edgeless",
+    "displayName": "Edgeless",
+    "contractAddress": "0x08711d3b02c8758f2fb3ab4e80228418a7f8e39c",
+    "precision": 0,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DVP",
+    "identifier": "decentralized-vulnerability-platform",
+    "displayName": "Decentralized Vulnerability Platform",
+    "contractAddress": "0x8E30ea2329D95802Fd804f4291220b0e2F579812",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TKN",
+    "identifier": "monolith",
+    "displayName": "Monolith",
+    "contractAddress": "0xaAAf91D9b90dF800Df4F55c205fd6989c977E73a",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GUP",
+    "identifier": "guppy",
+    "displayName": "Guppy",
+    "contractAddress": "0xf7B098298f7C69Fc14610bf71d5e02c60792894C",
+    "precision": 3,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MNE",
+    "identifier": "minereum",
+    "displayName": "Minereum",
+    "contractAddress": "0x426CA1eA2406c07d75Db9585F22781c096e3d0E0",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GRG",
+    "identifier": "rigoblock",
+    "displayName": "RigoBlock",
+    "contractAddress": "0x4FbB350052Bca5417566f188eB2EBCE5b19BC964",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TTT",
+    "identifier": "tapcoin",
+    "displayName": "Tapcoin",
+    "contractAddress": "0x9F599410D207f3D2828a8712e5e543AC2E040382",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "KSC",
+    "identifier": "kstarcoin",
+    "displayName": "KStarCoin",
+    "contractAddress": "0x990E081A7B7d3Ccba26a2f49746A68CC4fF73280",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UTK",
+    "identifier": "utrust",
+    "displayName": "UTRUST",
+    "contractAddress": "0xdc9Ac3C20D1ed0B540dF9b1feDC10039Df13F99c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "STM",
+    "identifier": "streamity",
+    "displayName": "Streamity",
+    "contractAddress": "0x0E22734e078d6e399BCeE40a549DB591C4EA46cB",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MYST",
+    "identifier": "mysterium",
+    "displayName": "Mysterium",
+    "contractAddress": "0x4Cf89ca06ad997bC732Dc876ed2A7F26a9E7f361",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ADX",
+    "identifier": "adex",
+    "displayName": "AdEx",
+    "contractAddress": "0xADE00C28244d5CE17D72E40330B1c318cD12B7c3",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SKYM",
+    "identifier": "skymap",
+    "displayName": "SkyMap",
+    "contractAddress": "0x7297862B9670fF015192799cc849726c88bf1d77",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BC",
+    "identifier": "block-chain-com",
+    "displayName": "Block chain com",
+    "contractAddress": "0x2ecB13A8c458c379c4d9a7259e202De03c8F3D19",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GNY",
+    "identifier": "gny",
+    "displayName": "GNY",
+    "contractAddress": "0xb1f871Ae9462F1b2C6826E88A7827e76f86751d4",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GAME",
+    "identifier": "gamecredits",
+    "displayName": "GameCredits",
+    "contractAddress": "0x63f88A2298a5c4AEE3c216Aa6D926B184a4b2437",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "VRS",
+    "identifier": "veros",
+    "displayName": "Veros",
+    "contractAddress": "0xAbC430136A4dE71c9998242de8c1b4B97D2b9045",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GLM",
+    "identifier": "golem",
+    "displayName": "Golem",
+    "contractAddress": "0x7DD9c5Cba05E151C895FDe1CF355C9A1D5DA6429",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "WCK",
+    "identifier": "wrapped-cryptokitties",
+    "displayName": "Wrapped CryptoKitties",
+    "contractAddress": "0x09fE5f0236F0Ea5D930197DCE254d77B04128075",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "JNB",
+    "identifier": "jinbi-token",
+    "displayName": "Jinbi Token",
+    "contractAddress": "0x21D5A14e625d767Ce6b7A167491C2d18e0785fDa",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SAN",
+    "identifier": "santiment-network-token",
+    "displayName": "Santiment Network Token",
+    "contractAddress": "0x7C5A0CE9267ED19B22F8cae653F198e3E8daf098",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LRC",
+    "identifier": "loopring",
+    "displayName": "Loopring",
+    "contractAddress": "0xBBbbCA6A901c926F240b89EacB641d8Aec7AEafD",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ORME",
+    "identifier": "ormeus-coin",
+    "displayName": "Ormeus Coin",
+    "contractAddress": "0xc96DF921009B790dfFcA412375251ed1A2b75c60",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "REL",
+    "identifier": "release",
+    "displayName": "RELEASE",
+    "contractAddress": "0x61bFC979EA8160Ede9b862798B7833a97baFa02a",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "QCH",
+    "identifier": "qchi",
+    "displayName": "QChi",
+    "contractAddress": "0x687BfC3E73f6af55F0CccA8450114D107E781a0e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FGP",
+    "identifier": "fingerprint",
+    "displayName": "FingerPrint",
+    "contractAddress": "0xd9A8cfe21C232D485065cb62a96866799d4645f7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FOX",
+    "identifier": "fox-token",
+    "displayName": "FOX",
+    "contractAddress": "0xc770EEfAd204B5180dF6a14Ee197D99d808ee52d",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CRO",
+    "identifier": "crypto-com-coin",
+    "displayName": "Crypto.com Coin",
+    "contractAddress": "0xA0b73E1Ff0B80914AB6fe0444E65848C4C34450b",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GNT",
+    "identifier": "golem-network-tokens",
+    "displayName": "Golem",
+    "contractAddress": "0xa74476443119A942dE498590Fe1f2454d7D4aC0d",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ORN",
+    "identifier": "orion-protocol",
+    "displayName": "Orion Protocol",
+    "contractAddress": "0x0258F474786DdFd37ABCE6df6BBb1Dd5dfC4434a",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GNO",
+    "identifier": "gnosis-gno",
+    "displayName": "Gnosis",
+    "contractAddress": "0x6810e776880c02933d47db1b9fc05908e5386b96",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FREE",
+    "identifier": "free-coin",
+    "displayName": "FREE coin",
+    "contractAddress": "0x2F141Ce366a2462f02cEA3D12CF93E4DCa49e4Fd",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FET",
+    "identifier": "fetch-ai",
+    "displayName": "Fetch ai",
+    "contractAddress": "0xaea46A60368A7bD060eec7DF8CBa43b7EF41Ad85",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TITAN",
+    "identifier": "titanswap",
+    "displayName": "TitanSwap",
+    "contractAddress": "0x3A8cCCB969a61532d1E6005e2CE12C200caeCe87",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NMR",
+    "identifier": "numeraire",
+    "displayName": "Numeraire",
+    "contractAddress": "0x1776e1f26f98b1a5df9cd347953a26dd3cb46671",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "WINGS",
+    "identifier": "wings",
+    "displayName": "Wings",
+    "contractAddress": "0x667088b212ce3d06a1b553a7221E1fD19000d9aF",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TRU",
+    "identifier": "truefi",
+    "displayName": "TrueFi",
+    "contractAddress": "0x4C19596f5aAfF459fA38B0f7eD92F11AE6543784",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TRST",
+    "identifier": "trust",
+    "displayName": "WeTrust",
+    "contractAddress": "0xcb94be6f13a1182e4a4b6140cb7bf2025d28e41b",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SWT",
+    "identifier": "swarm-city",
+    "displayName": "Swarm City",
+    "contractAddress": "0xb9e7f8568e08d5659f5d29c4997173d84cdf2607",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SNT",
+    "identifier": "status",
+    "displayName": "Status",
+    "contractAddress": "0x744d70fdbe2ba4cf95131626614a1763df805b9e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MFG",
+    "identifier": "syncfab",
+    "displayName": "Smart MFG",
+    "contractAddress": "0x6710c63432A2De02954fc0f851db07146a6c0312",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SXUT",
+    "identifier": "spectre-utility",
+    "displayName": "Spectre ai Utility",
+    "contractAddress": "0x2C82c73d5B34AA015989462b2948cd616a37641F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UOS",
+    "identifier": "ultra",
+    "displayName": "Ultra",
+    "contractAddress": "0xD13c7342e1ef687C5ad21b27c2b65D772cAb5C8c",
+    "precision": 4,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RLC",
+    "identifier": "rlc",
+    "displayName": "iExec RLC",
+    "contractAddress": "0x607F4C5BB672230e8672085532f7e901544a7375",
+    "precision": 9,
+    "network": "ETH"
+  },
+  {
+    "symbol": "REP",
+    "identifier": "augur",
+    "displayName": "Augur",
+    "contractAddress": "0x1985365e9f78359a9B6AD760e32412f4a445E862",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PAY",
+    "identifier": "tenx",
+    "displayName": "TenX",
+    "contractAddress": "0xB97048628DB6B661D4C2aA833e95Dbe1A905B280",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MLN",
+    "identifier": "melon",
+    "displayName": "Melonport",
+    "contractAddress": "0xec67005c4E498Ec7f55E092bd1d35cbC47C91892",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MTL",
+    "identifier": "metal",
+    "displayName": "Metal",
+    "contractAddress": "0xF433089366899D83a9f26A773D59ec7eCF30355e",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ICN",
+    "identifier": "iconomi",
+    "displayName": "Iconomi",
+    "contractAddress": "0x888666CA69E0f178DED6D75b5726Cee99A87D698",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FUN",
+    "identifier": "funfair",
+    "displayName": "FunFair",
+    "contractAddress": "0x419d0d8bdd9af5e606ae2232ed285aff190e711b",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DNT",
+    "identifier": "district0x",
+    "displayName": "District 0x",
+    "contractAddress": "0x0abdace70d3790235af448c88547603b945604ea",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DGD",
+    "identifier": "digixdao",
+    "displayName": "Digix DAO",
+    "contractAddress": "0xe0b7927c4af23765cb51314a0e0521a9645f0e2a",
+    "precision": 9,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CVC",
+    "identifier": "civic",
+    "displayName": "Civic",
+    "contractAddress": "0x41e5560054824ea6b0732e656e3ad64e20e94e45",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BAT",
+    "identifier": "basic-attention-token",
+    "displayName": "Basic Attention Token",
+    "contractAddress": "0x0d8775f648430679a709e98d2b0cb6250d2887ef",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ANT",
+    "identifier": "aragon",
+    "displayName": "Aragon",
+    "contractAddress": "0x960b236A07cf122663c4303350609A66A7B288C0",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "REN",
+    "identifier": "ren",
+    "displayName": "REN",
+    "contractAddress": "0x408e41876cCCDC0F92210600ef50372656052a38",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AMPL",
+    "identifier": "ampleforth",
+    "displayName": "Ampleforth",
+    "contractAddress": "0xD46bA6D942050d489DBd938a2C909A5d5039A161",
+    "precision": 9,
+    "network": "ETH"
+  },
+  {
+    "symbol": "USDT",
+    "identifier": "tether",
+    "displayName": "Tether",
+    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TUSD",
+    "identifier": "trueusd",
+    "displayName": "TrueUSD",
+    "contractAddress": "0x0000000000085d4780B73119b644AE5ecd22b376",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "STORJ",
+    "identifier": "storj",
+    "displayName": "Storj",
+    "contractAddress": "0xb64ef51c888972c908cfacf59b47c1afbc0ab8ac",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SPANK",
+    "identifier": "spankchain",
+    "displayName": "SpankChain",
+    "contractAddress": "0x42d6622dece394b54999fbd73d108123806f6a18",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SALT",
+    "identifier": "salt",
+    "displayName": "Salt",
+    "contractAddress": "0x4156D3342D5c385a87D264F90653733592000581",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SAI",
+    "identifier": "single-collateral-dai",
+    "displayName": "Single Collateral DAI",
+    "contractAddress": "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RCN",
+    "identifier": "ripio-credit-network",
+    "displayName": "Ripio",
+    "contractAddress": "0xf970b8e36e23f7fc3fd752eea86f8be8d83375a6",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "POLY",
+    "identifier": "polymath-network",
+    "displayName": "Polymath",
+    "contractAddress": "0x9992ec3cf6a55b00978cddf2b27bc6882d88d1ec",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MKR",
+    "identifier": "maker",
+    "displayName": "Maker",
+    "contractAddress": "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MANA",
+    "identifier": "decentraland",
+    "displayName": "Decentraland",
+    "contractAddress": "0x0f5d2fb29fb7d3cfee444a200298f468908cc942",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ELF",
+    "identifier": "aelf",
+    "displayName": "Aelf",
+    "contractAddress": "0xbf2179859fc6d5bee9bf9158632dc51678a4100e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DAI",
+    "identifier": "multi-collateral-dai",
+    "displayName": "Multi Collateral DAI",
+    "contractAddress": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AE",
+    "identifier": "aeternity",
+    "displayName": "Aeternity",
+    "contractAddress": "0x5ca9a71b1d01849c0a95490cc00559717fcf0d1d",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "1ST",
+    "identifier": "firstblood",
+    "displayName": "FirstBlood",
+    "contractAddress": "0xaf30d2a7e90d7dc361c8c4585e9bb7d2f6f15bc7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "KNC",
+    "identifier": "kyber-network",
+    "displayName": "Kyber Network",
+    "contractAddress": "0xdd974d5c2e2928dea5f71b9825b8b646686bd200",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "KCS",
+    "identifier": "kucoin-shares",
+    "displayName": "Kucoin Shares",
+    "contractAddress": "0x039b5649a59967e3e936d7471f9c3700100ee1ab",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BNT",
+    "identifier": "bancor",
+    "displayName": "Bancor",
+    "contractAddress": "0x1f573d6fb3f13d689ff844b4ce37794d79a7ff1c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BAL",
+    "identifier": "balancer",
+    "displayName": "Balancer",
+    "contractAddress": "0xba100000625a3754423978a60c9317c58a424e3D",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UBT",
+    "identifier": "unibright",
+    "displayName": "Unibright",
+    "contractAddress": "0x8400D94A5cb0fa0D041a3788e395285d61c9ee5e",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AGI",
+    "identifier": "singularitynet",
+    "displayName": "SingularityNET",
+    "contractAddress": "0x8eB24319393716668D768dCEC29356ae9CfFe285",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TBTC",
+    "identifier": "tbtc",
+    "displayName": "tBTC",
+    "contractAddress": "0x8dAEBADE922dF735c38C80C7eBD708Af50815fAa",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GRT",
+    "identifier": "golden-ratio-token",
+    "displayName": "Golden Ratio Token",
+    "contractAddress": "0xb83Cd8d39462B761bb0092437d38b37812dd80A2",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BZKY",
+    "identifier": "bizkey",
+    "displayName": "Bizkey",
+    "contractAddress": "0xd28cFec79dB8d0A225767D06140aee280718AB7E",
+    "precision": 16,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PLU",
+    "identifier": "pluton",
+    "displayName": "Pluton",
+    "contractAddress": "0xD8912C10681D8B21Fd3742244f44658dBA12264E",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ESG",
+    "identifier": "empty-set-gold",
+    "displayName": "Empty Set Gold",
+    "contractAddress": "0x5cf9242493bE1411b93d064CA2e468961BBb5924",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "VTD",
+    "identifier": "variable-time-dolla",
+    "displayName": "Variable Time Dolla",
+    "contractAddress": "0xf0E3543744AFcEd8042131582f2A19b6AEb82794",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DST",
+    "identifier": "dynamic-supply",
+    "displayName": "Dynamic Supply",
+    "contractAddress": "0xfa9C3dC54baA9eefBe9453B1f3B3B93aD2AF0A77",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DSTR",
+    "identifier": "dynamic-supply-trac",
+    "displayName": "Dynamic Supply Trac",
+    "contractAddress": "0x55696EfC7c9779d868Ac34aC6b4a4C5FeD61aC12",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "YSKF",
+    "identifier": "yearn-shark-finance",
+    "displayName": "Yearn Shark Finance",
+    "contractAddress": "0x9C664F20C0a00a4949DFfcA76748c02754C875aa",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UMX",
+    "identifier": "unimex-network",
+    "displayName": "UniMex Network",
+    "contractAddress": "0x10Be9a8dAe441d276a5027936c3aADEd2d82bC15",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TIG",
+    "identifier": "tig-token",
+    "displayName": "TIG Token",
+    "contractAddress": "0x749826F1041CAF0Ea856a4b3578Ba327B18335F8",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LION",
+    "identifier": "coinlion",
+    "displayName": "CoinLion",
+    "contractAddress": "0x2167FB82309CF76513E83B25123f8b0559d6b48f",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "IZI",
+    "identifier": "izichain",
+    "displayName": "IZIChain",
+    "contractAddress": "0xDf59C8BA19B4d1437d80836b45F1319D9A429EED",
+    "precision": 4,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SYLO",
+    "identifier": "sylo",
+    "displayName": "Sylo",
+    "contractAddress": "0xf293d23BF2CDc05411Ca0edDD588eb1977e8dcd4",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ARNX",
+    "identifier": "aeron",
+    "displayName": "Aeron",
+    "contractAddress": "0x0C37Bcf456bC661C14D596683325623076D7e283",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MYTV",
+    "identifier": "mytvchain",
+    "displayName": "MyTVchain",
+    "contractAddress": "0x45Af324F53a8D7DA1752DAd74ADc1748126D7978",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BTB",
+    "identifier": "bitball",
+    "displayName": "Bitball",
+    "contractAddress": "0x06e0feB0D74106c7adA8497754074D222Ec6BCDf",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AGVC",
+    "identifier": "agavecoin",
+    "displayName": "AgaveCoin",
+    "contractAddress": "0x8b79656FC38a04044E495e22fAD747126ca305C4",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FAT",
+    "identifier": "fatcoin",
+    "displayName": "Fatcoin",
+    "contractAddress": "0x2eC95B8edA549B79a1248335A39d299d00Ed314C",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CBC",
+    "identifier": "cryptobosscoin",
+    "displayName": "CryptoBossCoin",
+    "contractAddress": "0x790bFaCaE71576107C068f494c8A6302aea640cb",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LPT",
+    "identifier": "livepeer",
+    "displayName": "Livepeer",
+    "contractAddress": "0x58b6A8A3302369DAEc383334672404Ee733aB239",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "VALOR",
+    "identifier": "smart-valor",
+    "displayName": "Smart Valor",
+    "contractAddress": "0x297E4e5e59Ad72B1B0A2fd446929e76117be0E0a",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "OPCT",
+    "identifier": "opacity",
+    "displayName": "Opacity",
+    "contractAddress": "0xDb05EA0877A2622883941b939f0bb11d1ac7c400",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SNTVT",
+    "identifier": "sentivate",
+    "displayName": "Sentivate",
+    "contractAddress": "0x7865af71cf0b288b4E7F654f4F7851EB46a2B7F8",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "STASH",
+    "identifier": "bitstash-marketplace",
+    "displayName": "BitStash Marketplace",
+    "contractAddress": "0x965F109d31CCb77005858DEfaE0Ebaf7B4381652",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GEX",
+    "identifier": "globex",
+    "displayName": "Globex",
+    "contractAddress": "0x03282f2D7834a97369Cad58f888aDa19EeC46ab6",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FLC",
+    "identifier": "flowchain",
+    "displayName": "Flowchain",
+    "contractAddress": "0x32C4ADB9cF57f972bc375129de91C897b4F364F1",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AFCASH",
+    "identifier": "africunia-bank",
+    "displayName": "AFRICUNIA BANK",
+    "contractAddress": "0xb8a5dBa52FE8A0Dd737Bf15ea5043CEA30c7e30B",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DONUT",
+    "identifier": "donut",
+    "displayName": "Donut",
+    "contractAddress": "0xC0F9bD5Fa5698B6505F643900FFA515Ea5dF54A9",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PAR",
+    "identifier": "parachute",
+    "displayName": "Parachute",
+    "contractAddress": "0x1BeEF31946fbbb40B877a72E4ae04a8D1A5Cee06",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "USDS",
+    "identifier": "stably-dollar",
+    "displayName": "Stably Dollar",
+    "contractAddress": "0xA4Bdb11dc0a2bEC88d24A3aa1E6Bb17201112eBe",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "IGG",
+    "identifier": "ig-gold",
+    "displayName": "IG Gold",
+    "contractAddress": "0x8FfE40A3D0f80C0CE6b203D5cDC1A6a86d9AcaeA",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "COV",
+    "identifier": "covesting",
+    "displayName": "Covesting",
+    "contractAddress": "0xADA86b1b313D1D5267E3FC0bB303f0A2b66D0Ea7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "C20",
+    "identifier": "crypto20",
+    "displayName": "CRYPTO20",
+    "contractAddress": "0x26E75307Fc0C021472fEb8F727839531F112f317",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AMR",
+    "identifier": "ammbr",
+    "displayName": "Ammbr",
+    "contractAddress": "0xd3Fb5cAbd07c85395667f83D20b080642BdE66C7",
+    "precision": 16,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ODEX",
+    "identifier": "one-dex",
+    "displayName": "One DEX",
+    "contractAddress": "0xa960d2bA7000d58773E7fa5754DeC3Bb40A069D5",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ICNQ",
+    "identifier": "iconic-token",
+    "displayName": "Iconic Token",
+    "contractAddress": "0xB3e2Cb7CccfE139f8FF84013823Bf22dA6B6390A",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "REV",
+    "identifier": "revelation-coin",
+    "displayName": "Revelation coin",
+    "contractAddress": "0xe6Be436DF1Ff96956dfe0b2b77FAB84EDe30236F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "VSF",
+    "identifier": "verisafe",
+    "displayName": "VeriSafe",
+    "contractAddress": "0xAC9ce326e95f51B5005e9fE1DD8085a01F18450c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LIQUID",
+    "identifier": "netkoin-liquid",
+    "displayName": "Netkoin Liquid",
+    "contractAddress": "0xaC2385e183d9301dd5E2BB08DA932CbF9800dC9c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "KAI",
+    "identifier": "kardiachain",
+    "displayName": "KardiaChain",
+    "contractAddress": "0xD9Ec3ff1f8be459Bb9369b4E79e9Ebcf7141C093",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SPRKL",
+    "identifier": "sparkle-loyalty",
+    "displayName": "Sparkle Loyalty",
+    "contractAddress": "0x4b7aD3a56810032782Afce12d7d27122bDb96efF",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "A",
+    "identifier": "alpha-token",
+    "displayName": "Alpha Token",
+    "contractAddress": "0xFFc63b9146967A1ba33066fB057EE3722221aCf0",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DGTX",
+    "identifier": "digitex-token",
+    "displayName": "Digitex Token",
+    "contractAddress": "0xc666081073E8DfF8D3d1c2292A29aE1A2153eC09",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TONE",
+    "identifier": "te-food",
+    "displayName": "TE FOOD",
+    "contractAddress": "0x2Ab6Bb8408ca3199B8Fa6C92d5b455F820Af03c4",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LGO",
+    "identifier": "lgo-token",
+    "displayName": "LGO Token",
+    "contractAddress": "0x0a50C93c762fDD6E56D86215C24AaAD43aB629aa",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "QBX",
+    "identifier": "qiibee",
+    "displayName": "qiibee",
+    "contractAddress": "0x2467AA6B5A2351416fD4C3DeF8462d841feeecEC",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DOS",
+    "identifier": "dos-network",
+    "displayName": "DOS Network",
+    "contractAddress": "0x0A913beaD80F321E7Ac35285Ee10d9d922659cB7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XDB",
+    "identifier": "digitalbits",
+    "displayName": "DigitalBits",
+    "contractAddress": "0xB9EefC4b0d472A44be93970254Df4f4016569d27",
+    "precision": 7,
+    "network": "ETH"
+  },
+  {
+    "symbol": "WPP",
+    "identifier": "wpp-token",
+    "displayName": "WPP Token",
+    "contractAddress": "0x056dD20b01799E9C1952c7c9a5ff4409a6110085",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BIKI",
+    "identifier": "biki",
+    "displayName": "BIKI",
+    "contractAddress": "0x70debcDAB2Ef20bE3d1dBFf6a845E9cCb6E46930",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FRM",
+    "identifier": "ferrum-network",
+    "displayName": "Ferrum Network",
+    "contractAddress": "0xE5CAeF4Af8780E59Df925470b050Fb23C43CA68C",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "1UP",
+    "identifier": "uptrennd",
+    "displayName": "Uptrennd",
+    "contractAddress": "0x07597255910a51509CA469568B048F2597E72504",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SRK",
+    "identifier": "sparkpoint",
+    "displayName": "SparkPoint",
+    "contractAddress": "0x0488401c3F535193Fa8Df029d9fFe615A06E74E6",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BTU",
+    "identifier": "bitsou",
+    "displayName": "Bitsou",
+    "contractAddress": "0x3c76EF53be46ed2E9bE224e8f0b92e8ACBc24ea0",
+    "precision": 3,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ULT",
+    "identifier": "shardus",
+    "displayName": "Shardus",
+    "contractAddress": "0x09617F6fD6cF8A71278ec86e23bBab29C04353a7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "COIN",
+    "identifier": "coin",
+    "displayName": "Coin",
+    "contractAddress": "0xE61fDAF474Fac07063f2234Fb9e60C1163Cfa850",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BPTN",
+    "identifier": "bit-public-talent-network",
+    "displayName": "Bit Public Talent Network",
+    "contractAddress": "0x6c22B815904165F3599F0A4a092D458966bD8024",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "QDAO",
+    "identifier": "q-dao-governance-token-v1-0",
+    "displayName": "Q DAO Governance token v1.0",
+    "contractAddress": "0x3166C570935a7D8554c8f4eA792ff965D2EFe1f2",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "VLD",
+    "identifier": "vetri",
+    "displayName": "Vetri",
+    "contractAddress": "0x922aC473A3cC241fD3a0049Ed14536452D58D73c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ESS",
+    "identifier": "essentia",
+    "displayName": "Essentia",
+    "contractAddress": "0xfc05987bd2be489ACCF0f509E44B0145d68240f7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TVT",
+    "identifier": "tvt",
+    "displayName": "TVT",
+    "contractAddress": "0x98E0438d3eE1404FEA48E38e92853BB08Cfa68bD",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "IUT",
+    "identifier": "ito-utility-token",
+    "displayName": "ITO Utility Token",
+    "contractAddress": "0xD36a0e7b741542208aE0fBb35453C893D0136625",
+    "precision": 0,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XCHF",
+    "identifier": "cryptofranc",
+    "displayName": "CryptoFranc",
+    "contractAddress": "0xB4272071eCAdd69d933AdcD19cA99fe80664fc08",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ECP",
+    "identifier": "ecp-technology",
+    "displayName": "ECP Technology",
+    "contractAddress": "0x8B8a8A91d7b8EC2E6ab37Ed8FFbAcEE062C6F3C7",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CNTM",
+    "identifier": "connectome",
+    "displayName": "Connectome",
+    "contractAddress": "0x0E5f00DA8AAef196a719d045DB89b5DA8F371b32",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MX",
+    "identifier": "mx-token",
+    "displayName": "MX Token",
+    "contractAddress": "0x11eeF04c884E24d9B7B4760e7476D06ddF797f36",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ESH",
+    "identifier": "switch",
+    "displayName": "Switch",
+    "contractAddress": "0xD6a55C63865AffD67E2FB9f284F87b7a9E5FF3bD",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AER",
+    "identifier": "aeryus",
+    "displayName": "Aeryus",
+    "contractAddress": "0xac4D22e40bf0B8eF4750a99ED4E935B99A42685E",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ETY",
+    "identifier": "ethereum-cloud",
+    "displayName": "Ethereum Cloud",
+    "contractAddress": "0x5aCD07353106306a6530ac4D49233271Ec372963",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "STPT",
+    "identifier": "stp-network",
+    "displayName": "STP Network",
+    "contractAddress": "0xDe7D85157d9714EADf595045CC12Ca4A5f3E2aDb",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ELET",
+    "identifier": "elementeum",
+    "displayName": "Elementeum",
+    "contractAddress": "0x6c37Bf4f042712C978A73e3fd56D1F5738dD7C43",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BITTO",
+    "identifier": "bitto",
+    "displayName": "BITTO",
+    "contractAddress": "0x55a290f08Bb4CAe8DcF1Ea5635A3FCfd4Da60456",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NOIA",
+    "identifier": "syntropy",
+    "displayName": "Syntropy",
+    "contractAddress": "0xa8c8CfB141A3bB59FEA1E2ea6B79b5ECBCD7b6ca",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MODEX",
+    "identifier": "modex",
+    "displayName": "Modex",
+    "contractAddress": "0x4bceA5E4d0F6eD53cf45e7a28FebB2d3621D7438",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PITCH",
+    "identifier": "pitch",
+    "displayName": "Pitch",
+    "contractAddress": "0x87f56Ee356B434187105b40F96B230F5283c0AB4",
+    "precision": 9,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BEST",
+    "identifier": "bitpanda-ecosystem",
+    "displayName": "Bitpanda Ecosystem",
+    "contractAddress": "0x1B073382E63411E3BcfFE90aC1B9A43feFa1Ec6F",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XNS",
+    "identifier": "xeonbit-token",
+    "displayName": "Xeonbit Token",
+    "contractAddress": "0x79c71D3436F39Ce382D0f58F1B011D88100B9D91",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SLV",
+    "identifier": "silverway",
+    "displayName": "Silverway",
+    "contractAddress": "0x4c1C4957D22D8F373aeD54d0853b090666F6F9De",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "USDK",
+    "identifier": "usdk",
+    "displayName": "USDK",
+    "contractAddress": "0x1c48f86ae57291F7686349F12601910BD8D470bb",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PROM",
+    "identifier": "prometeus",
+    "displayName": "Prometeus",
+    "contractAddress": "0xfc82bb4ba86045Af6F327323a46E80412b91b27d",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TFB",
+    "identifier": "truefeedback-token",
+    "displayName": "Truefeedback Token",
+    "contractAddress": "0x79cdFa04e3c4EB58C4f49DAE78b322E5b0D38788",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BURN",
+    "identifier": "blockburn",
+    "displayName": "BlockBurn",
+    "contractAddress": "0x8515cD0f00aD81996d24b9A9C35121a3b759D6Cd",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LAR",
+    "identifier": "linkart",
+    "displayName": "LinkArt",
+    "contractAddress": "0x6226caA1857AFBc6DFB6ca66071Eb241228031A1",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UDOO",
+    "identifier": "hyprr-howdoo",
+    "displayName": "Hyprr Howdoo",
+    "contractAddress": "0x12f649A9E821F90BB143089a6e56846945892ffB",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XCM",
+    "identifier": "coinmetro",
+    "displayName": "CoinMetro",
+    "contractAddress": "0x36ac219f90f5A6A3C77f2a7B660E3cC701f68e25",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CARD",
+    "identifier": "cardstack",
+    "displayName": "Cardstack",
+    "contractAddress": "0x954b890704693af242613edEf1B603825afcD708",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LIT",
+    "identifier": "lition",
+    "displayName": "Lition",
+    "contractAddress": "0x763Fa6806e1acf68130D2D0f0df754C93cC546B2",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SNX",
+    "identifier": "synthetix-network-token",
+    "displayName": "Synthetix Network Token",
+    "contractAddress": "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "EDN",
+    "identifier": "edenchain",
+    "displayName": "Edenchain",
+    "contractAddress": "0x89020f0D5C5AF4f3407Eb5Fe185416c457B0e93e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "POND",
+    "identifier": "marlin",
+    "displayName": "Marlin",
+    "contractAddress": "0x57B946008913B82E4dF85f501cbAeD910e58D26C",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ECO",
+    "identifier": "ormeus-ecosystem",
+    "displayName": "Ormeus Ecosystem",
+    "contractAddress": "0x191557728e4d8CAa4Ac94f86af842148c0FA8F7E",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BPLC",
+    "identifier": "blackpearl-token",
+    "displayName": "BlackPearl Token",
+    "contractAddress": "0x426FC8BE95573230f6e6bc4af91873F0c67b21b4",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DYNMT",
+    "identifier": "dynamite-token",
+    "displayName": "DYNAMITE Token",
+    "contractAddress": "0x3B7f247f21BF3A07088C2D3423F64233d4B069F7",
+    "precision": 2,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GIV",
+    "identifier": "giv-token",
+    "displayName": "GIV Token",
+    "contractAddress": "0xf6537FE0df7F0Cc0985Cf00792CC98249E73EFa0",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HTN",
+    "identifier": "heart-number",
+    "displayName": "Heart Number",
+    "contractAddress": "0x4B4b1d389d4f4E082B30F75c6319c0CE5ACBd619",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ETHMNY",
+    "identifier": "ethereum-money",
+    "displayName": "Ethereum Money",
+    "contractAddress": "0xbF4a2DdaA16148a9D0fA2093FfAC450ADb7cd4aa",
+    "precision": 2,
+    "network": "ETH"
+  },
+  {
+    "symbol": "VSN",
+    "identifier": "vision-network",
+    "displayName": "Vision Network",
+    "contractAddress": "0x456AE45c0CE901E2e7c99c0718031cEc0A7A59Ff",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NU",
+    "identifier": "nucypher",
+    "displayName": "NuCypher",
+    "contractAddress": "0x4fE83213D56308330EC302a8BD641f1d0113A4Cc",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FOAM",
+    "identifier": "foam",
+    "displayName": "FOAM",
+    "contractAddress": "0x4946Fcea7C692606e8908002e55A582af44AC121",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "KEEP",
+    "identifier": "keep-network",
+    "displayName": "Keep Network",
+    "contractAddress": "0x85Eee30c52B0b379b046Fb0F85F4f3Dc3009aFEC",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NKN",
+    "identifier": "nkn",
+    "displayName": "NKN",
+    "contractAddress": "0x5Cf04716BA20127F1E2297AdDCf4B5035000c9eb",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "Z502",
+    "identifier": "502-bad-gateway-token",
+    "displayName": "502 Bad Gateway Token",
+    "contractAddress": "0x2cd9324bA13b77554592d453e6364086FbBa446a",
+    "precision": 0,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PIGX",
+    "identifier": "pigx",
+    "displayName": "PIGX",
+    "contractAddress": "0x47E820dF943170b0e31F9E18ECD5bDd67b77FF1f",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SPAZ",
+    "identifier": "swapcoinz",
+    "displayName": "SwapCoinz",
+    "contractAddress": "0x810908B285f85Af668F6348cD8B26D76B3EC12e1",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HOLE",
+    "identifier": "super-black-hole",
+    "displayName": "Super Black Hole",
+    "contractAddress": "0x03fB52D4eE633ab0D06C833E32EFdd8D388f3E6a",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "808TA",
+    "identifier": "808ta-token",
+    "displayName": "808TA Token",
+    "contractAddress": "0x5b535EDfA75d7CB706044Da0171204E1c48D00e8",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BBC",
+    "identifier": "blue-baikal",
+    "displayName": "Blue Baikal",
+    "contractAddress": "0x675Ce995953136814cb05aaAA5d02327E7Dc8c93",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "EXM",
+    "identifier": "exmo-coin",
+    "displayName": "EXMO Coin",
+    "contractAddress": "0x83869DE76B9Ad8125e22b857f519F001588c0f62",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "VRA",
+    "identifier": "verasity",
+    "displayName": "Verasity",
+    "contractAddress": "0xdF1D6405df92d981a2fB3ce68F6A03baC6C0E41F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BTCP",
+    "identifier": "bitcoin-pro",
+    "displayName": "Bitcoin Pro",
+    "contractAddress": "0x723CbfC05e2cfcc71d3d89e770D32801A5eEf5Ab",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SHR",
+    "identifier": "sharetoken",
+    "displayName": "ShareToken",
+    "contractAddress": "0xd98F75b1A3261dab9eEd4956c93F33749027a964",
+    "precision": 2,
+    "network": "ETH"
+  },
+  {
+    "symbol": "OCEAN",
+    "identifier": "ocean-protocol",
+    "displayName": "Ocean Protocol",
+    "contractAddress": "0x967da4048cD07aB37855c090aAF366e4ce1b9F48",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TKP",
+    "identifier": "tokpie",
+    "displayName": "TOKPIE",
+    "contractAddress": "0xd31695a1d35E489252CE57b129FD4b1B05E6AcaC",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NEXO",
+    "identifier": "nexo",
+    "displayName": "NEXO",
+    "contractAddress": "0xB62132e35a6c13ee1EE0f84dC5d40bad8d815206",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XDT",
+    "identifier": "xwc-dice-token",
+    "displayName": "XWC Dice Token",
+    "contractAddress": "0x5F9d86fa0454fFD6a59cCc485e689B0a832313DB",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AIRX",
+    "identifier": "aircoins",
+    "displayName": "Aircoins",
+    "contractAddress": "0x8cb1d155a5a1d5d667611b7710920fD9D1CD727F",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BSOV",
+    "identifier": "bitcoinsov",
+    "displayName": "BitcoinSoV",
+    "contractAddress": "0x26946adA5eCb57f3A1F91605050Ce45c482C9Eb1",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SKM",
+    "identifier": "skrumble-network",
+    "displayName": "Skrumble Network",
+    "contractAddress": "0x048Fe49BE32adfC9ED68C37D32B5ec9Df17b3603",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BDP",
+    "identifier": "bidipass",
+    "displayName": "BidiPass",
+    "contractAddress": "0x593114f03A0A575aece9ED675e52Ed68D2172B8c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ONE",
+    "identifier": "menlo-one",
+    "displayName": "Menlo One",
+    "contractAddress": "0x4D807509aECe24C0fa5A102b6a3B059Ec6E14392",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CRE",
+    "identifier": "carry",
+    "displayName": "Carry",
+    "contractAddress": "0x115eC79F1de567eC68B7AE7eDA501b406626478e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SOUL",
+    "identifier": "phantasma",
+    "displayName": "Phantasma",
+    "contractAddress": "0x79C75E2e8720B39e258F41c37cC4f309E0b0fF80",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LMY",
+    "identifier": "lunch-money",
+    "displayName": "Lunch Money",
+    "contractAddress": "0x66fD97a78d8854fEc445cd1C80a07896B0b4851f",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "COT",
+    "identifier": "cotrader",
+    "displayName": "CoTrader",
+    "contractAddress": "0x5c872500c00565505F3624AB435c222E558E9ff8",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SHUF",
+    "identifier": "shuffle-monster",
+    "displayName": "Shuffle Monster",
+    "contractAddress": "0x3A9FfF453d50D4Ac52A6890647b823379ba36B9E",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TSHP",
+    "identifier": "12ships",
+    "displayName": "12Ships",
+    "contractAddress": "0x525794473F7ab5715C81d06d10f52d11cC052804",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "USDX",
+    "identifier": "usdx-stablecoin",
+    "displayName": "USDx Stablecoin",
+    "contractAddress": "0xeb269732ab75A6fD61Ea60b06fE994cD32a83549",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ILK",
+    "identifier": "inlock",
+    "displayName": "INLOCK",
+    "contractAddress": "0xF784682C82526e245F50975190EF0fff4E4fC077",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TCS",
+    "identifier": "tcs-token",
+    "displayName": "TCS Token",
+    "contractAddress": "0x0Cd1b0e93eBAAD374752af74FE44F877dd0438c0",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ZEON",
+    "identifier": "zeon-network",
+    "displayName": "ZEON Network",
+    "contractAddress": "0xE5B826Ca2Ca02F09c1725e9bd98d9a8874C30532",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ARCONA",
+    "identifier": "arcona",
+    "displayName": "Arcona",
+    "contractAddress": "0x0f71B8De197A1C84d31de0F1fA7926c365F052B3",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RAISE",
+    "identifier": "raise-token",
+    "displayName": "Raise Token",
+    "contractAddress": "0x10bA8C420e912bF07BEdaC03Aa6908720db04e0c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "EQUAD",
+    "identifier": "quadrant-protocol",
+    "displayName": "Quadrant Protocol",
+    "contractAddress": "0xC28e931814725BbEB9e670676FaBBCb694Fe7DF2",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RSCT",
+    "identifier": "risecoin-token",
+    "displayName": "RiseCoin Token",
+    "contractAddress": "0xC275865a6Cce78398e94CB2Af29fa0d787b7F7Eb",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TOL",
+    "identifier": "tolar",
+    "displayName": "Tolar",
+    "contractAddress": "0xd07D9Fe2d2cc067015E2b4917D24933804f42cFA",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AERGO",
+    "identifier": "aergo",
+    "displayName": "Aergo",
+    "contractAddress": "0x91Af0fBB28ABA7E31403Cb457106Ce79397FD4E6",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "WOM",
+    "identifier": "wom-protocol",
+    "displayName": "WOM Protocol",
+    "contractAddress": "0xBd356a39BFf2cAda8E9248532DD879147221Cf76",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BLOC",
+    "identifier": "blockcloud",
+    "displayName": "Blockcloud",
+    "contractAddress": "0x6F919D67967a97EA36195A2346d9244E60FE0dDB",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DIP",
+    "identifier": "etherisc-dip-token",
+    "displayName": "Etherisc DIP Token",
+    "contractAddress": "0xc719d010B63E5bbF2C0551872CD5316ED26AcD83",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BFC",
+    "identifier": "bifrost",
+    "displayName": "Bifrost",
+    "contractAddress": "0x0c7D5ae016f806603CB1782bEa29AC69471CAb9c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DUO",
+    "identifier": "duo-network",
+    "displayName": "DUO Network",
+    "contractAddress": "0x56e0B2C7694E6e10391E870774daA45cf6583486",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PERL",
+    "identifier": "perlin",
+    "displayName": "Perlin",
+    "contractAddress": "0xeca82185adCE47f39c684352B0439f030f860318",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ACED",
+    "identifier": "aced",
+    "displayName": "Aced",
+    "contractAddress": "0x885e127abA09Bf8FAE058a2895c221B37697c9bE",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "COCOS",
+    "identifier": "cocos-bcx",
+    "displayName": "COCOS BCX",
+    "contractAddress": "0x0C6f5F7D555E7518f6841a79436BD2b1Eef03381",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "IDRT",
+    "identifier": "rupiah-token",
+    "displayName": "Rupiah Token",
+    "contractAddress": "0x998FFE1E43fAcffb941dc337dD0468d52bA5b48A",
+    "precision": 2,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TCH",
+    "identifier": "tigercash",
+    "displayName": "TigerCash",
+    "contractAddress": "0x9B39A0B97319a9bd5fed217c1dB7b030453bac91",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "VGT",
+    "identifier": "vault-guardian-token",
+    "displayName": "Vault Guardian Token",
+    "contractAddress": "0xCc394f10545AeEf24483d2347B32A34a44F20E6F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CHR",
+    "identifier": "chromia",
+    "displayName": "Chromia",
+    "contractAddress": "0x8A2279d4A90B6fe1C4B30fa660cC9f926797bAA2",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ACR",
+    "identifier": "acreage-coin",
+    "displayName": "Acreage Coin",
+    "contractAddress": "0x76306F029f8F99EFFE509534037Ba7030999E3CF",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MBN",
+    "identifier": "membrana",
+    "displayName": "Membrana",
+    "contractAddress": "0x4Eeea7B48b9C3ac8F70a9c932A8B1E8a5CB624c7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CUTE",
+    "identifier": "blockchain-cuties-universe",
+    "displayName": "Blockchain Cuties Universe",
+    "contractAddress": "0x047686fB287e7263A23873dEa66b4501015a2226",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LUD",
+    "identifier": "ludos-protocol",
+    "displayName": "Ludos Protocol",
+    "contractAddress": "0xe64b47931f28f89Cc7A0C6965Ecf89EaDB4975f5",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CYFM",
+    "identifier": "cyberfm",
+    "displayName": "CyberFM",
+    "contractAddress": "0x4a621d9f1b19296d1C0f87637b3A8D4978e9bf82",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MFTU",
+    "identifier": "mainstream-for-the",
+    "displayName": "Mainstream For The",
+    "contractAddress": "0xbA745513ACEbcBb977497C569D4F7d340f2A936B",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SPC",
+    "identifier": "spacechain-erc-20",
+    "displayName": "SpaceChain ERC 20",
+    "contractAddress": "0x86ed939B500E121C0C5f493F399084Db596dAd20",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XRPC",
+    "identifier": "xrp-classic",
+    "displayName": "XRP Classic",
+    "contractAddress": "0xd4cA5c2AFf1eeFb0BeA9e9Eab16f88DB2990C183",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "EMONT",
+    "identifier": "ethermontoken",
+    "displayName": "EthermonToken",
+    "contractAddress": "0x95dAaaB98046846bF4B2853e23cba236fa394A31",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "VEY",
+    "identifier": "vey",
+    "displayName": "VEY",
+    "contractAddress": "0x70A63225BcaDacc4430919F0C1A4f0f5fcffBaac",
+    "precision": 4,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BST",
+    "identifier": "bitsten-token",
+    "displayName": "Bitsten Token",
+    "contractAddress": "0xD4f6f9Ae14399fD5Eb8DFc7725F0094a1A7F5d80",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "EVED",
+    "identifier": "evedo",
+    "displayName": "Evedo",
+    "contractAddress": "0x5aaEFe84E0fB3DD1f0fCfF6fA7468124986B91bd",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AT",
+    "identifier": "artfinity-token",
+    "displayName": "Artfinity Token",
+    "contractAddress": "0xE54B3458C47E44C37a267E7C633AFEF88287C294",
+    "precision": 5,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FUZE",
+    "identifier": "fuze-token",
+    "displayName": "FUZE Token",
+    "contractAddress": "0x187D1018E8ef879BE4194d6eD7590987463eAD85",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SUSD",
+    "identifier": "susd",
+    "displayName": "sUSD",
+    "contractAddress": "0x57Ab1ec28D129707052df4dF418D58a2D46d5f51",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "YO",
+    "identifier": "yobit-token",
+    "displayName": "Yobit Token",
+    "contractAddress": "0xeBF4CA5319F406602EEFf68da16261f1216011B5",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BSC",
+    "identifier": "bitsonic-token",
+    "displayName": "Bitsonic Token",
+    "contractAddress": "0xe541504417670FB76b612B41B4392d967a1956c7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CDAI",
+    "identifier": "cdai",
+    "displayName": "cDAI",
+    "contractAddress": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CUSDC",
+    "identifier": "cusdc",
+    "displayName": "cUSDC",
+    "contractAddress": "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "INFT",
+    "identifier": "infinito",
+    "displayName": "Infinito",
+    "contractAddress": "0x83d60E7aED59c6829fb251229061a55F35432c4d",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "THKD",
+    "identifier": "truehkd",
+    "displayName": "TrueHKD",
+    "contractAddress": "0x0000852600CEB001E08e00bC008be620d60031F2",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "USDN",
+    "identifier": "neutrino-usd",
+    "displayName": "Neutrino USD",
+    "contractAddress": "0x674C6Ad92Fd080e4004b2312b45f796a192D27a0",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SHIT",
+    "identifier": "shitcoin",
+    "displayName": "ShitCoin",
+    "contractAddress": "0xaa7FB1c8cE6F18d4fD4Aabb61A2193d4D441c54F",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XAUT",
+    "identifier": "tether-gold",
+    "displayName": "Tether Gold",
+    "contractAddress": "0x4922a015c4407F87432B179bb209e125432E4a2A",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CETH",
+    "identifier": "ceth",
+    "displayName": "cETH",
+    "contractAddress": "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CZRX",
+    "identifier": "c0x",
+    "displayName": "c0x",
+    "contractAddress": "0xB3319f5D18Bc0D84dD1b4825Dcde5d5f7266d407",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UMA",
+    "identifier": "uma",
+    "displayName": "UMA",
+    "contractAddress": "0x04Fa0d235C4abf4BcF4787aF4CF447DE572eF828",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ADAI",
+    "identifier": "aave-dai",
+    "displayName": "Aave DAI",
+    "contractAddress": "0xfC1E690f61EFd961294b3e1Ce3313fBD8aa4f85d",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XOR",
+    "identifier": "sora",
+    "displayName": "Sora",
+    "contractAddress": "0x40FD72257597aA14C7231A7B1aaa29Fce868F677",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RENBTC",
+    "identifier": "renbtc",
+    "displayName": "renBTC",
+    "contractAddress": "0xEB4C2781e4ebA804CE9a9803C67d0893436bB27D",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MATH",
+    "identifier": "math",
+    "displayName": "MATH",
+    "contractAddress": "0x08d967bb0134F2d07f7cfb6E246680c53927DD30",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MUSD",
+    "identifier": "mstable-usd",
+    "displayName": "mStable USD",
+    "contractAddress": "0xe2f2a5C287993345a840Db3B0845fbC70f5935a5",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CUSDT",
+    "identifier": "cusdt",
+    "displayName": "cUSDT",
+    "contractAddress": "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CHI",
+    "identifier": "chi-gastoken",
+    "displayName": "Chi Gastoken",
+    "contractAddress": "0x0000000000004946c0e9F43F4Dee607b0eF1fA1c",
+    "precision": 0,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ALINK",
+    "identifier": "aave-link",
+    "displayName": "Aave LINK",
+    "contractAddress": "0xA64BD6C70Cb9051F6A9ba1F163Fdc07E0DfB5F84",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "KARMA",
+    "identifier": "karma-dao",
+    "displayName": "Karma DAO",
+    "contractAddress": "0xdfe691F37b6264a90Ff507EB359C45d55037951C",
+    "precision": 4,
+    "network": "ETH"
+  },
+  {
+    "symbol": "WNXM",
+    "identifier": "wrapped-nxm",
+    "displayName": "Wrapped NXM",
+    "contractAddress": "0x0d438F3b5175Bebc262bF23753C1E53d03432bDE",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PRQ",
+    "identifier": "parsiq",
+    "displayName": "PARSIQ",
+    "contractAddress": "0x362bc847A3a9637d3af6624EeC853618a43ed7D2",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CREAM",
+    "identifier": "cream-finance",
+    "displayName": "Cream",
+    "contractAddress": "0x2ba592F78dB6436527729929AAf6c908497cB200",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "YFL",
+    "identifier": "yf-link",
+    "displayName": "YF Link",
+    "contractAddress": "0x28cb7e841ee97947a86B06fA4090C8451f64c0be",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CHERRY",
+    "identifier": "cherry",
+    "displayName": "Cherry",
+    "contractAddress": "0x4eCB692B0fEDeCD7B486b4c99044392784877E8C",
+    "precision": 4,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SAND",
+    "identifier": "sand",
+    "displayName": "SAND",
+    "contractAddress": "0x3845badAde8e6dFF049820680d1F14bD3903a5d0",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DDIM",
+    "identifier": "duckdaodime",
+    "displayName": "DuckDaoDime",
+    "contractAddress": "0xFbEEa1C75E4c4465CB2FCCc9c6d6afe984558E20",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MORK",
+    "identifier": "mork",
+    "displayName": "MORK",
+    "contractAddress": "0xf552b656022c218C26dAd43ad88881Fc04116F76",
+    "precision": 4,
+    "network": "ETH"
+  },
+  {
+    "symbol": "YVAULT-LP-YCURVE",
+    "identifier": "yusd",
+    "displayName": "yUSD",
+    "contractAddress": "0x5dbcF33D8c2E976c6b560249878e6F1491Bca25c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FARM",
+    "identifier": "harvest-finance",
+    "displayName": "Harvest Finance",
+    "contractAddress": "0xa0246c9032bC3A600820415aE600c6388619A14D",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PERP",
+    "identifier": "perpetual-protocol",
+    "displayName": "Perpetual Protocol",
+    "contractAddress": "0xbC396689893D065F41bc2C6EcbeE5e0085233447",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ALBT",
+    "identifier": "allianceblock",
+    "displayName": "AllianceBlock",
+    "contractAddress": "0x00a8b738E453fFd858a7edf03bcCfe20412f0Eb0",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HBTC",
+    "identifier": "huobi-btc",
+    "displayName": "Huobi BTC",
+    "contractAddress": "0x0316EB71485b0Ab14103307bf65a021042c6d380",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ESD",
+    "identifier": "empty-set-dollar",
+    "displayName": "Empty Set Dollar",
+    "contractAddress": "0x36F3FD68E7325a35EB768F1AedaAe9EA0689d723",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HEGIC",
+    "identifier": "hegic",
+    "displayName": "Hegic",
+    "contractAddress": "0x584bC13c7D411c00c01A62e8019472dE68768430",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DPI",
+    "identifier": "defipulse-index",
+    "displayName": "DeFiPulse Index",
+    "contractAddress": "0x1494CA1F11D487c2bBe4543E90080AeBa4BA3C2b",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "YAM",
+    "identifier": "yam",
+    "displayName": "YAM",
+    "contractAddress": "0x0AaCfbeC6a24756c20D41914F2caba817C0d8521",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CORE",
+    "identifier": "cvault-finance",
+    "displayName": "cVault finance",
+    "contractAddress": "0x62359Ed7505Efc61FF1D56fEF82158CcaffA23D7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AAVE",
+    "identifier": "aave",
+    "displayName": "Aave",
+    "contractAddress": "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "POLS",
+    "identifier": "polkastarter",
+    "displayName": "Polkastarter",
+    "contractAddress": "0x83e6f1E41cdd28eAcEB20Cb649155049Fac3D5Aa",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UST",
+    "identifier": "terrausd",
+    "displayName": "TerraUSD",
+    "contractAddress": "0xa47c8bf37f92aBed4A126BDA807A7b7498661acD",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "INJ",
+    "identifier": "injective-protocol",
+    "displayName": "Injective Protocol",
+    "contractAddress": "0xe28b3B32B6c345A34Ff64674606124Dd5Aceca30",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RFOX",
+    "identifier": "redfox-labs",
+    "displayName": "RedFOX Labs",
+    "contractAddress": "0xa1d6Df714F91DeBF4e0802A542E13067f31b8262",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ROOK",
+    "identifier": "keeperdao",
+    "displayName": "KeeperDAO",
+    "contractAddress": "0xfA5047c9c78B8877af97BDcb85Db743fD7313d4a",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AXS",
+    "identifier": "axie-infinity",
+    "displayName": "Axie Infinity",
+    "contractAddress": "0xF5D669627376EBd411E34b98F19C868c8ABA5ADA",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AXN",
+    "identifier": "axion",
+    "displayName": "Axion",
+    "contractAddress": "0x71F85B2E46976bD21302B64329868fd15eb0D127",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SKL",
+    "identifier": "skale",
+    "displayName": "SKALE",
+    "contractAddress": "0x00c83aeCC790e8a4453e5dD3B0B4b3680501a7A7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "EXRD",
+    "identifier": "e-radix",
+    "displayName": "e Radix",
+    "contractAddress": "0x6468e79A80C0eaB0F9A2B574c8d5bC374Af59414",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "COVER",
+    "identifier": "cover-protocol",
+    "displayName": "Cover Protocol",
+    "contractAddress": "0x5D8d9F5b96f4438195BE9b99eee6118Ed4304286",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BAC",
+    "identifier": "basis-cash",
+    "displayName": "Basis Cash",
+    "contractAddress": "0x3449FC1Cd036255BA1EB19d65fF4BA2b8903A69a",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BAS",
+    "identifier": "basis-share",
+    "displayName": "Basis Share",
+    "contractAddress": "0xa7ED29B253D8B4E3109ce07c80fc570f81B63696",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "API3",
+    "identifier": "api3",
+    "displayName": "API3",
+    "contractAddress": "0x0b38210ea11411557c13457D4dA7dC6ea731B88a",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MIR",
+    "identifier": "mirror-protocol",
+    "displayName": "Mirror Protocol",
+    "contractAddress": "0x09a3EcAFa817268f77BE1283176B946C4ff2E608",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "WOZX",
+    "identifier": "efforce",
+    "displayName": "Efforce",
+    "contractAddress": "0x34950Ff2b487d9E5282c5aB342d08A2f712eb79F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AETH",
+    "identifier": "ankreth",
+    "displayName": "ankrETH",
+    "contractAddress": "0xE95A203B1a91a908F9B9CE46459d101078c2c3cb",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FRAX",
+    "identifier": "frax",
+    "displayName": "Frax",
+    "contractAddress": "0x853d955aCEf822Db058eb8505911ED77F175b99e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DDX",
+    "identifier": "derivadao",
+    "displayName": "DerivaDAO",
+    "contractAddress": "0x3A880652F47bFaa771908C07Dd8673A787dAEd3A",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MIS",
+    "identifier": "themis",
+    "displayName": "Themis",
+    "contractAddress": "0xCD1cb16a67937ff8Af5D726e2681010cE1E9891a",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PTOY",
+    "identifier": "patientory",
+    "displayName": "Patientory",
+    "contractAddress": "0x8Ae4BF2C33a8e667de34B54938B0ccD03Eb8CC06",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PLBT",
+    "identifier": "polybius",
+    "displayName": "Polybius",
+    "contractAddress": "0x0AfFa06e7Fbe5bC9a764C979aA66E8256A631f02",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "VGX",
+    "identifier": "voyager-token",
+    "displayName": "Voyager Token",
+    "contractAddress": "0x5Af2Be193a6ABCa9c8817001F45744777Db30756",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PLR",
+    "identifier": "pillar",
+    "displayName": "Pillar",
+    "contractAddress": "0xe3818504c1B32bF1557b16C238B2E01Fd3149C17",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "IXT",
+    "identifier": "ixledger",
+    "displayName": "iXledger",
+    "contractAddress": "0xfcA47962D45ADFdfd1Ab2D972315dB4ce7CCf094",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MSP",
+    "identifier": "mothership",
+    "displayName": "Mothership",
+    "contractAddress": "0x68AA3F232dA9bdC2343465545794ef3eEa5209BD",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "IND",
+    "identifier": "indorse-token",
+    "displayName": "Indorse",
+    "contractAddress": "0xf8e386EDa857484f5a12e4B5DAa9984E06E73705",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DCN",
+    "identifier": "dentacoin",
+    "displayName": "Dentacoin",
+    "contractAddress": "0x08d32b0da63e2C3bcF8019c9c5d849d7a9d791e6",
+    "precision": 0,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AVT",
+    "identifier": "aventus",
+    "displayName": "Aventus",
+    "contractAddress": "0x0d88eD6E74bbFD96B831231638b66C05571e824F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "POE",
+    "identifier": "poet",
+    "displayName": "Po et",
+    "contractAddress": "0x0e0989b1f9B8A38983c2BA8053269Ca62Ec9B195",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TNT",
+    "identifier": "tierion",
+    "displayName": "Tierion",
+    "contractAddress": "0x08f5a9235B08173b7569F83645d2c7fB55e8cCD8",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DAY",
+    "identifier": "chronologic",
+    "displayName": "Chronologic",
+    "contractAddress": "0xE814aeE960a85208C3dB542C53E7D4a6C8D5f60F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HBT",
+    "identifier": "hubii-network",
+    "displayName": "Hubii Network",
+    "contractAddress": "0xDd6C68bb32462e01705011a4e2Ad1a60740f217F",
+    "precision": 15,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ALIS",
+    "identifier": "alis",
+    "displayName": "ALIS",
+    "contractAddress": "0xEA610B1153477720748DC13ED378003941d84fAB",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HGT",
+    "identifier": "hellogold",
+    "displayName": "HelloGold",
+    "contractAddress": "0xba2184520A1cC49a6159c57e61E1844E085615B6",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CND",
+    "identifier": "cindicator",
+    "displayName": "Cindicator",
+    "contractAddress": "0xd4c435F5B09F855C3317c8524Cb1F586E42795fa",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ENG",
+    "identifier": "enigma-project",
+    "displayName": "Enigma",
+    "contractAddress": "0xf0Ee6b27b759C9893Ce4f094b49ad28fd15A23e4",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AST",
+    "identifier": "airswap",
+    "displayName": "AirSwap",
+    "contractAddress": "0x27054b13b1B798B345b591a4d22e6562d47eA75a",
+    "precision": 4,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CAG",
+    "identifier": "change",
+    "displayName": "Change",
+    "contractAddress": "0x7d4b8Cce0591C9044a22ee543533b72E976E36C3",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "REQ",
+    "identifier": "request-network",
+    "displayName": "Request",
+    "contractAddress": "0x8f8221aFbB33998d8584A2B05749bA73c37a938a",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BLUE",
+    "identifier": "ethereum-blue",
+    "displayName": "Blue Protocol",
+    "contractAddress": "0x539EfE69bCDd21a83eFD9122571a64CC25e0282b",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MOD",
+    "identifier": "modum",
+    "displayName": "Modum",
+    "contractAddress": "0x957c30aB0426e0C93CD8241E2c60392d08c6aC8e",
+    "precision": 0,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AMB",
+    "identifier": "amber",
+    "displayName": "Ambrosus",
+    "contractAddress": "0x4DC3643DbC642b72C158E7F3d2ff232df61cb6CE",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "EXRN",
+    "identifier": "exrnchain",
+    "displayName": "EXRNchain",
+    "contractAddress": "0xe469c4473af82217B30CF17b10BcDb6C8c796e75",
+    "precision": 0,
+    "network": "ETH"
+  },
+  {
+    "symbol": "IETH",
+    "identifier": "iethereum",
+    "displayName": "iEthereum",
+    "contractAddress": "0x859a9C0b44cb7066D956a958B0b82e54C9e44b4B",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DOV",
+    "identifier": "dovu",
+    "displayName": "Dovu",
+    "contractAddress": "0xac3211a5025414Af2866FF09c23FC18bc97e79b1",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ENJ",
+    "identifier": "enjin-coin",
+    "displayName": "Enjin Coin",
+    "contractAddress": "0xF629cBd94d3791C9250152BD8dfBDF380E2a3B9c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "POWR",
+    "identifier": "power-ledger",
+    "displayName": "Power Ledger",
+    "contractAddress": "0x595832F8FC6BF59c85C527fEC3740A1b7a361269",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GRID",
+    "identifier": "grid",
+    "displayName": "Grid",
+    "contractAddress": "0x12B19D3e2ccc14Da04FAe33e63652ce469b3F2FD",
+    "precision": 12,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ATL",
+    "identifier": "atlant",
+    "displayName": "Atlant",
+    "contractAddress": "0x78B7FADA55A64dD895D8c8c35779DD8b67fA8a05",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DATA",
+    "identifier": "streamr",
+    "displayName": "Streamr DATAcoin",
+    "contractAddress": "0x0Cf0Ee63788A0849fE5297F3407f701E122cC023",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RDN",
+    "identifier": "raiden-network-token",
+    "displayName": "Raiden Network Toke",
+    "contractAddress": "0x255Aa6DF07540Cb5d3d297f0D0D4D84cb52bc8e6",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ERC20",
+    "identifier": "erc20",
+    "displayName": "ERC20",
+    "contractAddress": "0xc3761EB917CD790B30dAD99f6Cc5b4Ff93C4F9eA",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DENT",
+    "identifier": "dent",
+    "displayName": "Dent",
+    "contractAddress": "0x3597bfD533a99c9aa083587B074434E61Eb0A258",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UFR",
+    "identifier": "upfiring",
+    "displayName": "Upfiring",
+    "contractAddress": "0xEA097A2b1dB00627B2Fa17460Ad260c016016977",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GVT",
+    "identifier": "genesis-vision",
+    "displayName": "Genesis Vision",
+    "contractAddress": "0x103c3A209da59d3E7C4A89307e66521e081CFDF0",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DNA",
+    "identifier": "encrypgen",
+    "displayName": "EncrypGen",
+    "contractAddress": "0x82b0E50478eeaFde392D45D1259Ed1071B6fDa81",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "QSP",
+    "identifier": "quantstamp",
+    "displayName": "Quantstamp",
+    "contractAddress": "0x99ea4dB9EE77ACD40B119BD1dC4E33e1C070b80d",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PBL",
+    "identifier": "publica",
+    "displayName": "Pebbles",
+    "contractAddress": "0x55648De19836338549130B1af587F16beA46F66B",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CDT",
+    "identifier": "blox",
+    "displayName": "Blox",
+    "contractAddress": "0x177d39AC676ED1C67A2b268AD7F1E58826E5B0af",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DICE",
+    "identifier": "etheroll",
+    "displayName": "Etheroll",
+    "contractAddress": "0x2e071D2966Aa7D8dECB1005885bA1977D6038A65",
+    "precision": 16,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MYB",
+    "identifier": "mybit",
+    "displayName": "MyBit Token",
+    "contractAddress": "0x5d60d8d7eF6d37E16EBABc324de3bE57f135e0BC",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FLIXX",
+    "identifier": "flixxo",
+    "displayName": "Flixxo",
+    "contractAddress": "0xf04a8ac553FceDB5BA99A64799155826C136b0Be",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ONG",
+    "identifier": "ongsocial",
+    "displayName": "SoMee Social",
+    "contractAddress": "0xd341d1680Eeee3255b8C4c75bCCE7EB57f144dAe",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DRGN",
+    "identifier": "dragonchain",
+    "displayName": "Dragonchain",
+    "contractAddress": "0x419c4dB4B9e25d6Db2AD9691ccb832C8D9fDA05E",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SNOV",
+    "identifier": "snovio",
+    "displayName": "Snovian Space",
+    "contractAddress": "0xBDC5bAC39Dbe132B1E030e898aE3830017D7d969",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MDS",
+    "identifier": "medishares",
+    "displayName": "MediShares",
+    "contractAddress": "0x66186008C1050627F979d464eABb258860563dbE",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LEND",
+    "identifier": "ethlend",
+    "displayName": "Aave OLD",
+    "contractAddress": "0x80fB784B7eD66730e8b1DBd9820aFD29931aab03",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "OST",
+    "identifier": "ost",
+    "displayName": "OST",
+    "contractAddress": "0x2C4e8f2D746113d0696cE89B35F0d8bF88E0AEcA",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BRD",
+    "identifier": "bread",
+    "displayName": "Bread",
+    "contractAddress": "0x558EC3152e2eb2174905cd19AeA4e34A23DE9aD6",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "STAR",
+    "identifier": "starbase",
+    "displayName": "Starbase",
+    "contractAddress": "0xF70a642bD387F94380fFb90451C2c81d4Eb82CBc",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MTX",
+    "identifier": "matryx",
+    "displayName": "MATRYX",
+    "contractAddress": "0x0AF44e2784637218dD1D32A322D44e603A8f0c6A",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LNC",
+    "identifier": "blocklancer",
+    "displayName": "Blocklancer",
+    "contractAddress": "0x63e634330A20150DbB61B15648bC73855d6CCF07",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CAT",
+    "identifier": "bitclave",
+    "displayName": "BitClave",
+    "contractAddress": "0x1234567461d3f8Db7496581774Bd869C83D51c93",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SNTR",
+    "identifier": "silent-notary",
+    "displayName": "Silent Notary",
+    "contractAddress": "0x2859021eE7F2Cb10162E67F33Af2D22764B31aFf",
+    "precision": 4,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BDG",
+    "identifier": "bitdegree",
+    "displayName": "BitDegree",
+    "contractAddress": "0x1961B3331969eD52770751fC718ef530838b6dEE",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SOLVE",
+    "identifier": "solve",
+    "displayName": "SOLVE",
+    "contractAddress": "0x446C9033E7516D820cc9a2ce2d0B7328b579406F",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RLX",
+    "identifier": "relex",
+    "displayName": "Relex",
+    "contractAddress": "0x4A42d2c580f83dcE404aCad18dab26Db11a1750E",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SRN",
+    "identifier": "sirin-labs-token",
+    "displayName": "Sirin Labs Token",
+    "contractAddress": "0x68d57c9a1C35f63E2c83eE8e49A64e9d70528D25",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TRAC",
+    "identifier": "origintrail",
+    "displayName": "OriginTrail",
+    "contractAddress": "0xaA7a9CA87d3694B5755f213B5D04094b8d0F0A6F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NUG",
+    "identifier": "nuggets",
+    "displayName": "Nuggets",
+    "contractAddress": "0x245ef47D4d0505ECF3Ac463F4d81f41ADE8f1fd1",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GET",
+    "identifier": "get-protocol",
+    "displayName": "GET Protocol",
+    "contractAddress": "0x8a854288a5976036A725879164Ca3e91d30c6A1B",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FTX",
+    "identifier": "fintrux-network",
+    "displayName": "FintruX",
+    "contractAddress": "0xd559f20296FF4895da39b5bd9ADd54b442596a61",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MNTP",
+    "identifier": "goldmint",
+    "displayName": "Goldmint",
+    "contractAddress": "0x83cee9e086A77e492eE0bB93C2B0437aD6fdECCc",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "JNT",
+    "identifier": "jibrel-network",
+    "displayName": "Jibrel Network",
+    "contractAddress": "0xa5Fd1A791C4dfcaacC963D4F73c6Ae5824149eA7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "KEY",
+    "identifier": "selfkey",
+    "displayName": "SelfKey",
+    "contractAddress": "0x4CC19356f2D37338b9802aa8E8fc58B0373296E7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GZE",
+    "identifier": "gazecoin",
+    "displayName": "GazeCoin",
+    "contractAddress": "0x4AC00f287f36A6Aad655281fE1cA6798C9cb727b",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XPAT",
+    "identifier": "bitnation",
+    "displayName": "Pangea Arbitration",
+    "contractAddress": "0xBB1fA4FdEB3459733bF67EbC6f893003fA976a82",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RPL",
+    "identifier": "rocket-pool",
+    "displayName": "Rocket Pool",
+    "contractAddress": "0xB4EFd85c19999D84251304bDA99E90B92300Bd93",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CV",
+    "identifier": "carvertical",
+    "displayName": "carVertical",
+    "contractAddress": "0xdA6cb58A0D0C01610a29c5A65c303e13e885887C",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SETH",
+    "identifier": "sether",
+    "displayName": "Sether",
+    "contractAddress": "0x78B039921E84E726EB72E7b1212bb35504c645cA",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RFR",
+    "identifier": "refereum",
+    "displayName": "Refereum",
+    "contractAddress": "0xd0929d411954c47438dc1d871dd6081F5C5e149c",
+    "precision": 4,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ZMN",
+    "identifier": "zmine",
+    "displayName": "ZMINE",
+    "contractAddress": "0x554FFc77F4251a9fB3c0E3590a6a205f8d4e067D",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PKT",
+    "identifier": "playkey",
+    "displayName": "PlayKey",
+    "contractAddress": "0x2604FA406Be957E542BEb89E6754fCdE6815e83f",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CHSB",
+    "identifier": "swissborg",
+    "displayName": "SwissBorg",
+    "contractAddress": "0xba9d4199faB4f26eFE3551D490E3821486f135Ba",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "REM",
+    "identifier": "remme",
+    "displayName": "Remme",
+    "contractAddress": "0x83984d6142934bb535793A82ADB0a46EF0F66B6d",
+    "precision": 4,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TAU",
+    "identifier": "lamden",
+    "displayName": "Lamden",
+    "contractAddress": "0xc27A2F05fa577a83BA0fDb4c38443c0718356501",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AUC",
+    "identifier": "auctus",
+    "displayName": "Auctus",
+    "contractAddress": "0xc12d099be31567add4e4e4d0D45691C3F58f5663",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NPXS",
+    "identifier": "pundi-x",
+    "displayName": "Pundi X",
+    "contractAddress": "0xA15C7Ebe1f07CaF6bFF097D8a589fb8AC49Ae5B3",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ZAP",
+    "identifier": "zap",
+    "displayName": "Zap",
+    "contractAddress": "0x6781a0F84c7E9e846DCb84A9a5bd49333067b104",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BKX",
+    "identifier": "bankex",
+    "displayName": "BANKEX",
+    "contractAddress": "0x45245bc59219eeaAF6cD3f382e078A461FF9De7B",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CPAY",
+    "identifier": "cryptopay",
+    "displayName": "Cryptopay",
+    "contractAddress": "0x0Ebb614204E47c09B6C3FeB9AAeCad8EE060E23E",
+    "precision": 0,
+    "network": "ETH"
+  },
+  {
+    "symbol": "WAND",
+    "identifier": "wandx",
+    "displayName": "WandX",
+    "contractAddress": "0x27f610BF36ecA0939093343ac28b1534a721DBB4",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PLAY",
+    "identifier": "herocoin",
+    "displayName": "HEROcoin",
+    "contractAddress": "0xE477292f1B3268687A29376116B0ED27A9c76170",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TEN",
+    "identifier": "tokenomy",
+    "displayName": "Tokenomy",
+    "contractAddress": "0xDD16eC0F66E54d453e6756713E533355989040E4",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PMA",
+    "identifier": "pumapay",
+    "displayName": "PumaPay",
+    "contractAddress": "0x846C66cf71C43f80403B51fE3906B3599D63336f",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SWFTC",
+    "identifier": "swftcoin",
+    "displayName": "SWFT Blockchain",
+    "contractAddress": "0x0bb217E40F8a5Cb79Adf04E1aAb60E5abd0dfC1e",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AMN",
+    "identifier": "amon",
+    "displayName": "Amon",
+    "contractAddress": "0x737F98AC8cA59f2C68aD658E3C3d8C8963E40a4c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MRPH",
+    "identifier": "morpheus-network",
+    "displayName": "Morpheus Network",
+    "contractAddress": "0x7B0C06043468469967DBA22d1AF33d77d44056c8",
+    "precision": 4,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AIDOC",
+    "identifier": "aidoc",
+    "displayName": "AI Doctor",
+    "contractAddress": "0x584B44853680ee34a0F337B712a8f66d816dF151",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XBP",
+    "identifier": "blitzpredict",
+    "displayName": "BlitzPredict",
+    "contractAddress": "0x28dee01D53FED0Edf5f6E310BF8Ef9311513Ae40",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "JET",
+    "identifier": "jetcoin",
+    "displayName": "Jetcoin",
+    "contractAddress": "0x8727c112C712c4a03371AC87a74dD6aB104Af768",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CMS",
+    "identifier": "comsa-eth",
+    "displayName": "COMSA",
+    "contractAddress": "0xF83301c5Cd1CCBB86f466A6B3c53316ED2f8465a",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "QUN",
+    "identifier": "qunqun",
+    "displayName": "QunQun",
+    "contractAddress": "0x264Dc2DedCdcbb897561A57CBa5085CA416fb7b4",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LEV",
+    "identifier": "leverj",
+    "displayName": "Leverj",
+    "contractAddress": "0x0F4CA92660Efad97a9a70CB0fe969c755439772C",
+    "precision": 9,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UGC",
+    "identifier": "ugchain",
+    "displayName": "ugChain",
+    "contractAddress": "0xf485C5E679238f9304D986bb2fC28fE3379200e5",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "OCN",
+    "identifier": "odyssey",
+    "displayName": "Odyssey",
+    "contractAddress": "0x4092678e4E78230F46A1534C0fbc8fA39780892B",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "IDEX",
+    "identifier": "idex",
+    "displayName": "IDEX",
+    "contractAddress": "0xB705268213D593B8FD88d3FDEFF93AFF5CbDcfAE",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AAC",
+    "identifier": "acute-angle-cloud",
+    "displayName": "Acute Angle Cloud",
+    "contractAddress": "0xe75ad3aAB14E4B0dF8c5da4286608DaBb21Bd864",
+    "precision": 5,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CXO",
+    "identifier": "cargox",
+    "displayName": "CargoX",
+    "contractAddress": "0xb6EE9668771a79be7967ee29a63D4184F8097143",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CEEK",
+    "identifier": "ceek-vr",
+    "displayName": "CEEK Smart VR Token",
+    "contractAddress": "0xb056c38f6b7Dc4064367403E26424CD2c60655e1",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SPN",
+    "identifier": "sapien",
+    "displayName": "Sapien",
+    "contractAddress": "0x20F7A3DdF244dc9299975b4Da1C39F8D5D75f05A",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DTA",
+    "identifier": "data",
+    "displayName": "DATA",
+    "contractAddress": "0x69b148395Ce0015C13e36BFfBAd63f49EF874E03",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MOF",
+    "identifier": "molecular-future",
+    "displayName": "Molecular Future",
+    "contractAddress": "0x653430560bE843C4a3D143d0110e896c2Ab8ac0D",
+    "precision": 16,
+    "network": "ETH"
+  },
+  {
+    "symbol": "VIEW",
+    "identifier": "view",
+    "displayName": "View",
+    "contractAddress": "0xF03f8D65BaFA598611C3495124093c56e8F638f0",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TBX",
+    "identifier": "tokenbox",
+    "displayName": "Tokenbox",
+    "contractAddress": "0x3A92bD396aEf82af98EbC0Aa9030D25a23B11C6b",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BLT",
+    "identifier": "bloomtoken",
+    "displayName": "Bloom",
+    "contractAddress": "0x107c4504cd79C5d2696Ea0030a8dD4e92601B82e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AMLT",
+    "identifier": "amlt",
+    "displayName": "AMLT Network",
+    "contractAddress": "0xCA0e7269600d353F70b14Ad118A49575455C0f2f",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HLC",
+    "identifier": "halalchain",
+    "displayName": "HalalChain",
+    "contractAddress": "0x58c69ed6cd6887c0225D1FcCEcC055127843c69b",
+    "precision": 9,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CPC",
+    "identifier": "cpchain",
+    "displayName": "CPChain",
+    "contractAddress": "0xfAE4Ee59CDd86e3Be9e8b90b53AA866327D7c090",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PARETO",
+    "identifier": "pareto-network",
+    "displayName": "PARETO Rewards",
+    "contractAddress": "0xea5f88E54d982Cbb0c441cde4E79bC305e5b43Bc",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BANCA",
+    "identifier": "banca",
+    "displayName": "Banca",
+    "contractAddress": "0x998b3B82bC9dBA173990Be7afb772788B5aCB8Bd",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HOT",
+    "identifier": "hydro-protocol",
+    "displayName": "Hydro Protocol",
+    "contractAddress": "0x9AF839687F6C94542ac5ece2e317dAAE355493A1",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NCT",
+    "identifier": "polyswarm",
+    "displayName": "PolySwarm",
+    "contractAddress": "0x9E46A38F5DaaBe8683E10793b06749EEF7D733d1",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BLZ",
+    "identifier": "bluzelle",
+    "displayName": "Bluzelle",
+    "contractAddress": "0x5732046A883704404F284Ce41FfADd5b007FD668",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MTN",
+    "identifier": "medical-chain",
+    "displayName": "Medicalchain",
+    "contractAddress": "0x41dBECc1cdC5517C6f76f6a6E836aDbEe2754DE3",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CRD",
+    "identifier": "cryptaldash",
+    "displayName": "CryptalDash",
+    "contractAddress": "0xcAaa93712BDAc37f736C323C93D4D5fDEFCc31CC",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ESZ",
+    "identifier": "ethersportz",
+    "displayName": "EtherSportz",
+    "contractAddress": "0xe8A1Df958bE379045E2B46a31A98B93A2eCDfDeD",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SS",
+    "identifier": "sharder",
+    "displayName": "Sharder protocol",
+    "contractAddress": "0xbbFF862d906E348E9946Bfb2132ecB157Da3D4b4",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CMCT",
+    "identifier": "crowd-machine",
+    "displayName": "Crowd Machine",
+    "contractAddress": "0x47bc01597798DCD7506DCCA36ac4302fc93a8cFb",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LND",
+    "identifier": "lendingblock",
+    "displayName": "Lendingblock",
+    "contractAddress": "0x0947b0e6D821378805c9598291385CE7c791A6B2",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "C8",
+    "identifier": "carboneum-c8-token",
+    "displayName": "Carboneum",
+    "contractAddress": "0xd42debE4eDc92Bd5a3FBb4243e1ecCf6d63A4A5d",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "XNK",
+    "identifier": "ink-protocol",
+    "displayName": "Ink Protocol",
+    "contractAddress": "0xBC86727E770de68B1060C91f6BB6945c73e10388",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MITX",
+    "identifier": "morpheus-labs",
+    "displayName": "Morpheus Labs",
+    "contractAddress": "0x4a527d8fc13C5203AB24BA0944F4Cb14658D1Db6",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "OMX",
+    "identifier": "shivom",
+    "displayName": "Project SHIVOM",
+    "contractAddress": "0xB5DBC6D3cf380079dF3b27135664b6BCF45D1869",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MET",
+    "identifier": "metronome",
+    "displayName": "Metronome",
+    "contractAddress": "0xa3d58c4E56fedCae3a7c43A725aeE9A71F0ece4e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CEL",
+    "identifier": "celsius",
+    "displayName": "Celsius Network",
+    "contractAddress": "0xaaAEBE6Fe48E54f431b0C390CfaF0b017d09D42d",
+    "precision": 4,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ATMI",
+    "identifier": "atonomi",
+    "displayName": "Atonomi",
+    "contractAddress": "0x97AEB5066E1A590e868b511457BEb6FE99d329F5",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "OGN",
+    "identifier": "origin-protocol",
+    "displayName": "Origin Protocol",
+    "contractAddress": "0x8207c1FfC5B6804F6024322CcF34F29c3541Ae26",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DML",
+    "identifier": "decentralized-machine-learning",
+    "displayName": "Decentralized Machi",
+    "contractAddress": "0xbCdfE338D55c061C084D81fD793Ded00A27F226D",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AKRO",
+    "identifier": "akropolis",
+    "displayName": "Akropolis",
+    "contractAddress": "0x8Ab7404063Ec4DBcfd4598215992DC3F8EC853d7",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NCC",
+    "identifier": "neurochain",
+    "displayName": "NeuroChain",
+    "contractAddress": "0x5d48F293BaED247A2D0189058bA37aa238bD4725",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UPP",
+    "identifier": "sentinel-protocol",
+    "displayName": "Sentinel Protocol",
+    "contractAddress": "0xC86D054809623432210c107af2e3F619DcFbf652",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "QNT",
+    "identifier": "quant",
+    "displayName": "Quant",
+    "contractAddress": "0x4a220E6096B25EADb88358cb44068A3248254675",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LOOM",
+    "identifier": "loom-network",
+    "displayName": "Loom Network",
+    "contractAddress": "0xA4e8C3Ec456107eA67d3075bF9e3DF3A75823DB0",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CENNZ",
+    "identifier": "centrality",
+    "displayName": "Centrality",
+    "contractAddress": "0x1122B6a0E00DCe0563082b6e2953f3A943855c1F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ELEC",
+    "identifier": "electrifyasia",
+    "displayName": "Electrify Asia",
+    "contractAddress": "0xD49ff13661451313cA1553fd6954BD1d9b6E02b9",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NANJ",
+    "identifier": "nanjcoin",
+    "displayName": "NANJCOIN",
+    "contractAddress": "0xFFE02ee4C69eDf1b340fCaD64fbd6b37a7b9e265",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UP",
+    "identifier": "uptoken",
+    "displayName": "UpToken",
+    "contractAddress": "0x6Ba460AB75Cd2c56343b3517ffeBA60748654D26",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "1WO",
+    "identifier": "1world",
+    "displayName": "1World",
+    "contractAddress": "0xfDBc1aDc26F0F8f8606a5d63b7D3a3CD21c22B23",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BFT",
+    "identifier": "bnktothefuture",
+    "displayName": "BnkToTheFuture",
+    "contractAddress": "0x01fF50f8b7f74E4f00580d9596cd3D0d6d6E326f",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MVL",
+    "identifier": "mass-vehicle-ledger",
+    "displayName": "MVL",
+    "contractAddress": "0xA849EaaE994fb86Afa73382e9Bd88c2B6b18Dc71",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "GEN",
+    "identifier": "daostack",
+    "displayName": "DAOstack",
+    "contractAddress": "0x543Ff227F64Aa17eA132Bf9886cAb5DB55DCAddf",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NEC",
+    "identifier": "nectar",
+    "displayName": "Deversifi Nectar To",
+    "contractAddress": "0xCc80C051057B774cD75067Dc48f8987C4Eb97A5e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SENT",
+    "identifier": "sentinel",
+    "displayName": "Sentinel",
+    "contractAddress": "0xa44E5137293E855B1b7bC7E2C6f8cD796fFCB037",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CBT",
+    "identifier": "commerceblock",
+    "displayName": "CommerceBlock Token",
+    "contractAddress": "0x076C97e1c869072eE22f8c91978C99B4bcB02591",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LBA",
+    "identifier": "libra-credit",
+    "displayName": "LibraToken",
+    "contractAddress": "0xfe5F141Bf94fE84bC28deD0AB966c16B17490657",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HYDRO",
+    "identifier": "hydrogen",
+    "displayName": "Hydro",
+    "contractAddress": "0xEBBdf302c940c6bfd49C6b165f457fdb324649bc",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "EDR",
+    "identifier": "endor-protocol",
+    "displayName": "Endor Protocol Toke",
+    "contractAddress": "0xc528c28FEC0A90C083328BC45f587eE215760A0F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "IHF",
+    "identifier": "invictus-hyperion-fund",
+    "displayName": "Invictus Hyperion F",
+    "contractAddress": "0xaF1250fa68D7DECD34fD75dE8742Bc03B29BD58e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MFT",
+    "identifier": "mainframe",
+    "displayName": "Mainframe",
+    "contractAddress": "0xDF2C7238198Ad8B389666574f2d8bc411A4b7428",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PNK",
+    "identifier": "kleros",
+    "displayName": "Kleros",
+    "contractAddress": "0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "QKC",
+    "identifier": "quarkchain",
+    "displayName": "QuarkChain",
+    "contractAddress": "0xEA26c4aC16D4a5A106820BC8AEE85fd0b7b2b664",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "OXT",
+    "identifier": "orchid",
+    "displayName": "Orchid Protocol",
+    "contractAddress": "0x4575f41308EC1483f3d399aa9a2826d74Da13Deb",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DOCK",
+    "identifier": "dock",
+    "displayName": "Dock",
+    "contractAddress": "0xE5Dada80Aa6477e85d09747f2842f7993D0Df71C",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SHIP",
+    "identifier": "shipchain",
+    "displayName": "ShipChain",
+    "contractAddress": "0xe25b0BBA01Dc5630312B6A21927E578061A13f55",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LCS",
+    "identifier": "local-coin-swap",
+    "displayName": "LocalCoinSwap",
+    "contractAddress": "0xAA19961b6B858D9F18a115f25aa1D98ABc1fdBA8",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FTM",
+    "identifier": "fantom",
+    "displayName": "Fantom",
+    "contractAddress": "0x4E15361FD6b4BB609Fa63C81A2be19d873717870",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "MT",
+    "identifier": "mytoken",
+    "displayName": "MyToken",
+    "contractAddress": "0x9b4e2B4B13d125238Aa0480dD42B4f6fC71b37CC",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UBEX",
+    "identifier": "ubex",
+    "displayName": "Ubex",
+    "contractAddress": "0x6704B673c70dE9bF74C8fBa4b4bd748F0e2190E1",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DGX",
+    "identifier": "digix-gold-token",
+    "displayName": "Digix Gold",
+    "contractAddress": "0x4f3AfEC4E5a3F2A6a1A411DEF7D7dFe50eE057bF",
+    "precision": 9,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PNT",
+    "identifier": "penta",
+    "displayName": "Penta Network Token",
+    "contractAddress": "0x53066cdDBc0099eb6c96785d9b3DF2AAeEDE5DA3",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ZIPT",
+    "identifier": "zippie",
+    "displayName": "Zippie",
+    "contractAddress": "0xEDD7c94FD7B4971b916d15067Bc454b9E1bAD980",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "UCT",
+    "identifier": "ubique-chain-of-things",
+    "displayName": "Ubique Chain of Thi",
+    "contractAddress": "0x3c4bEa627039F0B7e7d21E34bB9C9FE962977518",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "PKG",
+    "identifier": "pkg-token",
+    "displayName": "PKG Token",
+    "contractAddress": "0x02F2D4a04E6E01aCE88bD2Cd632875543b2eF577",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HAND",
+    "identifier": "showhand",
+    "displayName": "ShowHand",
+    "contractAddress": "0x48C1B2f3eFA85fbafb2ab951bF4Ba860a08cdBB7",
+    "precision": 0,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AOG",
+    "identifier": "smartofgiving",
+    "displayName": "smARTOFGIVING",
+    "contractAddress": "0x8578530205CEcbe5DB83F7F29EcfEEC860C297C2",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BOX",
+    "identifier": "box-token",
+    "displayName": "BOX Token",
+    "contractAddress": "0xe1A178B681BD05964d3e3Ed33AE731577d9d96dD",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HEDG",
+    "identifier": "hedgetrade",
+    "displayName": "HedgeTrade",
+    "contractAddress": "0xF1290473E210b2108A85237fbCd7b6eb42Cc654F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BTRS",
+    "identifier": "bitball-treasure",
+    "displayName": "Bitball Treasure",
+    "contractAddress": "0x73C9275c3a2Dd84b5741fD59AEbF102C91Eb033F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "S4F",
+    "identifier": "s4fe",
+    "displayName": "S4FE",
+    "contractAddress": "0xAec7d1069e3a914a3EB50f0BFB1796751f2ce48a",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "WBTC",
+    "identifier": "wrapped-bitcoin",
+    "displayName": "Wrapped Bitcoin",
+    "contractAddress": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FOR",
+    "identifier": "the-force-protocol",
+    "displayName": "ForTube",
+    "contractAddress": "0x1FCdcE58959f536621d76f5b7FfB955baa5A672F",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TKT",
+    "identifier": "twinkle",
+    "displayName": "Twinkle",
+    "contractAddress": "0x13E9EC660d872f55405d70e5C52D872136F0970c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "X8X",
+    "identifier": "x8x-token",
+    "displayName": "X8X Token",
+    "contractAddress": "0x910Dfc18D6EA3D6a7124A6F8B5458F281060fa4c",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "USE",
+    "identifier": "usechain-token",
+    "displayName": "Usechain",
+    "contractAddress": "0xd9485499499d66B175Cf5ED54c0a19f1a6Bcb61A",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ARPA",
+    "identifier": "arpa-chain",
+    "displayName": "ARPA Chain",
+    "contractAddress": "0xBA50933C268F567BDC86E1aC131BE072C6B0b71a",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "FTT",
+    "identifier": "ftx-token",
+    "displayName": "FTX Token",
+    "contractAddress": "0x50D1c9771902476076eCFc8B2A83Ad6b9355a4c9",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SXP",
+    "identifier": "swipe",
+    "displayName": "Swipe",
+    "contractAddress": "0x8CE9137d39326AD0cD6491fb5CC0CbA0e089b6A9",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "KICK",
+    "identifier": "kick-token",
+    "displayName": "KickToken",
+    "contractAddress": "0xC12D1c73eE7DC3615BA4e37E4ABFdbDDFA38907E",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RING",
+    "identifier": "darwinia-network",
+    "displayName": "Darwinia Network Na",
+    "contractAddress": "0x9469D013805bFfB7D3DEBe5E7839237e535ec483",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "EXE",
+    "identifier": "8x8-protocol",
+    "displayName": "8X8 Protocol",
+    "contractAddress": "0x412D397DDCa07D753E3E0C61e367fb1b474B3E7D",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BAND",
+    "identifier": "band-protocol",
+    "displayName": "Band Protocol",
+    "contractAddress": "0xBA11D00c5f74255f56a5E366F4F77f5A186d7f55",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BUSD",
+    "identifier": "binance-usd",
+    "displayName": "Binance USD",
+    "contractAddress": "0x4Fabb145d64652a948d72533023f6E7A623C7C53",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "LEO",
+    "identifier": "unus-sed-leo",
+    "displayName": "LEO Token",
+    "contractAddress": "0x2AF5D2aD76741191D15Dfe7bF6aC92d4Bd912Ca3",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "RSR",
+    "identifier": "reserve-rights",
+    "displayName": "Reserve Rights Token",
+    "contractAddress": "0x8762db106B2c2A0bccB3A80d1Ed41273552616E8",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "NEST",
+    "identifier": "nest-protocol",
+    "displayName": "Nest Protocol",
+    "contractAddress": "0x04abEdA201850aC0124161F037Efd70c74ddC74C",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SWAP",
+    "identifier": "trustswap",
+    "displayName": "Trustswap",
+    "contractAddress": "0xCC4304A31d09258b0029eA7FE63d032f52e44EFe",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "BZRX",
+    "identifier": "bzx-protocol",
+    "displayName": "bZx Protocol",
+    "contractAddress": "0x56d811088235F11C8920698a204A5010a788f4b3",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "YFI",
+    "identifier": "yearn-finance",
+    "displayName": "yearn finance",
+    "contractAddress": "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "YFII",
+    "identifier": "yearn-finance-ii",
+    "displayName": "DFI money",
+    "contractAddress": "0xa1d0E215a23d7030842FC67cE582a6aFa3CCaB83",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DIA",
+    "identifier": "dia-data",
+    "displayName": "DIA",
+    "contractAddress": "0x84cA8bc7997272c7CfB4D0Cd3D55cd942B3c9419",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SRM",
+    "identifier": "serum",
+    "displayName": "Serum",
+    "contractAddress": "0x476c5E26a75bd202a9683ffD34359C0CC15be0fF",
+    "precision": 6,
+    "network": "ETH"
+  },
+  {
+    "symbol": "CRV",
+    "identifier": "curve-dao-token",
+    "displayName": "Curve DAO Token",
+    "contractAddress": "0xD533a949740bb3306d119CC777fa900bA034cd52",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "AUDIO",
+    "identifier": "audius",
+    "displayName": "Audius",
+    "contractAddress": "0x18aAA7115705e8be94bfFEBDE57Af9BFc265B998",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "SUSHI",
+    "identifier": "sushiswap",
+    "displayName": "Sushi",
+    "contractAddress": "0x6B3595068778DD592e39A122f4f5a5cF09C90fE2",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "DTH",
+    "identifier": "dether",
+    "displayName": "Dether",
+    "contractAddress": "0x5adc961D6AC3f7062D2eA45FEFB8D8167d44b190",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "METM",
+    "identifier": "metamorph",
+    "displayName": "MetaMorph",
+    "contractAddress": "0xFEF3884b603C33EF8eD4183346E093A173C94da6",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "ZXC",
+    "identifier": "0xcert",
+    "displayName": "0xcert",
+    "contractAddress": "0x83e2BE8d114F9661221384B3a50d24B96a5653F5",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "TRB",
+    "identifier": "tellor",
+    "displayName": "Tellor",
+    "contractAddress": "0x0Ba45A8b5d5575935B8158a88C631E9F9C95a2e5",
+    "precision": 18,
+    "network": "ETH"
+  },
+  {
+    "symbol": "HEX",
+    "identifier": "hex",
+    "displayName": "HEX",
+    "contractAddress": "0x2b591e99afE9f32eAA6214f7B7629768c40Eeb39",
+    "precision": 8,
+    "network": "ETH"
+  },
+  {
+    "symbol": "STAKE",
+    "identifier": "xdai",
+    "displayName": "xDAI Stake",
+    "contractAddress": "0x0Ae055097C6d159879521C384F1D2123D1f195e6",
+    "precision": 18,
+    "network": "ETH"
+  }
+]

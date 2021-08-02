@@ -2,6 +2,7 @@ import hashlib
 import binascii
 import struct
 import sys
+import re
 
 Hash = lambda x: hashlib.sha256(hashlib.sha256(x).digest()).digest()
 
@@ -28,14 +29,20 @@ def hash_160(public_key):
 
 
 def hash_160_to_bc_address(h160, address_type):
-    vh160 = chr(address_type) + h160
+    if sys.version_info[0] < 3:
+        vh160 = chr(address_type) + h160
+    else:
+        vh160 = bytes([address_type]) + h160
     h = Hash(vh160)
     addr = vh160 + h[0:4]
     return b58encode(addr)
 
 def compress_pubkey(public_key):
     if public_key[0] == '\x04':
-        return chr((ord(public_key[64]) & 1) + 2) + public_key[1:33]
+        if sys.version_info[0] < 3:
+            return chr((ord(public_key[64]) & 1) + 2) + public_key[1:33]
+        else:
+            return bytes((public_key[64] & 1) + 2) + public_key[1:33]
     raise Exception("Pubkey is already compressed")
 
 def public_key_to_bc_address(public_key, address_type, compress=True):
@@ -167,6 +174,40 @@ def int_to_big_endian(value):
     while 0 < value:
         res = struct.pack("B", value & 0xff) + res
         value = value >> 8
+
+    return res
+
+
+# de-camelcasifier
+# https://stackoverflow.com/a/1176023/222189
+
+FIRST_CAP_RE = re.compile("(.)([A-Z][a-z]+)")
+ALL_CAP_RE = re.compile("([a-z0-9])([A-Z])")
+
+
+def from_camelcase(s):
+    s = FIRST_CAP_RE.sub(r"\1_\2", s)
+    return ALL_CAP_RE.sub(r"\1_\2", s).lower()
+
+
+def dict_from_camelcase(d, renames=None):
+    if not isinstance(d, dict):
+        return d
+
+    if renames is None:
+        renames = {}
+
+    res = {}
+    for key, value in d.items():
+        newkey = from_camelcase(key)
+        renamed_key = renames.get(newkey) or renames.get(key)
+        if renamed_key:
+            newkey = renamed_key
+
+        if isinstance(value, list):
+            res[newkey] = [dict_from_camelcase(v, renames) for v in value]
+        else:
+            res[newkey] = dict_from_camelcase(value, renames)
 
     return res
 

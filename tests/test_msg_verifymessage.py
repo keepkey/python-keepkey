@@ -25,6 +25,8 @@ import base64
 
 from keepkeylib.client import CallException
 
+from keepkeylib import messages_pb2 as proto
+
 class TestMsgVerifymessage(common.KeepKeyTest):
 
     def test_message_long(self):
@@ -56,6 +58,18 @@ class TestMsgVerifymessage(common.KeepKeyTest):
             sig,
             'test')
         self.assertTrue(ret)
+
+    def test_vuln1972(self):
+        self.setup_mnemonic_allallall()
+
+        signature = base64.b64decode('IFP/nvQalDo9lWCI7kScOzRkz/fiiScdkw7tFAKPoGbl6S8AY3wEws43s2gR57AfwZP8/8y7+F+wvGK9phQghN4=')
+        address = 'moRDikgmxcpouFtqnKnVVzLYgkDD2gQ3sk'
+        message = b'Ahoj'
+
+        # Null pointer dereference caused the emulator to crash at this point.
+        # After the fix, this shoud raise a CallException to signify that the
+        # sig isn't valid for this coin's signing curve.
+        self.assertRaises(CallException, self.client.call, proto.VerifyMessage(address=address, signature=signature, message=message, coin_name="Nano"))
 
     def test_message_verify(self):
         self.setup_mnemonic_nopin_nopassphrase()

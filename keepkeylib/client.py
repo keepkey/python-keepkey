@@ -38,6 +38,10 @@ from . import mapping
 from . import messages_pb2 as proto
 from . import messages_eos_pb2 as eos_proto
 from . import messages_nano_pb2 as nano_proto
+from . import messages_cosmos_pb2 as cosmos_proto
+from . import messages_ripple_pb2 as ripple_proto
+from . import messages_tendermint_pb2 as tendermint_proto
+from . import messages_thorchain_pb2 as thorchain_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -75,11 +79,11 @@ def pprint(msg):
         return "<%s> (%d bytes):\n%s" % (msg_class, msg_size, msg)
 
 def log(msg):
-    sys.stderr.write("%s\n" % msg.encode('utf-8'))
+    sys.stderr.write(msg + '\n')
     sys.stderr.flush()
 
 def log_cr(msg):
-    sys.stdout.write('\r%s' % msg.encode('utf-8'))
+    sys.stdout.write('\r' + msg)
     sys.stdout.flush()
 
 def format_mnemonic(word_pos, character_pos):
@@ -284,14 +288,6 @@ class TextUIMixin(object):
             log("Passphrase did not match! ")
             exit()
 
-    def callback_WordRequest(self, msg):
-        log("Enter one word of mnemonic: ")
-        try:
-            word = raw_input()
-        except NameError:
-            word = input() # Python 3
-        return proto.WordAck(word=word)
-
     def callback_CharacterRequest(self, msg):
         if self.character_request_first_pass:
             self.character_request_first_pass = False
@@ -473,14 +469,6 @@ class DebugLinkMixin(object):
             log("Provided passphrase: '%s'" % self.passphrase)
         return proto.PassphraseAck(passphrase=self.passphrase)
 
-    def callback_WordRequest(self, msg):
-        (word, pos) = self.debug.read_recovery_word()
-        if word != '':
-            return proto.WordAck(word=word)
-        if pos != 0:
-            return proto.WordAck(word=self.mnemonic[pos - 1])
-
-        raise Exception("Unexpected call")
 
 class ProtocolMixin(object):
     PRIME_DERIVATION_FLAG = 0x80000000
@@ -493,6 +481,9 @@ class ProtocolMixin(object):
 
     def set_tx_api(self, tx_api):
         self.tx_api = tx_api
+
+    def get_tx_api(self):
+        return self.tx_api
 
     def init_device(self):
         self.features = expect(proto.Features)(self.call)(proto.Initialize())
@@ -533,6 +524,7 @@ class ProtocolMixin(object):
             "Zcash": 133,
             "BitcoinCash": 145,
             "Bitcore": 160,
+            "Megacoin": 217,
             "Bitcloud": 218,
             "Axe": 4242,
         }
@@ -581,69 +573,48 @@ class ProtocolMixin(object):
         return self.call(proto.EthereumGetAddress(address_n=n, show_display=show_display))
 
     @session
-    def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None, token_shortcut=None, token_value=None, token_to=None):
+    def ethereum_sign_tx(self, n, nonce, gas_limit,  value, gas_price=None, max_fee_per_gas=None, max_priority_fee_per_gas=None, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None):
         from keepkeylib.tools import int_to_big_endian
+
+        if gas_price is None and max_fee_per_gas is None:
+            raise Exception("Either gas_price or max_fee_per_gas must be provided")
 
         n = self._convert_prime(n)
         if address_type == types.TRANSFER:   #Ethereum transfer transaction
             msg = proto.EthereumSignTx(
                 address_n=n,
                 nonce=int_to_big_endian(nonce),
-                gas_price=int_to_big_endian(gas_price),
+                gas_price=int_to_big_endian(gas_price) if gas_price else None,
                 gas_limit=int_to_big_endian(gas_limit),
+                max_fee_per_gas=int_to_big_endian(max_fee_per_gas) if max_fee_per_gas else None ,
+                max_priority_fee_per_gas=int_to_big_endian(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
                 value=int_to_big_endian(value),
                 to_address_n=to_n,
                 address_type=address_type
                 )
-        elif address_type == types.EXCHANGE and token_to is None:   #Ethereum exchange transaction
+        elif address_type == types.EXCHANGE:   #Ethereum exchange transaction
             msg = proto.EthereumSignTx(
                 address_n=n,
                 nonce=int_to_big_endian(nonce),
-                gas_price=int_to_big_endian(gas_price),
+                gas_price=int_to_big_endian(gas_price) if gas_price else None,
                 gas_limit=int_to_big_endian(gas_limit),
+                max_fee_per_gas=int_to_big_endian(max_fee_per_gas) if max_fee_per_gas else None,
+                max_priority_fee_per_gas=int_to_big_endian(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
                 value=int_to_big_endian(value),
                 to_address_n=to_n,
                 exchange_type=exchange_type,
                 address_type=address_type
-                )
-        elif address_type == types.EXCHANGE and token_to is not None:
-            msg = proto.EthereumSignTx(
-                address_n=n,
-                nonce=int_to_big_endian(nonce),
-                gas_price=int_to_big_endian(gas_price),
-                gas_limit=int_to_big_endian(gas_limit),
-                value=int_to_big_endian(value),
-                to_address_n=to_n,
-                exchange_type=exchange_type,
-                address_type=address_type,
-                token_value=token_value,
-                token_to=token_to,
-                token_shortcut=token_shortcut,
                 )
         else:
-            if token_shortcut is None:
-                msg = proto.EthereumSignTx(
-                    address_n=n,
-                    nonce=int_to_big_endian(nonce),
-                    gas_price=int_to_big_endian(gas_price),
-                    gas_limit=int_to_big_endian(gas_limit),
-                    value=int_to_big_endian(value)
-                    )
-            else:
-                #erc20 token transfer
-                value_array = bytearray([0]*32)
-                for ii,i in enumerate(int_to_big_endian(token_value)[::-1]):
-                    value_array[31 - ii] = i
-                msg = proto.EthereumSignTx(
-                    address_n=n,
-                    nonce=int_to_big_endian(nonce),
-                    gas_price=int_to_big_endian(gas_price),
-                    gas_limit=int_to_big_endian(gas_limit),
-                    token_value=bytes(value_array),
-                    token_to=token_to,
-                    token_shortcut=token_shortcut,
-                    )
-
+            msg = proto.EthereumSignTx(
+                address_n=n,
+                nonce=int_to_big_endian(nonce),
+                gas_price=int_to_big_endian(gas_price) if gas_price else None,
+                gas_limit=int_to_big_endian(gas_limit),
+                max_fee_per_gas=int_to_big_endian(max_fee_per_gas) if max_fee_per_gas else None,
+                max_priority_fee_per_gas=int_to_big_endian(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
+                value=int_to_big_endian(value)
+                )
 
         if to:
             msg.to = to
@@ -757,6 +728,7 @@ class ProtocolMixin(object):
 
         return response
 
+
     @expect(nano_proto.NanoAddress)
     def nano_get_address(self, coin_name, address_n, show_display=False):
         msg = nano_proto.NanoGetAddress(
@@ -764,6 +736,7 @@ class ProtocolMixin(object):
             address_n=address_n,
             show_display=show_display)
         return self.call(msg)
+
 
     @expect(nano_proto.NanoSignedTx)
     def nano_sign_tx(
@@ -800,6 +773,178 @@ class ProtocolMixin(object):
             representative=representative,
             balance=nano.encode_balance(balance),
         )
+        return self.call(msg)
+
+    @field('address')
+    @expect(cosmos_proto.CosmosAddress)
+    def cosmos_get_address(self, address_n, show_display=False):
+        return self.call(
+            cosmos_proto.CosmosGetAddress(address_n=address_n, show_display=show_display)
+        )
+
+    @session
+    def cosmos_sign_tx(
+        self,
+        address_n,
+        account_number,
+        chain_id,
+        fee,
+        gas,
+        msgs,
+        memo,
+        sequence,
+        exchange_types=None
+    ):
+        resp = self.call(cosmos_proto.CosmosSignTx(
+            address_n=address_n,
+            account_number=account_number,
+            chain_id=chain_id,
+            fee_amount=fee,
+            gas=gas,
+            memo=memo,
+            sequence=sequence,
+            msg_count=len(msgs)
+        ))
+
+        for (msg, exchange_type) in zip(msgs, exchange_types or [None] * len(msgs)):
+            if not isinstance(resp, cosmos_proto.CosmosMsgRequest):
+                raise CallException(
+                    "Cosmos.ExpectedMsgRequest",
+                    "Message request expected but not received.",
+                )
+
+            if msg['type'] == "cosmos-sdk/MsgSend":
+                if len(msg['value']['amount']) != 1:
+                    raise CallException("Cosmos.MsgSend", "Multiple amounts per msg not supported")
+
+                denom = msg['value']['amount'][0]['denom']
+                if denom != 'uatom':
+                    raise CallException("Cosmos.MsgSend", "Unsupported denomination: " + denom)
+
+                resp = self.call(cosmos_proto.CosmosMsgAck(
+                    send=cosmos_proto.CosmosMsgSend(
+                        from_address=msg['value']['from_address'],
+                        to_address=msg['value']['to_address'],
+                        amount=int(msg['value']['amount'][0]['amount']),
+                        address_type=types.EXCHANGE if exchange_type is not None else types.SPEND,
+                        exchange_type=exchange_type
+                    )
+                ))
+            else:
+                raise CallException(
+                    "Cosmos.UnknownMsg",
+                    "Cosmos message %s is not yet supported" % (msg['type'],)
+                )
+
+        if not isinstance(resp, cosmos_proto.CosmosSignedTx):
+            raise CallException(
+                "Cosmos.UnexpectedEndOfOperations",
+                "Reached end of operations without a signature.",
+            )
+
+        return resp
+
+    @field('address')
+    @expect(thorchain_proto.ThorchainAddress)
+    def thorchain_get_address(self, address_n, show_display=False, testnet=False):
+        return self.call(
+            thorchain_proto.ThorchainGetAddress(address_n=address_n, show_display=show_display, testnet=testnet)
+        )
+
+    @session
+    def thorchain_sign_tx(
+        self,
+        address_n,
+        account_number,
+        chain_id,
+        fee,
+        gas,
+        msgs,
+        memo,
+        sequence,
+        exchange_types=None,
+        testnet=None
+    ):
+        resp = self.call(thorchain_proto.ThorchainSignTx(
+            address_n=address_n,
+            account_number=account_number,
+            chain_id=chain_id,
+            fee_amount=fee,
+            gas=gas,
+            memo=memo,
+            sequence=sequence,
+            msg_count=len(msgs),
+            testnet=testnet
+        ))
+
+        for (msg, exchange_type) in zip(msgs, exchange_types or [None] * len(msgs)):
+            if not isinstance(resp, thorchain_proto.ThorchainMsgRequest):
+                raise CallException(
+                    "Thorchain.ExpectedMsgRequest",
+                    "Message request expected but not received.",
+                )
+
+            if msg['type'] == "thorchain/MsgSend":
+                if len(msg['value']['amount']) != 1:
+                    raise CallException("Thorchain.MsgSend", "Multiple amounts per send msg not supported")
+
+                denom = msg['value']['amount'][0]['denom']
+                if denom != 'rune':
+                    raise CallException("Thorchain.MsgSend", "Unsupported denomination: " + denom)
+
+                resp = self.call(thorchain_proto.ThorchainMsgAck(
+                    send=thorchain_proto.ThorchainMsgSend(
+                        from_address=msg['value']['from_address'],
+                        to_address=msg['value']['to_address'],
+                        amount=int(msg['value']['amount'][0]['amount']),
+                        address_type=types.EXCHANGE if exchange_type is not None else types.SPEND,
+                        exchange_type=exchange_type
+                    )
+                ))
+
+            elif msg['type'] == "thorchain/MsgDeposit":
+                if len(msg['value']['coins']) != 1:
+                    raise CallException("Thorchain.MsgDeposit", "Multiple coins per deposit msg not supported")
+
+                asset = msg['value']['coins'][0]['asset']
+                if asset != 'THOR.RUNE':
+                    raise CallException("Thorchain.MsgDeposit", "Unsupported asset: " + asset)
+
+                resp = self.call(thorchain_proto.ThorchainMsgAck(
+                    deposit=thorchain_proto.ThorchainMsgDeposit(
+                        asset=asset,
+                        amount=int(msg['value']['coins'][0]['amount']),
+                        memo=msg['value']['memo'],
+                        signer=msg['value']['signer']
+                    )
+                ))
+
+            else:
+                raise CallException(
+                    "Thorchain.UnknownMsg",
+                    "Thorchain message %s is not yet supported" % (msg['type'],)
+                )
+
+        if not isinstance(resp, thorchain_proto.ThorchainSignedTx):
+            raise CallException(
+                "Thorchain.UnexpectedEndOfOperations",
+                "Reached end of operations without a signature.",
+            )
+
+        return resp
+
+
+    @field('address')
+    @expect(ripple_proto.RippleAddress)
+    def ripple_get_address(self, address_n, show_display=False):
+        return self.call(
+            ripple_proto.RippleGetAddress(address_n=address_n, show_display=show_display)
+        )
+
+    @session
+    @expect(ripple_proto.RippleSignedTx)
+    def ripple_sign_tx(self, address_n, msg):
+        msg.address_n = address_n
         return self.call(msg)
 
     @field('entropy')
@@ -902,15 +1047,6 @@ class ProtocolMixin(object):
                                               ask_on_encrypt=ask_on_encrypt,
                                               ask_on_decrypt=ask_on_decrypt,
                                               iv=iv))
-
-    @field('tx_size')
-    @expect(proto.TxSize)
-    def estimate_tx_size(self, coin_name, inputs, outputs):
-        msg = proto.EstimateTxSize()
-        msg.coin_name = coin_name
-        msg.inputs_count = len(inputs)
-        msg.outputs_count = len(outputs)
-        return self.call(msg)
 
     def _prepare_sign_tx(self, coin_name, inputs, outputs):
         tx = types.TransactionType()
@@ -1069,8 +1205,8 @@ class ProtocolMixin(object):
     def recovery_device(self, use_trezor_method, word_count, passphrase_protection, pin_protection, label, language):
         if self.features.initialized:
             raise Exception("Device is initialized already. Call wipe_device() and try again.")
-        if not use_trezor_method:
-            word_count = 0
+        if use_trezor_method:
+            raise Exception("Trezor-style recovery is no longer supported")
         elif word_count not in (12, 18, 24):
             raise Exception("Invalid word count. Use 12/18/24")
 
@@ -1080,7 +1216,23 @@ class ProtocolMixin(object):
                                     label=label,
                                     language=language,
                                     enforce_wordlist=True,
-                                    use_character_cipher=bool(not use_trezor_method)))
+                                    use_character_cipher=True))
+
+        self.init_device()
+        return res
+
+    @field('message')
+    @expect(proto.Success)
+    def test_recovery_seed(self, word_count, language):
+        if not self.features.initialized:
+            raise Exception("Device must already be initialized in order to perform test recovery")
+        elif word_count not in (12, 18, 24):
+            raise Exception("Invalid word count. Use 12/18/24")
+        res = self.call(proto.RecoveryDevice(word_count=int(word_count),
+                                    language=language,
+                                    enforce_wordlist=True,
+                                    use_character_cipher=True,
+                                    dry_run=True))
 
         self.init_device()
         return res

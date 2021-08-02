@@ -19,6 +19,7 @@
 # The script has been modified for KeepKey Device.
 
 import unittest
+import binascii
 import common
 import keepkeylib.ckd_public as bip32
 import keepkeylib.types_pb2 as proto_types
@@ -59,7 +60,7 @@ class TestMsgGetaddress(common.KeepKeyTest):
         node = bip32.deserialize('xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy')
         multisig = proto_types.MultisigRedeemScriptType(
                             pubkeys=[proto_types.HDNodePathType(node=node, address_n=[])],
-                            signatures=[''],
+                            signatures=[b''],
                             m=1,
                             )
         self.assertEqual(self.client.get_address('Litecoin', [], multisig=multisig), 'MBFFn5LyWatMVt2aoXbLkFJHRsnNJcaxba')
@@ -76,8 +77,8 @@ class TestMsgGetaddress(common.KeepKeyTest):
         node_sub1 = self.client.get_public_node([1]).node
         node_sub2 = bip32.public_ckd(node, [1])
 
-        self.assertEqual(node_sub1.chain_code, node_sub2.chain_code)
-        self.assertEqual(node_sub1.public_key, node_sub2.public_key)
+        self.assertEqual(binascii.hexlify(node_sub1.chain_code), binascii.hexlify(node_sub2.chain_code))
+        self.assertEqual(binascii.hexlify(node_sub1.public_key), binascii.hexlify(node_sub2.public_key))
 
         address1 = self.client.get_address('Bitcoin', [1])
         address2 = bip32.get_address(node_sub2, 0)
