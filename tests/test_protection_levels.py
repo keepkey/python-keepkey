@@ -61,6 +61,7 @@ class TestProtectionLevels(common.KeepKeyTest):
             self.client.set_expected_responses([proto.ButtonRequest(),
                                       proto.PinMatrixRequest(),
                                       proto.PassphraseRequest(),
+                                      proto.ButtonRequest(),
                                       proto.Success()])
             self.client.ping('msg', True, True, True)
 
@@ -77,6 +78,7 @@ class TestProtectionLevels(common.KeepKeyTest):
             self.client.clear_session()
             self.client.set_expected_responses([proto.PinMatrixRequest(),
                                       proto.PassphraseRequest(),
+                                      proto.ButtonRequest(),
                                       proto.PublicKey()])
             self.client.get_public_node([])
 
@@ -86,6 +88,7 @@ class TestProtectionLevels(common.KeepKeyTest):
             self.client.clear_session()
             self.client.set_expected_responses([proto.PinMatrixRequest(),
                                       proto.PassphraseRequest(),
+                                      proto.ButtonRequest(),
                                       proto.Address()])
             self.client.get_address('Bitcoin', [])
 
@@ -113,6 +116,8 @@ class TestProtectionLevels(common.KeepKeyTest):
             self.client.set_expected_responses([proto.EntropyRequest(), \
                                       proto.ButtonRequest(),
                                       proto.ButtonRequest(),
+                                      proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmWord),
+                                      proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmWord),
                                       proto.Success(),
                                       proto.Features()])
             self.client.reset_device(False, 128, True, False, 'label', 'english')
@@ -127,13 +132,17 @@ class TestProtectionLevels(common.KeepKeyTest):
             self.client.set_expected_responses([proto.ButtonRequest(),
                                       proto.PinMatrixRequest(),
                                       proto.PassphraseRequest(),
+                                      proto.ButtonRequest(),
                                       proto.MessageSignature()])
             self.client.sign_message('Bitcoin', [], 'testing message')
 
     def test_verify_message(self):
         with self.client:
             self.setup_mnemonic_pin_passphrase()
-            self.client.set_expected_responses([proto.Success()])
+            self.client.set_expected_responses([
+              proto.ButtonRequest(),
+              proto.Success()
+              ])
             self.client.verify_message(
                 'Bitcoin',
                 '14LmW5k4ssUrtbAB4255zdqv3b4w1TuX9e',
@@ -175,7 +184,7 @@ class TestProtectionLevels(common.KeepKeyTest):
             self.client.set_expected_responses([
                 proto.PinMatrixRequest(),
                 proto.PassphraseRequest(),
-
+                proto.ButtonRequest(),
             ] + tx_responses)
             self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
 
@@ -193,6 +202,7 @@ class TestProtectionLevels(common.KeepKeyTest):
             self.client.set_expected_responses([
                 proto.PinMatrixRequest(),
                 proto.PassphraseRequest(),
+                proto.ButtonRequest(),
             ] + tx_responses)
             self.client.sign_tx('Bitcoin', [inp1, ], [out1, ])
 
