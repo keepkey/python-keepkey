@@ -573,16 +573,21 @@ class ProtocolMixin(object):
         return self.call(proto.EthereumGetAddress(address_n=n, show_display=show_display))
 
     @session
-    def ethereum_sign_tx(self, n, nonce, gas_price, gas_limit, value, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None):
+    def ethereum_sign_tx(self, n, nonce, gas_limit,  value, gas_price=None, max_fee_per_gas=None, max_priority_fee_per_gas=None, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None):
         from keepkeylib.tools import int_to_big_endian
+
+        if gas_price is None and max_fee_per_gas is None:
+            raise Exception("Either gas_price or max_fee_per_gas must be provided")
 
         n = self._convert_prime(n)
         if address_type == types.TRANSFER:   #Ethereum transfer transaction
             msg = proto.EthereumSignTx(
                 address_n=n,
                 nonce=int_to_big_endian(nonce),
-                gas_price=int_to_big_endian(gas_price),
+                gas_price=int_to_big_endian(gas_price) if gas_price else None,
                 gas_limit=int_to_big_endian(gas_limit),
+                max_fee_per_gas=int_to_big_endian(max_fee_per_gas) if max_fee_per_gas else None ,
+                max_priority_fee_per_gas=int_to_big_endian(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
                 value=int_to_big_endian(value),
                 to_address_n=to_n,
                 address_type=address_type
@@ -591,8 +596,10 @@ class ProtocolMixin(object):
             msg = proto.EthereumSignTx(
                 address_n=n,
                 nonce=int_to_big_endian(nonce),
-                gas_price=int_to_big_endian(gas_price),
+                gas_price=int_to_big_endian(gas_price) if gas_price else None,
                 gas_limit=int_to_big_endian(gas_limit),
+                max_fee_per_gas=int_to_big_endian(max_fee_per_gas) if max_fee_per_gas else None,
+                max_priority_fee_per_gas=int_to_big_endian(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
                 value=int_to_big_endian(value),
                 to_address_n=to_n,
                 exchange_type=exchange_type,
@@ -602,8 +609,10 @@ class ProtocolMixin(object):
             msg = proto.EthereumSignTx(
                 address_n=n,
                 nonce=int_to_big_endian(nonce),
-                gas_price=int_to_big_endian(gas_price),
+                gas_price=int_to_big_endian(gas_price) if gas_price else None,
                 gas_limit=int_to_big_endian(gas_limit),
+                max_fee_per_gas=int_to_big_endian(max_fee_per_gas) if max_fee_per_gas else None,
+                max_priority_fee_per_gas=int_to_big_endian(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
                 value=int_to_big_endian(value)
                 )
 
