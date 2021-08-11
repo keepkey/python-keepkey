@@ -6,7 +6,6 @@ from binascii import hexlify, unhexlify
 
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
-import keepkeylib.exchange_pb2 as proto_exchange
 from keepkeylib.tools import parse_path
 
 DEFAULT_BIP32_PATH = "m/44h/931h/0h/0/0"

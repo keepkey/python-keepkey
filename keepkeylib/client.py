@@ -573,7 +573,7 @@ class ProtocolMixin(object):
         return self.call(proto.EthereumGetAddress(address_n=n, show_display=show_display))
 
     @session
-    def ethereum_sign_tx(self, n, nonce, gas_limit,  value, gas_price=None, max_fee_per_gas=None, max_priority_fee_per_gas=None, to=None, to_n=None, address_type=None, exchange_type=None, data=None, chain_id=None):
+    def ethereum_sign_tx(self, n, nonce, gas_limit,  value, gas_price=None, max_fee_per_gas=None, max_priority_fee_per_gas=None, to=None, to_n=None, address_type=None, data=None, chain_id=None):
         from keepkeylib.tools import int_to_big_endian
 
         if gas_price is None and max_fee_per_gas is None:
@@ -590,19 +590,6 @@ class ProtocolMixin(object):
                 max_priority_fee_per_gas=int_to_big_endian(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
                 value=int_to_big_endian(value),
                 to_address_n=to_n,
-                address_type=address_type
-                )
-        elif address_type == types.EXCHANGE:   #Ethereum exchange transaction
-            msg = proto.EthereumSignTx(
-                address_n=n,
-                nonce=int_to_big_endian(nonce),
-                gas_price=int_to_big_endian(gas_price) if gas_price else None,
-                gas_limit=int_to_big_endian(gas_limit),
-                max_fee_per_gas=int_to_big_endian(max_fee_per_gas) if max_fee_per_gas else None,
-                max_priority_fee_per_gas=int_to_big_endian(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
-                value=int_to_big_endian(value),
-                to_address_n=to_n,
-                exchange_type=exchange_type,
                 address_type=address_type
                 )
         else:
@@ -793,7 +780,6 @@ class ProtocolMixin(object):
         msgs,
         memo,
         sequence,
-        exchange_types=None
     ):
         resp = self.call(cosmos_proto.CosmosSignTx(
             address_n=address_n,
@@ -806,7 +792,7 @@ class ProtocolMixin(object):
             msg_count=len(msgs)
         ))
 
-        for (msg, exchange_type) in zip(msgs, exchange_types or [None] * len(msgs)):
+        for msg in msgs:
             if not isinstance(resp, cosmos_proto.CosmosMsgRequest):
                 raise CallException(
                     "Cosmos.ExpectedMsgRequest",
@@ -826,8 +812,7 @@ class ProtocolMixin(object):
                         from_address=msg['value']['from_address'],
                         to_address=msg['value']['to_address'],
                         amount=int(msg['value']['amount'][0]['amount']),
-                        address_type=types.EXCHANGE if exchange_type is not None else types.SPEND,
-                        exchange_type=exchange_type
+                        address_type=types.SPEND,
                     )
                 ))
             else:
@@ -862,7 +847,6 @@ class ProtocolMixin(object):
         msgs,
         memo,
         sequence,
-        exchange_types=None,
         testnet=None
     ):
         resp = self.call(thorchain_proto.ThorchainSignTx(
@@ -877,7 +861,7 @@ class ProtocolMixin(object):
             testnet=testnet
         ))
 
-        for (msg, exchange_type) in zip(msgs, exchange_types or [None] * len(msgs)):
+        for msg in msgs:
             if not isinstance(resp, thorchain_proto.ThorchainMsgRequest):
                 raise CallException(
                     "Thorchain.ExpectedMsgRequest",
@@ -897,8 +881,7 @@ class ProtocolMixin(object):
                         from_address=msg['value']['from_address'],
                         to_address=msg['value']['to_address'],
                         amount=int(msg['value']['amount'][0]['amount']),
-                        address_type=types.EXCHANGE if exchange_type is not None else types.SPEND,
-                        exchange_type=exchange_type
+                        address_type=types.SPEND,
                     )
                 ))
 
