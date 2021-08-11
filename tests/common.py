@@ -98,6 +98,6 @@ class KeepKeyTest(unittest.TestCase):
         self.client.init_device()
         features = self.client.features
         version = "%s.%s.%s" % (features.major_version, features.minor_version, features.patch_version)
-        if semver.compare(version, ver_required) < 0:
+        if semver.VersionInfo.parse(version) < semver.VersionInfo.parse(ver_required):
             self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
 
