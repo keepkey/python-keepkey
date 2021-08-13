@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-from os import close
+from os import close, error
 from flask import Flask, Response, request, jsonify
 from flask_cors import CORS, cross_origin
 
@@ -29,7 +29,7 @@ def create_app():
     def initDevice():
         global kkClient
         if (kkClient != None):
-            closeDevice(kkClient)
+            kkClient.close()
             kkClient = None
 
         # List all connected KeepKeys on USB
@@ -47,17 +47,12 @@ def create_app():
 
         return client
 
-    def closeDevice(client):
-        client.close()
-        return
-
     @app.route('/init')
     def initKK():
         global kkClient
-        if (kkClient == None):
-            kkClient = initDevice()
-        else:
-            pass
+
+        kkClient = initDevice()
+
         if (kkClient == None):
             data = "No KeepKey found"
         else:
@@ -69,18 +64,24 @@ def create_app():
     @app.route('/ping')
     def pingKK():
         global kkClient
+
         if (kkClient == None):
             kkClient = initDevice()
         else:
             pass
+
         if (kkClient == None):
             data = "No KeepKey found"
             return Response(str(data), status=200, mimetype='application/json')
 
-        else:
-            data = kkClient.features
+        try:
+            ping = kkClient.call(messages.Ping(message='Duck, a bridge!', button_protection = True))
+        except:
+            kkClient.close()
+            kkClient = None
+            data = "No KeepKey found"
+            return Response(str(data), status=200, mimetype='application/json')
 
-        ping = kkClient.call(messages.Ping(message='Duck, a bridge!', button_protection = True))
 
         return Response(str(ping), status=200, mimetype='application/json')
 
@@ -101,7 +102,6 @@ def create_app():
         if request.method == 'POST':
             content = request.get_json(silent=True)
             msg = bytearray.fromhex(content["data"])
-            #msg = content
             kkClient.call_bridge(msg)
             return Response('{}', status=200, mimetype='application/json')
 
@@ -111,14 +111,8 @@ def create_app():
             return Response(body, status=200, mimetype='application/json')
 
         return Response('{}', status=404, mimetype='application/json')
-
+        
     return app
-
-
-# def main():
-#     app = create_app()
-#     #app.run(debug=True, port='1646')
-#     app.run()
 
 if __name__ == '__main__':
      app = create_app()
