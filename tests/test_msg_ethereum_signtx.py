@@ -363,11 +363,11 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertEqual(sig_v, 28)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "dbf60a6be0a5451e4229029c51f2f795315006ffaaf43441811d3ec8de1656b7",
+            "db71e4f6b93459d7de06977e6edf8af7008827234dcf18241ccb19341912b07d",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "467d0e9a7607df44ae24c0923033b703efc5c1128a559f3cd4730963b6618858",
+            "5a4c6bca337fa4f1c1edc1f8cbf16c27b20ddaa36c217244a257432ae45dde60",
         )
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -379,14 +379,14 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             to=binascii.unhexlify("41e5560054824ea6b0732e656e3ad64e20e94e45"),
             value=0,
         )
-        self.assertEqual(sig_v, 28)
+        self.assertEqual(sig_v, 27)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "5f13f1bac8e0f4c86d31350f87fbc82469bb782ec6c2f22406568e8e0552bfcc",
+            "c8423eb6c77dde5b52e14d26b7e4bed6cbf7b5ac03551ae437b2775a025a1b3d",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "6f7ea5db456894d242c8fce12ff44d5627dd5221ccab86f2d52ecdb5786734ee",
+            "430fa82ec3c3bb4c66bc05dd507c219b1e44261341f7615c3891cdb9085d5135",
         )
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -402,11 +402,11 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertEqual(sig_v, 27)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "5b4c0613bbf487b151116a9b92a303f8a0d657fb682c65f7d645dec95943510a",
+            "97e6f9e23f36870c7abf82f3d474fd9fb8aedc6bab9531ec571af0d4d9a1ec00",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "2eb0fc96373e57e2a12a4f6d197e4083238d96b3759bb60838070a0ba8de468a",
+            "247905e96591b56589d92081bcab9f04e1c43ea78e5399410866ccffd3ed7984",
         )
 
     def test_ethereum_signtx_nodata(self):
