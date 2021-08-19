@@ -360,14 +360,14 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             to=binascii.unhexlify("41e5560054824ea6b0732e656e3ad64e20e94e45"),
             value=0,
         )
-        self.assertEqual(sig_v, 28)
+        self.assertEqual(sig_v, 0)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "db71e4f6b93459d7de06977e6edf8af7008827234dcf18241ccb19341912b07d",
+            "d0ee35b17b11b02954563d937eb4f172927c7ff01b639daf9c03b792b21c7297",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "5a4c6bca337fa4f1c1edc1f8cbf16c27b20ddaa36c217244a257432ae45dde60",
+            "1ec040eb364147d1bf51c8a12dac9e62dd321aa79cc916caa4d88c350447637c",
         )
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -379,14 +379,14 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             to=binascii.unhexlify("41e5560054824ea6b0732e656e3ad64e20e94e45"),
             value=0,
         )
-        self.assertEqual(sig_v, 27)
+        self.assertEqual(sig_v, 0)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "c8423eb6c77dde5b52e14d26b7e4bed6cbf7b5ac03551ae437b2775a025a1b3d",
+            "84727ceee346fe7f7b647c69986cc5372674c71ee317b68a4e5e5ddbc0997350",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "430fa82ec3c3bb4c66bc05dd507c219b1e44261341f7615c3891cdb9085d5135",
+            "3d8198c4dcc5bc5825c4f1202178d95986de51d9f679667ad8842e9ccb4a4a1f",
         )
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -399,14 +399,14 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             to=binascii.unhexlify("41e5560054824ea6b0732e656e3ad64e20e94e45"),
             value=0,
         )
-        self.assertEqual(sig_v, 27)
+        self.assertEqual(sig_v, 0)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "97e6f9e23f36870c7abf82f3d474fd9fb8aedc6bab9531ec571af0d4d9a1ec00",
+            "5e07031d4e8af2591074ab3b1dde8c1c01b217ac8498e2e2534fc6ffa03ce121",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "247905e96591b56589d92081bcab9f04e1c43ea78e5399410866ccffd3ed7984",
+            "31670607d05cddaf5d699ecf33129d1d00d425e0e105a67ce151135412a31a20",
         )
 
     def test_ethereum_signtx_nodata(self):
