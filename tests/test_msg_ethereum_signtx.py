@@ -349,7 +349,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_eip_1559(self):
-        self.requires_firmware("7.2.0")
+        self.requires_firmware("7.2.1")
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -374,7 +374,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_nodata_eip_1559(self):
-        self.requires_firmware("7.2.0")
+        self.requires_firmware("7.2.1")
         self.setup_mnemonic_allallall()
 
         # from trezor test vector:
@@ -400,7 +400,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_knownerc20_eip_1559(self):
-        self.requires_firmware("7.2.0")
+        self.requires_firmware("7.2.1")
         self.setup_mnemonic_allallall()
 
         # from trezor test vector:
@@ -428,7 +428,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_data1_eip_1559(self):
-        self.requires_firmware("7.2.0")
+        self.requires_firmware("7.2.1")
         self.setup_mnemonic_allallall()
 
         # from trezor test vector:
