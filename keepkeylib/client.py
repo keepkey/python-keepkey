@@ -591,7 +591,7 @@ class ProtocolMixin(object):
                 value=int_to_big_endian(value),
                 to_address_n=to_n,
                 address_type=address_type,
-                type=2 if max_fee_per_gas else 0
+                type=2 if max_fee_per_gas else None
                 )
         elif address_type == types.EXCHANGE:   #Ethereum exchange transaction
             msg = proto.EthereumSignTx(
@@ -605,7 +605,7 @@ class ProtocolMixin(object):
                 to_address_n=to_n,
                 exchange_type=exchange_type,
                 address_type=address_type,
-                type=2 if max_fee_per_gas else 0
+                type=2 if max_fee_per_gas else None
                 )
         else:
             msg = proto.EthereumSignTx(
@@ -616,7 +616,7 @@ class ProtocolMixin(object):
                 max_fee_per_gas=int_to_big_endian(max_fee_per_gas) if max_fee_per_gas else None,
                 max_priority_fee_per_gas=int_to_big_endian(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
                 value=int_to_big_endian(value),
-                type=2 if max_fee_per_gas else 0
+                type=2 if max_fee_per_gas else None
                 )
 
         if to:
