@@ -349,8 +349,8 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_eip_1559(self):
+        self.requires_firmware("7.2.0")
         self.setup_mnemonic_nopin_nopassphrase()
-        #self.client.apply_policy("AdvancedMode", 0)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[0x80000000 | 44, 0x80000000 | 60, 0x80000000, 0, 0],
@@ -374,8 +374,8 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_nodata_eip_1559(self):
+        self.requires_firmware("7.2.0")
         self.setup_mnemonic_allallall()
-        self.client.apply_policy("AdvancedMode", 0)
 
         # from trezor test vector:
         # https://github.com/trezor/trezor-firmware/blob/master/common/tests/fixtures/ethereum/sign_tx_eip1559.json#L9
@@ -400,8 +400,8 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_knownerc20_eip_1559(self):
+        self.requires_firmware("7.2.0")
         self.setup_mnemonic_allallall()
-        self.client.apply_policy("AdvancedMode", 0)
 
         # from trezor test vector:
         # https://github.com/trezor/trezor-firmware/blob/master/common/tests/fixtures/ethereum/sign_tx_eip1559.json#L65
@@ -428,8 +428,8 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_data1_eip_1559(self):
+        self.requires_firmware("7.2.0")
         self.setup_mnemonic_allallall()
-        self.client.apply_policy("AdvancedMode", 0)
 
         # from trezor test vector:
         # https://github.com/trezor/trezor-firmware/blob/master/common/tests/fixtures/ethereum/sign_tx_eip1559.json#L27
