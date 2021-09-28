@@ -55,11 +55,10 @@ def create_app():
 
         if (kkClient == None):
             data = "No KeepKey found"
+            return Response(str(data), status=400, mimetype='application/json')
         else:
             data = kkClient.features
-
-        return Response(str(data), status=200, mimetype='application/json')
-
+            return Response(str(data), status=200, mimetype='application/json')
 
     @app.route('/ping')
     def pingKK():
@@ -72,7 +71,7 @@ def create_app():
 
         if (kkClient == None):
             data = "No KeepKey found"
-            return Response(str(data), status=200, mimetype='application/json')
+            return Response(str(data), status=404, mimetype='application/json')
 
         try:
             ping = kkClient.call(messages.Ping(message='Duck, a bridge!', button_protection = True))
@@ -80,8 +79,7 @@ def create_app():
             kkClient.close()
             kkClient = None
             data = "No KeepKey found"
-            return Response(str(data), status=200, mimetype='application/json')
-
+            return Response(str(data), status=404, mimetype='application/json')
 
         return Response(str(ping), status=200, mimetype='application/json')
 
@@ -97,12 +95,18 @@ def create_app():
 
         if (kkClient == None):
             data = "No KeepKey found"
-            return Response(str(data), status=200, mimetype='application/json')
+            return Response(str(data), status=404, mimetype='application/json')
 
         if request.method == 'POST':
             content = request.get_json(silent=True)
             msg = bytearray.fromhex(content["data"])
-            kkClient.call_bridge(msg)
+            try:
+                kkClient.call_bridge(msg)
+            except:
+                kkClient.close()
+                kkClient = None
+                kkClient = initDevice()
+                return Response('{}', status=404, mimetype='application/json')
             return Response('{}', status=200, mimetype='application/json')
 
         if request.method == 'GET':
@@ -115,6 +119,7 @@ def create_app():
     return app
 
 if __name__ == '__main__':
+
     app = create_app()
     app.run(port='1646')
     #app.run()
