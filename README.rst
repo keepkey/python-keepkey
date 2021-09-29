@@ -136,16 +136,14 @@ Download the KeepKey Bridge installer for Windows here:
 Build for Windows
 -----------------
 Requirements:
-    Windows 10
-    python3
-    waitress (python package)
-    py2exe
-    Inno Setup Compiler (for creating Windows install exe)
+* Windows 10
+* python3
+* waitress (python package)
+* py2exe
+* Inno Setup Compiler (optional, for creating Windows install exe)
 
 From a command prompt terminal window, run
-
-.. code:: shell
-    python wbsetup.py py2exe -d windows/dist
+    ``python wbsetup.py py2exe -d windows/dist``
 
 This will create a ``windows\dist`` folder with the Windows stand-alone executable file ``wait-serv.exe``
 
@@ -154,13 +152,11 @@ Inno Setup Compiler
 This tool builds and packages the executable for install on Windows. Build with the provided installer 
 script (modify version, etc., as needed)
 
-.. code:: shell
-    windows/KeepKeyBridge.iss
+    ``windows/KeepKeyBridge.iss``
 
 This will produce an executable install app
 
-.. code:: shell
-    windows/Output/kkbsetup.exe
+    ``windows/Output/kkbsetup.exe``
 
 Running the KeepKey Bridge
 --------------------------
