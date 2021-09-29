@@ -98,7 +98,6 @@ How to install (Debian-Ubuntu)
 * cd python-keepkey
 * python setup.py install (or develop)
 
-
 Running Tests
 -------------
 
@@ -138,11 +137,11 @@ Build for Windows
 -----------------
 Requirements:
 
-* Windows 10
-* python3
-* waitress (python package)
-* py2exe
-* Inno Setup Compiler (optional, for creating Windows install exe)
+- Windows 10
+- python3
+- waitress (python package)
+- py2exe
+- Inno Setup Compiler (optional, for creating Windows install exe)
 
 From a command prompt terminal window, run
     ``python wbsetup.py py2exe -d windows/dist``
