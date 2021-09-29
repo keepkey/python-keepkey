@@ -130,8 +130,9 @@ on Windows.
 
 Running the KeepKey Bridge
 --------------------------
-Download the KeepKey Bridge installer for Windows here:
+Download the KeepKey Bridge installer ``kkbsetup.exe`` for Windows in the release package here:
 
+https://github.com/keepkey/python-keepkey/releases
 
 Build for Windows
 -----------------
