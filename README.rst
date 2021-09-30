@@ -121,7 +121,7 @@ Release Process
 KeepKey Bridge
 ==============
 The KeepKey Bridge is a standalone TCP-to-webusb bridge the KeepKey. It runs a python-keepkey client
-based process that allows a local host-based process to communicate with the KeepKey wallet, thus
+based process that allows a localhost-based process to communicate with the KeepKey wallet, thus
 bypassing the need for a webusb connection from a browser based platform.
 
 The KeepKey Bridge is recommended only for advanced users who have problems connecting the KeepKey
