@@ -22,7 +22,13 @@ class Transport(object):
     def _write(self, msg, protobuf_msg):
         raise NotImplementedException("Not implemented")
 
+    def _bridgeWrite(self, msg, protobuf_msg):
+        raise NotImplementedException("Not implemented")
+
     def _read(self):
+        raise NotImplementedException("Not implemented")
+
+    def _bridgeRead(self):
         raise NotImplementedException("Not implemented")
 
     def _session_begin(self):
@@ -68,6 +74,12 @@ class Transport(object):
         header = struct.pack(">HL", mapping.get_type(msg), len(ser))
         self._write(b"##" + header + ser, msg)
 
+    def bridgeWrite(self, msg):
+        """
+        Write message to transport. msg should be a member of a valid `protobuf class <https://developers.google.com/protocol-buffers/docs/pythontutorial>`_ with a SerializeToString() method.
+        """
+        self._bridgeWrite(msg)
+
     def read(self):
         """
         If there is data available to be read from the transport, reads the data and tries to parse it as a protobuf message.  If the parsing succeeds, return a protobuf object.
@@ -92,6 +104,18 @@ class Transport(object):
                 break
 
         return self._parse_message(data)
+
+    def bridge_read_blocking(self):
+        """
+        blocks until data is available to be read.
+        """
+        while True:
+            data = self._bridgeRead()
+            if data != None:
+                break
+
+        return data
+
 
     def _parse_message(self, data):
         (msg_type, data) = data

@@ -191,6 +191,15 @@ class BaseClient(object):
         return self.transport.read_blocking()
 
     @session
+    def call_bridge(self, msg):
+        self.transport.bridgeWrite(msg)
+        return
+
+    @session
+    def call_bridge_read(self):
+        return self.transport.bridge_read_blocking()
+
+    @session
     def call(self, msg):
         resp = self.call_raw(msg)
         handler_name = "callback_%s" % resp.__class__.__name__

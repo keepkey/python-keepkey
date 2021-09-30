@@ -108,16 +108,23 @@ class WebUsbTransport(Transport):
         return devices
 
     def _write(self, msg, protobuf_msg):
-
         msg = bytearray(msg)
         while len(msg):
             # add reportID and padd with zeroes if necessary
             self.handle.interruptWrite(self.endpoint, [63, ] + list(msg[:63]) + [0] * (63 - len(msg[:63])))
             msg = msg[63:]
 
+    def bridgeWrite(self, msg):
+        while len(msg):
+            self.handle.interruptWrite(self.endpoint, list(msg[:64]) + [0] * (64 - len(msg[:64])))
+            msg = msg[64:]
+
     def _read(self):
         (msg_type, datalen) = self._read_headers(FakeRead(self._raw_read))
         return (msg_type, self._raw_read(datalen))
+
+    def _bridgeRead(self):
+        return (self._raw_bridgeRead())
 
     def _raw_read(self, length):
         start = time.time()
@@ -138,4 +145,18 @@ class WebUsbTransport(Transport):
         ret = self.buffer[:length]
         self.buffer = self.buffer[length:]
         return bytes(ret)
+
+    def _raw_bridgeRead(self):
+        start = time.time()
+        endpoint = 0x80 | self.endpoint
+        while True:
+            data = self.handle.interruptRead(endpoint, 64)
+            if data:
+                break
+            else:
+                time.sleep(0.001)
+
+        if len(data) != 64:
+            raise TransportException("Unexpected chunk size: %d" % len(chunk))
+        return data
 
