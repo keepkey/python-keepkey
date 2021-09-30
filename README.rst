@@ -133,6 +133,9 @@ Download the KeepKey Bridge installer ``kkbsetup.exe`` for Windows in the releas
 
 https://github.com/keepkey/python-keepkey/releases
 
+When running the KeepKey Bridge, a blank cmd window with the title "KepKey Bridge" will be visible. 
+To stop the bridge, simply close the cmd window.
+
 Build for Windows
 -----------------
 Requirements:
@@ -158,8 +161,3 @@ script (modify version, etc., as needed)
 This will produce an executable install app
 
     ``windows/Output/kkbsetup.exe``
-
-Running the KeepKey Bridge
---------------------------
-When running the KeepKey Bridge, a blank cmd window with the title "KepKey Bridge" will be visible. 
-To stop the bridge, simply close the cmd window.
