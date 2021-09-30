@@ -107,7 +107,7 @@ class Transport(object):
 
     def bridge_read_blocking(self):
         """
-        blocks untill data is available to be read.
+        blocks until data is available to be read.
         """
         while True:
             data = self._bridgeRead()
