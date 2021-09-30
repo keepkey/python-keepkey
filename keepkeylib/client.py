@@ -359,7 +359,7 @@ class DebugLinkMixin(object):
 
         # Always press Yes and provide correct pin
         self.setup_debuglink(True, True)
-        self.auto_button = False
+        self.auto_button = True
 
         # Do not expect any specific response from device
         self.expected_responses = None
