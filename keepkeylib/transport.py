@@ -76,7 +76,7 @@ class Transport(object):
 
     def bridgeWrite(self, msg):
         """
-        Write mesage to tansport.  msg should be a member of a valid `protobuf class <https://developers.google.com/protocol-buffers/docs/pythontutorial>`_ with a SerializeToString() method.
+        Write message to transport. msg should be a member of a valid `protobuf class <https://developers.google.com/protocol-buffers/docs/pythontutorial>`_ with a SerializeToString() method.
         """
         self._bridgeWrite(msg)
 
