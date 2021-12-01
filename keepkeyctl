@@ -252,6 +252,28 @@ class Commands(object):
         else:
             return 'Signed raw transaction: %s' % tx_hex
 
+    def ethereum_sign_message(self, args):
+        address_n = self.client.expand_path(args.n)
+        ret = self.client.ethereum_sign_message(address_n, args.message)
+        output = {
+            'message': args.message,
+            'address': ret.address,
+            'signature': "0x%s" % (binascii.hexlify(ret.signature),)
+        }
+        return output
+
+    def ethereum_sign_typed_data(self, args):
+        address_n = self.client.expand_path(args.n)
+        typedData = json.load(open(args.file))
+        ret = self.client.ethereum_sign_typed_data(address_n, typedData)
+        output = {
+            **typedData,
+            'address': ret.address,
+            'signature': "0x%s" % (binascii.hexlify(ret.signature),)
+        }
+        return output
+
+
     def eos_get_public_key(self, args):
         address_n = self.client.expand_path(args.n)
         res = self.client.eos_get_public_key(address_n, args.show_display)
@@ -502,6 +524,8 @@ class Commands(object):
     get_address.help = 'Get bitcoin address in base58 encoding'
     ethereum_get_address.help = 'Get Ethereum address in hex encoding'
     ethereum_sign_tx.help = 'Sign (and optionally publish) Ethereum transaction'
+    ethereum_sign_message.help = 'Sign Ethereum messages (EIP-191 personal_sign)'
+    ethereum_sign_typed_data.help = 'Sign Ethereum messages (EIP-712 TypedData)'
     eos_get_public_key.help = 'Get EOS public key'
     eos_sign_tx.help = 'Sign EOS transaction'
     nano_get_address.help = 'Get Nano address'
@@ -528,6 +552,7 @@ class Commands(object):
     encrypt_keyvalue.help = 'Encrypt value by given key and path'
     decrypt_keyvalue.help = 'Decrypt value by given key and path'
     firmware_update.help = 'Upload new firmware to device (must be in bootloader mode)'
+    
 
     get_address.arguments = (
         (('-c', '--coin'), {'type': str, 'default': 'Bitcoin'}),
@@ -552,6 +577,16 @@ class Commands(object):
         (('-d', '--data'), {'type': str, 'help': 'Data as hex string, e.g., 0x12345678', 'default': ''}),
         (('-p', '--publish'), {'action': 'store_true', 'help': 'publish transaction via RPC', 'default': False}),
         (('to',), {'type': str, 'help': 'Destination address; "" for contract creation'}),
+    )
+
+    ethereum_sign_message.arguments = (
+        (('-n', '-address'), {'type': str}),
+        (('message',), {'type': str}),
+    )
+
+    ethereum_sign_typed_data.arguments = (
+        (('-n', '-address'), {'type': str}),
+        (('-f', '--file'), {'type': str}),
     )
 
     eos_get_public_key.arguments = (

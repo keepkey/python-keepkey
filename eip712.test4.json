@@ -1,0 +1,29 @@
+{
+  "types": {
+    "EIP712Domain": [],
+    "Foo": [
+      { "name": "bar", "type": "Bar" }
+    ],
+    "Bar": [
+      { "name": "baz", "type": "Baz" }
+    ],
+    "Baz": [
+      { "name": "bash", "type": "Bash" }
+    ],
+    "Bash": [
+      { "name": "quux", "type": "Quux" }
+    ],
+    "Quux": []
+  },
+  "primaryType": "Foo",
+  "domain": {},
+  "message": {
+    "bar": {
+      "baz": {
+        "bash": {
+          "quux": {}
+        }
+      }
+    }
+  }
+}

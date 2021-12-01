@@ -1,0 +1,17 @@
+{
+  "types": {
+    "EIP712Domain": [
+      { "name": "name", "type": "string" }
+    ],
+    "Mail": [
+      { "name": "contents", "type": "string" }
+    ]
+  },
+  "primaryType": "Mail",
+  "domain": {
+    "name": "Ether Mail"
+  },
+  "message": {
+    "contents": "Hello, Bob!"
+  }
+}

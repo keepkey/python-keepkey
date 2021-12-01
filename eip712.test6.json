@@ -1,0 +1,18 @@
+{
+  "types": {
+    "EIP712Domain": [],
+    "Foo": [
+      { "name": "bar", "type": "string[]" }
+    ],
+    "Bar": []
+  },
+  "primaryType": "Foo",
+  "domain": {},
+  "message": {
+    "bar": [
+      "baz",
+      "bash",
+      "quux"
+    ]
+  }
+}

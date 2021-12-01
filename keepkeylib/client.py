@@ -28,6 +28,8 @@ import binascii
 import hashlib
 import unicodedata
 import json
+import jsonschema
+import re
 import getpass
 import copy
 
@@ -36,6 +38,7 @@ from mnemonic import Mnemonic
 from . import tools
 from . import mapping
 from . import messages_pb2 as proto
+from . import messages_eip712_pb2 as eip712_proto
 from . import messages_eos_pb2 as eos_proto
 from . import messages_nano_pb2 as nano_proto
 from . import messages_cosmos_pb2 as cosmos_proto
@@ -650,6 +653,143 @@ class ProtocolMixin(object):
             return response.signature_v, response.signature_r, response.signature_s, response.hash, response.signature_der
         else:
             return response.signature_v, response.signature_r, response.signature_s
+
+    @expect(proto.EthereumMessageSignature)
+    def ethereum_sign_message(self, n, message):
+        n = self._convert_prime(n)
+        # Convert message to UTF8 NFC (seems to be a bitcoin-qt standard)
+        message = normalize_nfc(message).encode("utf-8")
+        return self.call(proto.EthereumSignMessage(address_n=n, message=message))
+
+    @expect(proto.EthereumMessageSignature)
+    def ethereum_sign_typed_data(self, n, typedData):
+        n = self._convert_prime(n)
+        jsonschema.validate(typedData, {
+            "type": "object",
+            "properties": {
+                "types": {
+                    "type": "object",
+                    "properties": {
+                        "EIP712Domain": {"type": "array"}
+                    },
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {"type": "string"},
+                                "type": {"type": "string"}
+                            },
+                            "required": ["name", "type"]
+                        }
+                    },
+                    "required": ["EIP712Domain"]
+                },
+                "primaryType": {"type": "string"},
+                "domain": {"type": "object"},
+                "message": {"type": "object"}
+            },
+            "required": ["types", "primaryType", "domain", "message"]
+        })
+
+        def encodeField(field, types, extraTypes):
+            if field["type"] in types and field["type"] not in extraTypes:
+                extraTypes[field["type"]] = None
+            return "%s %s" % (field["type"], field["name"])
+
+        def encodeSingleType(typeName, types, extraTypes):
+            if isAtomicType(typeName): return typeName
+            if isDynamicType(typeName): return typeName
+            return "%s(%s)" % (typeName, ",".join(map(lambda x: encodeField(x, types, extraTypes), types[typeName])))
+
+        def encodeType(typeName, types):
+            extraEncodedTypes = {}
+            baseType = encodeSingleType(typeName, types, extraEncodedTypes)
+            while True:
+                missingTypes = list(filter(lambda x: extraEncodedTypes[x] == None, extraEncodedTypes.keys()))
+                if len(missingTypes) == 0: break
+                extraEncodedTypes.update({x: encodeSingleType(x, types, extraEncodedTypes) for x in missingTypes})
+            extraTypes = list(extraEncodedTypes.keys())
+            extraTypes.sort()
+            return "%s%s" % (baseType, "".join(map(lambda x: extraEncodedTypes[x], extraTypes)))
+
+        def getFieldType(typeName, fieldName, types):
+            for field in types[typeName]:
+                if field["name"] == fieldName: return field["type"]
+
+        def isAtomicType(typeName):
+            if typeName in ["bool", "address"]: return True
+            # note that this is a little too loose -- bytes0 and uint9999 aren't atomic types
+            return re.search("^(bool|address|(bytes|u?int)[0-9]+)$", typeName) != None
+
+        def getAtomicTypeLength(typeName):
+            if typeName == "bool": return 1
+            elif typeName == "address": return 20
+            elif typeName.startswith("bytes"): return int(typeName[5:])
+            elif typeName.startswith("uint"): return int(typeName[4:]) >> 3
+            elif typeName.startswith("int"): return int(typeName[3:]) >> 3
+            else: return 0
+
+        def isDynamicType(typeName):
+            return typeName in ["string", "bytes"]
+
+        def isArrayType(typeName):
+            return re.search("^(.+)\[([0-9]*)\]$", typeName) != None
+
+        def getElementType(typeName):
+            return re.search("^(.+)\[([0-9]*)\]$", typeName).group(1)
+
+        def getNumElements(typeName):
+            numElementsStr = re.search("^(.+)\[([0-9]*)\]$", typeName).group(2)
+            if (len(numElementsStr) == 0): return None
+            return int(numElementsStr)
+
+        def addFields(typeName, fields, types):
+            for fieldName, fieldValue in fields:
+                fieldType = getFieldType(typeName, fieldName, types)
+                if isDynamicType(fieldType):
+                    self.call(eip712_proto.EIP712PushFrame(frameType=eip712_proto.DynamicData, encodedType=fieldType, fieldName=fieldName))
+                    buf = None
+                    if fieldType == "string":
+                        buf = bytes(fieldValue, "utf-8")
+                    else:
+                        if fieldValue.startswith("0x"): fieldValue = fieldValue[2:]
+                        buf = binascii.unhexlify(fieldValue)
+                    for chunk in [buf[i:i + 1024] for i in range(0, len(buf), 1024)]:
+                        self.call(eip712_proto.EIP712AppendDynamicData(data=chunk))
+                    self.call(eip712_proto.EIP712PopFrame())
+                elif isAtomicType(fieldType):
+                    buf = None
+                    if fieldType == "bool" and type(fieldValue) is bool:
+                        buf = bytes([1 if fieldValue else 0])
+                    elif type(fieldValue) is str:
+                        if fieldValue.startswith("0x"): fieldValue = fieldValue[2:]
+                        buf = binascii.unhexlify(fieldValue)
+                    else:
+                        from keepkeylib.tools import int_to_big_endian
+                        buf = int_to_big_endian(fieldValue)
+                    buf = bytes(getAtomicTypeLength(fieldType))[len(buf):] + buf
+                    self.call(eip712_proto.EIP712AppendAtomicField(encodedType=fieldType, fieldName=fieldName, data=buf))
+                elif isArrayType(fieldType):
+                    elementType = getElementType(fieldType)
+                    numElements = getNumElements(fieldType)
+                    encodedType = "%s[%s]" % (encodeType(elementType, types), ("" if numElements is None else int(numElements)))
+                    self.call(eip712_proto.EIP712PushFrame(frameType=eip712_proto.Array, encodedType=encodedType, fieldName=fieldName))
+                    addFields(fieldType, list(map(lambda x: ("", x), fieldValue.items())), types)
+                    self.call(eip712_proto.EIP712PopFrame())
+                else:
+                    self.call(eip712_proto.EIP712PushFrame(frameType=eip712_proto.Struct, encodedType=encodeType(fieldType, types), fieldName=fieldName))
+                    addFields(fieldType, fieldValue.items(), types)
+                    self.call(eip712_proto.EIP712PopFrame())
+
+        self.call(eip712_proto.EIP712Init())
+        self.call(eip712_proto.EIP712PushFrame(frameType=eip712_proto.Struct, encodedType=encodeType("EIP712Domain", typedData["types"])))
+        addFields("EIP712Domain", typedData["domain"].items(), typedData["types"])
+        self.call(eip712_proto.EIP712PopFrame())
+        self.call(eip712_proto.EIP712PushFrame(frameType=eip712_proto.Struct, encodedType=encodeType(typedData["primaryType"], typedData["types"])))
+        addFields(typedData["primaryType"], typedData["message"].items(), typedData["types"])
+        self.call(eip712_proto.EIP712PopFrame())
+        return self.call(eip712_proto.EIP712Sign(address_n=n))
 
     @expect(eos_proto.EosPublicKey)
     def eos_get_public_key(self, address_n, show_display=True, legacy=True):
