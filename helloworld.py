@@ -2,11 +2,11 @@
 from __future__ import print_function
 
 from keepkeylib.client import KeepKeyClient
-from keepkeylib.transport_hid import HidTransport
+from keepkeylib.transport_webusb import WebUsbTransport
 
 def main():
     # List all connected KeepKeys on USB
-    devices = HidTransport.enumerate()
+    devices = WebUsbTransport.enumerate()
 
     # Check whether we found any
     if len(devices) == 0:
@@ -14,7 +14,7 @@ def main():
         return
 
     # Use first connected device
-    transport = HidTransport(devices[0])
+    transport = WebUsbTransport(devices[0])
 
     # Creates object for manipulating KeepKey
     client = KeepKeyClient(transport)
