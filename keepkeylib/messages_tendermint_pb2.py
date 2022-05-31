@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-tendermint.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x19messages-tendermint.proto\x1a\x0btypes.proto\"|\n\x14TendermintGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12\x0f\n\x07testnet\x18\x03 \x01(\x08\x12\x16\n\x0e\x61\x64\x64ress_prefix\x18\x04 \x01(\t\x12\x12\n\nchain_name\x18\x05 \x01(\t\"$\n\x11TendermintAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\x8e\x02\n\x10TendermintSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\x0e\x61\x63\x63ount_number\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x08\x63hain_id\x18\x03 \x01(\t\x12\x12\n\nfee_amount\x18\x04 \x01(\r\x12\x0b\n\x03gas\x18\x05 \x01(\r\x12\x0c\n\x04memo\x18\x06 \x01(\t\x12\x14\n\x08sequence\x18\x07 \x01(\x04\x42\x02\x30\x01\x12\x11\n\tmsg_count\x18\x08 \x01(\r\x12\x0f\n\x07testnet\x18\t \x01(\x08\x12\r\n\x05\x64\x65nom\x18\n \x01(\t\x12\x10\n\x08\x64\x65\x63imals\x18\x0b \x01(\x04\x12\x12\n\nchain_name\x18\x0c \x01(\t\x12\x1b\n\x13message_type_prefix\x18\r \x01(\t\"\x16\n\x14TendermintMsgRequest\"t\n\x10TendermintMsgAck\x12 \n\x04send\x18\x01 \x01(\x0b\x32\x12.TendermintMsgSend\x12\r\n\x05\x64\x65nom\x18\x02 \x01(\t\x12\x12\n\nchain_name\x18\x03 \x01(\t\x12\x1b\n\x13message_type_prefix\x18\x04 \x01(\t\"\xa1\x01\n\x11TendermintMsgSend\x12\x14\n\x0c\x66rom_address\x18\x06 \x01(\t\x12\x12\n\nto_address\x18\x07 \x01(\t\x12\x12\n\x06\x61mount\x18\x08 \x01(\x04\x42\x02\x30\x01\x12(\n\x0c\x61\x64\x64ress_type\x18\t \x01(\x0e\x32\x12.OutputAddressType\x12$\n\rexchange_type\x18\n \x01(\x0b\x32\r.ExchangeType\";\n\x12TendermintSignedTx\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42?\n#com.shapeshift.keepkey.lib.protobufB\x18KeepKeyMessageTendermint')
+  serialized_pb=_b('\n\x19messages-tendermint.proto\x1a\x0btypes.proto\"|\n\x14TendermintGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12\x0f\n\x07testnet\x18\x03 \x01(\x08\x12\x16\n\x0e\x61\x64\x64ress_prefix\x18\x04 \x01(\t\x12\x12\n\nchain_name\x18\x05 \x01(\t\"$\n\x11TendermintAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\x8e\x02\n\x10TendermintSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\x0e\x61\x63\x63ount_number\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x08\x63hain_id\x18\x03 \x01(\t\x12\x12\n\nfee_amount\x18\x04 \x01(\r\x12\x0b\n\x03gas\x18\x05 \x01(\r\x12\x0c\n\x04memo\x18\x06 \x01(\t\x12\x14\n\x08sequence\x18\x07 \x01(\x04\x42\x02\x30\x01\x12\x11\n\tmsg_count\x18\x08 \x01(\r\x12\x0f\n\x07testnet\x18\t \x01(\x08\x12\r\n\x05\x64\x65nom\x18\n \x01(\t\x12\x10\n\x08\x64\x65\x63imals\x18\x0b \x01(\x04\x12\x12\n\nchain_name\x18\x0c \x01(\t\x12\x1b\n\x13message_type_prefix\x18\r \x01(\t\"\x16\n\x14TendermintMsgRequest\"\xd3\x02\n\x10TendermintMsgAck\x12 \n\x04send\x18\x01 \x01(\x0b\x32\x12.TendermintMsgSend\x12(\n\x08\x64\x65legate\x18\x02 \x01(\x0b\x32\x16.TendermintMsgDelegate\x12,\n\nundelegate\x18\x03 \x01(\x0b\x32\x18.TendermintMsgUndelegate\x12,\n\nredelegate\x18\x04 \x01(\x0b\x32\x18.TendermintMsgRedelegate\x12&\n\x07rewards\x18\x05 \x01(\x0b\x32\x15.TendermintMsgRewards\x12/\n\x0cibc_transfer\x18\x06 \x01(\x0b\x32\x19.TendermintMsgIBCTransfer\x12\r\n\x05\x64\x65nom\x18\x07 \x01(\t\x12\x12\n\nchain_name\x18\x08 \x01(\t\x12\x1b\n\x13message_type_prefix\x18\t \x01(\t\"\x81\x01\n\x11TendermintMsgSend\x12\x14\n\x0c\x66rom_address\x18\x06 \x01(\t\x12\x12\n\nto_address\x18\x07 \x01(\t\x12\x12\n\x06\x61mount\x18\x08 \x01(\x04\x42\x02\x30\x01\x12(\n\x0c\x61\x64\x64ress_type\x18\t \x01(\x0e\x32\x12.OutputAddressTypeJ\x04\x08\n\x10\x0b\"a\n\x15TendermintMsgDelegate\x12\x19\n\x11\x64\x65legator_address\x18\x01 \x01(\t\x12\x19\n\x11validator_address\x18\x02 \x01(\t\x12\x12\n\x06\x61mount\x18\x03 \x01(\x04\x42\x02\x30\x01\"c\n\x17TendermintMsgUndelegate\x12\x19\n\x11\x64\x65legator_address\x18\x01 \x01(\t\x12\x19\n\x11validator_address\x18\x02 \x01(\t\x12\x12\n\x06\x61mount\x18\x03 \x01(\x04\x42\x02\x30\x01\"\x86\x01\n\x17TendermintMsgRedelegate\x12\x19\n\x11\x64\x65legator_address\x18\x01 \x01(\t\x12\x1d\n\x15validator_src_address\x18\x02 \x01(\t\x12\x1d\n\x15validator_dst_address\x18\x03 \x01(\t\x12\x12\n\x06\x61mount\x18\x04 \x01(\x04\x42\x02\x30\x01\"`\n\x14TendermintMsgRewards\x12\x19\n\x11\x64\x65legator_address\x18\x01 \x01(\t\x12\x19\n\x11validator_address\x18\x02 \x01(\t\x12\x12\n\x06\x61mount\x18\x03 \x01(\x04\x42\x02\x30\x01\"\xaa\x01\n\x18TendermintMsgIBCTransfer\x12\x10\n\x08receiver\x18\x01 \x01(\t\x12\x0e\n\x06sender\x18\x02 \x01(\t\x12\x16\n\x0esource_channel\x18\x03 \x01(\t\x12\x13\n\x0bsource_port\x18\x04 \x01(\t\x12\x17\n\x0frevision_height\x18\x05 \x01(\t\x12\x17\n\x0frevision_number\x18\x06 \x01(\t\x12\r\n\x05\x64\x65nom\x18\x07 \x01(\t\";\n\x12TendermintSignedTx\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42?\n#com.shapeshift.keepkey.lib.protobufB\x18KeepKeyMessageTendermint')
   ,
   dependencies=[types__pb2.DESCRIPTOR,])
 
@@ -271,22 +271,57 @@ _TENDERMINTMSGACK = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='denom', full_name='TendermintMsgAck.denom', index=1,
-      number=2, type=9, cpp_type=9, label=1,
+      name='delegate', full_name='TendermintMsgAck.delegate', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='undelegate', full_name='TendermintMsgAck.undelegate', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='redelegate', full_name='TendermintMsgAck.redelegate', index=3,
+      number=4, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='rewards', full_name='TendermintMsgAck.rewards', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='ibc_transfer', full_name='TendermintMsgAck.ibc_transfer', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='denom', full_name='TendermintMsgAck.denom', index=6,
+      number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='chain_name', full_name='TendermintMsgAck.chain_name', index=2,
-      number=3, type=9, cpp_type=9, label=1,
+      name='chain_name', full_name='TendermintMsgAck.chain_name', index=7,
+      number=8, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='message_type_prefix', full_name='TendermintMsgAck.message_type_prefix', index=3,
-      number=4, type=9, cpp_type=9, label=1,
+      name='message_type_prefix', full_name='TendermintMsgAck.message_type_prefix', index=8,
+      number=9, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -303,8 +338,8 @@ _TENDERMINTMSGACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=503,
-  serialized_end=619,
+  serialized_start=504,
+  serialized_end=843,
 )
 
 
@@ -343,10 +378,263 @@ _TENDERMINTMSGSEND = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=846,
+  serialized_end=975,
+)
+
+
+_TENDERMINTMSGDELEGATE = _descriptor.Descriptor(
+  name='TendermintMsgDelegate',
+  full_name='TendermintMsgDelegate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
     _descriptor.FieldDescriptor(
-      name='exchange_type', full_name='TendermintMsgSend.exchange_type', index=4,
-      number=10, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      name='delegator_address', full_name='TendermintMsgDelegate.delegator_address', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='validator_address', full_name='TendermintMsgDelegate.validator_address', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='amount', full_name='TendermintMsgDelegate.amount', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=977,
+  serialized_end=1074,
+)
+
+
+_TENDERMINTMSGUNDELEGATE = _descriptor.Descriptor(
+  name='TendermintMsgUndelegate',
+  full_name='TendermintMsgUndelegate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='delegator_address', full_name='TendermintMsgUndelegate.delegator_address', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='validator_address', full_name='TendermintMsgUndelegate.validator_address', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='amount', full_name='TendermintMsgUndelegate.amount', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1076,
+  serialized_end=1175,
+)
+
+
+_TENDERMINTMSGREDELEGATE = _descriptor.Descriptor(
+  name='TendermintMsgRedelegate',
+  full_name='TendermintMsgRedelegate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='delegator_address', full_name='TendermintMsgRedelegate.delegator_address', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='validator_src_address', full_name='TendermintMsgRedelegate.validator_src_address', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='validator_dst_address', full_name='TendermintMsgRedelegate.validator_dst_address', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='amount', full_name='TendermintMsgRedelegate.amount', index=3,
+      number=4, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1178,
+  serialized_end=1312,
+)
+
+
+_TENDERMINTMSGREWARDS = _descriptor.Descriptor(
+  name='TendermintMsgRewards',
+  full_name='TendermintMsgRewards',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='delegator_address', full_name='TendermintMsgRewards.delegator_address', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='validator_address', full_name='TendermintMsgRewards.validator_address', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='amount', full_name='TendermintMsgRewards.amount', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1314,
+  serialized_end=1410,
+)
+
+
+_TENDERMINTMSGIBCTRANSFER = _descriptor.Descriptor(
+  name='TendermintMsgIBCTransfer',
+  full_name='TendermintMsgIBCTransfer',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='receiver', full_name='TendermintMsgIBCTransfer.receiver', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='sender', full_name='TendermintMsgIBCTransfer.sender', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='source_channel', full_name='TendermintMsgIBCTransfer.source_channel', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='source_port', full_name='TendermintMsgIBCTransfer.source_port', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='revision_height', full_name='TendermintMsgIBCTransfer.revision_height', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='revision_number', full_name='TendermintMsgIBCTransfer.revision_number', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='denom', full_name='TendermintMsgIBCTransfer.denom', index=6,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -362,8 +650,8 @@ _TENDERMINTMSGSEND = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=622,
-  serialized_end=783,
+  serialized_start=1413,
+  serialized_end=1583,
 )
 
 
@@ -400,19 +688,28 @@ _TENDERMINTSIGNEDTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=785,
-  serialized_end=844,
+  serialized_start=1585,
+  serialized_end=1644,
 )
 
 _TENDERMINTMSGACK.fields_by_name['send'].message_type = _TENDERMINTMSGSEND
+_TENDERMINTMSGACK.fields_by_name['delegate'].message_type = _TENDERMINTMSGDELEGATE
+_TENDERMINTMSGACK.fields_by_name['undelegate'].message_type = _TENDERMINTMSGUNDELEGATE
+_TENDERMINTMSGACK.fields_by_name['redelegate'].message_type = _TENDERMINTMSGREDELEGATE
+_TENDERMINTMSGACK.fields_by_name['rewards'].message_type = _TENDERMINTMSGREWARDS
+_TENDERMINTMSGACK.fields_by_name['ibc_transfer'].message_type = _TENDERMINTMSGIBCTRANSFER
 _TENDERMINTMSGSEND.fields_by_name['address_type'].enum_type = types__pb2._OUTPUTADDRESSTYPE
-_TENDERMINTMSGSEND.fields_by_name['exchange_type'].message_type = types__pb2._EXCHANGETYPE
 DESCRIPTOR.message_types_by_name['TendermintGetAddress'] = _TENDERMINTGETADDRESS
 DESCRIPTOR.message_types_by_name['TendermintAddress'] = _TENDERMINTADDRESS
 DESCRIPTOR.message_types_by_name['TendermintSignTx'] = _TENDERMINTSIGNTX
 DESCRIPTOR.message_types_by_name['TendermintMsgRequest'] = _TENDERMINTMSGREQUEST
 DESCRIPTOR.message_types_by_name['TendermintMsgAck'] = _TENDERMINTMSGACK
 DESCRIPTOR.message_types_by_name['TendermintMsgSend'] = _TENDERMINTMSGSEND
+DESCRIPTOR.message_types_by_name['TendermintMsgDelegate'] = _TENDERMINTMSGDELEGATE
+DESCRIPTOR.message_types_by_name['TendermintMsgUndelegate'] = _TENDERMINTMSGUNDELEGATE
+DESCRIPTOR.message_types_by_name['TendermintMsgRedelegate'] = _TENDERMINTMSGREDELEGATE
+DESCRIPTOR.message_types_by_name['TendermintMsgRewards'] = _TENDERMINTMSGREWARDS
+DESCRIPTOR.message_types_by_name['TendermintMsgIBCTransfer'] = _TENDERMINTMSGIBCTRANSFER
 DESCRIPTOR.message_types_by_name['TendermintSignedTx'] = _TENDERMINTSIGNEDTX
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -458,6 +755,41 @@ TendermintMsgSend = _reflection.GeneratedProtocolMessageType('TendermintMsgSend'
   ))
 _sym_db.RegisterMessage(TendermintMsgSend)
 
+TendermintMsgDelegate = _reflection.GeneratedProtocolMessageType('TendermintMsgDelegate', (_message.Message,), dict(
+  DESCRIPTOR = _TENDERMINTMSGDELEGATE,
+  __module__ = 'messages_tendermint_pb2'
+  # @@protoc_insertion_point(class_scope:TendermintMsgDelegate)
+  ))
+_sym_db.RegisterMessage(TendermintMsgDelegate)
+
+TendermintMsgUndelegate = _reflection.GeneratedProtocolMessageType('TendermintMsgUndelegate', (_message.Message,), dict(
+  DESCRIPTOR = _TENDERMINTMSGUNDELEGATE,
+  __module__ = 'messages_tendermint_pb2'
+  # @@protoc_insertion_point(class_scope:TendermintMsgUndelegate)
+  ))
+_sym_db.RegisterMessage(TendermintMsgUndelegate)
+
+TendermintMsgRedelegate = _reflection.GeneratedProtocolMessageType('TendermintMsgRedelegate', (_message.Message,), dict(
+  DESCRIPTOR = _TENDERMINTMSGREDELEGATE,
+  __module__ = 'messages_tendermint_pb2'
+  # @@protoc_insertion_point(class_scope:TendermintMsgRedelegate)
+  ))
+_sym_db.RegisterMessage(TendermintMsgRedelegate)
+
+TendermintMsgRewards = _reflection.GeneratedProtocolMessageType('TendermintMsgRewards', (_message.Message,), dict(
+  DESCRIPTOR = _TENDERMINTMSGREWARDS,
+  __module__ = 'messages_tendermint_pb2'
+  # @@protoc_insertion_point(class_scope:TendermintMsgRewards)
+  ))
+_sym_db.RegisterMessage(TendermintMsgRewards)
+
+TendermintMsgIBCTransfer = _reflection.GeneratedProtocolMessageType('TendermintMsgIBCTransfer', (_message.Message,), dict(
+  DESCRIPTOR = _TENDERMINTMSGIBCTRANSFER,
+  __module__ = 'messages_tendermint_pb2'
+  # @@protoc_insertion_point(class_scope:TendermintMsgIBCTransfer)
+  ))
+_sym_db.RegisterMessage(TendermintMsgIBCTransfer)
+
 TendermintSignedTx = _reflection.GeneratedProtocolMessageType('TendermintSignedTx', (_message.Message,), dict(
   DESCRIPTOR = _TENDERMINTSIGNEDTX,
   __module__ = 'messages_tendermint_pb2'
@@ -474,4 +806,12 @@ _TENDERMINTSIGNTX.fields_by_name['sequence'].has_options = True
 _TENDERMINTSIGNTX.fields_by_name['sequence']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
 _TENDERMINTMSGSEND.fields_by_name['amount'].has_options = True
 _TENDERMINTMSGSEND.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_TENDERMINTMSGDELEGATE.fields_by_name['amount'].has_options = True
+_TENDERMINTMSGDELEGATE.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_TENDERMINTMSGUNDELEGATE.fields_by_name['amount'].has_options = True
+_TENDERMINTMSGUNDELEGATE.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_TENDERMINTMSGREDELEGATE.fields_by_name['amount'].has_options = True
+_TENDERMINTMSGREDELEGATE.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_TENDERMINTMSGREWARDS.fields_by_name['amount'].has_options = True
+_TENDERMINTMSGREWARDS.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
 # @@protoc_insertion_point(module_scope)

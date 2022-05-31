@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-binance.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x16messages-binance.proto\x1a\x0btypes.proto\"<\n\x11\x42inanceGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\"!\n\x0e\x42inanceAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\">\n\x13\x42inanceGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\"&\n\x10\x42inancePublicKey\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\"\x9b\x01\n\rBinanceSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x11\n\tmsg_count\x18\x02 \x01(\r\x12\x1a\n\x0e\x61\x63\x63ount_number\x18\x03 \x01(\x12\x42\x02\x30\x01\x12\x10\n\x08\x63hain_id\x18\x04 \x01(\t\x12\x0c\n\x04memo\x18\x05 \x01(\t\x12\x14\n\x08sequence\x18\x06 \x01(\x12\x42\x02\x30\x01\x12\x12\n\x06source\x18\x07 \x01(\x12\x42\x02\x30\x01\"\x12\n\x10\x42inanceTxRequest\"\xdf\x02\n\x12\x42inanceTransferMsg\x12\x36\n\x06inputs\x18\x01 \x03(\x0b\x32&.BinanceTransferMsg.BinanceInputOutput\x12\x37\n\x07outputs\x18\x02 \x03(\x0b\x32&.BinanceTransferMsg.BinanceInputOutput\x1a\xa5\x01\n\x12\x42inanceInputOutput\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12.\n\x05\x63oins\x18\x02 \x03(\x0b\x32\x1f.BinanceTransferMsg.BinanceCoin\x12(\n\x0c\x61\x64\x64ress_type\x18\x03 \x01(\x0e\x32\x12.OutputAddressType\x12$\n\rexchange_type\x18\x04 \x01(\x0b\x32\r.ExchangeType\x1a\x30\n\x0b\x42inanceCoin\x12\x12\n\x06\x61mount\x18\x01 \x01(\x12\x42\x02\x30\x01\x12\r\n\x05\x64\x65nom\x18\x02 \x01(\t\"\xd7\x03\n\x0f\x42inanceOrderMsg\x12\n\n\x02id\x18\x01 \x01(\t\x12\x34\n\tordertype\x18\x02 \x01(\x0e\x32!.BinanceOrderMsg.BinanceOrderType\x12\x11\n\x05price\x18\x03 \x01(\x12\x42\x02\x30\x01\x12\x14\n\x08quantity\x18\x04 \x01(\x12\x42\x02\x30\x01\x12\x0e\n\x06sender\x18\x05 \x01(\t\x12/\n\x04side\x18\x06 \x01(\x0e\x32!.BinanceOrderMsg.BinanceOrderSide\x12\x0e\n\x06symbol\x18\x07 \x01(\t\x12\x38\n\x0btimeinforce\x18\x08 \x01(\x0e\x32#.BinanceOrderMsg.BinanceTimeInForce\"J\n\x10\x42inanceOrderType\x12\x0e\n\nOT_UNKNOWN\x10\x00\x12\n\n\x06MARKET\x10\x01\x12\t\n\x05LIMIT\x10\x02\x12\x0f\n\x0bOT_RESERVED\x10\x03\"7\n\x10\x42inanceOrderSide\x12\x10\n\x0cSIDE_UNKNOWN\x10\x00\x12\x07\n\x03\x42UY\x10\x01\x12\x08\n\x04SELL\x10\x02\"I\n\x12\x42inanceTimeInForce\x12\x0f\n\x0bTIF_UNKNOWN\x10\x00\x12\x07\n\x03GTE\x10\x01\x12\x10\n\x0cTIF_RESERVED\x10\x02\x12\x07\n\x03IOC\x10\x03\"A\n\x10\x42inanceCancelMsg\x12\r\n\x05refid\x18\x01 \x01(\t\x12\x0e\n\x06sender\x18\x02 \x01(\t\x12\x0e\n\x06symbol\x18\x03 \x01(\t\"8\n\x0f\x42inanceSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x12\n\npublic_key\x18\x02 \x01(\x0c\x42\x33\n\x1a\x63om.keepkey.deviceprotocolB\x15KeepKeyMessageBinance')
+  serialized_pb=_b('\n\x16messages-binance.proto\x1a\x0btypes.proto\"<\n\x11\x42inanceGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\"!\n\x0e\x42inanceAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\">\n\x13\x42inanceGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\"&\n\x10\x42inancePublicKey\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\"\x9b\x01\n\rBinanceSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x11\n\tmsg_count\x18\x02 \x01(\r\x12\x1a\n\x0e\x61\x63\x63ount_number\x18\x03 \x01(\x12\x42\x02\x30\x01\x12\x10\n\x08\x63hain_id\x18\x04 \x01(\t\x12\x0c\n\x04memo\x18\x05 \x01(\t\x12\x14\n\x08sequence\x18\x06 \x01(\x12\x42\x02\x30\x01\x12\x12\n\x06source\x18\x07 \x01(\x12\x42\x02\x30\x01\"\x12\n\x10\x42inanceTxRequest\"\xbf\x02\n\x12\x42inanceTransferMsg\x12\x36\n\x06inputs\x18\x01 \x03(\x0b\x32&.BinanceTransferMsg.BinanceInputOutput\x12\x37\n\x07outputs\x18\x02 \x03(\x0b\x32&.BinanceTransferMsg.BinanceInputOutput\x1a\x85\x01\n\x12\x42inanceInputOutput\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12.\n\x05\x63oins\x18\x02 \x03(\x0b\x32\x1f.BinanceTransferMsg.BinanceCoin\x12(\n\x0c\x61\x64\x64ress_type\x18\x03 \x01(\x0e\x32\x12.OutputAddressTypeJ\x04\x08\x04\x10\x05\x1a\x30\n\x0b\x42inanceCoin\x12\x12\n\x06\x61mount\x18\x01 \x01(\x12\x42\x02\x30\x01\x12\r\n\x05\x64\x65nom\x18\x02 \x01(\t\"\xd7\x03\n\x0f\x42inanceOrderMsg\x12\n\n\x02id\x18\x01 \x01(\t\x12\x34\n\tordertype\x18\x02 \x01(\x0e\x32!.BinanceOrderMsg.BinanceOrderType\x12\x11\n\x05price\x18\x03 \x01(\x12\x42\x02\x30\x01\x12\x14\n\x08quantity\x18\x04 \x01(\x12\x42\x02\x30\x01\x12\x0e\n\x06sender\x18\x05 \x01(\t\x12/\n\x04side\x18\x06 \x01(\x0e\x32!.BinanceOrderMsg.BinanceOrderSide\x12\x0e\n\x06symbol\x18\x07 \x01(\t\x12\x38\n\x0btimeinforce\x18\x08 \x01(\x0e\x32#.BinanceOrderMsg.BinanceTimeInForce\"J\n\x10\x42inanceOrderType\x12\x0e\n\nOT_UNKNOWN\x10\x00\x12\n\n\x06MARKET\x10\x01\x12\t\n\x05LIMIT\x10\x02\x12\x0f\n\x0bOT_RESERVED\x10\x03\"7\n\x10\x42inanceOrderSide\x12\x10\n\x0cSIDE_UNKNOWN\x10\x00\x12\x07\n\x03\x42UY\x10\x01\x12\x08\n\x04SELL\x10\x02\"I\n\x12\x42inanceTimeInForce\x12\x0f\n\x0bTIF_UNKNOWN\x10\x00\x12\x07\n\x03GTE\x10\x01\x12\x10\n\x0cTIF_RESERVED\x10\x02\x12\x07\n\x03IOC\x10\x03\"A\n\x10\x42inanceCancelMsg\x12\r\n\x05refid\x18\x01 \x01(\t\x12\x0e\n\x06sender\x18\x02 \x01(\t\x12\x0e\n\x06symbol\x18\x03 \x01(\t\"8\n\x0f\x42inanceSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x12\n\npublic_key\x18\x02 \x01(\x0c\x42\x33\n\x1a\x63om.keepkey.deviceprotocolB\x15KeepKeyMessageBinance')
   ,
   dependencies=[types__pb2.DESCRIPTOR,])
 
@@ -51,8 +51,8 @@ _BINANCEORDERMSG_BINANCEORDERTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1038,
-  serialized_end=1112,
+  serialized_start=1006,
+  serialized_end=1080,
 )
 _sym_db.RegisterEnumDescriptor(_BINANCEORDERMSG_BINANCEORDERTYPE)
 
@@ -77,8 +77,8 @@ _BINANCEORDERMSG_BINANCEORDERSIDE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1114,
-  serialized_end=1169,
+  serialized_start=1082,
+  serialized_end=1137,
 )
 _sym_db.RegisterEnumDescriptor(_BINANCEORDERMSG_BINANCEORDERSIDE)
 
@@ -107,8 +107,8 @@ _BINANCEORDERMSG_BINANCETIMEINFORCE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1171,
-  serialized_end=1244,
+  serialized_start=1139,
+  serialized_end=1212,
 )
 _sym_db.RegisterEnumDescriptor(_BINANCEORDERMSG_BINANCETIMEINFORCE)
 
@@ -376,13 +376,6 @@ _BINANCETRANSFERMSG_BINANCEINPUTOUTPUT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='exchange_type', full_name='BinanceTransferMsg.BinanceInputOutput.exchange_type', index=3,
-      number=4, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -396,7 +389,7 @@ _BINANCETRANSFERMSG_BINANCEINPUTOUTPUT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=555,
-  serialized_end=720,
+  serialized_end=688,
 )
 
 _BINANCETRANSFERMSG_BINANCECOIN = _descriptor.Descriptor(
@@ -432,8 +425,8 @@ _BINANCETRANSFERMSG_BINANCECOIN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=722,
-  serialized_end=770,
+  serialized_start=690,
+  serialized_end=738,
 )
 
 _BINANCETRANSFERMSG = _descriptor.Descriptor(
@@ -470,7 +463,7 @@ _BINANCETRANSFERMSG = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=419,
-  serialized_end=770,
+  serialized_end=738,
 )
 
 
@@ -552,8 +545,8 @@ _BINANCEORDERMSG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=773,
-  serialized_end=1244,
+  serialized_start=741,
+  serialized_end=1212,
 )
 
 
@@ -597,8 +590,8 @@ _BINANCECANCELMSG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1246,
-  serialized_end=1311,
+  serialized_start=1214,
+  serialized_end=1279,
 )
 
 
@@ -635,13 +628,12 @@ _BINANCESIGNEDTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1313,
-  serialized_end=1369,
+  serialized_start=1281,
+  serialized_end=1337,
 )
 
 _BINANCETRANSFERMSG_BINANCEINPUTOUTPUT.fields_by_name['coins'].message_type = _BINANCETRANSFERMSG_BINANCECOIN
 _BINANCETRANSFERMSG_BINANCEINPUTOUTPUT.fields_by_name['address_type'].enum_type = types__pb2._OUTPUTADDRESSTYPE
-_BINANCETRANSFERMSG_BINANCEINPUTOUTPUT.fields_by_name['exchange_type'].message_type = types__pb2._EXCHANGETYPE
 _BINANCETRANSFERMSG_BINANCEINPUTOUTPUT.containing_type = _BINANCETRANSFERMSG
 _BINANCETRANSFERMSG_BINANCECOIN.containing_type = _BINANCETRANSFERMSG
 _BINANCETRANSFERMSG.fields_by_name['inputs'].message_type = _BINANCETRANSFERMSG_BINANCEINPUTOUTPUT

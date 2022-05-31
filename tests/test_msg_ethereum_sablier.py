@@ -23,7 +23,6 @@ import struct
 
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
-import keepkeylib.exchange_pb2 as proto_exchange
 from keepkeylib.client import CallException
 from keepkeylib.tools import int_to_big_endian
 

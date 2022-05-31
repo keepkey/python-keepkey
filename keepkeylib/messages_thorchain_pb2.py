@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-thorchain.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x18messages-thorchain.proto\x1a\x0btypes.proto\"O\n\x13ThorchainGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12\x0f\n\x07testnet\x18\x03 \x01(\x08\"#\n\x10ThorchainAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\xbb\x01\n\x0fThorchainSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\x0e\x61\x63\x63ount_number\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x08\x63hain_id\x18\x03 \x01(\t\x12\x12\n\nfee_amount\x18\x04 \x01(\r\x12\x0b\n\x03gas\x18\x05 \x01(\r\x12\x0c\n\x04memo\x18\x06 \x01(\t\x12\x14\n\x08sequence\x18\x07 \x01(\x04\x42\x02\x30\x01\x12\x11\n\tmsg_count\x18\x08 \x01(\r\x12\x0f\n\x07testnet\x18\t \x01(\x08\"\x15\n\x13ThorchainMsgRequest\"Y\n\x0fThorchainMsgAck\x12\x1f\n\x04send\x18\x01 \x01(\x0b\x32\x11.ThorchainMsgSend\x12%\n\x07\x64\x65posit\x18\x02 \x01(\x0b\x32\x14.ThorchainMsgDeposit\"\xa0\x01\n\x10ThorchainMsgSend\x12\x14\n\x0c\x66rom_address\x18\x06 \x01(\t\x12\x12\n\nto_address\x18\x07 \x01(\t\x12\x12\n\x06\x61mount\x18\x08 \x01(\x04\x42\x02\x30\x01\x12(\n\x0c\x61\x64\x64ress_type\x18\t \x01(\x0e\x32\x12.OutputAddressType\x12$\n\rexchange_type\x18\n \x01(\x0b\x32\r.ExchangeType\"V\n\x13ThorchainMsgDeposit\x12\r\n\x05\x61sset\x18\x01 \x01(\t\x12\x12\n\x06\x61mount\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x0c\n\x04memo\x18\x03 \x01(\t\x12\x0e\n\x06signer\x18\x04 \x01(\t\":\n\x11ThorchainSignedTx\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42\x35\n\x1a\x63om.keepkey.deviceprotocolB\x17KeepKeyMessageThorchain')
+  serialized_pb=_b('\n\x18messages-thorchain.proto\x1a\x0btypes.proto\"O\n\x13ThorchainGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12\x0f\n\x07testnet\x18\x03 \x01(\x08\"#\n\x10ThorchainAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\xbb\x01\n\x0fThorchainSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\x0e\x61\x63\x63ount_number\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x08\x63hain_id\x18\x03 \x01(\t\x12\x12\n\nfee_amount\x18\x04 \x01(\r\x12\x0b\n\x03gas\x18\x05 \x01(\r\x12\x0c\n\x04memo\x18\x06 \x01(\t\x12\x14\n\x08sequence\x18\x07 \x01(\x04\x42\x02\x30\x01\x12\x11\n\tmsg_count\x18\x08 \x01(\r\x12\x0f\n\x07testnet\x18\t \x01(\x08\"\x15\n\x13ThorchainMsgRequest\"Y\n\x0fThorchainMsgAck\x12\x1f\n\x04send\x18\x01 \x01(\x0b\x32\x11.ThorchainMsgSend\x12%\n\x07\x64\x65posit\x18\x02 \x01(\x0b\x32\x14.ThorchainMsgDeposit\"\x80\x01\n\x10ThorchainMsgSend\x12\x14\n\x0c\x66rom_address\x18\x06 \x01(\t\x12\x12\n\nto_address\x18\x07 \x01(\t\x12\x12\n\x06\x61mount\x18\x08 \x01(\x04\x42\x02\x30\x01\x12(\n\x0c\x61\x64\x64ress_type\x18\t \x01(\x0e\x32\x12.OutputAddressTypeJ\x04\x08\n\x10\x0b\"V\n\x13ThorchainMsgDeposit\x12\r\n\x05\x61sset\x18\x01 \x01(\t\x12\x12\n\x06\x61mount\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x0c\n\x04memo\x18\x03 \x01(\t\x12\x0e\n\x06signer\x18\x04 \x01(\t\":\n\x11ThorchainSignedTx\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42\x35\n\x1a\x63om.keepkey.deviceprotocolB\x17KeepKeyMessageThorchain')
   ,
   dependencies=[types__pb2.DESCRIPTOR,])
 
@@ -287,13 +287,6 @@ _THORCHAINMSGSEND = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='exchange_type', full_name='ThorchainMsgSend.exchange_type', index=4,
-      number=10, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -307,7 +300,7 @@ _THORCHAINMSGSEND = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=464,
-  serialized_end=624,
+  serialized_end=592,
 )
 
 
@@ -358,8 +351,8 @@ _THORCHAINMSGDEPOSIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=626,
-  serialized_end=712,
+  serialized_start=594,
+  serialized_end=680,
 )
 
 
@@ -396,14 +389,13 @@ _THORCHAINSIGNEDTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=714,
-  serialized_end=772,
+  serialized_start=682,
+  serialized_end=740,
 )
 
 _THORCHAINMSGACK.fields_by_name['send'].message_type = _THORCHAINMSGSEND
 _THORCHAINMSGACK.fields_by_name['deposit'].message_type = _THORCHAINMSGDEPOSIT
 _THORCHAINMSGSEND.fields_by_name['address_type'].enum_type = types__pb2._OUTPUTADDRESSTYPE
-_THORCHAINMSGSEND.fields_by_name['exchange_type'].message_type = types__pb2._EXCHANGETYPE
 DESCRIPTOR.message_types_by_name['ThorchainGetAddress'] = _THORCHAINGETADDRESS
 DESCRIPTOR.message_types_by_name['ThorchainAddress'] = _THORCHAINADDRESS
 DESCRIPTOR.message_types_by_name['ThorchainSignTx'] = _THORCHAINSIGNTX
