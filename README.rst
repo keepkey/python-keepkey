@@ -98,7 +98,6 @@ How to install (Debian-Ubuntu)
 * cd python-keepkey
 * python setup.py install (or develop)
 
-
 Running Tests
 -------------
 
@@ -118,3 +117,47 @@ Release Process
   * sudo python3 setup.py sdist bdist_wheel bdist_egg
 * Upload the release
   * sudo python3 -m twine upload dist/* -s --sign-with gpg2
+
+KeepKey Bridge
+==============
+The KeepKey Bridge is a standalone TCP-to-webusb bridge the KeepKey. It runs a python-keepkey client
+based process that allows a localhost-based process to communicate with the KeepKey wallet, thus
+bypassing the need for a webusb connection from a browser based platform.
+
+The KeepKey Bridge is recommended only for advanced users who have problems connecting the KeepKey
+on Windows.
+
+Running the KeepKey Bridge
+--------------------------
+Download the KeepKey Bridge installer ``kkbsetup.exe`` for Windows in the release package here:
+
+https://github.com/keepkey/python-keepkey/releases
+
+When running the KeepKey Bridge, a blank cmd window with the title "KepKey Bridge" will be visible. 
+To stop the bridge, simply close the cmd window.
+
+Build for Windows
+-----------------
+Requirements:
+
+- Windows 10
+- python3
+- waitress (python package)
+- py2exe
+- Inno Setup Compiler (optional, for creating Windows install exe)
+
+From a command prompt terminal window, run
+    ``python wbsetup.py py2exe -d windows/dist``
+
+This will create a ``windows\dist`` folder with the Windows stand-alone executable file ``wait-serv.exe``
+
+Inno Setup Compiler
+-------------------
+This tool builds and packages the executable for install on Windows. Build with the provided installer 
+script (modify version, etc., as needed)
+
+    ``windows/KeepKeyBridge.iss``
+
+This will produce an executable install app
+
+    ``windows/Output/kkbsetup.exe``
