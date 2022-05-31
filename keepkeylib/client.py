@@ -192,6 +192,15 @@ class BaseClient(object):
         return self.transport.read_blocking()
 
     @session
+    def call_bridge(self, msg):
+        self.transport.bridgeWrite(msg)
+        return
+
+    @session
+    def call_bridge_read(self):
+        return self.transport.bridge_read_blocking()
+
+    @session
     def call(self, msg):
         resp = self.call_raw(msg)
         handler_name = "callback_%s" % resp.__class__.__name__
@@ -591,7 +600,8 @@ class ProtocolMixin(object):
                 max_priority_fee_per_gas=int_to_big_endian(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
                 value=int_to_big_endian(value),
                 to_address_n=to_n,
-                address_type=address_type
+                address_type=address_type,
+                type=2 if max_fee_per_gas else None
                 )
         else:
             msg = proto.EthereumSignTx(
@@ -601,7 +611,8 @@ class ProtocolMixin(object):
                 gas_limit=int_to_big_endian(gas_limit),
                 max_fee_per_gas=int_to_big_endian(max_fee_per_gas) if max_fee_per_gas else None,
                 max_priority_fee_per_gas=int_to_big_endian(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
-                value=int_to_big_endian(value)
+                value=int_to_big_endian(value),
+                type=2 if max_fee_per_gas else None
                 )
 
         if to:

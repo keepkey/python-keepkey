@@ -348,65 +348,111 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             "0fb9e6bc9243daf5017fc26f8ee2747f0ffd76fb277d451d2dfd5ccfa1e8b438",
         )
 
-    def test_ethereum_signtx_no_data_eip_1559(self):
+    def test_ethereum_eip_1559(self):
+        self.requires_firmware("7.2.1")
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy("AdvancedMode", 0)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
-            n=[0, 0],
+            n=[0x80000000 | 44, 0x80000000 | 60, 0x80000000, 0, 0],
             nonce=0,
-            gas_limit=25696061952,
-            max_fee_per_gas=100000,
-            to=binascii.unhexlify("41e5560054824ea6b0732e656e3ad64e20e94e45"),
-            value=0,
-        )
-        self.assertEqual(sig_v, 28)
-        self.assertEqual(
-            binascii.hexlify(sig_r),
-            "dbf60a6be0a5451e4229029c51f2f795315006ffaaf43441811d3ec8de1656b7",
-        )
-        self.assertEqual(
-            binascii.hexlify(sig_s),
-            "467d0e9a7607df44ae24c0923033b703efc5c1128a559f3cd4730963b6618858",
+            gas_limit=0x5ac3,
+            max_fee_per_gas=0x16854be509,
+            max_priority_fee_per_gas=0x540ae480,
+            to=binascii.unhexlify("fc0cc6e85dff3d75e3985e0cb83b090cfd498dd1"),
+            value=0x1550f7dca70000,
+            chain_id=1
         )
 
-        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
-            n=[0, 0],
-            nonce=123456,
-            gas_limit=25696061952,
-            max_fee_per_gas=100000,
-            max_priority_fee_per_gas=100000,
-            to=binascii.unhexlify("41e5560054824ea6b0732e656e3ad64e20e94e45"),
-            value=0,
-        )
-        self.assertEqual(sig_v, 28)
+        self.assertEqual(sig_v, 1)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "5f13f1bac8e0f4c86d31350f87fbc82469bb782ec6c2f22406568e8e0552bfcc",
+            "840314e4bec1fe3d4464ac918f9bab3e5af0b0994df225d2968962a4c8f8fec8",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "6f7ea5db456894d242c8fce12ff44d5627dd5221ccab86f2d52ecdb5786734ee",
+            "67297089e0ba53c29dda1aafc23fce64a772c5433e127e5885edc03ece4670c9",
         )
 
+    def test_ethereum_signtx_nodata_eip_1559(self):
+        self.requires_firmware("7.2.1")
+        self.setup_mnemonic_allallall()
+
+        # from trezor test vector:
+        # https://github.com/trezor/trezor-firmware/blob/master/common/tests/fixtures/ethereum/sign_tx_eip1559.json#L9
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
-            n=[0, 0],
-            nonce=123456,
-            gas_price=25696061952,
-            gas_limit=22050,
-            max_fee_per_gas=100000,
-            max_priority_fee_per_gas=100000,
-            to=binascii.unhexlify("41e5560054824ea6b0732e656e3ad64e20e94e45"),
-            value=0,
+            n=[0x80000000 | 44, 0x80000000 | 60, 0x80000000, 0, 100],
+            nonce=0,
+            max_fee_per_gas=20,
+            max_priority_fee_per_gas=1,
+            gas_limit=20,
+            to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
+            value=10,
+            chain_id=1
         )
-        self.assertEqual(sig_v, 27)
+        self.assertEqual(sig_v, 1)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "5b4c0613bbf487b151116a9b92a303f8a0d657fb682c65f7d645dec95943510a",
+            "2ceeaabc994fbce2fbd66551f9d48fc711c8db2a12e93779eeddede11e41f636",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "2eb0fc96373e57e2a12a4f6d197e4083238d96b3759bb60838070a0ba8de468a",
+            "2db4a9ecc73da91206f84397ae9287a399076fdc01ed7f3c6554b1c57c39bf8c",
+        )
+
+    def test_ethereum_signtx_knownerc20_eip_1559(self):
+        self.requires_firmware("7.2.1")
+        self.setup_mnemonic_allallall()
+
+        # from trezor test vector:
+        # https://github.com/trezor/trezor-firmware/blob/master/common/tests/fixtures/ethereum/sign_tx_eip1559.json#L65
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=[0x80000000 | 44, 0x80000000 | 60, 0x80000000, 0, 0],
+            nonce=0,
+            max_fee_per_gas=20,
+            max_priority_fee_per_gas=1,
+            gas_limit=20,
+            to=binascii.unhexlify("d0d6d6c5fe4a677d343cc433536bb717bae167dd"),
+            value=0,
+            chain_id=1,
+            data=binascii.unhexlify('a9059cbb000000000000000000000000574bbb36871ba6b78e27f4b4dcfb76ea0091880b000000000000000000000000000000000000000000000000000000000bebc200')
+        )
+
+        self.assertEqual(sig_v, 1)
+        self.assertEqual(
+            binascii.hexlify(sig_r),
+            "94d67bacb7966f881339d91103f5d738d9c491fff4c01a6513c554ab15e86cc0",
+        )
+        self.assertEqual(
+            binascii.hexlify(sig_s),
+            "405bd19a7bf4ae62d41fcb7844e36c786b106b456185c3d0877a7ce7eab6c751",
+        )
+
+    def test_ethereum_signtx_data1_eip_1559(self):
+        self.requires_firmware("7.2.1")
+        self.setup_mnemonic_allallall()
+
+        # from trezor test vector:
+        # https://github.com/trezor/trezor-firmware/blob/master/common/tests/fixtures/ethereum/sign_tx_eip1559.json#L27
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=[0x80000000 | 44, 0x80000000 | 60, 0x80000000, 0, 0],
+            nonce=0,
+            max_fee_per_gas=20,
+            max_priority_fee_per_gas=1,
+            gas_limit=20,
+            to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
+            value=10,
+            chain_id=1,
+            data=binascii.unhexlify('6162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f706162636465666768696a6b6c6d6e6f70')
+        )
+
+        self.assertEqual(sig_v, 0)
+        self.assertEqual(
+            binascii.hexlify(sig_r),
+            "8e4361e40e76a7cab17e0a982724bbeaf5079cd02d50c20d431ba7dde2404ea4",
+        )
+        self.assertEqual(
+            binascii.hexlify(sig_s),
+            "411930f091bb508e593e22a9ee45bd4d9eeb504ac398123aec889d5951bdebc3",
         )
 
     def test_ethereum_signtx_nodata(self):
