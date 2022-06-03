@@ -36,6 +36,7 @@ from mnemonic import Mnemonic
 from . import tools
 from . import mapping
 from . import messages_pb2 as proto
+from . import messages_ethereum_pb2 as eth_proto
 from . import messages_eos_pb2 as eos_proto
 from . import messages_nano_pb2 as nano_proto
 from . import messages_cosmos_pb2 as cosmos_proto
@@ -577,10 +578,10 @@ class ProtocolMixin(object):
             return self.call(proto.GetAddress(address_n=n, coin_name=coin_name, show_display=show_display, script_type=script_type))
 
     @field('address')
-    @expect(proto.EthereumAddress)
+    @expect(eth_proto.EthereumAddress)
     def ethereum_get_address(self, n, show_display=False, multisig=None):
         n = self._convert_prime(n)
-        return self.call(proto.EthereumGetAddress(address_n=n, show_display=show_display))
+        return self.call(eth_proto.EthereumGetAddress(address_n=n, show_display=show_display))
 
     @session
     def ethereum_sign_tx(self, n, nonce, gas_limit,  value, gas_price=None, max_fee_per_gas=None, max_priority_fee_per_gas=None, to=None, to_n=None, address_type=None, data=None, chain_id=None):
@@ -591,7 +592,7 @@ class ProtocolMixin(object):
 
         n = self._convert_prime(n)
         if address_type == types.TRANSFER:   #Ethereum transfer transaction
-            msg = proto.EthereumSignTx(
+            msg = eth_proto.EthereumSignTx(
                 address_n=n,
                 nonce=int_to_big_endian(nonce),
                 gas_price=int_to_big_endian(gas_price) if gas_price else None,
@@ -604,7 +605,7 @@ class ProtocolMixin(object):
                 type=2 if max_fee_per_gas else None
                 )
         else:
-            msg = proto.EthereumSignTx(
+            msg = eth_proto.EthereumSignTx(
                 address_n=n,
                 nonce=int_to_big_endian(nonce),
                 gas_price=int_to_big_endian(gas_price) if gas_price else None,
@@ -631,7 +632,7 @@ class ProtocolMixin(object):
         while response.HasField('data_length'):
             data_length = response.data_length
             data, chunk = data[data_length:], data[:data_length]
-            response = self.call(proto.EthereumTxAck(data_chunk=chunk))
+            response = self.call(eth_proto.EthereumTxAck(data_chunk=chunk))
 
         if address_type:
             return response.signature_v, response.signature_r, response.signature_s, response.hash, response.signature_der

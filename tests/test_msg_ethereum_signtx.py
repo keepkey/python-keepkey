@@ -23,6 +23,7 @@ import common
 import binascii
 
 import keepkeylib.messages_pb2 as proto
+import keepkeylib.messages_ethereum_pb2 as eth_proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
 from keepkeylib.tools import int_to_big_endian
@@ -40,7 +41,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                     proto.ButtonRequest(code=proto_types.ButtonRequest_Other),
                     proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                     proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
-                    proto.EthereumTxRequest(),
+                    eth_proto.EthereumTxRequest(),
                 ]
             )
 
@@ -71,7 +72,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                     proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                     proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                     proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
-                    proto.EthereumTxRequest(),
+                    eth_proto.EthereumTxRequest(),
                 ]
             )
 
