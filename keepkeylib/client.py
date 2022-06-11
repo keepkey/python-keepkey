@@ -583,6 +583,19 @@ class ProtocolMixin(object):
         n = self._convert_prime(n)
         return self.call(eth_proto.EthereumGetAddress(address_n=n, show_display=show_display))
 
+    @expect(eth_proto.EthereumTypedDataSignature)
+    def ethereum_sign_typed_data_hash(self, n, ds_hash, m_hash=None):
+        n = self._convert_prime(n)
+        msg = eth_proto.EthereumSignTypedHash(
+            address_n=n,
+            domain_separator_hash=ds_hash
+            )
+        if m_hash:
+            msg.message_hash = m_hash
+
+        response = self.call(msg)
+        return response
+
     @session
     def ethereum_sign_tx(self, n, nonce, gas_limit,  value, gas_price=None, max_fee_per_gas=None, max_priority_fee_per_gas=None, to=None, to_n=None, address_type=None, data=None, chain_id=None):
         from keepkeylib.tools import int_to_big_endian

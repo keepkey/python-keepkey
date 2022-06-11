@@ -211,3 +211,8 @@ def dict_from_camelcase(d, renames=None):
 
     return res
 
+def decode_hex(value: str) -> bytes:
+    if value.startswith(("0x", "0X")):
+        return bytes.fromhex(value[2:])
+    else:
+        return bytes.fromhex(value)
