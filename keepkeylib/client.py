@@ -595,6 +595,23 @@ class ProtocolMixin(object):
 
         response = self.call(msg)
         return response
+    
+    
+    
+    
+    @expect(eth_proto.EthereumTypedDataSignature)
+    def e712_types_values(self, n, types_prop, ptype_prop, value_prop, typevals):
+        msg = eth_proto.Ethereum712TypesValues(
+            address_n = self._convert_prime(n),
+            eip712types = types_prop,
+            eip712primetype = ptype_prop,     
+            eip712data = value_prop,
+            eip712typevals = typevals       
+            )
+
+        response = self.call(msg)
+        return response
+
 
     @session
     def ethereum_sign_tx(self, n, nonce, gas_limit,  value, gas_price=None, max_fee_per_gas=None, max_priority_fee_per_gas=None, to=None, to_n=None, address_type=None, data=None, chain_id=None):

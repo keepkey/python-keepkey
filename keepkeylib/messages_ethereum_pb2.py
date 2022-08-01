@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-ethereum.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x17messages-ethereum.proto\x1a\x0btypes.proto\"=\n\x12\x45thereumGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\"7\n\x0f\x45thereumAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\x0c\x12\x13\n\x0b\x61\x64\x64ress_str\x18\x02 \x01(\t\"\x95\x03\n\x0e\x45thereumSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x11\n\tgas_price\x18\x03 \x01(\x0c\x12\x11\n\tgas_limit\x18\x04 \x01(\x0c\x12\n\n\x02to\x18\x05 \x01(\x0c\x12\r\n\x05value\x18\x06 \x01(\x0c\x12\x1a\n\x12\x64\x61ta_initial_chunk\x18\x07 \x01(\x0c\x12\x13\n\x0b\x64\x61ta_length\x18\x08 \x01(\r\x12\x14\n\x0cto_address_n\x18\t \x03(\r\x12(\n\x0c\x61\x64\x64ress_type\x18\n \x01(\x0e\x32\x12.OutputAddressType\x12\x10\n\x08\x63hain_id\x18\x0c \x01(\r\x12\x17\n\x0fmax_fee_per_gas\x18\r \x01(\x0c\x12 \n\x18max_priority_fee_per_gas\x18\x0e \x01(\x0c\x12\x13\n\x0btoken_value\x18\x64 \x01(\x0c\x12\x10\n\x08token_to\x18\x65 \x01(\x0c\x12\x16\n\x0etoken_shortcut\x18\x66 \x01(\t\x12\x0f\n\x07tx_type\x18g \x01(\r\x12\x0c\n\x04type\x18h \x01(\rJ\x04\x08\x0b\x10\x0c\"\x8c\x01\n\x11\x45thereumTxRequest\x12\x13\n\x0b\x64\x61ta_length\x18\x01 \x01(\r\x12\x13\n\x0bsignature_v\x18\x02 \x01(\r\x12\x13\n\x0bsignature_r\x18\x03 \x01(\x0c\x12\x13\n\x0bsignature_s\x18\x04 \x01(\x0c\x12\x0c\n\x04hash\x18\x05 \x01(\x0c\x12\x15\n\rsignature_der\x18\x06 \x01(\x0c\"#\n\rEthereumTxAck\x12\x12\n\ndata_chunk\x18\x01 \x01(\x0c\"9\n\x13\x45thereumSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\"L\n\x15\x45thereumVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\">\n\x18\x45thereumMessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"_\n\x15\x45thereumSignTypedHash\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1d\n\x15\x64omain_separator_hash\x18\x02 \x02(\x0c\x12\x14\n\x0cmessage_hash\x18\x03 \x01(\x0c\"@\n\x1a\x45thereumTypedDataSignature\x12\x11\n\tsignature\x18\x01 \x02(\x0c\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x02(\tB4\n\x1a\x63om.keepkey.deviceprotocolB\x16KeepKeyMessageEthereum')
+  serialized_pb=_b('\n\x17messages-ethereum.proto\x1a\x0btypes.proto\"=\n\x12\x45thereumGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\"7\n\x0f\x45thereumAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\x0c\x12\x13\n\x0b\x61\x64\x64ress_str\x18\x02 \x01(\t\"\x95\x03\n\x0e\x45thereumSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x11\n\tgas_price\x18\x03 \x01(\x0c\x12\x11\n\tgas_limit\x18\x04 \x01(\x0c\x12\n\n\x02to\x18\x05 \x01(\x0c\x12\r\n\x05value\x18\x06 \x01(\x0c\x12\x1a\n\x12\x64\x61ta_initial_chunk\x18\x07 \x01(\x0c\x12\x13\n\x0b\x64\x61ta_length\x18\x08 \x01(\r\x12\x14\n\x0cto_address_n\x18\t \x03(\r\x12(\n\x0c\x61\x64\x64ress_type\x18\n \x01(\x0e\x32\x12.OutputAddressType\x12\x10\n\x08\x63hain_id\x18\x0c \x01(\r\x12\x17\n\x0fmax_fee_per_gas\x18\r \x01(\x0c\x12 \n\x18max_priority_fee_per_gas\x18\x0e \x01(\x0c\x12\x13\n\x0btoken_value\x18\x64 \x01(\x0c\x12\x10\n\x08token_to\x18\x65 \x01(\x0c\x12\x16\n\x0etoken_shortcut\x18\x66 \x01(\t\x12\x0f\n\x07tx_type\x18g \x01(\r\x12\x0c\n\x04type\x18h \x01(\rJ\x04\x08\x0b\x10\x0c\"\x8c\x01\n\x11\x45thereumTxRequest\x12\x13\n\x0b\x64\x61ta_length\x18\x01 \x01(\r\x12\x13\n\x0bsignature_v\x18\x02 \x01(\r\x12\x13\n\x0bsignature_r\x18\x03 \x01(\x0c\x12\x13\n\x0bsignature_s\x18\x04 \x01(\x0c\x12\x0c\n\x04hash\x18\x05 \x01(\x0c\x12\x15\n\rsignature_der\x18\x06 \x01(\x0c\"#\n\rEthereumTxAck\x12\x12\n\ndata_chunk\x18\x01 \x01(\x0c\"9\n\x13\x45thereumSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\"L\n\x15\x45thereumVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\">\n\x18\x45thereumMessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"_\n\x15\x45thereumSignTypedHash\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1d\n\x15\x64omain_separator_hash\x18\x02 \x02(\x0c\x12\x14\n\x0cmessage_hash\x18\x03 \x01(\x0c\"u\n\x1a\x45thereumTypedDataSignature\x12\x11\n\tsignature\x18\x01 \x02(\x0c\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x02(\t\x12\x1d\n\x15\x64omain_separator_hash\x18\x03 \x01(\x0c\x12\x14\n\x0cmessage_hash\x18\x04 \x01(\x0c\"\x85\x01\n\x16\x45thereum712TypesValues\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x13\n\x0b\x65ip712types\x18\x02 \x02(\t\x12\x17\n\x0f\x65ip712primetype\x18\x03 \x02(\t\x12\x12\n\neip712data\x18\x04 \x02(\t\x12\x16\n\x0e\x65ip712typevals\x18\x05 \x02(\rB4\n\x1a\x63om.keepkey.deviceprotocolB\x16KeepKeyMessageEthereum')
   ,
   dependencies=[types__pb2.DESCRIPTOR,])
 
@@ -537,6 +537,20 @@ _ETHEREUMTYPEDDATASIGNATURE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='domain_separator_hash', full_name='EthereumTypedDataSignature.domain_separator_hash', index=2,
+      number=3, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='message_hash', full_name='EthereumTypedDataSignature.message_hash', index=3,
+      number=4, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -550,7 +564,66 @@ _ETHEREUMTYPEDDATASIGNATURE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=1046,
-  serialized_end=1110,
+  serialized_end=1163,
+)
+
+
+_ETHEREUM712TYPESVALUES = _descriptor.Descriptor(
+  name='Ethereum712TypesValues',
+  full_name='Ethereum712TypesValues',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address_n', full_name='Ethereum712TypesValues.address_n', index=0,
+      number=1, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='eip712types', full_name='Ethereum712TypesValues.eip712types', index=1,
+      number=2, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='eip712primetype', full_name='Ethereum712TypesValues.eip712primetype', index=2,
+      number=3, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='eip712data', full_name='Ethereum712TypesValues.eip712data', index=3,
+      number=4, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='eip712typevals', full_name='Ethereum712TypesValues.eip712typevals', index=4,
+      number=5, type=13, cpp_type=3, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1166,
+  serialized_end=1299,
 )
 
 _ETHEREUMSIGNTX.fields_by_name['address_type'].enum_type = types__pb2._OUTPUTADDRESSTYPE
@@ -564,6 +637,7 @@ DESCRIPTOR.message_types_by_name['EthereumVerifyMessage'] = _ETHEREUMVERIFYMESSA
 DESCRIPTOR.message_types_by_name['EthereumMessageSignature'] = _ETHEREUMMESSAGESIGNATURE
 DESCRIPTOR.message_types_by_name['EthereumSignTypedHash'] = _ETHEREUMSIGNTYPEDHASH
 DESCRIPTOR.message_types_by_name['EthereumTypedDataSignature'] = _ETHEREUMTYPEDDATASIGNATURE
+DESCRIPTOR.message_types_by_name['Ethereum712TypesValues'] = _ETHEREUM712TYPESVALUES
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 EthereumGetAddress = _reflection.GeneratedProtocolMessageType('EthereumGetAddress', (_message.Message,), dict(
@@ -635,6 +709,13 @@ EthereumTypedDataSignature = _reflection.GeneratedProtocolMessageType('EthereumT
   # @@protoc_insertion_point(class_scope:EthereumTypedDataSignature)
   ))
 _sym_db.RegisterMessage(EthereumTypedDataSignature)
+
+Ethereum712TypesValues = _reflection.GeneratedProtocolMessageType('Ethereum712TypesValues', (_message.Message,), dict(
+  DESCRIPTOR = _ETHEREUM712TYPESVALUES,
+  __module__ = 'messages_ethereum_pb2'
+  # @@protoc_insertion_point(class_scope:Ethereum712TypesValues)
+  ))
+_sym_db.RegisterMessage(Ethereum712TypesValues)
 
 
 DESCRIPTOR.has_options = True
