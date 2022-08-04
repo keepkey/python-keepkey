@@ -164,6 +164,14 @@ class Commands(object):
         script_type = typemap[args.script_type];
         return self.client.get_address(args.coin, address_n, args.show_display, script_type=script_type)
 
+    def get_xpub(self, args):
+        address_n = self.client.expand_path(args.n)
+        typemap = { 'address': types.SPENDADDRESS,
+                    'segwit': types.SPENDWITNESS,
+                    'p2shsegwit': types.SPENDP2SHWITNESS }
+        script_type = typemap[args.script_type];
+        return self.client.get_public_node(n=address_n, show_display=args.show_display, coin_name=args.coin, script_type=script_type).xpub
+
     def ethereum_get_address(self, args):
         address_n = self.client.expand_path(args.n)
         address = self.client.ethereum_get_address(address_n, args.show_display)
@@ -500,6 +508,7 @@ class Commands(object):
     list.help = 'List connected KeepKey USB devices'
     ping.help = 'Send ping message'
     get_address.help = 'Get bitcoin address in base58 encoding'
+    get_xpub.help = 'Get xpub'
     ethereum_get_address.help = 'Get Ethereum address in hex encoding'
     ethereum_sign_tx.help = 'Sign (and optionally publish) Ethereum transaction'
     eos_get_public_key.help = 'Get EOS public key'
@@ -530,6 +539,13 @@ class Commands(object):
     firmware_update.help = 'Upload new firmware to device (must be in bootloader mode)'
 
     get_address.arguments = (
+        (('-c', '--coin'), {'type': str, 'default': 'Bitcoin'}),
+        (('-n', '-address'), {'type': str}),
+        (('-t', '--script-type'), {'type': str, 'choices': ['address', 'segwit', 'p2shsegwit'], 'default': 'address'}),
+        (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
+    )
+
+    get_xpub.arguments = (
         (('-c', '--coin'), {'type': str, 'default': 'Bitcoin'}),
         (('-n', '-address'), {'type': str}),
         (('-t', '--script-type'), {'type': str, 'choices': ['address', 'segwit', 'p2shsegwit'], 'default': 'address'}),
