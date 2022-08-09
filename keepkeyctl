@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-# This file is part of the TREZOR project.
+# Keepkey python client.
 #
 # Copyright (C) 2012-2016 Marek Palatinus <slush@satoshilabs.com>
 # Copyright (C) 2012-2016 Pavol Rusnak <stick@satoshilabs.com>
 # Copyright (C) 2016      Jochen Hoenicke <hoenicke@gmail.com>
+# Copyright (C) 2022      markrypto <cryptoakorn@gmail.com>
 #
 # This library is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -251,6 +252,35 @@ class Commands(object):
             return 'Transaction published with ID: %s' % tx_hash
         else:
             return 'Signed raw transaction: %s' % tx_hex
+
+
+
+    def ethereum_eip712(self, args):
+        n = self.client.expand_path(args.n)
+        f = open(args.file, 'r')
+        msg = json.load(f)
+        f.close()
+        retval = self.client.e712_types_values(
+            n = n,
+            types_prop = "{\"types\": " + json.dumps(msg['types']) + "}",
+            ptype_prop = "{\"primaryType\": " + json.dumps(msg['primaryType']) + "}",
+            value_prop = "{\"domain\": " + json.dumps(msg['domain']) + "}",
+            typevals = 1
+        )
+        retval = self.client.e712_types_values(
+            n = n,
+            types_prop = "{\"types\": " + json.dumps(msg['types']) + "}",
+            ptype_prop = "{\"primaryType\": " + json.dumps(msg['primaryType']) + "}",
+            value_prop = "{\"message\": " + json.dumps(msg['message']) + "}",
+            typevals = 2
+        )
+        ret = "domain separator hash: " + retval.domain_separator_hash.hex() + "\n" + "message_hash: "
+        if (retval.has_msg_hash):
+            ret += retval.message_hash.hex() + "\n"
+        else:
+            ret += "null"
+        ret += "signature: " + retval.signature.hex() + "\n"
+        return ret
 
     def eos_get_public_key(self, args):
         address_n = self.client.expand_path(args.n)
@@ -502,6 +532,7 @@ class Commands(object):
     get_address.help = 'Get bitcoin address in base58 encoding'
     ethereum_get_address.help = 'Get Ethereum address in hex encoding'
     ethereum_sign_tx.help = 'Sign (and optionally publish) Ethereum transaction'
+    ethereum_eip712.help = 'Verify and sign an Ethereum eip-712 message'
     eos_get_public_key.help = 'Get EOS public key'
     eos_sign_tx.help = 'Sign EOS transaction'
     nano_get_address.help = 'Get Nano address'
@@ -552,6 +583,11 @@ class Commands(object):
         (('-d', '--data'), {'type': str, 'help': 'Data as hex string, e.g., 0x12345678', 'default': ''}),
         (('-p', '--publish'), {'action': 'store_true', 'help': 'publish transaction via RPC', 'default': False}),
         (('to',), {'type': str, 'help': 'Destination address; "" for contract creation'}),
+    )
+
+    ethereum_eip712.arguments = (
+        (('-n', '-address'), {'type': str, 'help': 'BIP-32 path to signing key'}),
+        (('-f', '--file'), {'type': str}),
     )
 
     eos_get_public_key.arguments = (
