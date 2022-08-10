@@ -253,8 +253,6 @@ class Commands(object):
         else:
             return 'Signed raw transaction: %s' % tx_hex
 
-
-
     def ethereum_eip712(self, args):
         n = self.client.expand_path(args.n)
         f = open(args.file, 'r')
