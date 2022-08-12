@@ -271,14 +271,14 @@ class Commands(object):
             types_prop = "{\"types\": " + json.dumps(msg['types']) + "}",
             ptype_prop = "{\"primaryType\": " + json.dumps(msg['primaryType']) + "}",
             value_prop = "{\"domain\": " + json.dumps(msg['domain']) + "}",
-            typevals = 1
+            typevals = 1  # domain hash calculation
         )
         retval = self.client.e712_types_values(
             n = n,
             types_prop = "{\"types\": " + json.dumps(msg['types']) + "}",
             ptype_prop = "{\"primaryType\": " + json.dumps(msg['primaryType']) + "}",
             value_prop = "{\"message\": " + json.dumps(msg['message']) + "}",
-            typevals = 2
+            typevals = 2  # message hash calculation
         )
         ret = "domain separator hash: " + retval.domain_separator_hash.hex() + "\n" + "message_hash: "
         if (retval.has_msg_hash):
