@@ -1,0 +1,37 @@
+{
+    "types": {
+        "EIP712Domain": [
+            { "name": "name", "type": "string" },
+            { "name": "version", "type": "string" },
+            { "name": "chainId", "type": "uint256" },
+            { "name": "verifyingContract", "type": "address" }
+        ],
+        "Permit": [
+            { "name": "owner", "type": "address" },
+            { "name": "spender", "type": "address" },
+            { "name": "value", "type": "uint256" },
+            { "name": "nonce", "type": "uint256" },
+            { "name": "deadline", "type": "uint256" }
+        ]
+    },
+    "domain": {
+        "name": "USD Coin",
+        "version": "2",
+        "verifyingContract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "chainId": 1
+    },
+    "primaryType": "Permit",
+    "message": {
+        "owner": "0x33b35c665496bA8E71B22373843376740401F106",
+        "spender": "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45",
+        "value": "4023865",
+        "nonce": 0,
+        "deadline": 1655431026
+    },
+    "path": "m/44'/60'/0'/0/0",
+    "results": {
+        "test_data": "actual",
+        "message_hash": "0x12b75f932b4f17e1f62bc7a630a033f46649a18f4e759bb1ff559c57cb2bc39b",
+        "domain_separator_hash": "0x06c37168a7db5138defc7866392bb87a741f9b3d104deb5094588ce041cae335"
+    }
+}
