@@ -178,6 +178,15 @@ class Commands(object):
         address = self.client.ethereum_get_address(address_n, args.show_display)
         return "0x%s" % (binascii.hexlify(address),)
 
+    def ethereum_sign_msg(self, args):
+        n = self.client.expand_path(args.n)
+        retval = self.client.ethereum_sign_message(
+            n = n,
+            message=bytes(args.message, 'utf8')
+        )
+        ret = "address: " + retval.address.hex() + "\n" + "signature: " + retval.signature.hex() + "\n"
+        return ret
+
     def ethereum_sign_tx(self, args):
         from ethjsonrpc import EthJsonRpc
         from ethjsonrpc.utils import hex_to_dec
@@ -538,6 +547,7 @@ class Commands(object):
     get_address.help = 'Get bitcoin address in base58 encoding'
     get_xpub.help = 'Get xpub'
     ethereum_get_address.help = 'Get Ethereum address in hex encoding'
+    ethereum_sign_msg.help = 'Sign Ethereum message'
     ethereum_sign_tx.help = 'Sign (and optionally publish) Ethereum transaction'
     ethereum_eip712.help = 'Verify and sign an Ethereum eip-712 message'
     eos_get_public_key.help = 'Get EOS public key'
@@ -585,6 +595,11 @@ class Commands(object):
         (('-n', '-address'), {'type': str}),
         (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
     )
+
+    ethereum_sign_msg.arguments = (
+        (('-n', '-address'), {'type': str, 'help': 'BIP-32 path to signing key'}),
+        (('message',), {'type': str}),
+        )
 
     ethereum_sign_tx.arguments = (
         (('-a', '--host'), {'type': str, 'help': 'RPC port of ethereum node for automatic gas/nonce estimation', 'default': 'localhost:8545'}),
