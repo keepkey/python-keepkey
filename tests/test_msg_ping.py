@@ -27,52 +27,23 @@ import binascii
 from keepkeylib import messages_pb2 as proto
 from keepkeylib import types_pb2 as proto_types
 
-### Dynamic Truncation
-def dynamic_truncate(b_hash):
-    hash_len=len(b_hash)
-    int_hash = int.from_bytes(b_hash, byteorder='big')
-    offset = int_hash & 0xF
-    # Geterate a mask to get bytes from left to right of the hash
-    n_shift = 8*(hash_len-offset)-32
-    MASK = 0xFFFFFFFF << n_shift
-    hex_mask = "0x"+("{:0"+str(2*hash_len)+"x}").format(MASK)
-    P = (int_hash & MASK)>>n_shift   # Get rid of left zeros
-    LSB_31 = P & 0x7FFFFFFF          # Return only the lower 31 bits
-    return LSB_31
-
 class TestPing(common.KeepKeyTest):
     def test_auth_init(self):
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.ping(
-            #msg = b'\x15' + bytes("initializeAuth:" + "CGPZQ62R37AHNYKJES3JQL5E", 'utf8')
-            msg = b'\x15' + bytes("initializeAuth:" + "BASE32SECRET2345AB==", 'utf8')
+            msg = b'\x15' + bytes("initializeAuth:" + "python-test:" + "BASE32SECRET2345AB", 'utf8')
         )
  
         interval = 30       # 30 second interval
-        #T0 = int(time.time())       
-        T0 = 1535317397
-        # T1 = T0 + interval
+        #T0 = 1535317397
+        T0 = 1536262427
         
-        #T = bytes(str(int(T0/interval).to_bytes(8, byteorder='big')), 'utf8')
         T = int(T0/interval).to_bytes(8, byteorder='big')
-        # print(T)
-        # print(T.hex())
-        # print([T[i:i+1] for i in range(len(T))])
-        # print(''.join('{:02x}'.format(x) for x in T))
-        # print(b'\x16' + bytes("generateOTPFrom:", 'utf8') + ''.join('{:02x}'.format(x) for x in T))
-        # print(T1)
-        # print(T)
-        # print((b'\x16' + bytes("generateOTPFrom:", 'utf8') + T).hex())
         retval = self.client.ping(
-            #msg = b'\x16' + bytes("generateOTPFrom:", 'utf8') + bytes(''.join('{:02x}'.format(x) for x in T), 'utf8')
-            msg = b'\x16' + bytes("generateOTPFrom:", 'utf8') + binascii.hexlify(bytearray(T))
+            msg = b'\x16' + bytes("generateOTPFrom:" + "python-test:", 'utf8') + binascii.hexlify(bytearray(T))
         )
         print(retval)
-        print(binascii.unhexlify(retval))
-        Digits = 6
-        trc_hash = dynamic_truncate(binascii.unhexlify(retval))
-        print(("{:0"+str(Digits)+"}").format(trc_hash % (10**Digits)))
-        print("should be 280672")
+        print("should be 007767")  
 
 
     # def test_ping(self):
