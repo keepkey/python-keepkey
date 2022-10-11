@@ -620,7 +620,7 @@ class ProtocolMixin(object):
         response = self.call(msg)
         return response
 
-    def ethereum_verify_message(self, addr, signature, message):
+    def ethereum_verify_message(self, signature, message, addr=None):
         msg = eth_proto.EthereumVerifyMessage(
             address=addr,
             signature=signature,
