@@ -45,7 +45,7 @@
             "message": {},
             "domain": {
                 "name": "Keepkey",
-                "version": "Test v0.0.0",
+                "version": "v0.0.0",
                 "chainId": 1,
                 "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
                 "salt": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
@@ -55,8 +55,8 @@
                 "test_data": "full_domain_empty_message",
                 "address": "0x73d0385F4d8E00C5e6504C6030F47BF6212736A8",
                 "message_hash": null,
-                "domain_separator_hash": "0x2cfb61306c0d1212d7c4f5acf89c9b8df3c85b19f9d87d08547cb9cee9f73b2b",
-                "sig": "0xe2044e851001e7b7760819aa78c642f225ea6c00e609ed03bbc61d47e25eb0542e5d4a9fa5e351c5365906e0b7d5d8115ca12dd61167567a7278db40d13246211c"
+                "domain_separator_hash": "0x2fe8ff131f732c3af1efc47b1f8861bd00927118503927ee737373a1049f52c1",
+                "sig": "0xcc8b67015d3be8e22bc0ed08afb1916cce86b55d22a2264bde1a15811be0b765421d504a0cddd2a7a7005e0e785475436442d8557b16ea2239463d74fab0dd381b"
             }
         },        
         {
