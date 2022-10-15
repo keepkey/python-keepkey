@@ -11,7 +11,6 @@
         },
         "signature": "100312def8ecc438ff86539543f55121e8f6b8450f0e84d395fc0db23554ecea491283c4476ed493f1430efb81b6483f2567b566b9a63f4984a93f40214280861b"
     },
-
     "usdtToken": {
         "token":
         {
@@ -22,7 +21,6 @@
         },
         "signature": "5c7a0c62e90e1ca8490c3f34402d3c417d5899b230a7113a4e0d736612f5eb1e184795880ede17ab8b8a53f1f50a9a0958658c71c3fbd7173781fc9c67f07d851b"
     },
-
     "usdcToken": {
         "token":
         {
@@ -31,8 +29,18 @@
             "chainId": 1,
             "decimals": 6
         },
-    "signature": "bac42582f5fd6f4ff06bd4be01889773a9d587960ecf0d5eccd3fef8759dce98708e4d09a4c4fe7440cd6c5985905acf04df4334fa9ab39f369e4c23871630ed1b"
-},
+        "signature": "bac42582f5fd6f4ff06bd4be01889773a9d587960ecf0d5eccd3fef8759dce98708e4d09a4c4fe7440cd6c5985905acf04df4334fa9ab39f369e4c23871630ed1b"
+    },
+    "zrxToken": {
+        "token":
+        {
+            "address": "E41d2489571d322189246DaFA5ebDe1F4699F498",
+            "ticker": "ZRX",
+            "chainId": 1,
+            "decimals": 18
+        },
+        "signature": "2d1c257bb1bcdf0a2139ec381df05239e89536c7b4742cda21ace82dab044ee27cad8b50a51fe6c325e7d4c90b79040d1c77cd0c0f79dbb924b5ad2925b1b7ab1c"
+    },
 
     "resetToken": {
         "token":
