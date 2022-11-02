@@ -15,7 +15,6 @@
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from doctest import testfile
 import unittest
 import common
 import binascii
@@ -25,10 +24,12 @@ from keepkeylib import tools
 from addSignedData import addSignedToken, addSignedIcon
 
 class TestMsgEthvm(common.KeepKeyTest): 
-    def test_ethereum_verify_message_token(self):       
+    def test_ethereum_verify_message_token(self):  
+             
         if self.client.features.firmware_variant == "Emulator":
             self.skipTest("Skip until emulator issue resolved")
             return
+        
         self.requires_firmware("7.6.0")
         f = open('evptests.json')
         test = json.load(f)
