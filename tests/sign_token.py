@@ -37,13 +37,12 @@ class TestMsgEthvm(common.KeepKeyTest):
         
         retval = self.client.ethereum_sign_message(
             n = tools.parse_path("m/44'/60'/1'/0/0"),
-            message = bytes(json.dumps(test['zrxToken']['token']), 'utf8')
+            message = bytes(json.dumps(test['civicToken']['token']), 'utf8')
         ) 
-        print(bytes(json.dumps(test['zrxToken']['token']), 'utf8'))
+        # print(bytes(json.dumps(test['zrxToken']['token']), 'utf8'))
 
         print(retval.address.hex())
         print(binascii.hexlify(retval.signature))
-        print(retval.signature)        
 
 if __name__ == "__main__":
     unittest.main()

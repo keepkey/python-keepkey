@@ -24,6 +24,7 @@ import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
 from keepkeylib.tools import int_to_big_endian
+from addSignedData import addSignedToken, addSignedIcon
 
 class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
     
@@ -51,13 +52,25 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.assertEqual(sig_v, 38)
         self.assertEqual(binascii.hexlify(sig_r), '7f7a5ce501371a01ead394d2186385742d5fbdc3d85da98249d2a05043ac6d5a')
         self.assertEqual(binascii.hexlify(sig_s), '329954b284ed1df9a6242820e793b9719c0c6c21cae5f90190ce61c7f73c731e')
-                 
+
     def test_sign_uni_add_liquidity_ETH(self):
         if self.client.features.firmware_variant == "Emulator":
             self.skipTest("Skip until emulator issue resolved")
             return
-        self.requires_firmware("7.1.0")
+        self.requires_firmware("7.6.0")
         self.setup_mnemonic_nopin_nopassphrase()
+
+        # add icon data
+        retval = addSignedIcon(self, 'iconEthereum')
+        self.assertEqual(retval.message, "Signed icon data received")
+
+        # reset the token list
+        retval = addSignedToken(self, 'resetToken')
+        self.assertEqual(retval.message, "token list reset successfully")
+
+        # add civic token
+        retval = addSignedToken(self, 'foxToken')
+        self.assertEqual(retval.message, "Signed token received")
 
         # Add liquidity to ETH/FOX pool
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -87,8 +100,20 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         if self.client.features.firmware_variant == "Emulator":
             self.skipTest("Skip until emulator issue resolved")
             return
-        self.requires_firmware("7.1.0")
+        self.requires_firmware("7.6.0")
         self.setup_mnemonic_nopin_nopassphrase()
+
+        # add icon data
+        retval = addSignedIcon(self, 'iconEthereum')
+        self.assertEqual(retval.message, "Signed icon data received")
+
+        # reset the token list
+        retval = addSignedToken(self, 'resetToken')
+        self.assertEqual(retval.message, "token list reset successfully")
+
+        # add civic token
+        retval = addSignedToken(self, 'foxToken')
+        self.assertEqual(retval.message, "Signed token received")
 
         # remove liquidity from the ETH/FOX pool
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -102,7 +127,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
             chain_id=1,
             # The data below is generally broken into 32-byte chunks except for the function selector (4 bytes_ and 
             # keccak signatures (4 bytes)
-            data=binascii.unhexlify('02751cec' +                                      # addLiquidityETH
+            data=binascii.unhexlify('02751cec' +                                      # removeLiquidityETH
                 '000000000000000000000000c770eefad204b5180df6a14ee197d99d808ee52d' +  # FOX token
                 '00000000000000000000000000000000000000000000000002684b14a52bcefc' +  # liquidity amount
                 '000000000000000000000000000000000000000000000000010a741a46278000' +  # min amount of fox token

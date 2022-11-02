@@ -22,12 +22,10 @@ import binascii
 import json
 
 from keepkeylib import tools
-
+from addSignedData import addSignedToken, addSignedIcon
 
 class TestMsgEthvm(common.KeepKeyTest): 
-    def test_ethereum_verify_message(self):
-        # self.setup_mnemonic_nopin_nopassphrase()
-
+    def test_ethereum_verify_message_token(self):       
         self.requires_firmware("7.6.0")
         f = open('evptests.json')
         test = json.load(f)
@@ -35,34 +33,21 @@ class TestMsgEthvm(common.KeepKeyTest):
         
         self.client.load_device_by_mnemonic(mnemonic=test['mnemonic'], pin='', passphrase_protection=False, label='test', language='english')
         
-        # retval = self.client.ethereum_sign_message(
-        #     n = tools.parse_path("m/44'/60'/1'/0/0"),
-        #     message = bytes(json.dumps(test['usdcToken']['token']), 'utf8')
-        # ) 
-        # print(retval.address.hex())
-        # print(binascii.hexlify(retval.signature))
-        # print(retval.signature)
-
-        # reset the token list using the special reset token
+        # add icon data
+        retval = addSignedIcon(self, 'iconEthereum')
+        self.assertEqual(retval.message, "Signed icon data received")
         
-        retval = self.client.ethereum_verify_message(
-            # This is a no-op address, not the address used to sign the message
-            signature = bytes.fromhex(json.dumps(test['resetToken']['signature'])[1:-1]),
-            message = bytes(json.dumps(test['resetToken']['token']), 'utf8')
-        )
-        print(retval.message)
+        # reset the token list
+        retval = addSignedToken(self, 'resetToken')
+        self.assertEqual(retval.message, 'token list reset successfully')
 
-
-        for token in test['twoTokenTest']['tokenList']:
-
-            retval = self.client.ethereum_verify_message(
-                # This is a no-op address, not the address used to sign the message
-                signature = bytes.fromhex(json.dumps(token['signature'])[1:-1]),
-                message = bytes(json.dumps(token['token']), 'utf8')
-            )
-            print(retval.message)
-            
-            
+        # add USDC and USDT
+        retval = addSignedToken(self, 'usdcToken')
+        self.assertEqual(retval.message, "Signed token received")
+        retval = addSignedToken(self, 'usdtToken')
+        self.assertEqual(retval.message, "Signed token received")
+        
+        # sign a transaction using USDC and USDT            
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             # Data from:
             # https://etherscan.io/tx/0xcf94f79dca849e5e386fc057d603058266a71f536c8dfa39cc9b1f3c619bbb40

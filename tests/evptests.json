@@ -1,6 +1,22 @@
 {
     "mnemonic": "alcohol woman abuse must during monitor noble actual mixed trade anger aisle",
 
+    "iconEthereum": {
+        "iconChain": {
+            "chainId": 1,
+            "iconData": "3100fe46711200fe609d1200fe77c21100fc337ccf531000fc5a7ccf951000fc6d7ccfb51000027c02cfff3d0e00ff4f027c02cfff830e00ff6a027c02cfffae0e00ff7b027c02cffec8130c00ff44037c03cfff730c00ff5f037c03cfff9f0c00ff74037c03cfffc30b00ff30037cfe9cd903cfff540a00ff5a027cfca2caecdb02cfff940a00fd757ca902ca02ecfddecfb90900fd2a7cb103ca03ecfde1cf430800fe55b504cafeeced02ecfee3860800ff8a05caffeb03ecfeed9f0900ffa704caffed02ecfeebbd0a00fe28b303ca03ecfed02f0900fc47003cbf02ca02ecfcdf5500720900f677005cc7caece87500c20a00f664760070c9ec7f00c39e0a00f6397c6d16879f00b7cf630b00fd7a7c6a0200fda8cfc00c00ff5b027cfe5d9402cfff960d00037c03cf0e00ff74027c02cfffb90e00ff55027c02cfff8b0f00fc7d7ccfce1000fc6d7ccfb11000fc4e7ccf811100fe7bcb1200fe69ac1200fe45741200fe20171600ff0f0600"
+        },
+        "signature": "8244b030af3d7afb9142293e6e97304e8f17f4988c7841c6a1ffde43ab46c50850f1dbd1cdb00e1a5d4e04e3a3069954790d4eccea6a9c59924876cdc81344741b"
+    },
+
+    "iconGnosis": {
+        "iconChain": {
+            "chainId": 100,
+            "iconData": "7f003a00fc133298c802dafdc99a350b00fc8ee6f0d802c2fcd7f0e7910900fcadf1c2580413fc56c0f1b00700fd9ef0980813fd95f0a10500fc1ae1d4160813fc15d1e31e0400fc7776eeab0813fca6ee79780300fa55ef8996f08c0613fa87f09986ef5a0200f9a1f2c013b4ec6b0413f966ebb713bdf2a50200f8c8f27bbe49cce2490213f844e0cf47bf74f2cb0200eedaf23debd245ddd32721d1df47d0ef38f2dd0200eee5f25de1f2bc60e9bdbaea64b9f2e454f2eb0200fce5f2a69d02f2fea27b02effe7e9f02f2fca0a3f2eb0200eedaf2e95f82a660419b9e425da6845be8f2dd0200ffc902f2f4e9ae94c2e96360e8c494ade902f2ffcb0200ffa107f2fee0de07f2ffa50200fe56f00ef2fef15b0300ffc70ef2ffca0400fe62ee0cf2feef670400fe139f0cf2fea3130500fe13ae0af2feb1130700fd1390e706f2fde893130900fc13359ac902dbfcca9c37137f003a00"
+        },
+        "signature": "3e5ab8541e9eac87a91b18e54cfdd75d2674fcf31d1d54a37c02f8abb4b602b935bd4ac7620b898f3e4b17bb266943dfcd86b983372e6134437693d84d2bfe201c"
+    },
+
     "foxToken": {
         "token":
         {
@@ -53,29 +69,26 @@
         "signature": "9393f3552650149cdfed70668300c64918fe20258450657d7e5d8947d133d30175eda75aecadfbd6a6be2d5b271f13ee7cd5f14ba7df38e17f310ab80166540f1c"
     },
 
-    "twoTokenTest":
-    {
-        "tokenList": [
-            {
-                "token":
-                    {
-                        "address": "dac17f958d2ee523a2206206994597c13d831ec7",
-                        "ticker": "USDT",
-                        "chainId": 1,
-                        "decimals": 6
-                    },
-                "signature": "5c7a0c62e90e1ca8490c3f34402d3c417d5899b230a7113a4e0d736612f5eb1e184795880ede17ab8b8a53f1f50a9a0958658c71c3fbd7173781fc9c67f07d851b"
-            },
-            {
-                "token":
-                    {
-                        "address": "A0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-                        "ticker": "USDC",
-                        "chainId": 1,
-                        "decimals": 6
-                    },
-                "signature": "bac42582f5fd6f4ff06bd4be01889773a9d587960ecf0d5eccd3fef8759dce98708e4d09a4c4fe7440cd6c5985905acf04df4334fa9ab39f369e4c23871630ed1b"
-            }
-        ]
+    "usdcTokenGnosis": {
+        "token":
+        {
+            "address": "DDAfbb505ad214D7b80b1f830fcCc89B60fb7A83",
+            "ticker": "USDC",
+            "chainId": 100,
+            "decimals": 6
+        },
+        "signature": "d6234ac5ebe734b017c62119985d4721bcd6f2d0e67ed802a73493884cdcfe39281296112f62d0b7bc9e10b2426ed9eca56e0ae64252a4ed8ceb0b20284db07c1c"
+    },
+
+    "civicToken": {
+        "token":
+        {
+            "address": "41e5560054824ea6b0732e656e3ad64e20e94e45",
+            "ticker": "CVC",
+            "chainId": 1,
+            "decimals": 8
+        },
+        "signature": "206accc4d87ee4e34af7cb437d1cae90ff7a76b4e4e36adc5903b811b59f7e304c2d995e3db7820b52723bc6e9053a7b5d57dc46c1f449eaeb8dbea5ae6987601b"
     }
+
 }

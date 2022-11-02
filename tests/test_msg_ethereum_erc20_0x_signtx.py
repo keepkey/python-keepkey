@@ -1,5 +1,6 @@
 # This file is part of the KEEPKEY project.
 #
+# Copyright (C) 2022 markrypto
 # Copyright (C) 2021 Shapeshift
 #
 # This library is free software: you can redistribute it and/or modify
@@ -24,12 +25,73 @@ import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
 from keepkeylib.tools import int_to_big_endian
+from addSignedData import addSignedToken, addSignedIcon
 
 class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
     
-    def test_sign_0x_swap_ETH_to_ERC20(self):
-        self.requires_firmware("7.0.2")
+    def test_fake_gnosis_swap(self):
+        # NOTE: This test is completely made up data based on an eth tx/contract and would not work on the gnosis chain.
+        # The signature, especially V, needs to be verified with an actual gnosis chain tx.
+        # This test is just used to check the chain id and icon of gnosis chain
+
+        self.requires_firmware("7.6.0")
         self.setup_mnemonic_nopin_nopassphrase()
+
+        # add icon data
+        retval = addSignedIcon(self, 'iconGnosis')
+        self.assertEqual(retval.message, "Signed icon data received")
+
+        # reset the token list
+        retval = addSignedToken(self, 'resetToken')
+        self.assertEqual(retval.message, "token list reset successfully")
+
+        # add USDC gnosis token
+        retval = addSignedToken(self, 'usdcTokenGnosis')
+        self.assertEqual(retval.message, "Signed token received")
+
+        # swap $2 of ETH to USDC
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=[2147483692,2147483708,2147483648,0,0],
+            nonce=0xab,
+            gas_price=0x24c988ac00,
+            gas_limit=0x26249,
+            value=0x2386f26fc10000,
+            to=binascii.unhexlify('def1c0ded9bec7f1a1670819833240f027b25eff'),
+            address_type=0,
+            chain_id=0x64,
+            # The data below is generally broken into 32-byte chunks except for the function selector (4 bytes_ and 
+            # keccak signatures (4 bytes)
+            data=binascii.unhexlify('d9627aa4' +                                        # SellToUniswap
+                '0000000000000000000000000000000000000000000000000000000000000080' +    # offset of dynamic params
+                '0000000000000000000000000000000000000000000000000003fb33ddbf39e4' +    # sell amount
+                '0000000000000000000000000000000000000000000000000000000000155cbf' +    # min buy amount
+                '0000000000000000000000000000000000000000000000000000000000000001' +    # isSushi
+                '0000000000000000000000000000000000000000000000000000000000000002' +    # number of dynamic params
+                '000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' +    # ETH as an ERC20 test address
+                '000000000000000000000000ddafbb505ad214d7b80b1f830fccc89b60fb7a83' +    # gnosis USDC contract
+                '869584cd' +
+                '000000000000000000000000c770eefad204b5180df6a14ee197d99d808ee52d' +    # Affiliate address? (FOX)
+                '000000000000000000000000000000000000000000000033df43e4f8604fcda6')
+        )
+        self.assertEqual(sig_v, 236)
+        self.assertEqual(binascii.hexlify(sig_r), 'eda97588fab7b148879e0e4da7feaa487883f41ffbe66c1a337fe51c465bca93')
+        self.assertEqual(binascii.hexlify(sig_s), '5efc8d59e92a1486d7289223c5d5d48408ac9cbe0a450717efc1af0016d3eaea')
+
+    def test_sign_0x_swap_ETH_to_ERC20(self):
+        self.requires_firmware("7.6.0")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        # add icon data
+        retval = addSignedIcon(self, 'iconEthereum')
+        self.assertEqual(retval.message, "Signed icon data received")
+
+        # reset the token list
+        retval = addSignedToken(self, 'resetToken')
+        self.assertEqual(retval.message, "token list reset successfully")
+
+        # add USDC and USDT
+        retval = addSignedToken(self, 'usdcToken')
+        self.assertEqual(retval.message, "Signed token received")
 
         # swap $2 of ETH to USDC
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -60,8 +122,20 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '51ef1578d4f4bece1ffe3759209088f02cb9d2b21e64d5c32c8b4ebce95417e0')
 
     def test_sign_0x_swap_ERC20_to_ETH(self):
-        self.requires_firmware("7.0.2")
+        self.requires_firmware("7.6.0")
         self.setup_mnemonic_nopin_nopassphrase()
+
+        # add icon data
+        retval = addSignedIcon(self, 'iconEthereum')
+        self.assertEqual(retval.message, "Signed icon data received")
+
+        # reset the token list
+        retval = addSignedToken(self, 'resetToken')
+        self.assertEqual(retval.message, "token list reset successfully")
+
+        # add USDC gnosis token
+        retval = addSignedToken(self, 'usdcToken')
+        self.assertEqual(retval.message, "Signed token received")
 
         # swap $2 to USDC to ETH
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -157,10 +231,23 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_r), 'fc7f619f0b7d2b59757bbad8a5e5943fb49b1f67fe8eada1329435af48f4c119')
         self.assertEqual(binascii.hexlify(sig_s), '75afaec8233d4297d28cf63b23e593ffe4896bf53e3d156d6f13ae2ba6b4dae4')
 
-    # test transformERC20
     def test__sign_transformERC20(self):
-        self.requires_firmware("7.1.5")
+        self.requires_firmware("7.6.0")
         self.setup_mnemonic_nopin_nopassphrase()
+
+        # add icon data
+        retval = addSignedIcon(self, 'iconEthereum')
+        self.assertEqual(retval.message, "Signed icon data received")
+
+        # reset the token list
+        retval = addSignedToken(self, 'resetToken')
+        self.assertEqual(retval.message, "token list reset successfully")
+
+        # add USDC and USDT
+        retval = addSignedToken(self, 'usdcToken')
+        self.assertEqual(retval.message, "Signed token received")
+        retval = addSignedToken(self, 'usdtToken')
+        self.assertEqual(retval.message, "Signed token received")
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             # Data from:
@@ -229,8 +316,6 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.assertEqual(sig_v, 37)
         self.assertEqual(binascii.hexlify(sig_r), '5ea245ddd00fdf3958d6223255e37dcb0c61fa62cfa9cfb25e507da16ec8d96a')
         self.assertEqual(binascii.hexlify(sig_s), '6c428730776958b80fd2b2201600420bb49059f9b34ee3b960cdcce45d4a1e09')
-
-
 
 if __name__ == '__main__':
     unittest.main()

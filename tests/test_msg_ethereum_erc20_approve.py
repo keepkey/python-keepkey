@@ -1,5 +1,6 @@
 # This file is part of the KeepKey project.
 #
+# Copyright (C) 2022 markrypto
 # Copyright (C) 2019 ShapeShift
 #
 # This library is free software: you can redistribute it and/or modify
@@ -24,11 +25,25 @@ import struct
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
+from addSignedData import addSignedToken, addSignedIcon
 
 class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
 
     def test_approve_cvc_100(self):
+        self.requires_firmware("7.6.0")
         self.setup_mnemonic_nopin_nopassphrase()
+
+        # add icon data
+        retval = addSignedIcon(self, 'iconEthereum')
+        self.assertEqual(retval.message, "Signed icon data received")
+
+        # reset the token list
+        retval = addSignedToken(self, 'resetToken')
+        self.assertEqual(retval.message, "token list reset successfully")
+
+        # add civic token
+        retval = addSignedToken(self, 'civicToken')
+        self.assertEqual(retval.message, "Signed token received")
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
@@ -47,7 +62,20 @@ class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '093b9e3cff2cb73d563fe123aa88e09f197a08a250f68b69fec15c86657b43d8')
 
     def test_approve_cvc_0(self):
+        self.requires_firmware("7.6.0")
         self.setup_mnemonic_nopin_nopassphrase()
+
+        # add icon data
+        retval = addSignedIcon(self, 'iconEthereum')
+        self.assertEqual(retval.message, "Signed icon data received")
+
+        # reset the token list
+        retval = addSignedToken(self, 'resetToken')
+        self.assertEqual(retval.message, "token list reset successfully")
+
+        # add civic token
+        retval = addSignedToken(self, 'civicToken')
+        self.assertEqual(retval.message, "Signed token received")
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
@@ -66,7 +94,20 @@ class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '0bc7319762281d839c436adb41c35f8de5f4db1aec953f677c3a83062d93fc51')
 
     def test_approve_cvc_all(self):
+        self.requires_firmware("7.6.0")
         self.setup_mnemonic_nopin_nopassphrase()
+
+        # add icon data
+        retval = addSignedIcon(self, 'iconEthereum')
+        self.assertEqual(retval.message, "Signed icon data received")
+
+        # reset the token list
+        retval = addSignedToken(self, 'resetToken')
+        self.assertEqual(retval.message, "token list reset successfully")
+
+        # add civic token
+        retval = addSignedToken(self, 'civicToken')
+        self.assertEqual(retval.message, "Signed token received")
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
