@@ -25,11 +25,6 @@ from addSignedData import addSignedToken, addSignedIcon
 
 class TestMsgEthvm(common.KeepKeyTest): 
     def test_ethereum_verify_message_token(self):  
-             
-        # if self.client.features.firmware_variant == "Emulator":
-        #     self.skipTest("Skip until emulator issue resolved")
-        #     return
-        
         self.requires_firmware("7.6.0")
         f = open('evptests.json')
         test = json.load(f)
