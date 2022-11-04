@@ -2,10 +2,10 @@
 
 # Keepkey python client.
 #
+# Copyright (C) 2022      markrypto <cryptoakorn@gmail.com>
 # Copyright (C) 2012-2016 Marek Palatinus <slush@satoshilabs.com>
 # Copyright (C) 2012-2016 Pavol Rusnak <stick@satoshilabs.com>
 # Copyright (C) 2016      Jochen Hoenicke <hoenicke@gmail.com>
-# Copyright (C) 2022      markrypto <cryptoakorn@gmail.com>
 #
 # This library is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by

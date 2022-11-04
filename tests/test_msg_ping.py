@@ -28,88 +28,70 @@ from keepkeylib import messages_pb2 as proto
 from keepkeylib import types_pb2 as proto_types
 
 class TestPing(common.KeepKeyTest):
-    def test_auth_init(self):
-        self.setup_mnemonic_nopin_nopassphrase()
-        self.client.ping(
-            msg = b'\x15' + bytes("initializeAuth:" + "python-test:" + "BASE32SECRET2345AB", 'utf8')
-        )
- 
-        interval = 30       # 30 second interval
-        #T0 = 1535317397
-        T0 = 1536262427
-        
-        T = int(T0/interval).to_bytes(8, byteorder='big')
-        retval = self.client.ping(
-            msg = b'\x16' + bytes("generateOTPFrom:" + "python-test:", 'utf8') + binascii.hexlify(bytearray(T))
-        )
-        print(retval)
-        print("should be 007767")  
+    def test_ping(self):
+        self.setup_mnemonic_pin_passphrase()
+        self.client.clear_session()
 
+        with self.client:
+            self.client.set_expected_responses([proto.Success()])
+            res = self.client.ping('random data')
+            self.assertEqual(res, 'random data')
 
-    # def test_ping(self):
-    #     self.setup_mnemonic_pin_passphrase()
-    #     self.client.clear_session()
+        with self.client:
+            self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_Ping), proto.Success()])
+            res = self.client.ping('random data', button_protection=True)
+            self.assertEqual(res, 'random data')
 
-    #     with self.client:
-    #         self.client.set_expected_responses([proto.Success()])
-    #         res = self.client.ping('random data')
-    #         self.assertEqual(res, 'random data')
+        with self.client:
+            self.client.set_expected_responses([proto.PinMatrixRequest(), proto.Success()])
+            res = self.client.ping('random data', pin_protection=True)
+            self.assertEqual(res, 'random data')
 
-    #     with self.client:
-    #         self.client.set_expected_responses([proto.ButtonRequest(code=proto_types.ButtonRequest_Ping), proto.Success()])
-    #         res = self.client.ping('random data', button_protection=True)
-    #         self.assertEqual(res, 'random data')
+        with self.client:
+            self.client.set_expected_responses([
+                proto.PassphraseRequest(), 
+                proto.ButtonRequest(code=proto_types.ButtonRequest_Other), 
+                proto.Success()
+                ])
+            res = self.client.ping('random data', passphrase_protection=True)
+            self.assertEqual(res, 'random data')
 
-    #     with self.client:
-    #         self.client.set_expected_responses([proto.PinMatrixRequest(), proto.Success()])
-    #         res = self.client.ping('random data', pin_protection=True)
-    #         self.assertEqual(res, 'random data')
+    def test_ping_format_specifier_sanitize(self):
+        self.setup_mnemonic_pin_passphrase()
+        self.client.clear_session()
+        with self.client:
+            self.client.set_expected_responses([
+                proto.ButtonRequest(code=proto_types.ButtonRequest_Ping), 
+                proto.PinMatrixRequest(), 
+                proto.PassphraseRequest(), 
+                proto.ButtonRequest(code=proto_types.ButtonRequest_Other), 
+                proto.Success()
+                ])
+            res = self.client.ping('%s%x%n%p', button_protection=True, pin_protection=True, passphrase_protection=True)
+            self.assertEqual(res, '%s%x%n%p')
 
-    #     with self.client:
-    #         self.client.set_expected_responses([
-    #             proto.PassphraseRequest(), 
-    #             proto.ButtonRequest(code=proto_types.ButtonRequest_Other), 
-    #             proto.Success()
-    #             ])
-    #         res = self.client.ping('random data', passphrase_protection=True)
-    #         self.assertEqual(res, 'random data')
+    def test_ping_caching(self):
+        self.setup_mnemonic_pin_passphrase()
+        self.client.clear_session()
 
-    # def test_ping_format_specifier_sanitize(self):
-    #     self.setup_mnemonic_pin_passphrase()
-    #     self.client.clear_session()
-    #     with self.client:
-    #         self.client.set_expected_responses([
-    #             proto.ButtonRequest(code=proto_types.ButtonRequest_Ping), 
-    #             proto.PinMatrixRequest(), 
-    #             proto.PassphraseRequest(), 
-    #             proto.ButtonRequest(code=proto_types.ButtonRequest_Other), 
-    #             proto.Success()
-    #             ])
-    #         res = self.client.ping('%s%x%n%p', button_protection=True, pin_protection=True, passphrase_protection=True)
-    #         self.assertEqual(res, '%s%x%n%p')
+        with self.client:
+            self.client.set_expected_responses([
+                proto.ButtonRequest(code=proto_types.ButtonRequest_Ping), 
+                proto.PinMatrixRequest(), 
+                proto.PassphraseRequest(), 
+                proto.ButtonRequest(code=proto_types.ButtonRequest_Other), 
+                proto.Success()
+                ])
+            res = self.client.ping('random data', button_protection=True, pin_protection=True, passphrase_protection=True)
+            self.assertEqual(res, 'random data')
 
-    # def test_ping_caching(self):
-    #     self.setup_mnemonic_pin_passphrase()
-    #     self.client.clear_session()
-
-    #     with self.client:
-    #         self.client.set_expected_responses([
-    #             proto.ButtonRequest(code=proto_types.ButtonRequest_Ping), 
-    #             proto.PinMatrixRequest(), 
-    #             proto.PassphraseRequest(), 
-    #             proto.ButtonRequest(code=proto_types.ButtonRequest_Other), 
-    #             proto.Success()
-    #             ])
-    #         res = self.client.ping('random data', button_protection=True, pin_protection=True, passphrase_protection=True)
-    #         self.assertEqual(res, 'random data')
-
-    #     with self.client:
-    #         # pin and passphrase are cached
-    #         self.client.set_expected_responses([
-    #             proto.ButtonRequest(code=proto_types.ButtonRequest_Ping), 
-    #             proto.Success()])
-    #         res = self.client.ping('random data', button_protection=True, pin_protection=True, passphrase_protection=True)
-    #         self.assertEqual(res, 'random data')
+        with self.client:
+            # pin and passphrase are cached
+            self.client.set_expected_responses([
+                proto.ButtonRequest(code=proto_types.ButtonRequest_Ping), 
+                proto.Success()])
+            res = self.client.ping('random data', button_protection=True, pin_protection=True, passphrase_protection=True)
+            self.assertEqual(res, 'random data')
 
 if __name__ == '__main__':
     unittest.main()
