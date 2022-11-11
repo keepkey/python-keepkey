@@ -42,7 +42,7 @@ from keepkeylib.transport_webusb import WebUsbTransport
 class Ui(QtWidgets.QMainWindow):
     def __init__(self):
         super(Ui, self).__init__()
-        uic.loadUi(r'authenticatorUI/main.ui', self)
+        uic.loadUi(r'Authenticator.ui', self)
         self.setFixedSize(500, 600)
         self.button = self.findChild(QtWidgets.QPushButton, 'qrscreencap')
         self.button.clicked.connect(self.QrScreencap) # Remember to pass the definition/method, not the return value!
@@ -58,15 +58,14 @@ class Ui(QtWidgets.QMainWindow):
         self.actionQuit = self.findChild(QtWidgets.QAction,'actionExit')
         self.actionQuit.triggered.connect(app.quit)
         self.show()    
+        self.client = None
 
     def QrScreencap(self):
         # grab fullscreen
         self.im = ImageGrab.grab(include_layered_windows=True)
-        self.im.save("fullscreen.png")
-        exit()
+        #self.im.save("fullscreen.png")
 
         try:
-            #data = decode(Image.open(file_path))
             data = decode(self.im)
             print(data)
             data1 = str(data[0][0]).replace("b'",'').replace("'","")
@@ -94,7 +93,7 @@ class Ui(QtWidgets.QMainWindow):
     def Test(self):
         #test the keepkey function
         print("test function")
-        if (self.client is not None):
+        if (self.client != None):
             AuthOps.auth_test(self.client)
         else:
             print("KeepKey not connected")

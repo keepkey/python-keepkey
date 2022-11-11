@@ -161,3 +161,20 @@ script (modify version, etc., as needed)
 This will produce an executable install app
 
     ``windows/Output/kkbsetup.exe``
+
+KeepKey Authenticator
+==============
+The KeepKey Authenticator is a standalone app that enables the KeepKey device to perform as a 
+hardware off-line one-time passcode (OTP) generator for two factor authentication using the 
+TOPT algorithm. The KeepKey PIN and physical button gives it security features similar to other
+products such as the Yubikey.
+
+Build for MacOS
+---------------
+KeepKeyAuthenticator.app is built using py2app. The setup file was created from the command line:
+    py2applet --make-setup KeepKeyAuthenticator.py
+    mv setup.py setupAuth.py
+and then saved as setupAuth.py. NOTE: Creating the setup.py file in this manner will overwrite
+the existing setup.py file for the python client.
+Create the app:
+    python setupAuth.py py2app

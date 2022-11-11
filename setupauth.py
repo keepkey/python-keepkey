@@ -8,7 +8,7 @@ Usage:
 from setuptools import setup
 
 APP = ['KeepKeyAuthenticator.py']
-DATA_FILES = []
+DATA_FILES = ['Authenticator.ui']
 OPTIONS = {}
 
 setup(
