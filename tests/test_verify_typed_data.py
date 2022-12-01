@@ -30,7 +30,7 @@ from keepkeylib import tools
 class TestMsgE712Verify(common.KeepKeyTest):
   
     def test_verify(self):
-        self.requires_firmware("7.5.0")
+        self.requires_firmware("7.5.1")
         self.setup_mnemonic_allallall()
         f = open('eip712tests.json')
         txtests = json.load(f)
