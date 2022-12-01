@@ -2,6 +2,109 @@
     "tests": [
         {
             "types": {
+                "EIP712Domain": [
+                    {
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "name": "version",
+                        "type": "string"
+                    },
+                    {
+                        "name": "verifyingContract",
+                        "type": "address"
+                    }
+                ],
+                "RelayRequest": [
+                    {
+                        "name": "target",
+                        "type": "address"
+                    },
+                    {
+                        "name": "encodedFunction",
+                        "type": "bytes"
+                    },
+                    {
+                        "name": "gasData",
+                        "type": "GasData"
+                    },
+                    {
+                        "name": "relayData",
+                        "type": "RelayData"
+                    }
+                ],
+                "GasData": [
+                    {
+                        "name": "gasLimit",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "gasPrice",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "pctRelayFee",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "baseRelayFee",
+                        "type": "uint256"
+                    }
+                ],
+                "RelayData": [
+                    {
+                        "name": "senderAddress",
+                        "type": "address"
+                    },
+                    {
+                        "name": "senderNonce",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "relayWorker",
+                        "type": "address"
+                    },
+                    {
+                        "name": "paymaster",
+                        "type": "address"
+                    }
+                ]
+            },
+            "domain": {
+                "name": "GSN Relayed Transaction",
+                "version": "1",
+                "chainId": 42,
+                "verifyingContract": "0x6453D37248Ab2C16eBd1A8f782a2CBC65860E60B"
+            },
+            "primaryType": "RelayRequest",
+            "message": {
+                "target": "0x9cf40ef3d1622efe270fe6fe720585b4be4eeeff",
+                "encodedFunction": "0xa9059cbb0000000000000000000000002e0d94754b348d208d64d52d78bcd443afa9fa520000000000000000000000000000000000000000000000000000000000000007",
+                "gasData": {
+                    "gasLimit": "39507",
+                    "gasPrice": "1700000000",
+                    "pctRelayFee": "70",
+                    "baseRelayFee": "0"
+                },
+                "relayData": {
+                    "senderAddress": "0x22d491bde2303f2f43325b2108d26f1eaba1e32b",
+                    "senderNonce": "3",
+                    "relayWorker": "0x3baee457ad824c94bd3953183d725847d023a2cf",
+                    "paymaster": "0x957F270d45e9Ceca5c5af2b49f1b5dC1Abb0421c"
+                }
+            },
+            "path": "m/44'/60'/0'/0/0",
+            "results": {
+                "test_data": "walletConnectRefMsg",
+                "address": "0x73d0385F4d8E00C5e6504C6030F47BF6212736A8",
+                "message_hash": "0x401419776f57f5162dd05a3072f5941868ac4decfa789e501598997c48a43488",
+                "domain_separator_hash": "0x4ffaf9cb7df9fe0016d5ea8358cb61ec61875d98a856982d216015abbf371227",
+                "sig": "oxe9072535aebbeffc0a6b80fc489697b8c54900380914869363e59771f86b57d750b5f4f5a69f1259e07afce14a695b985ea633348d1d4ba03577165abcc000e31c"
+            }      
+        },
+        {
+            "types": {
                 "EIP712Domain": []
             },
             "primaryType": "EIP712Domain",
@@ -510,16 +613,6 @@
                 "message_hash": "0xac26cc7aa2cb9a8a445fae4e48b33f978b558da9b16e26381c53814d3317f541",
                 "domain_separator_hash": "0x6192106f129ce05c9075d319c1fa6ea9b3ae37cbd0c1ef92e2be7137bb07baa1",
                 "sig": "0x7bd7c6a1df52c56800285a3e680f48eee559db9a5b171e3faea2191e995141401aabb48d5f5595ee75bb2bf29593d07a2afcb85686271c7c37b76afbdb9c86cc1c"
-            }
-        },
-        {"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Permit":[{"name":"owner","type":"address"},{"name":"spender","type":"address"},{"name":"value","type":"uint256"},{"name":"nonce","type":"uint256"},{"name":"deadline","type":"uint256"}]},"domain":{"name":"USD Coin","version":"2","verifyingContract":"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48","chainId":1},"primaryType":"Permit","message":{"owner":"0x33b35c665496bA8E71B22373843376740401F106","spender":"0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45","value":"4023865","nonce":0,"deadline":1655431026},
-        "path": "m/44'/60'/0'/0/0",
-        "results": {
-            "test_data": "actual",
-            "address": "0x73d0385F4d8E00C5e6504C6030F47BF6212736A8",
-            "message_hash": "0x12b75f932b4f17e1f62bc7a630a033f46649a18f4e759bb1ff559c57cb2bc39b",
-            "domain_separator_hash": "0x06c37168a7db5138defc7866392bb87a741f9b3d104deb5094588ce041cae335",
-            "sig": "0x7ce6f01f14d8a1d1923073ccd77f97b78972b3cf14b9c2874d6a46f6a196cc0b7fef13c100b2a5a3517c0baa18981e0fe19cb7d9f869279041b537d91e839d281c"
             }
         }
     ]
