@@ -8,7 +8,7 @@ Usage:
 from setuptools import setup
 
 APP = ['KeepKeyAuthenticator.py']
-DATA_FILES = ['Authenticator.ui']
+DATA_FILES = ['authResources/circle-32.png', 'authResources/kk-icon-gold.png']
 OPTIONS = {}
 
 setup(

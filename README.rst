@@ -172,7 +172,7 @@ products such as the Yubikey.
 Build for MacOS
 ---------------
 KeepKeyAuthenticator.app is built using py2app. The setup file was created from the command line:
-    py2applet --make-setup KeepKeyAuthenticator.py
+    py2applet --make-setup KeepKeyAuthenticator.py authResources/*.png
     mv setup.py setupAuth.py
 and then saved as setupAuth.py. NOTE: Creating the setup.py file in this manner will overwrite
 the existing setup.py file for the python client.

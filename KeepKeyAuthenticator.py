@@ -20,7 +20,7 @@
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QFileDialog, QMenuBar,QAction,QMessageBox,QPushButton
 from PyQt5.QtGui import *
-from PyQt5.QtCore import Qt
+from PyQt5 import QtCore
 import sys
 import os
 from PIL import Image
@@ -35,70 +35,25 @@ import binascii
 import urllib
 import time
 from datetime import datetime
+import sys
+import semver
 
-from keepkeylib.client import KeepKeyClient
 from keepkeylib.transport_webusb import WebUsbTransport
+from keepkeylib.client import PinException, ProtocolMixin, BaseClient, CallException
 
-class Ui(QtWidgets.QMainWindow):
+from AuthMain import Ui_MainWindow as Ui
+from PinUi import Ui_Dialog as PIN_Dialog
+from remaccdialog import Ui_RemAccDialog as RemAcc_Dialog
+
+class kkClient:
     def __init__(self):
-        super(Ui, self).__init__()
-        uic.loadUi(r'Authenticator.ui', self)
-        self.setFixedSize(500, 600)
-        self.button = self.findChild(QtWidgets.QPushButton, 'qrscreencap')
-        self.button.clicked.connect(self.QrScreencap) # Remember to pass the definition/method, not the return value!
-        self.button2 = self.findChild(QtWidgets.QPushButton, 'otpgen')
-        self.button2.clicked.connect(self.OtpGen) # Remember to pass the definition/method, not the return value!
-        self.button3 = self.findChild(QtWidgets.QPushButton, 'connect')
-        self.button3.clicked.connect(self.ConnectKK) # Remember to pass the definition/method, not the return value!
-        self.button4 = self.findChild(QtWidgets.QPushButton, 'test')
-        self.button4.clicked.connect(self.Test) # Remember to pass the definition/method, not the return value!
-        self.input = self.findChild(QtWidgets.QLineEdit, 'qredit')
-        self.exitAct = self.findChild(QtWidgets.QMenu,'menuMenu')
-        self.label1 = self.findChild(QtWidgets.QLabel,'image_1')
-        self.actionQuit = self.findChild(QtWidgets.QAction,'actionExit')
-        self.actionQuit.triggered.connect(app.quit)
-        self.show()    
         self.client = None
-
-    def QrScreencap(self):
-        # grab fullscreen
-        self.im = ImageGrab.grab(include_layered_windows=True)
-        #self.im.save("fullscreen.png")
-
-        try:
-            data = decode(self.im)
-            print(data)
-            data1 = str(data[0][0]).replace("b'",'').replace("'","")
-            type1 = str(data[0][1])
-            self.result1 = self.findChild(QtWidgets.QLineEdit, 'raw_text_result')
-            print(data1)
-            secret = urlparse(data1).query.split('=')[1].split('&')[0]
-            domain = urlparse(data1).path.split('/')[1].split(':')[0]
-            account = urlparse(data1).path.split('/')[1].split(':')[1]
-            print(secret)
-            print(domain)
-            print(account)
-            # os.system("python cmdkk.py auth_init %s:%s:%s" % (secret, domain, account))
-            # self.result1.setText(data1)#'raw_type_result'
-            # self.result2 = self.findChild(QtWidgets.QLineEdit, 'raw_type_result')
-            # self.result2.setText(type1)
-        except AttributeError:
-            pass
-
-    def OtpGen(self):
-        #generate OTP
-        print("Generate OTP")
-        os.system("python cmdkk.py auth_gen")
-
-    def Test(self):
-        #test the keepkey function
-        print("test function")
-        if (self.client != None):
-            AuthOps.auth_test(self.client)
-        else:
-            print("KeepKey not connected")
-
+        
     def ConnectKK(self):
+        from keepkeylib.GUImixin import GuiUIMixin
+        class KeepKeyClientAuth(ProtocolMixin, GuiUIMixin, BaseClient):
+            pass
+    
         # look for keepkey connection
         # List all connected KeepKeys on USB
         self.client = None
@@ -106,56 +61,384 @@ class Ui(QtWidgets.QMainWindow):
 
         # Check whether we found any
         if len(devices) == 0:
-            print('No KeepKey found')
+            error_popup("No KeepKey found",
+"Ensure that\n1) KeepKey is plugged in\n2) There are no browser windows connected to KeepKey\nThen restart KeepKeyAuthenticator")
             return
 
         # Use first connected device
-        transport = WebUsbTransport(devices[0])
+        try:
+            transport = WebUsbTransport(devices[0])
+        except Exception as E:
+            if str(E) == "LIBUSB_ERROR_ACCESS [-3]":
+                error_popup("KeepKey already claimed on USB","Make sure all KeepKey apps and websites are closed")
+            else:
+                error_popup("Unknown connection error","Make sure all KeepKey apps and websites are closed")
+            return
 
         # Creates object for manipulating KeepKey
-        self.client = KeepKeyClient(transport)
+        self.client = KeepKeyClientAuth(transport)
+        self.requires_firmware("7.7.0")
+        
 
-class AuthOps:
-    def auth_test(client):
-        client.ping(
-            msg = b'\x15' + bytes("initializeAuth:" + "python-test:" + "BASE32SECRET2345AB", 'utf8')
-        )
+    def requires_firmware(self, ver_required):
+        ret = self.client.init_device()
+        features = self.client.features
+        version = "%s.%s.%s" % (features.major_version, features.minor_version, features.patch_version)
+        if semver.VersionInfo.parse(version) < semver.VersionInfo.parse(ver_required):
+            error_popup("Firmware Upgrade Needed",
+"Your KeepKey has v"+version+" Authenticator feature requires v"+ver_required)
+            self.client = None
+            
+    def getClient(self):
+        return self.client
+
+def error_popup(errmsg, infotext):
+    # set up error/status message box popup
+    msg = QMessageBox()
+    msg.setWindowTitle("ERROR")
+    msg.setIcon(QMessageBox.Critical)
+    msg.setDefaultButton(QMessageBox.Ok)
+    msg.setText(errmsg)
+    msg.setInformativeText(infotext)
+    x = msg.exec_()    # show message box
+
+class PIN_Dialog(PIN_Dialog):
+    def setupUi(self, Dialog):
+        super(PIN_Dialog, self).setupUi(Dialog)
+        
+        self.pushButton_1.clicked.connect(lambda: self.addPinClick('1'))
+        self.pushButton_2.clicked.connect(lambda: self.addPinClick('2'))
+        self.pushButton_3.clicked.connect(lambda: self.addPinClick('3'))
+        self.pushButton_4.clicked.connect(lambda: self.addPinClick('4'))
+        self.pushButton_5.clicked.connect(lambda: self.addPinClick('5'))
+        self.pushButton_6.clicked.connect(lambda: self.addPinClick('6'))
+        self.pushButton_7.clicked.connect(lambda: self.addPinClick('7'))
+        self.pushButton_8.clicked.connect(lambda: self.addPinClick('8'))
+        self.pushButton_9.clicked.connect(lambda: self.addPinClick('9'))
+        self.pbUnlock.clicked.connect(lambda: self.returnPinAndClose(Dialog))
+        self.encodedPin = ''
+        
+                
+    def addPinClick(self, clickPosition):
+        self.encodedPin+=clickPosition
+        print("encoded pin ", self.encodedPin)
+        self.lineEdit.setText(self.encodedPin)
+        return
+        
+    def returnPinAndClose(self, Dialog): 
+        print("unlock pressed")
+        Dialog.close()
+        
+    def getEncodedPin(self): 
+        # return encoded PIN when unlock button pressed
+        return self.encodedPin
+    
+def pingui_popup():
+    # set up PIN dialog        
+    PINDialog = QtWidgets.QDialog()
+    PIN_ui = PIN_Dialog()
+    PIN_ui.setupUi(PINDialog)
+    PINDialog.show()
+    x = PINDialog.exec_()    # show pin dialog
+    pin = PIN_ui.getEncodedPin()
+    print(pin)
+    return pin
+
+class RemAcc_Dialog(RemAcc_Dialog):
+    def __init__(self, client, authOps):
+        self.client = client
+        self.authOps = authOps
+        self.accounts = None
+        return
+
+    def setupUi(self, Dialog):
+        super(RemAcc_Dialog, self).setupUi(Dialog)
+        
+        # Remove account button group
+        # Add IDs to buttons to make for easy access
+        bNum = 1
+        bList = self.RemoveAccButtonGroup.buttons()
+        for b in bList:
+            self.RemoveAccButtonGroup.setId(b, bNum)
+            bNum += 1
+            
+        self.RemoveAccButtonGroup.idClicked.connect(self.RemoveAccount)
+        self.RemGetAccounts()
+        
+    def RemGetAccounts(self):
+        self.accounts = self.authOps.auth_accGet(self.client)
+        # reset button list
+        bList = self.RemoveAccButtonGroup.buttons()
+        for b in bList:
+            b.setText('')
+            
+        if len(self.accounts) > 0:
+            # this forms monotonic button list of non-empty slots
+            self.RemAccButton = list()
+            bNum = 1
+            for acc in self.accounts:
+                if acc[1] == '':
+                    continue;
+                else:
+                    self.RemoveAccButtonGroup.button(bNum).setText(acc[1])
+                    self.RemAccButton.append((str(bNum), acc))
+                    bNum += 1
+
+    def RemoveAccount(self, id_):
+        # First check if this is an active button with an account
+        if self.RemoveAccButtonGroup.button(id_).text() == '':
+            return
+
+        if (self.client != None):
+            for ba in self.RemAccButton:
+                if ba[0] == str(id_):         # button clicked is in button-account list
+                    dom, acc = ba[1][1].split(':')
+                    print(dom+" "+acc)
+                    break
+            try:
+                self.authOps.auth_accRem(self.client, dom, acc)                
+                self.RemGetAccounts()
+
+            except PinException as e:
+                error_popup("Invalid PIN", "")
+            return
+        else:
+            print("KeepKey not connected")
+            
+class Ui(Ui):
+    def __init__(self):
+        self.authOps = AuthClass()
+
+    def setupUi(self, MainWindow):
+        super(Ui, self).setupUi(MainWindow)
+        
+        self.clientOps = kkClient()
+        
+        self.ConnectKKButton.clicked.connect(self.KKConnect)
+        self.AddAccButton.clicked.connect(self.QrScreencap)
+        self.RemoveAccButton.clicked.connect(self.removeAcc)
+        self.testButton.clicked.connect(self.Test)
+        
+        # OTP button group
+        # Add IDs to buttons to make for easy access
+        bNum = 1
+        bList = self.OTPButtonGroup.buttons()
+        for b in bList:
+            self.OTPButtonGroup.setId(b, bNum)
+            bNum += 1
+            
+        # self.OTPButtonGroup.buttonClicked.connect(self.OtpGen)
+        self.OTPButtonGroup.idClicked.connect(self.OtpGen)
+        
+        MainWindow.show()
+      
+    def KKConnect(self):
+        self.accounts = None
+        _translate = QtCore.QCoreApplication.translate
+        self.clientOps.ConnectKK()
+        client = self.clientOps.getClient()
+        if (client != None):
+            self.ConnectKKButton.setStyleSheet("border-radius: 10px;\n"\
+                "background-color: rgb(35, 40, 49);\n"\
+                "border-width: 2px;\n"\
+                "border-style: solid;\n"\
+                "border-color: black;\n"\
+                "color: rgb(0, 255, 0)")
+            self.ConnectKKButton.setText(_translate("MainWindow", "KeepKey\nConnected"))
+            # get accounts if connected
+            self.getAccounts(client)
+            
+    def getAccounts(self, client):
+        self.accounts = self.authOps.auth_accGet(client)
+        print(self.accounts)
+        # reset button list
+        bList = self.OTPButtonGroup.buttons()
+        for b in bList:
+            b.setText('')
  
+        if len(self.accounts) > 0:
+            # this forms monotonic button list of non-empty slots
+            self.otpButtonAcc = list()
+            bNum = 1
+            for acc in self.accounts:
+                if acc[1] == '':
+                    continue
+                else:
+                    self.OTPButtonGroup.button(bNum).setText(acc[1])
+                    self.otpButtonAcc.append((str(bNum), acc))
+                    bNum += 1
+        
+    def QrScreencap(self):
+        # grab fullscreen
+        self.im = ImageGrab.grab(include_layered_windows=True)
+        #self.im.save("fullscreen.png")
+
+        data = decode(self.im)
+        if (data == []):
+            error_popup("QR Code Error", "Could not read QR code")
+            return
+        data1 = str(data[0][0]).replace("b'",'').replace("'","")
+        type1 = str(data[0][1])
+        print(data1)
+        print(type1)
+        secret = urlparse(data1).query.split('=')[1].split('&')[0]
+        domain = urlparse(data1).path.split('/')[1].split(':')[0]
+        account = urlparse(data1).path.split('/')[1].split(':')[1]
+        print(secret)
+        print(domain)
+        print(account)
+        client = self.clientOps.getClient()
+        if (client != None):
+            try:
+                self.authOps.auth_accAdd(client, secret, domain, account)
+                # re-establish otp list
+                self.getAccounts(client)
+
+            except PinException as e:
+                error_popup("Invalid PIN", "")
+            return
+        else:
+            print("KeepKey not connected")
+
+    def OtpGen(self, id_):
+        # First check if this is an active button with an account
+        if self.OTPButtonGroup.button(id_).text() == '':
+            return
+        
+        #generate OTP
+        client = self.clientOps.getClient()
+        
+        if (client != None):
+            for ba in self.otpButtonAcc:
+                if ba[0] == str(id_):         # button clicked is in button-account list
+                    dom, acc = ba[1][1].split(':')
+                    print(dom+" "+acc)
+                    break
+            try:
+                self.authOps.auth_otp(client, dom, acc)
+            except PinException as e:
+                error_popup("Invalid PIN", "")
+            return
+        else:
+            print("KeepKey not connected")
+
+    def removeAcc(self):
+        # set up remove account dialog
+        RemAccDialog = QtWidgets.QDialog()
+        client = self.clientOps.getClient()
+        RemAcc_ui = RemAcc_Dialog(client, self.authOps)
+        RemAcc_ui.setupUi(RemAccDialog)
+        RemAccDialog.show()
+        x = RemAccDialog.exec_()    # show pin dialog    
+        self.getAccounts(client)   
+        
+    def Test(self):
+        #test the keepkey function
+        print("test function")
+        client = self.clientOps.getClient()
+        if (client != None):
+            try:
+                self.authOps.auth_test(client)
+                self.getAccounts(client)
+            except PinException as e:
+                error_popup("Invalid PIN", "")
+            return
+        else:
+            print("KeepKey not connected")
+            
+class AuthClass:
+    def auth_accAdd(self, client, secret, domain, account):
+        # try:
+        #     ret = client.ping(msg = b'\x15' + bytes("initializeAuth:" + "python-test:" + "BASE32SECRET2345AB", 'utf8'))
+        # except PinException as e:
+        #     print("Got exception in authenticator", e.args[0], " ", e.args[1])
+        #     exit()
+
+        try:
+            retval = client.ping(msg = b'\x15' + bytes("initializeAuth:"+domain+":"+account+":"+secret, 'utf8'))
+        except CallException as E:
+                if E.args[1] == 'Authenticator secret storage full':
+                    error_popup(E.args[1], "Need to remove an account to add a new one to this KeepKey")
+                else:
+                    error_popup(E.args[1], "")
+            
+    def auth_otp(self, client, domain, account):
         interval = 30       # 30 second interval
         #T0 = 1535317397
-        T0 = 1536262427
-        
-        T = int(T0/interval).to_bytes(8, byteorder='big')
+        #T0 = 1536262427
+        T0 = datetime.now().timestamp()
+        Tslice = int(T0/interval)
+        Tremain = int((int(T0) - Tslice*30))
+        print(Tremain)
+        T = Tslice.to_bytes(8, byteorder='big')
         retval = client.ping(
-            msg = b'\x16' + bytes("generateOTPFrom:" + "python-test:", 'utf8') + binascii.hexlify(bytearray(T))
+            msg = b'\x16' + bytes("generateOTPFrom:"+domain+":"+account+":", 'utf8') + 
+                                        binascii.hexlify(bytearray(T)) + bytes(":" + str(Tremain), 'utf8')
         )
-        print(retval)
-        print("should be 007767")  
+        # print(retval)
+        # print("should be 007767")  
 
-# def main():
+    def auth_accGet(self, client):
+        ctr=0
+        accounts = list()
+        while True:
+            try:
+                retval = client.ping(msg = b'\x17' + bytes("getAccount:"+str(ctr), 'utf8'))
+                accounts.append([ctr, retval])
+            except CallException as E:
+                if E.args[1] == 'Account not found':
+                    accounts.append([ctr, ''])
+                if E.args[1] == 'Slot request out of range':
+                    break
+                if E.args[1] == 'Device not initialized':
+                    error_popup('Device not initialized', 'Initialize KeepKey prior to using authentication feature')
+                    break;
+            ctr+=1
+            
+        return accounts
+
+    def auth_accRem(self, client, domain, account):
+        try:
+            client.ping(msg = b'\x18' + bytes("removeAccount:"+domain+":"+account, 'utf8'))
+        except CallException as E:
+            error_popup(E.args[1], domain+":"+account)
+        return
+
+    def auth_test(self, client):
+        try:
+            retval = client.ping(msg = b'\x15' + bytes("initializeAuth:"+"GitHub"+":"+"mooneytestgithub"+":"+"ZKLHM3W3XAHG4CBN", 'utf8'))
+            retval = client.ping(msg = b'\x15' + bytes("initializeAuth:"+"Shapeshift"+":"+"markrypto"+":"+"BASE32SECRET2345AC", 'utf8'))
+            retval = client.ping(msg = b'\x15' + bytes("initializeAuth:"+"KeepKey"+":"+"markrypto2"+":"+"BASE32SECRET2345AD", 'utf8'))
+        except CallException as E:
+                if E.args[1] == 'Authenticator secret storage full':
+                    error_popup(E.args[1], "Need to remove an account to add a new one to this KeepKey")
+                else:
+                    error_popup(E.args[1], "")
+        
+        
+        # ret = client.ping(msg = b'\x15' + bytes("initializeAuth:" + "python-test:" + "BASE32SECRET2345AB", 'utf8'))
+            
+
+ 
+        # interval = 30       # 30 second interval
+        # #T0 = 1535317397
+        # T0 = 1536262427
+        
+        # T = int(T0/interval).to_bytes(8, byteorder='big')
+        # retval = client.ping(
+        #     msg = b'\x16' + bytes("generateOTPFrom:" + "python-test:", 'utf8') + binascii.hexlify(bytearray(T))
+        # )
+        # print(retval)
+        # print("should be 007767")  
+
+def main():
+    app = QtWidgets.QApplication(sys.argv)    
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui()
+    ui.setupUi(MainWindow)
+    sys.exit(app.exec_())
     
-    
-#    # List all connected KeepKeys on USB
-#     devices = WebUsbTransport.enumerate()
+if __name__ == '__main__':
+    main()
 
-#     # Check whether we found any
-#     if len(devices) == 0:
-#         print('No KeepKey found')
-#         return
 
-#     # Use first connected device
-#     transport = WebUsbTransport(devices[0])
-
-#     # Creates object for manipulating KeepKey
-#     client = KeepKeyClient(transport)
-
-#     # Initialize authenticator
-#     AuthOps.auth_test(client)
-
-# if __name__ == '__main__':
-#     main()
-
-app = QtWidgets.QApplication(sys.argv)
-app.setStyleSheet(qdarkgraystyle.load_stylesheet())
-window = Ui()
-app.exec_()
