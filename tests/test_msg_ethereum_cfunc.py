@@ -70,9 +70,6 @@ class TestMsgEthereumCfunc(common.KeepKeyTest):
                 '0000000000000000000000000000000000000000000000000000000000000000' +    
                 '0100000000000000000000000000000000000000000000000000000000000000')     
             )       
-        # print(binascii.hexlify(sig_r))
-        # print(binascii.hexlify(sig_s))
-        # print(sig_v)
         self.assertEqual(sig_v, 37)
         self.assertEqual(binascii.hexlify(sig_r), '4ec68dfe39d7993e55366b305c65d235d4ecb3e0749b3b78830076f878c5b2c2')
         self.assertEqual(binascii.hexlify(sig_s), '2c270f8f4b39ba22c06786126df0f544e010ccd7fae621054caa05f6ae947bb8')
@@ -114,13 +111,9 @@ class TestMsgEthereumCfunc(common.KeepKeyTest):
                 '3e00000000000000000000000000000000000000000000000000000000000000' +
                 '0001000000000000000000000000000000000000000000000000000000000000')
             )       
-        # print(binascii.hexlify(sig_r))
-        # print(binascii.hexlify(sig_s))
-        # print(sig_v)
         self.assertEqual(sig_v, 38)
         self.assertEqual(binascii.hexlify(sig_r), '828dbc0c6002c89e9c4c0a9a0a8e8170fe552780f3c6811d1f7f110bf3056150')
         self.assertEqual(binascii.hexlify(sig_s), '0ba6f2d0e6e849cafab77e9316cfa2634abe79345dfd414ac773d1dd1caa7c66')
-
 
 if __name__ == '__main__':
     unittest.main()
