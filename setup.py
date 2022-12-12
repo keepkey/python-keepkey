@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 setup(
     name='keepkey',
     version='7.0.3',
-    author='TREZOR and KeepKey',
+    author='markrypto, KeepKey and TREZOR',
     author_email='support@keepkey.com',
     description='Python library for communicating with KeepKey Hardware Wallet',
     url='https://github.com/keepkey/python-keepkey',

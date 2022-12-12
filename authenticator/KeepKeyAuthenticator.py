@@ -246,7 +246,7 @@ class Ui(Ui):
                 "color: rgb(0, 255, 0)")
             self.ConnectKKButton.setText(_translate("MainWindow", "KeepKey\nConnected"))
             # get accounts if connected
-            self.getAccounts(client)
+            #self.getAccounts(client)
             
     def getAccounts(self, client):
         self.accounts = self.authOps.auth_accGet(client)
@@ -386,13 +386,17 @@ class AuthClass:
                 retval = client.ping(msg = b'\x17' + bytes("getAccount:"+str(ctr), 'utf8'))
                 accounts.append([ctr, retval])
             except CallException as E:
+                print(E.args[1])
                 if E.args[1] == 'Account not found':
                     accounts.append([ctr, ''])
+                if E.args[1] == 'Invalid PIN':
+                    error_popup(E.args[1], '')
+                    break
                 if E.args[1] == 'Slot request out of range':
                     break
                 if E.args[1] == 'Device not initialized':
                     error_popup('Device not initialized', 'Initialize KeepKey prior to using authentication feature')
-                    break;
+                    break
             ctr+=1
             
         return accounts
