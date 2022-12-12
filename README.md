@@ -164,5 +164,5 @@ This will produce an executable install app
 
 KeepKey Authenticator
 ==============
-Documentation can be found [here](authenticator/AUTHENTICATOR.rst).
+Documentation can be found [here](authenticator/AUTHENTICATOR.md).
 
