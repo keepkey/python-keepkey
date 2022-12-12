@@ -9,11 +9,16 @@ products such as the Yubikey.
 Build for MacOS
 ---------------
 Make sure you have python-keepkey built and installed:
-    python python-keepkey/setup.py build install
+
+    $ python python-keepkey/setup.py build install
 
 KeepKeyAuthenticator.app is built using py2app. The setup file was created from the command line:
-    py2applet --make-setup KeepKeyAuthenticator.py authResources/*.png
+
+    $ py2applet --make-setup KeepKeyAuthenticator.py authResources/*.png
+
 and then saved as setupAuth.py. NOTE: Creating the setup.py file in this manner will overwrite
 the existing setup.py file if one exists.
+
 Create the app:
-    python setupAuth.py py2app
+
+    $ python setupAuth.py py2app
