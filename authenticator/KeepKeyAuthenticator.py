@@ -37,9 +37,12 @@ import time
 from datetime import datetime
 import sys
 import semver
+import usb1 as libusb
 
 from keepkeylib.transport_webusb import WebUsbTransport
 from keepkeylib.client import PinException, ProtocolMixin, BaseClient, CallException
+from keepkeylib import types_pb2 as types
+
 
 from AuthMain import Ui_MainWindow as Ui
 from PinUi import Ui_Dialog as PIN_Dialog
@@ -50,7 +53,7 @@ class kkClient:
         self.client = None
         
     def ConnectKK(self):
-        from keepkeylib.GUImixin import GuiUIMixin
+        from GUImixin import GuiUIMixin
         class KeepKeyClientAuth(ProtocolMixin, GuiUIMixin, BaseClient):
             pass
     
@@ -92,6 +95,10 @@ class kkClient:
     def getClient(self):
         return self.client
 
+    def closeClient(self):
+        self.client.close()
+        self.client=None
+
 def error_popup(errmsg, infotext):
     # set up error/status message box popup
     msg = QMessageBox()
@@ -117,6 +124,7 @@ class PIN_Dialog(PIN_Dialog):
         self.pushButton_9.clicked.connect(lambda: self.addPinClick('9'))
         self.pbUnlock.clicked.connect(lambda: self.returnPinAndClose(Dialog))
         self.encodedPin = ''
+        self.unlockClicked = False
         
                 
     def addPinClick(self, clickPosition):
@@ -127,12 +135,17 @@ class PIN_Dialog(PIN_Dialog):
         
     def returnPinAndClose(self, Dialog): 
         print("unlock pressed")
+        self.unlockClicked = True
         Dialog.close()
         
     def getEncodedPin(self): 
         # return encoded PIN when unlock button pressed
         return self.encodedPin
     
+    def getUnlockClicked(self): 
+        # return encoded PIN when unlock button pressed
+        return self.unlockClicked
+
 def pingui_popup():
     # set up PIN dialog        
     PINDialog = QtWidgets.QDialog()
@@ -140,15 +153,19 @@ def pingui_popup():
     PIN_ui.setupUi(PINDialog)
     PINDialog.show()
     x = PINDialog.exec_()    # show pin dialog
-    pin = PIN_ui.getEncodedPin()
-    print(pin)
-    return pin
+    if PIN_ui.getUnlockClicked() == True:
+        pin = PIN_ui.getEncodedPin()
+        print(pin)
+        return pin
+    else:
+        return 'E'  # pin cancelled
 
 class RemAcc_Dialog(RemAcc_Dialog):
     def __init__(self, client, authOps):
         self.client = client
         self.authOps = authOps
         self.accounts = None
+        self.KKDisconnect = False
         return
 
     def setupUi(self, Dialog):
@@ -166,7 +183,17 @@ class RemAcc_Dialog(RemAcc_Dialog):
         self.RemGetAccounts()
         
     def RemGetAccounts(self):
-        self.accounts = self.authOps.auth_accGet(self.client)
+        try:
+            self.accounts, fail = self.authOps.auth_accGet(self.client)
+            if fail in (-1, types.Failure_PinInvalid, 
+                             types.Failure_PinCancelled, types.Failure_PinExpected):
+                self.KKDisconnect = True
+                return
+
+        except PinException as e:
+            error_popup("Invalid PIN", "")
+            return
+        
         # reset button list
         bList = self.RemoveAccButtonGroup.buttons()
         for b in bList:
@@ -205,6 +232,9 @@ class RemAcc_Dialog(RemAcc_Dialog):
         else:
             print("KeepKey not connected")
             
+    def getKKDisconnect(self):
+        return self.KKDisconnect
+                
 class Ui(Ui):
     def __init__(self):
         self.authOps = AuthClass()
@@ -246,10 +276,29 @@ class Ui(Ui):
                 "color: rgb(0, 255, 0)")
             self.ConnectKKButton.setText(_translate("MainWindow", "KeepKey\nConnected"))
             # get accounts if connected
-            #self.getAccounts(client)
+            self.getAccounts(client)
+            
+    def KKDisconnect(self):
+        self.accounts = None
+        _translate = QtCore.QCoreApplication.translate
+        self.clientOps.closeClient()
+        self.ConnectKKButton.setStyleSheet("border-radius: 10px;\n"\
+            "background-color: rgb(255, 128, 4);\n"\
+            "border-width: 2px;\n"\
+            "border-style: solid;\n"\
+            "border-color: black;\n"\
+            "color: rgb(255, 255, 255)")
+        self.ConnectKKButton.setText(_translate("MainWindow", "Connect\nKeepKey"))
+        self.clearAccounts()
             
     def getAccounts(self, client):
-        self.accounts = self.authOps.auth_accGet(client)
+        # self.accounts = self.authOps.auth_accGet(client)
+        self.accounts, fail = self.authOps.auth_accGet(client)
+        if fail in (types.Failure_PinInvalid, 
+                             types.Failure_PinCancelled, types.Failure_PinExpected):
+            self.KKDisconnect()
+            return
+        
         print(self.accounts)
         # reset button list
         bList = self.OTPButtonGroup.buttons()
@@ -267,6 +316,13 @@ class Ui(Ui):
                     self.OTPButtonGroup.button(bNum).setText(acc[1])
                     self.otpButtonAcc.append((str(bNum), acc))
                     bNum += 1
+                    
+    def clearAccounts(self):
+        self.accounts = None
+        bList = self.OTPButtonGroup.buttons()
+        for b in bList:
+            b.setText('')
+ 
         
     def QrScreencap(self):
         # grab fullscreen
@@ -318,7 +374,15 @@ class Ui(Ui):
                 self.authOps.auth_otp(client, dom, acc)
             except PinException as e:
                 error_popup("Invalid PIN", "")
+            except libusb.USBErrorNoDevice:
+                error_popup("No KeepKey found", "")
+                self.KKDisconnect()
+            except libusb.USBErrorTimeout:
+                error_popup("USB error", "Timeout")
+            except libusb.USBError as error:
+                error_popup("USB error", error)
             return
+        
         else:
             print("KeepKey not connected")
 
@@ -328,8 +392,11 @@ class Ui(Ui):
         client = self.clientOps.getClient()
         RemAcc_ui = RemAcc_Dialog(client, self.authOps)
         RemAcc_ui.setupUi(RemAccDialog)
+        if RemAcc_ui.getKKDisconnect() == True:
+            self.KKDisconnect()
+            return
         RemAccDialog.show()
-        x = RemAccDialog.exec_()    # show pin dialog    
+        x = RemAccDialog.exec_()    # show pin dialog
         self.getAccounts(client)   
         
     def Test(self):
@@ -373,11 +440,9 @@ class AuthClass:
         T = Tslice.to_bytes(8, byteorder='big')
         retval = client.ping(
             msg = b'\x16' + bytes("generateOTPFrom:"+domain+":"+account+":", 'utf8') + 
-                                        binascii.hexlify(bytearray(T)) + bytes(":" + str(Tremain), 'utf8')
+                                    binascii.hexlify(bytearray(T)) + bytes(":" + str(Tremain), 'utf8')
         )
-        # print(retval)
-        # print("should be 007767")  
-
+        
     def auth_accGet(self, client):
         ctr=0
         accounts = list()
@@ -389,17 +454,30 @@ class AuthClass:
                 print(E.args[1])
                 if E.args[1] == 'Account not found':
                     accounts.append([ctr, ''])
-                if E.args[1] == 'Invalid PIN':
-                    error_popup(E.args[1], '')
-                    break
                 if E.args[1] == 'Slot request out of range':
                     break
                 if E.args[1] == 'Device not initialized':
                     error_popup('Device not initialized', 'Initialize KeepKey prior to using authentication feature')
                     break
+                if E.args[0] in (types.Failure_PinInvalid, types.Failure_PinCancelled, types.Failure_PinExpected):
+                    error_popup(E.args[1], '')
+                    return accounts, E.args[0]
+
+            except libusb.USBErrorNoDevice:
+                error_popup("No KeepKey found", "")
+                return accounts, -1
+            except libusb.USBErrorTimeout:
+                error_popup("USB error", "Timeout")
+                return accounts, -1
+            except libusb.USBError as error:
+                error_popup("USB error", error)
+                return accounts, -1
+ 
+
+                
             ctr+=1
             
-        return accounts
+        return accounts, 0
 
     def auth_accRem(self, client, domain, account):
         try:

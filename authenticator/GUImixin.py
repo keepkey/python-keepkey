@@ -17,7 +17,7 @@
 #
 # The script has been modified for KeepKey Device.
 
-from . import messages_pb2 as proto
+from keepkeylib import messages_pb2 as proto
 from KeepKeyAuthenticator import pingui_popup
 
 class GuiUIMixin(object):
@@ -38,8 +38,11 @@ class GuiUIMixin(object):
         # get matrix position and ack
         # pin = getPinDecoded()
         pin = pingui_popup()
-        print(pin)
-        return proto.PinMatrixAck(pin=pin)
+        print('pin is ', pin)
+        if pin == 'E':
+            return proto.Cancel()
+        else:
+            return proto.PinMatrixAck(pin=pin)
 
     # def callback_PassphraseRequest(self, msg):
     #     pass

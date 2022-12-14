@@ -1,10 +1,8 @@
 
 KeepKey Authenticator
 ==============
-The KeepKey Authenticator is a standalone app that enables the KeepKey device to perform as a 
-hardware off-line one-time passcode (OTP) generator for two factor authentication using the 
-TOPT algorithm. The KeepKey PIN and physical button gives it security features similar to other
-products such as the Yubikey.
+The KeepKey Authenticator is a standalone app intended to demo the authenticator feature. 
+It enables the KeepKey device to perform as a hardware off-line one-time passcode (OTP) generator for two factor authentication using the TOPT algorithm. The KeepKey PIN and physical button gives it security features similar to other products such as the Yubikey, but with better PIN security.
 
 Build for MacOS
 ---------------

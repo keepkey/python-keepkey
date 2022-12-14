@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(772, 628)
+        MainWindow.resize(772, 828)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("kk-icon-gold.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -207,6 +207,86 @@ class Ui_MainWindow(object):
         self.OTPAcc_5.setAutoDefault(True)
         self.OTPAcc_5.setObjectName("OTPAcc_5")
         self.OTPButtonGroup.addButton(self.OTPAcc_5)
+        self.OTPAcc_6 = QtWidgets.QPushButton(self.centralwidget)
+        self.OTPAcc_6.setGeometry(QtCore.QRect(380, 520, 351, 41))
+        font = QtGui.QFont()
+        font.setPointSize(24)
+        self.OTPAcc_6.setFont(font)
+        self.OTPAcc_6.setStyleSheet("border-radius: 10px;\n"
+"background-color: rgb(1, 0, 0);\n"
+"border-width: 2px;\n"
+"border-style: solid;\n"
+"border-color: black;\n"
+"color: rgb(0, 255, 0);\n"
+"text-align:left;")
+        self.OTPAcc_6.setText("")
+        self.OTPAcc_6.setAutoDefault(True)
+        self.OTPAcc_6.setObjectName("OTPAcc_6")
+        self.OTPButtonGroup.addButton(self.OTPAcc_6)
+        self.OTPAcc_7 = QtWidgets.QPushButton(self.centralwidget)
+        self.OTPAcc_7.setGeometry(QtCore.QRect(380, 570, 351, 41))
+        font = QtGui.QFont()
+        font.setPointSize(24)
+        self.OTPAcc_7.setFont(font)
+        self.OTPAcc_7.setStyleSheet("border-radius: 10px;\n"
+"background-color: rgb(1, 0, 0);\n"
+"border-width: 2px;\n"
+"border-style: solid;\n"
+"border-color: black;\n"
+"color: rgb(0, 255, 0);\n"
+"text-align:left;")
+        self.OTPAcc_7.setText("")
+        self.OTPAcc_7.setAutoDefault(True)
+        self.OTPAcc_7.setObjectName("OTPAcc_7")
+        self.OTPButtonGroup.addButton(self.OTPAcc_7)
+        self.OTPAcc_8 = QtWidgets.QPushButton(self.centralwidget)
+        self.OTPAcc_8.setGeometry(QtCore.QRect(380, 620, 351, 41))
+        font = QtGui.QFont()
+        font.setPointSize(24)
+        self.OTPAcc_8.setFont(font)
+        self.OTPAcc_8.setStyleSheet("border-radius: 10px;\n"
+"background-color: rgb(1, 0, 0);\n"
+"border-width: 2px;\n"
+"border-style: solid;\n"
+"border-color: black;\n"
+"color: rgb(0, 255, 0);\n"
+"text-align:left;")
+        self.OTPAcc_8.setText("")
+        self.OTPAcc_8.setAutoDefault(True)
+        self.OTPAcc_8.setObjectName("OTPAcc_8")
+        self.OTPButtonGroup.addButton(self.OTPAcc_8)
+        self.OTPAcc_9 = QtWidgets.QPushButton(self.centralwidget)
+        self.OTPAcc_9.setGeometry(QtCore.QRect(380, 670, 351, 41))
+        font = QtGui.QFont()
+        font.setPointSize(24)
+        self.OTPAcc_9.setFont(font)
+        self.OTPAcc_9.setStyleSheet("border-radius: 10px;\n"
+"background-color: rgb(1, 0, 0);\n"
+"border-width: 2px;\n"
+"border-style: solid;\n"
+"border-color: black;\n"
+"color: rgb(0, 255, 0);\n"
+"text-align:left;")
+        self.OTPAcc_9.setText("")
+        self.OTPAcc_9.setAutoDefault(True)
+        self.OTPAcc_9.setObjectName("OTPAcc_9")
+        self.OTPButtonGroup.addButton(self.OTPAcc_9)
+        self.OTPAcc_10 = QtWidgets.QPushButton(self.centralwidget)
+        self.OTPAcc_10.setGeometry(QtCore.QRect(380, 720, 351, 41))
+        font = QtGui.QFont()
+        font.setPointSize(24)
+        self.OTPAcc_10.setFont(font)
+        self.OTPAcc_10.setStyleSheet("border-radius: 10px;\n"
+"background-color: rgb(1, 0, 0);\n"
+"border-width: 2px;\n"
+"border-style: solid;\n"
+"border-color: black;\n"
+"color: rgb(0, 255, 0);\n"
+"text-align:left;")
+        self.OTPAcc_10.setText("")
+        self.OTPAcc_10.setAutoDefault(True)
+        self.OTPAcc_10.setObjectName("OTPAcc_10")
+        self.OTPButtonGroup.addButton(self.OTPAcc_10)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 772, 24))

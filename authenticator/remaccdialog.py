@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'remaccdialog.ui'
+# Form implementation generated from reading ui file 'RemAccDialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_RemAccDialog(object):
     def setupUi(self, RemAccDialog):
         RemAccDialog.setObjectName("RemAccDialog")
-        RemAccDialog.resize(465, 388)
+        RemAccDialog.resize(465, 540)
         RemAccDialog.setStyleSheet("background-color: rgb(1, 0, 0);")
         RemAccDialog.setModal(True)
         self.RemAccButton_1 = QtWidgets.QPushButton(RemAccDialog)
@@ -55,7 +55,7 @@ class Ui_RemAccDialog(object):
         self.AccountList_2.setWordWrap(True)
         self.AccountList_2.setObjectName("AccountList_2")
         self.RemAccButton_2 = QtWidgets.QPushButton(RemAccDialog)
-        self.RemAccButton_2.setGeometry(QtCore.QRect(50, 140, 350, 40))
+        self.RemAccButton_2.setGeometry(QtCore.QRect(50, 125, 350, 40))
         font = QtGui.QFont()
         font.setPointSize(24)
         self.RemAccButton_2.setFont(font)
@@ -70,7 +70,7 @@ class Ui_RemAccDialog(object):
         self.RemAccButton_2.setObjectName("RemAccButton_2")
         self.RemoveAccButtonGroup.addButton(self.RemAccButton_2)
         self.RemAccButton_3 = QtWidgets.QPushButton(RemAccDialog)
-        self.RemAccButton_3.setGeometry(QtCore.QRect(50, 200, 350, 40))
+        self.RemAccButton_3.setGeometry(QtCore.QRect(50, 170, 350, 40))
         font = QtGui.QFont()
         font.setPointSize(24)
         self.RemAccButton_3.setFont(font)
@@ -85,7 +85,7 @@ class Ui_RemAccDialog(object):
         self.RemAccButton_3.setObjectName("RemAccButton_3")
         self.RemoveAccButtonGroup.addButton(self.RemAccButton_3)
         self.RemAccButton_4 = QtWidgets.QPushButton(RemAccDialog)
-        self.RemAccButton_4.setGeometry(QtCore.QRect(50, 260, 350, 40))
+        self.RemAccButton_4.setGeometry(QtCore.QRect(50, 215, 350, 40))
         font = QtGui.QFont()
         font.setPointSize(24)
         self.RemAccButton_4.setFont(font)
@@ -100,7 +100,7 @@ class Ui_RemAccDialog(object):
         self.RemAccButton_4.setObjectName("RemAccButton_4")
         self.RemoveAccButtonGroup.addButton(self.RemAccButton_4)
         self.RemAccButton_5 = QtWidgets.QPushButton(RemAccDialog)
-        self.RemAccButton_5.setGeometry(QtCore.QRect(50, 320, 350, 40))
+        self.RemAccButton_5.setGeometry(QtCore.QRect(50, 260, 350, 40))
         font = QtGui.QFont()
         font.setPointSize(24)
         self.RemAccButton_5.setFont(font)
@@ -114,6 +114,81 @@ class Ui_RemAccDialog(object):
         self.RemAccButton_5.setText("")
         self.RemAccButton_5.setObjectName("RemAccButton_5")
         self.RemoveAccButtonGroup.addButton(self.RemAccButton_5)
+        self.RemAccButton_6 = QtWidgets.QPushButton(RemAccDialog)
+        self.RemAccButton_6.setGeometry(QtCore.QRect(50, 305, 350, 40))
+        font = QtGui.QFont()
+        font.setPointSize(24)
+        self.RemAccButton_6.setFont(font)
+        self.RemAccButton_6.setStyleSheet("border-radius: 10px;\n"
+"background-color: rgb(1, 0, 0);\n"
+"border-width: 2px;\n"
+"border-style: solid;\n"
+"border-color: black;\n"
+"color: rgb(0, 255, 0);\n"
+"text-align:left;")
+        self.RemAccButton_6.setText("")
+        self.RemAccButton_6.setObjectName("RemAccButton_6")
+        self.RemoveAccButtonGroup.addButton(self.RemAccButton_6)
+        self.RemAccButton_7 = QtWidgets.QPushButton(RemAccDialog)
+        self.RemAccButton_7.setGeometry(QtCore.QRect(50, 350, 350, 40))
+        font = QtGui.QFont()
+        font.setPointSize(24)
+        self.RemAccButton_7.setFont(font)
+        self.RemAccButton_7.setStyleSheet("border-radius: 10px;\n"
+"background-color: rgb(1, 0, 0);\n"
+"border-width: 2px;\n"
+"border-style: solid;\n"
+"border-color: black;\n"
+"color: rgb(0, 255, 0);\n"
+"text-align:left;")
+        self.RemAccButton_7.setText("")
+        self.RemAccButton_7.setObjectName("RemAccButton_7")
+        self.RemoveAccButtonGroup.addButton(self.RemAccButton_7)
+        self.RemAccButton_8 = QtWidgets.QPushButton(RemAccDialog)
+        self.RemAccButton_8.setGeometry(QtCore.QRect(50, 395, 350, 40))
+        font = QtGui.QFont()
+        font.setPointSize(24)
+        self.RemAccButton_8.setFont(font)
+        self.RemAccButton_8.setStyleSheet("border-radius: 10px;\n"
+"background-color: rgb(1, 0, 0);\n"
+"border-width: 2px;\n"
+"border-style: solid;\n"
+"border-color: black;\n"
+"color: rgb(0, 255, 0);\n"
+"text-align:left;")
+        self.RemAccButton_8.setText("")
+        self.RemAccButton_8.setObjectName("RemAccButton_8")
+        self.RemoveAccButtonGroup.addButton(self.RemAccButton_8)
+        self.RemAccButton_9 = QtWidgets.QPushButton(RemAccDialog)
+        self.RemAccButton_9.setGeometry(QtCore.QRect(50, 440, 350, 40))
+        font = QtGui.QFont()
+        font.setPointSize(24)
+        self.RemAccButton_9.setFont(font)
+        self.RemAccButton_9.setStyleSheet("border-radius: 10px;\n"
+"background-color: rgb(1, 0, 0);\n"
+"border-width: 2px;\n"
+"border-style: solid;\n"
+"border-color: black;\n"
+"color: rgb(0, 255, 0);\n"
+"text-align:left;")
+        self.RemAccButton_9.setText("")
+        self.RemAccButton_9.setObjectName("RemAccButton_9")
+        self.RemoveAccButtonGroup.addButton(self.RemAccButton_9)
+        self.RemAccButton_10 = QtWidgets.QPushButton(RemAccDialog)
+        self.RemAccButton_10.setGeometry(QtCore.QRect(50, 485, 350, 40))
+        font = QtGui.QFont()
+        font.setPointSize(24)
+        self.RemAccButton_10.setFont(font)
+        self.RemAccButton_10.setStyleSheet("border-radius: 10px;\n"
+"background-color: rgb(1, 0, 0);\n"
+"border-width: 2px;\n"
+"border-style: solid;\n"
+"border-color: black;\n"
+"color: rgb(0, 255, 0);\n"
+"text-align:left;")
+        self.RemAccButton_10.setText("")
+        self.RemAccButton_10.setObjectName("RemAccButton_10")
+        self.RemoveAccButtonGroup.addButton(self.RemAccButton_10)
 
         self.retranslateUi(RemAccDialog)
         QtCore.QMetaObject.connectSlotsByName(RemAccDialog)
