@@ -47,7 +47,15 @@ from keepkeylib import types_pb2 as types
 from AuthMain import Ui_MainWindow as Ui
 from PinUi import Ui_Dialog as PIN_Dialog
 from remaccdialog import Ui_RemAccDialog as RemAcc_Dialog
+from addaccui import Ui_AddAccDialog as AddAcc_Dialog
+from manualaddacc import Ui_ManualAddAccDialog as ManAddAcc_Dialog
 
+# for dev testing
+_test = False
+
+authErrs = ('Invalid PIN', 'PIN Cancelled', 'PIN expected', 'Auth secret unknown error', 
+                         'Account name missing or too long, or seed/message string missing', 
+                         'Authenticator secret can\'t be decoded', 'Authenticator secret seed too large')
 class kkClient:
     def __init__(self):
         self.client = None
@@ -129,12 +137,12 @@ class PIN_Dialog(PIN_Dialog):
                 
     def addPinClick(self, clickPosition):
         self.encodedPin+=clickPosition
-        print("encoded pin ", self.encodedPin)
+        if _test: print("encoded pin ", self.encodedPin)
         self.lineEdit.setText(self.encodedPin)
         return
         
     def returnPinAndClose(self, Dialog): 
-        print("unlock pressed")
+        if _test: print("unlock pressed")
         self.unlockClicked = True
         Dialog.close()
         
@@ -155,7 +163,7 @@ def pingui_popup():
     x = PINDialog.exec_()    # show pin dialog
     if PIN_ui.getUnlockClicked() == True:
         pin = PIN_ui.getEncodedPin()
-        print(pin)
+        if _test: print(pin)
         return pin
     else:
         return 'E'  # pin cancelled
@@ -170,7 +178,7 @@ class RemAcc_Dialog(RemAcc_Dialog):
 
     def setupUi(self, Dialog):
         super(RemAcc_Dialog, self).setupUi(Dialog)
-        
+        self.Dialog = Dialog
         # Remove account button group
         # Add IDs to buttons to make for easy access
         bNum = 1
@@ -183,17 +191,12 @@ class RemAcc_Dialog(RemAcc_Dialog):
         self.RemGetAccounts()
         
     def RemGetAccounts(self):
-        try:
-            self.accounts, fail = self.authOps.auth_accGet(self.client)
-            if fail in (-1, types.Failure_PinInvalid, 
-                             types.Failure_PinCancelled, types.Failure_PinExpected):
-                self.KKDisconnect = True
-                return
 
-        except PinException as e:
-            error_popup("Invalid PIN", "")
+        self.accounts, fail = self.authOps.auth_accGet(self.client)
+        if fail in ('Invalid PIN', 'PIN Cancelled', 'PIN expected', 'usb err', 'Device not initialized'):
+            self.KKDisconnect = True
             return
-        
+       
         # reset button list
         bList = self.RemoveAccButtonGroup.buttons()
         for b in bList:
@@ -220,18 +223,131 @@ class RemAcc_Dialog(RemAcc_Dialog):
             for ba in self.RemAccButton:
                 if ba[0] == str(id_):         # button clicked is in button-account list
                     dom, acc = ba[1][1].split(':')
-                    print(dom+" "+acc)
+                    if _test: print(dom+" "+acc)
                     break
-            try:
-                self.authOps.auth_accRem(self.client, dom, acc)                
+            err = self.authOps.auth_accRem(self.client, dom, acc) 
+            if err == 'noerr':
                 self.RemGetAccounts()
+            elif err == 'usb err':
+                self.KKDisconnect = True
+                self.Dialog.close()
+                return
+            else:
+                error_popup(err, '')
+                return
+                                
+        else:
+            error_popup('Keepkey not connected', '')
+            
+    def getKKDisconnect(self):
+        return self.KKDisconnect
 
-            except PinException as e:
-                error_popup("Invalid PIN", "")
+class ManAddAcc_Dialog(ManAddAcc_Dialog):
+    def __init__(self, client, authOps):
+        self.client = client
+        self.authOps = authOps
+        self.KKDisconnect = False
+        self.secret = None
+        self.domain = None
+        self.account = None
+        return
+
+    def setupUi(self, Dialog):
+        super(ManAddAcc_Dialog, self).setupUi(Dialog)
+        self.Dialog = Dialog
+        self.AddButton.clicked.connect(self.ManualAdd)
+        
+    def ManualAdd(self):
+        
+        self.secret = self.SecretlineEdit.text()
+        self.domain = self.IssuerlineEdit.text()
+        self.account = self.AccNamelineEdit.text()
+        self.Dialog.close()
+        
+    def getManAuth(self):
+        return self.domain, self.account, self.secret
+    
+    def getKKDisconnect(self):
+        return self.KKDisconnect
+        
+class AddAcc_Dialog(AddAcc_Dialog):
+    def __init__(self, client, authOps):
+        self.client = client
+        self.authOps = authOps
+        self.accounts = None
+        self.KKDisconnect = False
+        return
+
+    def setupUi(self, Dialog):
+        super(AddAcc_Dialog, self).setupUi(Dialog)
+        self.Dialog = Dialog
+        self.ScanQrButton.clicked.connect(self.QrScreencap)
+        self.EnterManuallyButton.clicked.connect(self.ManAddAcc)
+
+    def QrScreencap(self):
+        # grab fullscreen
+        self.im = ImageGrab.grab(include_layered_windows=True)
+        #self.im.save("fullscreen.png")
+
+        data = decode(self.im)
+        if (data == []):
+            error_popup("QR Code Error", "Could not read QR code")
+            return
+        data1 = str(data[0][0]).replace("b'",'').replace("'","")
+        type1 = str(data[0][1])
+        if _test: print(data1)
+        if _test: print(type1)
+        secret = urlparse(data1).query.split('=')[1].split('&')[0]
+        domain = urlparse(data1).path.split('/')[1].split(':')[0]
+        account = urlparse(data1).path.split('/')[1].split(':')[1]
+        
+        self.KKAddAcc(self.client, secret, domain, account)
+        return
+        
+    def KKAddAcc(self, client, secret, domain, account):
+        if _test: print(secret)
+        if _test: print(domain)
+        if _test: print(account)
+        if (client != None):
+            err = self.authOps.auth_accAdd(client, secret, domain, account)
+            if err == 'noerr':
+                self.Dialog.close()
+                return
+            elif err in authErrs:
+                error_popup(err, '')
+            else:
+                error_popup(err, '')    #usb error
+                self.KKDisconnect = True
+                self.Dialog.close()
+
             return
         else:
-            print("KeepKey not connected")
-            
+            error_popup('Keepkey not connected', '')
+            self.KKDisconnect = True
+            self.Dialog.close()
+
+    def ManAddAcc(self):
+        if self.client == None:
+            return
+
+        # set up manual add account dialog
+        ManAddAccDialog = QtWidgets.QDialog()            
+        ManAddAcc_ui = ManAddAcc_Dialog(self.client, self.authOps)
+        ManAddAcc_ui.setupUi(ManAddAccDialog)
+        if ManAddAcc_ui.getKKDisconnect() == True:
+            self.KKDisconnect()
+            self.Dialog.close()
+            return
+        ManAddAccDialog.show()
+        x = ManAddAccDialog.exec_()    # show dialog
+        domain, account, secret = ManAddAcc_ui.getManAuth()
+        if None in (domain, account, secret):
+            error_popup('Must enter values for domain, account and secret')
+        else:
+            self.KKAddAcc(self.client, secret, domain, account)
+
+        self.Dialog.close()
+
     def getKKDisconnect(self):
         return self.KKDisconnect
                 
@@ -245,9 +361,12 @@ class Ui(Ui):
         self.clientOps = kkClient()
         
         self.ConnectKKButton.clicked.connect(self.KKConnect)
-        self.AddAccButton.clicked.connect(self.QrScreencap)
+        self.AddAccButton.clicked.connect(self.addAcc)
         self.RemoveAccButton.clicked.connect(self.removeAcc)
-        self.testButton.clicked.connect(self.Test)
+        if _test:
+            self.testButton.clicked.connect(self.Test)
+        else:
+            self.testButton.deleteLater()
         
         # OTP button group
         # Add IDs to buttons to make for easy access
@@ -292,14 +411,12 @@ class Ui(Ui):
         self.clearAccounts()
             
     def getAccounts(self, client):
-        # self.accounts = self.authOps.auth_accGet(client)
-        self.accounts, fail = self.authOps.auth_accGet(client)
-        if fail in (types.Failure_PinInvalid, 
-                             types.Failure_PinCancelled, types.Failure_PinExpected):
+        self.accounts, err = self.authOps.auth_accGet(client)
+        if err in ('Invalid PIN', 'PIN Cancelled', 'PIN expected', 'usb err', 'Device not initialized'):
             self.KKDisconnect()
             return
         
-        print(self.accounts)
+        if _test: print(self.accounts)
         # reset button list
         bList = self.OTPButtonGroup.buttons()
         for b in bList:
@@ -323,38 +440,21 @@ class Ui(Ui):
         for b in bList:
             b.setText('')
  
-        
-    def QrScreencap(self):
-        # grab fullscreen
-        self.im = ImageGrab.grab(include_layered_windows=True)
-        #self.im.save("fullscreen.png")
-
-        data = decode(self.im)
-        if (data == []):
-            error_popup("QR Code Error", "Could not read QR code")
-            return
-        data1 = str(data[0][0]).replace("b'",'').replace("'","")
-        type1 = str(data[0][1])
-        print(data1)
-        print(type1)
-        secret = urlparse(data1).query.split('=')[1].split('&')[0]
-        domain = urlparse(data1).path.split('/')[1].split(':')[0]
-        account = urlparse(data1).path.split('/')[1].split(':')[1]
-        print(secret)
-        print(domain)
-        print(account)
+    def addAcc(self):
         client = self.clientOps.getClient()
-        if (client != None):
-            try:
-                self.authOps.auth_accAdd(client, secret, domain, account)
-                # re-establish otp list
-                self.getAccounts(client)
-
-            except PinException as e:
-                error_popup("Invalid PIN", "")
+        if client == None:
             return
-        else:
-            print("KeepKey not connected")
+
+        # set up add account dialog
+        AddAccDialog = QtWidgets.QDialog()            
+        AddAcc_ui = AddAcc_Dialog(client, self.authOps)
+        AddAcc_ui.setupUi(AddAccDialog)
+        if AddAcc_ui.getKKDisconnect() == True:
+            self.KKDisconnect()
+            return
+        AddAccDialog.show()
+        x = AddAccDialog.exec_()    # show pin dialog
+        self.getAccounts(client)   
 
     def OtpGen(self, id_):
         # First check if this is an active button with an account
@@ -368,28 +468,26 @@ class Ui(Ui):
             for ba in self.otpButtonAcc:
                 if ba[0] == str(id_):         # button clicked is in button-account list
                     dom, acc = ba[1][1].split(':')
-                    print(dom+" "+acc)
+                    if _test: print(dom+" "+acc)
                     break
-            try:
-                self.authOps.auth_otp(client, dom, acc)
-            except PinException as e:
-                error_popup("Invalid PIN", "")
-            except libusb.USBErrorNoDevice:
-                error_popup("No KeepKey found", "")
+            err = self.authOps.auth_otp(client, dom, acc)
+            if err in authErrs:
+                error_popup(err, '')
+            elif err == 'usb err':
+                error_popup('usb error', '')
                 self.KKDisconnect()
-            except libusb.USBErrorTimeout:
-                error_popup("USB error", "Timeout")
-            except libusb.USBError as error:
-                error_popup("USB error", error)
-            return
+                return
         
         else:
-            print("KeepKey not connected")
+            error_popup('Keepkey not connected', '')
 
     def removeAcc(self):
-        # set up remove account dialog
-        RemAccDialog = QtWidgets.QDialog()
         client = self.clientOps.getClient()
+        if client == None:
+            return
+
+        # set up remove account dialog
+        RemAccDialog = QtWidgets.QDialog()            
         RemAcc_ui = RemAcc_Dialog(client, self.authOps)
         RemAcc_ui.setupUi(RemAccDialog)
         if RemAcc_ui.getKKDisconnect() == True:
@@ -401,7 +499,6 @@ class Ui(Ui):
         
     def Test(self):
         #test the keepkey function
-        print("test function")
         client = self.clientOps.getClient()
         if (client != None):
             try:
@@ -411,23 +508,39 @@ class Ui(Ui):
                 error_popup("Invalid PIN", "")
             return
         else:
-            print("KeepKey not connected")
+            error_popup('Keepkey not connected', '')
             
 class AuthClass:
-    def auth_accAdd(self, client, secret, domain, account):
-        # try:
-        #     ret = client.ping(msg = b'\x15' + bytes("initializeAuth:" + "python-test:" + "BASE32SECRET2345AB", 'utf8'))
-        # except PinException as e:
-        #     print("Got exception in authenticator", e.args[0], " ", e.args[1])
-        #     exit()
-
+    def sendMsg(self, client, msg):
+        err = ''
+        retval = None
         try:
-            retval = client.ping(msg = b'\x15' + bytes("initializeAuth:"+domain+":"+account+":"+secret, 'utf8'))
+            retval = client.ping(msg)
         except CallException as E:
-                if E.args[1] == 'Authenticator secret storage full':
-                    error_popup(E.args[1], "Need to remove an account to add a new one to this KeepKey")
-                else:
-                    error_popup(E.args[1], "")
+            err = E.args[1]
+            
+        except libusb.USBErrorNoDevice:
+            err = "No KeepKey found"
+        except libusb.USBErrorTimeout:
+            err = "USB error timeout"
+        except libusb.USBError as error:
+            err = "USB error %r" % error
+        
+        return retval, err
+
+        
+    def auth_accAdd(self, client, secret, domain, account):
+        retval, err = self.sendMsg(client, msg = b'\x15' + bytes("initializeAuth:"+domain+":"+account+":"+secret, 'utf8'))
+        if err == 'Authenticator secret storage full':
+            error_popup(err, "Need to remove an account to add a new one to this KeepKey")
+            return err
+        elif err in authErrs: 
+            error_popup(err, '')
+            return err
+        elif err != '':
+            error_popup(err, '')
+            return 'usb err'
+        return 'noerr'
             
     def auth_otp(self, client, domain, account):
         interval = 30       # 30 second interval
@@ -436,72 +549,75 @@ class AuthClass:
         T0 = datetime.now().timestamp()
         Tslice = int(T0/interval)
         Tremain = int((int(T0) - Tslice*30))
-        print(Tremain)
+        if _test: print(Tremain)
         T = Tslice.to_bytes(8, byteorder='big')
-        retval = client.ping(
+        retval, err = self.sendMsg(client, 
             msg = b'\x16' + bytes("generateOTPFrom:"+domain+":"+account+":", 'utf8') + 
                                     binascii.hexlify(bytearray(T)) + bytes(":" + str(Tremain), 'utf8')
         )
-        
+        if err in authErrs: 
+            error_popup(err, '')
+            return err
+        elif err != '':
+            error_popup(err, '')
+            return 'usb err'
+        return 'noerr'
+    
     def auth_accGet(self, client):
         ctr=0
         accounts = list()
         while True:
-            try:
-                retval = client.ping(msg = b'\x17' + bytes("getAccount:"+str(ctr), 'utf8'))
+            retval, err = self.sendMsg(client, msg = b'\x17' + bytes("getAccount:"+str(ctr), 'utf8'))
+            if err == '':
                 accounts.append([ctr, retval])
-            except CallException as E:
-                print(E.args[1])
-                if E.args[1] == 'Account not found':
-                    accounts.append([ctr, ''])
-                if E.args[1] == 'Slot request out of range':
-                    break
-                if E.args[1] == 'Device not initialized':
-                    error_popup('Device not initialized', 'Initialize KeepKey prior to using authentication feature')
-                    break
-                if E.args[0] in (types.Failure_PinInvalid, types.Failure_PinCancelled, types.Failure_PinExpected):
-                    error_popup(E.args[1], '')
-                    return accounts, E.args[0]
-
-            except libusb.USBErrorNoDevice:
-                error_popup("No KeepKey found", "")
-                return accounts, -1
-            except libusb.USBErrorTimeout:
-                error_popup("USB error", "Timeout")
-                return accounts, -1
-            except libusb.USBError as error:
-                error_popup("USB error", error)
-                return accounts, -1
- 
-
+            elif err == 'Account not found':
+                accounts.append([ctr, ''])
+            elif err == 'Slot request out of range':
+                break
+            elif err == 'Device not initialized':
+                error_popup(err, 'Initialize KeepKey prior to using authentication feature')
+                break
+            elif err in authErrs: 
+                error_popup(err, '')
+                return accounts, err
+            else:
+                error_popup(err, '')
+                return accounts, 'usb err'
                 
             ctr+=1
             
-        return accounts, 0
+        return accounts, 'noerr'
 
     def auth_accRem(self, client, domain, account):
-        try:
-            client.ping(msg = b'\x18' + bytes("removeAccount:"+domain+":"+account, 'utf8'))
-        except CallException as E:
+        retval, err = self.sendMsg(client, msg = b'\x18' + bytes("removeAccount:"+domain+":"+account, 'utf8'))
+        if err in authErrs:
             error_popup(E.args[1], domain+":"+account)
-        return
+        elif err != '':
+            error_popup(err, '')
+            return 'usb err'
+
+        return 'noerr'
 
     def auth_test(self, client):
-        try:
-            retval = client.ping(msg = b'\x15' + bytes("initializeAuth:"+"GitHub"+":"+"mooneytestgithub"+":"+"ZKLHM3W3XAHG4CBN", 'utf8'))
-            retval = client.ping(msg = b'\x15' + bytes("initializeAuth:"+"Shapeshift"+":"+"markrypto"+":"+"BASE32SECRET2345AC", 'utf8'))
-            retval = client.ping(msg = b'\x15' + bytes("initializeAuth:"+"KeepKey"+":"+"markrypto2"+":"+"BASE32SECRET2345AD", 'utf8'))
-        except CallException as E:
-                if E.args[1] == 'Authenticator secret storage full':
-                    error_popup(E.args[1], "Need to remove an account to add a new one to this KeepKey")
-                else:
-                    error_popup(E.args[1], "")
-        
-        
-        # ret = client.ping(msg = b'\x15' + bytes("initializeAuth:" + "python-test:" + "BASE32SECRET2345AB", 'utf8'))
+        # otpauth://totp/KeepKey:markrypto?secret=ZKLHM3W3XAHG4CBN&issuer=kk
+        for msg in (
+            b'\x15' + bytes("initializeAuth:"+"KeepKey"+":"+"markrypto"+":"+"ZKLHM3W3XAHG4CBN", 'utf8'),
+            b'\x15' + bytes("initializeAuth:"+"Shapeshift"+":"+"markrypto"+":"+"BASE32SECRET2345AB", 'utf8'),
+            b'\x15' + bytes("initializeAuth:"+"Shapeshift"+":"+"markrypto"+":"+"BASE32SECRET2345AB", 'utf8')
+            ):
+            retval, err = self.sendMsg(client, msg)
+            if err == 'Authenticator secret storage full':
+                error_popup(err, "Need to remove an account to add a new one to this KeepKey")
+                return err
+            elif err in authErrs: 
+                error_popup(err, '')
+                return err
+            elif err != '':
+                error_popup(err, '')
+                return 'usb err'
             
+        return 'noerr'
 
- 
         # interval = 30       # 30 second interval
         # #T0 = 1535317397
         # T0 = 1536262427
@@ -510,8 +626,8 @@ class AuthClass:
         # retval = client.ping(
         #     msg = b'\x16' + bytes("generateOTPFrom:" + "python-test:", 'utf8') + binascii.hexlify(bytearray(T))
         # )
-        # print(retval)
-        # print("should be 007767")  
+        # if _test: print(retval)
+        # if _test: print("should be 007767")  
 
 def main():
     app = QtWidgets.QApplication(sys.argv)    
