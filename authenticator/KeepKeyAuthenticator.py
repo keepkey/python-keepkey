@@ -50,7 +50,7 @@ from addaccdialog import Ui_AddAccDialog as AddAcc_Dialog
 from manualaddacc import Ui_ManualAddAccDialog as ManAddAcc_Dialog
 
 # for dev testing
-_test = True
+_test = False
 
 authErrs = ('Invalid PIN', 'PIN Cancelled', 'PIN expected', 'Auth secret unknown error', 
                          'Account name missing or too long, or seed/message string missing', 
