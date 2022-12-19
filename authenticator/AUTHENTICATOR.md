@@ -19,4 +19,4 @@ the existing setup.py file if one exists.
 
 Create the app:
 
-    $ python setupAuth.py py2app
+    $ python setup.py py2app
