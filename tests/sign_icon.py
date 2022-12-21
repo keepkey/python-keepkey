@@ -80,7 +80,7 @@ class TestMsgEthvm(common.KeepKeyTest):
             0x17, 0x16, 0x0, 0xff, 0xf, 0x6, 0x0
         ])
 
-        self.requires_firmware("7.6.0")
+        self.requires_firmware("7.7.0")
         f = open('evptests.json')
         test = json.load(f)
         f.close()

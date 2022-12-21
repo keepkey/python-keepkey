@@ -27,7 +27,7 @@ class TestMsgEthvm(common.KeepKeyTest):
     def test_ethereum_verify_message(self):
         # self.setup_mnemonic_nopin_nopassphrase()
 
-        self.requires_firmware("7.6.0")
+        self.requires_firmware("7.7.0")
         f = open('evptests.json')
         test = json.load(f)
         f.close()

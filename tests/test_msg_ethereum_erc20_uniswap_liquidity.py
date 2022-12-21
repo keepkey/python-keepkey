@@ -57,7 +57,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         if self.client.features.firmware_variant == "Emulator":
             self.skipTest("Skip until emulator issue resolved")
             return
-        self.requires_firmware("7.6.0")
+        self.requires_firmware("7.7.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # add icon data
@@ -100,7 +100,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         if self.client.features.firmware_variant == "Emulator":
             self.skipTest("Skip until emulator issue resolved")
             return
-        self.requires_firmware("7.6.0")
+        self.requires_firmware("7.7.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # add icon data

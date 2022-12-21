@@ -34,7 +34,7 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         # The signature, especially V, needs to be verified with an actual gnosis chain tx.
         # This test is just used to check the chain id and icon of gnosis chain
 
-        self.requires_firmware("7.6.0")
+        self.requires_firmware("7.7.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # add icon data
@@ -78,7 +78,7 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '5efc8d59e92a1486d7289223c5d5d48408ac9cbe0a450717efc1af0016d3eaea')
 
     def test_sign_0x_swap_ETH_to_ERC20(self):
-        self.requires_firmware("7.6.0")
+        self.requires_firmware("7.7.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # add icon data
@@ -122,7 +122,7 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '51ef1578d4f4bece1ffe3759209088f02cb9d2b21e64d5c32c8b4ebce95417e0')
 
     def test_sign_0x_swap_ERC20_to_ETH(self):
-        self.requires_firmware("7.6.0")
+        self.requires_firmware("7.7.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # add icon data
@@ -232,7 +232,7 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '75afaec8233d4297d28cf63b23e593ffe4896bf53e3d156d6f13ae2ba6b4dae4')
 
     def test__sign_transformERC20(self):
-        self.requires_firmware("7.6.0")
+        self.requires_firmware("7.7.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # add icon data
