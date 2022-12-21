@@ -544,9 +544,8 @@ class AuthClass:
         interval = 30       # 30 second interval
         T0 = datetime.now().timestamp()
         Tslice = int(T0/interval)
-        Tremain = int((int(T0) - Tslice*30))
+        Tremain = interval - int((int(T0) - Tslice*30))
         if _test: print(Tremain)
-        T = Tslice.to_bytes(8, byteorder='big')
         retval, err = self.sendMsg(client, 
             msg = b'\x16' + bytes("generateOTPFrom:"+domain+":"+account+":", 'utf8') + 
                                     bytes(str(Tslice), 'utf8') + bytes(":" + str(Tremain), 'utf8')
