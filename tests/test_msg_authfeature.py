@@ -27,7 +27,7 @@ class TestAuthFeature(common.KeepKeyTest):
         err = ''
         retval = None
         try:
-            retval = client.ping(msg)
+            retval = client.ping(msg=msg)
         except CallException as E:
             err = E.args[1]
             
@@ -69,12 +69,11 @@ class TestAuthFeature(common.KeepKeyTest):
         T0 = 1535317397
         interval = 30
         Tslice = int(T0/interval)
-        Tremain = 3
-        T = Tslice.to_bytes(8, byteorder='big')
+        Tremain = 7
         for vector in (
-            (b'\x16' + bytes("generateOTPFrom:KeepKey:markrypto:", 'utf8') + binascii.hexlify(bytearray(T)) + bytes(":" + str(Tremain), 'utf8'), '910862'),
-            (b'\x16' + bytes("generateOTPFrom:Shapeshift:markrypto:", 'utf8') + binascii.hexlify(bytearray(T)) + bytes(":" + str(Tremain), 'utf8'), '280672'),
-            (b'\x16' + bytes("generateOTPFrom:KeepKey:markrypto2:", 'utf8') + binascii.hexlify(bytearray(T)) + bytes(":" + str(Tremain), 'utf8'), '020352')
+            (b'\x16' + bytes("generateOTPFrom:KeepKey:markrypto:", 'utf8') + bytes(str(Tslice), 'utf8') + bytes(":" + str(Tremain), 'utf8'), '910862'),
+            (b'\x16' + bytes("generateOTPFrom:Shapeshift:markrypto:", 'utf8') + bytes(str(Tslice), 'utf8') + bytes(":" + str(Tremain), 'utf8'), '280672'),
+            (b'\x16' + bytes("generateOTPFrom:KeepKey:markrypto2:", 'utf8') + bytes(str(Tslice), 'utf8') + bytes(":" + str(Tremain), 'utf8'), '020352')
             ):
             retval, err = self.sendMsg(self.client, vector[0])
             self.assertEqual(err, '')
@@ -82,7 +81,6 @@ class TestAuthFeature(common.KeepKeyTest):
 
         err = self.clearAuthData(self.client)
         self.assertEqual(err, '')
-
 
 if __name__ == '__main__':
     unittest.main()
