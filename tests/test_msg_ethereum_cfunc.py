@@ -35,7 +35,6 @@ class TestMsgEthereumCfunc(common.KeepKeyTest):
         self.requires_firmware("7.5.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
-        #withdraw some fox
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
             nonce=0xab,
