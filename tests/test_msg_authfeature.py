@@ -54,7 +54,7 @@ class TestAuthFeature(common.KeepKeyTest):
         return err
         
     def test_InitGetOTPClear(self):
-        self.requires_firmware("7.7.0")
+        self.requires_firmware("7.6.0")
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()
         self.clearAuthData(self.client)

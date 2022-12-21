@@ -87,7 +87,7 @@ class kkClient:
 
         # Creates object for manipulating KeepKey
         self.client = KeepKeyClientAuth(transport)
-        self.requires_firmware("7.7.0")
+        self.requires_firmware("7.6.0")
         
 
     def requires_firmware(self, ver_required):
