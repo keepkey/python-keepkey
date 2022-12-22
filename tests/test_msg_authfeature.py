@@ -15,7 +15,6 @@
 import unittest
 import common
 import binascii
-import usb1 as libusb
 
 from keepkeylib import messages_pb2 as proto
 from keepkeylib import types_pb2 as proto_types
@@ -30,14 +29,6 @@ class TestAuthFeature(common.KeepKeyTest):
             retval = client.ping(msg=msg)
         except CallException as E:
             err = E.args[1]
-            
-        except libusb.USBErrorNoDevice:
-            err = "No KeepKey found"
-        except libusb.USBErrorTimeout:
-            err = "USB error timeout"
-        except libusb.USBError as error:
-            err = "USB error %r" % error
-        
         return retval, err
 
     def clearAuthData(self, client):
