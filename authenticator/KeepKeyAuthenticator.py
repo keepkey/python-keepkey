@@ -17,7 +17,7 @@
 #
 # The script has been modified for KeepKey Device.
 
-__version__ = 0.5.0
+__version__ = "0.5.0"
 
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtWidgets import QFileDialog, QMenuBar,QMessageBox,QPushButton
@@ -359,7 +359,7 @@ class Ui(Ui):
         _translate = QtCore.QCoreApplication.translate
 
         self.clientOps = kkClient()
-        versionText = "Version %s" % str(__version__)
+        versionText = "Version %s" % __version__
         self.Version.setText(_translate("MainWindow", versionText))
 
         self.ConnectKKButton.clicked.connect(self.KKConnect)
