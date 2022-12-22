@@ -45,6 +45,10 @@ class TestAuthFeature(common.KeepKeyTest):
         return err
         
     def test_InitGetOTPClear(self):
+        if self.client.features.firmware_variant == "Emulator":
+            self.skipTest("Skip test in emulator, test on physical KeepKey")
+            return
+
         self.requires_firmware("7.6.0")
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()
