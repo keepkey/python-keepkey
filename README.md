@@ -161,3 +161,8 @@ script (modify version, etc., as needed)
 This will produce an executable install app
 
     ``windows/Output/kkbsetup.exe``
+
+KeepKey Authenticator
+==============
+Documentation can be found [here](authenticator/AUTHENTICATOR.md).
+

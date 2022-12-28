@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RemAccDialog</class>
+ <widget class="QDialog" name="RemAccDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>465</width>
+    <height>540</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Remove Account</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(1, 0, 0);</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <widget class="QPushButton" name="RemAccButton_1">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>80</y>
+     <width>350</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>24</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius: 10px;
+background-color: rgb(1, 0, 0);
+border-width: 2px;
+border-style: solid;
+border-color: black;
+color: rgb(0, 255, 0);
+text-align:left;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">RemoveAccButtonGroup</string>
+   </attribute>
+  </widget>
+  <widget class="QLabel" name="AccountList">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>20</y>
+     <width>130</width>
+     <height>45</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>32</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(255, 255, 255);
+</string>
+   </property>
+   <property name="text">
+    <string>Accounts</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="AccountList_2">
+   <property name="geometry">
+    <rect>
+     <x>195</x>
+     <y>20</y>
+     <width>220</width>
+     <height>45</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>18</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: rgb(255, 255, 255);
+</string>
+   </property>
+   <property name="text">
+    <string>Click on account to PERMANENTLY remove</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::RichText</enum>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignHCenter|Qt::AlignTop</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="RemAccButton_2">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>125</y>
+     <width>350</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>24</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius: 10px;
+background-color: rgb(1, 0, 0);
+border-width: 2px;
+border-style: solid;
+border-color: black;
+color: rgb(0, 255, 0);
+text-align:left;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">RemoveAccButtonGroup</string>
+   </attribute>
+  </widget>
+  <widget class="QPushButton" name="RemAccButton_3">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>170</y>
+     <width>350</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>24</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius: 10px;
+background-color: rgb(1, 0, 0);
+border-width: 2px;
+border-style: solid;
+border-color: black;
+color: rgb(0, 255, 0);
+text-align:left;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">RemoveAccButtonGroup</string>
+   </attribute>
+  </widget>
+  <widget class="QPushButton" name="RemAccButton_4">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>215</y>
+     <width>350</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>24</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius: 10px;
+background-color: rgb(1, 0, 0);
+border-width: 2px;
+border-style: solid;
+border-color: black;
+color: rgb(0, 255, 0);
+text-align:left;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">RemoveAccButtonGroup</string>
+   </attribute>
+  </widget>
+  <widget class="QPushButton" name="RemAccButton_5">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>260</y>
+     <width>350</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>24</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius: 10px;
+background-color: rgb(1, 0, 0);
+border-width: 2px;
+border-style: solid;
+border-color: black;
+color: rgb(0, 255, 0);
+text-align:left;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">RemoveAccButtonGroup</string>
+   </attribute>
+  </widget>
+  <widget class="QPushButton" name="RemAccButton_6">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>305</y>
+     <width>350</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>24</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius: 10px;
+background-color: rgb(1, 0, 0);
+border-width: 2px;
+border-style: solid;
+border-color: black;
+color: rgb(0, 255, 0);
+text-align:left;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">RemoveAccButtonGroup</string>
+   </attribute>
+  </widget>
+  <widget class="QPushButton" name="RemAccButton_7">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>350</y>
+     <width>350</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>24</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius: 10px;
+background-color: rgb(1, 0, 0);
+border-width: 2px;
+border-style: solid;
+border-color: black;
+color: rgb(0, 255, 0);
+text-align:left;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">RemoveAccButtonGroup</string>
+   </attribute>
+  </widget>
+  <widget class="QPushButton" name="RemAccButton_8">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>395</y>
+     <width>350</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>24</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius: 10px;
+background-color: rgb(1, 0, 0);
+border-width: 2px;
+border-style: solid;
+border-color: black;
+color: rgb(0, 255, 0);
+text-align:left;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">RemoveAccButtonGroup</string>
+   </attribute>
+  </widget>
+  <widget class="QPushButton" name="RemAccButton_9">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>440</y>
+     <width>350</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>24</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius: 10px;
+background-color: rgb(1, 0, 0);
+border-width: 2px;
+border-style: solid;
+border-color: black;
+color: rgb(0, 255, 0);
+text-align:left;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">RemoveAccButtonGroup</string>
+   </attribute>
+  </widget>
+  <widget class="QPushButton" name="RemAccButton_10">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>485</y>
+     <width>350</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>24</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">border-radius: 10px;
+background-color: rgb(1, 0, 0);
+border-width: 2px;
+border-style: solid;
+border-color: black;
+color: rgb(0, 255, 0);
+text-align:left;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">RemoveAccButtonGroup</string>
+   </attribute>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+ <buttongroups>
+  <buttongroup name="RemoveAccButtonGroup"/>
+ </buttongroups>
+</ui>

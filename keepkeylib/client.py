@@ -1,5 +1,6 @@
 # This file is part of the TREZOR project.
 #
+# Copyright (C) 2022      markrypto <cryptoakorn@gmail.com>
 # Copyright (C) 2012-2016 Marek Palatinus <slush@satoshilabs.com>
 # Copyright (C) 2012-2016 Pavol Rusnak <stick@satoshilabs.com>
 # Copyright (C) 2016      Jochen Hoenicke <hoenicke@gmail.com>
@@ -368,6 +369,9 @@ class DebugLinkMixin(object):
 
         # Use blank passphrase
         self.set_passphrase('')
+
+    def setAutoButton(self, tf):
+        self.auto_button = tf
 
     def close(self):
         super(DebugLinkMixin, self).close()
