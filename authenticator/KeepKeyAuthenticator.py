@@ -50,9 +50,10 @@ from pindialog import Ui_Dialog as PIN_Dialog
 from remaccdialog import Ui_RemAccDialog as RemAcc_Dialog
 from addaccdialog import Ui_AddAccDialog as AddAcc_Dialog
 from manualaddacc import Ui_ManualAddAccDialog as ManAddAcc_Dialog
+from passphrasedialog import Ui_PassphraseDialog as Passphrase_Dialog
 
 # for dev testing
-_test = False
+_test = True
 
 authErrs = ('Invalid PIN', 'PIN Cancelled', 'PIN expected', 'Auth secret unknown error', 
                          'Account name missing or too long, or seed/message string missing', 
@@ -166,6 +167,47 @@ def pingui_popup():
         return pin
     else:
         return 'E'  # pin cancelled
+
+def passphrase_popup():
+    # set up passphrase dialog        
+    passphraseDialog = QtWidgets.QDialog()
+    passphrase_ui = Passphrase_Dialog()
+    passphrase_ui.setupUi(passphraseDialog)
+    passphraseDialog.show()
+    x = passphraseDialog.exec()    # show pin dialog
+    if passphrase_ui.getEnterClicked() == True:
+        passphrase = passphrase_ui.getPassphrase()
+        if _test: print(passphrase)
+        return passphrase
+    else:
+        return 'E'  # passphrase canceled
+
+class Passphrase_Dialog(Passphrase_Dialog):
+    def __init__(self):
+        self.KKDisconnect = False
+        self.passphrase = None
+        self.enterClicked = False
+        return
+
+    def setupUi(self, Dialog):
+        super(Passphrase_Dialog, self).setupUi(Dialog)
+        self.Dialog = Dialog
+        self.EnterButton.clicked.connect(self.Enter)
+        
+    def Enter(self):
+        self.passphrase = self.passphraseLineEdit.text()
+        self.enterClicked = True
+        self.Dialog.close()
+        
+    def getEnterClicked(self):
+        return self.enterClicked
+    
+    def getPassphrase(self):
+        return self.passphrase
+
+    def getKKDisconnect(self):
+        return self.KKDisconnect
+
 
 class RemAcc_Dialog(RemAcc_Dialog):
     def __init__(self, client, authOps):

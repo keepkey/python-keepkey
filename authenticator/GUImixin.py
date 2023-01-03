@@ -19,6 +19,7 @@
 
 from keepkeylib import messages_pb2 as proto
 from KeepKeyAuthenticator import pingui_popup
+from KeepKeyAuthenticator import passphrase_popup
 
 class GuiUIMixin(object):
     # qt gui interface
@@ -44,8 +45,14 @@ class GuiUIMixin(object):
         else:
             return proto.PinMatrixAck(pin=pin)
 
-    # def callback_PassphraseRequest(self, msg):
-    #     pass
+    def callback_PassphraseRequest(self, msg):
+        passphrase = passphrase_popup()
+        # passphrase = "YEJ@.h*B!KLAJLpQ!6AMfaQLdijAmZRXMe3@a_FqmNfpbAN4p"
+        return proto.PassphraseAck(passphrase=passphrase)
+
 
     # def callback_CharacterRequest(self, msg):
     #     pass
+
+
+
