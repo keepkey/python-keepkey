@@ -85,6 +85,7 @@ class TestMsgEthereumMessage(common.KeepKeyTest):
 
     def test_ethereum_verify_message(self):
         self.setup_mnemonic_nopin_nopassphrase()
+        self.client.setAutoButton(False)
 
         retval = self.client.ethereum_verify_message(
             addr = b'\x3f\x23\x29\xc9\xad\xfb\xcc\xd9\xa8\x4f\x52\xc9\x06\xe9\x36\xa4\x2d\xa1\x8c\xb8',

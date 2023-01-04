@@ -33,16 +33,12 @@ class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
         self.requires_firmware("7.7.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
-        # add icon data
-        retval = addSignedIcon(self, 'iconEthereum')
-        self.assertEqual(retval.message, "Signed icon data received")
-
         # reset the token list
-        retval = addSignedToken(self, 'resetToken')
+        retval = addSignedToken(self, 'reset')
         self.assertEqual(retval.message, "token list reset successfully")
 
         # add civic token
-        retval = addSignedToken(self, 'civicToken')
+        retval = addSignedToken(self, 'Civic')
         self.assertEqual(retval.message, "Signed token received")
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -65,16 +61,12 @@ class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
         self.requires_firmware("7.7.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
-        # add icon data
-        retval = addSignedIcon(self, 'iconEthereum')
-        self.assertEqual(retval.message, "Signed icon data received")
-
         # reset the token list
-        retval = addSignedToken(self, 'resetToken')
+        retval = addSignedToken(self, 'reset')
         self.assertEqual(retval.message, "token list reset successfully")
 
         # add civic token
-        retval = addSignedToken(self, 'civicToken')
+        retval = addSignedToken(self, 'Civic')
         self.assertEqual(retval.message, "Signed token received")
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -97,16 +89,12 @@ class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
         self.requires_firmware("7.7.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
-        # add icon data
-        retval = addSignedIcon(self, 'iconEthereum')
-        self.assertEqual(retval.message, "Signed icon data received")
-
         # reset the token list
-        retval = addSignedToken(self, 'resetToken')
+        retval = addSignedToken(self, 'reset')
         self.assertEqual(retval.message, "token list reset successfully")
 
         # add civic token
-        retval = addSignedToken(self, 'civicToken')
+        retval = addSignedToken(self, 'Civic')
         self.assertEqual(retval.message, "Signed token received")
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(

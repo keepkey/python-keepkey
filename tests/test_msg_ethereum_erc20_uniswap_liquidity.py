@@ -60,16 +60,12 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.requires_firmware("7.7.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
-        # add icon data
-        retval = addSignedIcon(self, 'iconEthereum')
-        self.assertEqual(retval.message, "Signed icon data received")
-
         # reset the token list
-        retval = addSignedToken(self, 'resetToken')
+        retval = addSignedToken(self, 'reset')
         self.assertEqual(retval.message, "token list reset successfully")
 
         # add civic token
-        retval = addSignedToken(self, 'foxToken')
+        retval = addSignedToken(self, 'Shapeshift Fox')
         self.assertEqual(retval.message, "Signed token received")
 
         # Add liquidity to ETH/FOX pool
@@ -103,16 +99,12 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.requires_firmware("7.7.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
-        # add icon data
-        retval = addSignedIcon(self, 'iconEthereum')
-        self.assertEqual(retval.message, "Signed icon data received")
-
         # reset the token list
-        retval = addSignedToken(self, 'resetToken')
+        retval = addSignedToken(self, 'reset')
         self.assertEqual(retval.message, "token list reset successfully")
 
         # add civic token
-        retval = addSignedToken(self, 'foxToken')
+        retval = addSignedToken(self, 'Shapeshift Fox')
         self.assertEqual(retval.message, "Signed token received")
 
         # remove liquidity from the ETH/FOX pool

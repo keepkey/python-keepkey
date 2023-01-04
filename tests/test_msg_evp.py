@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2022 markrypto <cryptoakorn@gmail.com>
+# Copyright (C) 2023 markrypto <cryptoakorn@gmail.com>
 #
 # This library is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@ import binascii
 import json
 
 from keepkeylib import tools
-from addSignedData import addSignedToken, addSignedIcon
+from addSignedData import addSignedToken, verifySignedDapp
 
 class TestMsgEthvm(common.KeepKeyTest): 
     def test_ethereum_verify_message_token(self):  
@@ -31,20 +31,22 @@ class TestMsgEthvm(common.KeepKeyTest):
         f.close()
         
         self.client.load_device_by_mnemonic(mnemonic=test['mnemonic'], pin='', passphrase_protection=False, label='test', language='english')
+                
+        self.client.setAutoButton(False)
         
-        # add icon data
-        retval = addSignedIcon(self, 'iconEthereum')
-        self.assertEqual(retval.message, "Signed icon data received")
+        # verify dapp
+        retval = verifySignedDapp(self, 'dapp.name')
+        self.assertEqual(retval.message, 'Signed evp data received')
         
         # reset the token list
-        retval = addSignedToken(self, 'resetToken')
+        retval = addSignedToken(self, 'reset')
         self.assertEqual(retval.message, 'token list reset successfully')
 
         # add USDC and USDT
-        retval = addSignedToken(self, 'usdcToken')
-        self.assertEqual(retval.message, "Signed token received")
-        retval = addSignedToken(self, 'usdtToken')
-        self.assertEqual(retval.message, "Signed token received")
+        retval = addSignedToken(self, 'US Dollar Coin')
+        self.assertEqual(retval.message, "Signed evp data received")
+        retval = addSignedToken(self, 'Tether')
+        self.assertEqual(retval.message, "Signed evp data received")
         
         # sign a transaction using USDC and USDT            
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(

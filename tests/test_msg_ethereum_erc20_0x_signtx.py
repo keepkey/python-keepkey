@@ -38,15 +38,15 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.setup_mnemonic_nopin_nopassphrase()
 
         # add icon data
-        retval = addSignedIcon(self, 'iconGnosis')
-        self.assertEqual(retval.message, "Signed icon data received")
+        # retval = addSignedIcon(self, 'iconGnosis')
+        # self.assertEqual(retval.message, "Signed icon data received")
 
         # reset the token list
-        retval = addSignedToken(self, 'resetToken')
+        retval = addSignedToken(self, 'reset')
         self.assertEqual(retval.message, "token list reset successfully")
 
         # add USDC gnosis token
-        retval = addSignedToken(self, 'usdcTokenGnosis')
+        retval = addSignedToken(self, 'Gnosis US Dollar')
         self.assertEqual(retval.message, "Signed token received")
 
         # swap $2 of ETH to USDC
@@ -82,15 +82,15 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.setup_mnemonic_nopin_nopassphrase()
 
         # add icon data
-        retval = addSignedIcon(self, 'iconEthereum')
-        self.assertEqual(retval.message, "Signed icon data received")
+        # retval = addSignedIcon(self, 'iconEthereum')
+        # self.assertEqual(retval.message, "Signed icon data received")
 
         # reset the token list
-        retval = addSignedToken(self, 'resetToken')
+        retval = addSignedToken(self, 'reset')
         self.assertEqual(retval.message, "token list reset successfully")
 
         # add USDC and USDT
-        retval = addSignedToken(self, 'usdcToken')
+        retval = addSignedToken(self, 'US Dollar Coin')
         self.assertEqual(retval.message, "Signed token received")
 
         # swap $2 of ETH to USDC
@@ -126,15 +126,15 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.setup_mnemonic_nopin_nopassphrase()
 
         # add icon data
-        retval = addSignedIcon(self, 'iconEthereum')
-        self.assertEqual(retval.message, "Signed icon data received")
+        # retval = addSignedIcon(self, 'iconEthereum')
+        # self.assertEqual(retval.message, "Signed icon data received")
 
         # reset the token list
-        retval = addSignedToken(self, 'resetToken')
+        retval = addSignedToken(self, 'reset')
         self.assertEqual(retval.message, "token list reset successfully")
 
         # add USDC gnosis token
-        retval = addSignedToken(self, 'usdcToken')
+        retval = addSignedToken(self, 'US Dollar Coin')
         self.assertEqual(retval.message, "Signed token received")
 
         # swap $2 to USDC to ETH
@@ -236,17 +236,17 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.setup_mnemonic_nopin_nopassphrase()
 
         # add icon data
-        retval = addSignedIcon(self, 'iconEthereum')
-        self.assertEqual(retval.message, "Signed icon data received")
+        # retval = addSignedIcon(self, 'iconEthereum')
+        # self.assertEqual(retval.message, "Signed icon data received")
 
         # reset the token list
-        retval = addSignedToken(self, 'resetToken')
+        retval = addSignedToken(self, 'reset')
         self.assertEqual(retval.message, "token list reset successfully")
 
         # add USDC and USDT
-        retval = addSignedToken(self, 'usdcToken')
+        retval = addSignedToken(self, 'US Dollar Coin')
         self.assertEqual(retval.message, "Signed token received")
-        retval = addSignedToken(self, 'usdtToken')
+        retval = addSignedToken(self, 'Tether')
         self.assertEqual(retval.message, "Signed token received")
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(

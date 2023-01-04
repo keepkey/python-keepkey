@@ -23,7 +23,7 @@ import json
 from keepkeylib import tools
 
 
-class TestMsgEthvm(common.KeepKeyTest): 
+class SignEvpPayload(common.KeepKeyTest): 
     def test_ethereum_verify_message(self):
         # self.setup_mnemonic_nopin_nopassphrase()
 
@@ -34,14 +34,15 @@ class TestMsgEthvm(common.KeepKeyTest):
         
         self.client.load_device_by_mnemonic(mnemonic=test['mnemonic'], pin='', passphrase_protection=False, label='test', language='english')
         
-        retval = self.client.ethereum_sign_message(
-            n = tools.parse_path("m/44'/60'/1'/0/0"),
-            message = bytes(json.dumps(test['civicToken']['token']), 'utf8')
-        ) 
-        # print(bytes(json.dumps(test['zrxToken']['token']), 'utf8'))
+        for payload in test['payloads']:
 
-        print(retval.address.hex())
-        print(binascii.hexlify(retval.signature))
+            retval = self.client.ethereum_sign_message(
+                n = tools.parse_path("m/44'/60'/1'/0/0"),
+                message = bytes(json.dumps(payload['payload']), 'utf8')
+            ) 
+            print(bytes(json.dumps(payload['payload']['name']), 'utf8'))
+            print(binascii.hexlify(retval.signature))
+            print(" ")
 
 if __name__ == "__main__":
     unittest.main()

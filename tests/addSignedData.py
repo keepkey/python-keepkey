@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2022 markrypto <cryptoakorn@gmail.com>
+# Copyright (C) 2023 markrypto <cryptoakorn@gmail.com>
 #
 # This library is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,25 +19,33 @@ import binascii
 import json
 import keepkeylib
 
-def addSignedToken(self, token):       
+def addSignedToken(self, tokenName):       
     f = open('evptests.json')
-    tokens = json.load(f)
+    tests = json.load(f)
     f.close()
+    for payload in tests['payloads']:
+        if payload['payload']['type'] == 'token' and payload['payload']['name'] == tokenName:
+            break;
+        
     retval = self.client.ethereum_verify_message(
         # This is a no-op address, not the address used to sign the message
-        signature = bytes.fromhex(json.dumps(tokens[token]['signature'])[1:-1]),
-        message = bytes(json.dumps(tokens[token]['token']), 'utf8')
+        signature = bytes.fromhex(json.dumps(payload['signature'])[1:-1]),
+        message = bytes(json.dumps(payload['payload']), 'utf8')
     )
     return retval
 
-def addSignedIcon(self, icon):       
+def verifySignedDapp(self, dappName):       
     f = open('evptests.json')
-    icons = json.load(f)
+    tests = json.load(f)
     f.close()
+
+    for payload in tests['payloads']:
+        if payload['payload']['type'] == 'dapp' and payload['payload']['name'] == dappName:
+            break;
     
     retval = self.client.ethereum_verify_message(
         # This is a no-op address, not the address used to sign the message
-        signature = bytes.fromhex(json.dumps(icons[icon]['signature'])[1:-1]),
-        message = bytes(json.dumps(icons[icon]['iconChain']), 'utf8')
+        signature = bytes.fromhex(json.dumps(payload['signature'])[1:-1]),
+        message = bytes(json.dumps(payload['payload']), 'utf8')
     )
     return retval

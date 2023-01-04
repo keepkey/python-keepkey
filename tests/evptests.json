@@ -1,94 +1,105 @@
 {
     "mnemonic": "alcohol woman abuse must during monitor noble actual mixed trade anger aisle",
 
-    "iconEthereum": {
-        "iconChain": {
-            "chainId": 1,
-            "iconData": "3100fe46711200fe609d1200fe77c21100fc337ccf531000fc5a7ccf951000fc6d7ccfb51000027c02cfff3d0e00ff4f027c02cfff830e00ff6a027c02cfffae0e00ff7b027c02cffec8130c00ff44037c03cfff730c00ff5f037c03cfff9f0c00ff74037c03cfffc30b00ff30037cfe9cd903cfff540a00ff5a027cfca2caecdb02cfff940a00fd757ca902ca02ecfddecfb90900fd2a7cb103ca03ecfde1cf430800fe55b504cafeeced02ecfee3860800ff8a05caffeb03ecfeed9f0900ffa704caffed02ecfeebbd0a00fe28b303ca03ecfed02f0900fc47003cbf02ca02ecfcdf5500720900f677005cc7caece87500c20a00f664760070c9ec7f00c39e0a00f6397c6d16879f00b7cf630b00fd7a7c6a0200fda8cfc00c00ff5b027cfe5d9402cfff960d00037c03cf0e00ff74027c02cfffb90e00ff55027c02cfff8b0f00fc7d7ccfce1000fc6d7ccfb11000fc4e7ccf811100fe7bcb1200fe69ac1200fe45741200fe20171600ff0f0600"
-        },
-        "signature": "8244b030af3d7afb9142293e6e97304e8f17f4988c7841c6a1ffde43ab46c50850f1dbd1cdb00e1a5d4e04e3a3069954790d4eccea6a9c59924876cdc81344741b"
-    },
-
-    "iconGnosis": {
-        "iconChain": {
-            "chainId": 100,
-            "iconData": "7f003a00fc133298c802dafdc99a350b00fc8ee6f0d802c2fcd7f0e7910900fcadf1c2580413fc56c0f1b00700fd9ef0980813fd95f0a10500fc1ae1d4160813fc15d1e31e0400fc7776eeab0813fca6ee79780300fa55ef8996f08c0613fa87f09986ef5a0200f9a1f2c013b4ec6b0413f966ebb713bdf2a50200f8c8f27bbe49cce2490213f844e0cf47bf74f2cb0200eedaf23debd245ddd32721d1df47d0ef38f2dd0200eee5f25de1f2bc60e9bdbaea64b9f2e454f2eb0200fce5f2a69d02f2fea27b02effe7e9f02f2fca0a3f2eb0200eedaf2e95f82a660419b9e425da6845be8f2dd0200ffc902f2f4e9ae94c2e96360e8c494ade902f2ffcb0200ffa107f2fee0de07f2ffa50200fe56f00ef2fef15b0300ffc70ef2ffca0400fe62ee0cf2feef670400fe139f0cf2fea3130500fe13ae0af2feb1130700fd1390e706f2fde893130900fc13359ac902dbfcca9c37137f003a00"
-        },
-        "signature": "3e5ab8541e9eac87a91b18e54cfdd75d2674fcf31d1d54a37c02f8abb4b602b935bd4ac7620b898f3e4b17bb266943dfcd86b983372e6134437693d84d2bfe201c"
-    },
-
-    "foxToken": {
-        "token":
+    "payloads": [
         {
-            "address": "c770eefad204b5180df6a14ee197d99d808ee52d",
-            "ticker": "FOX",
-            "chainId": 1,
-            "decimals": 18
+            "payload": {
+                "type": "dapp",
+                "name": "dapp.name",
+                "url": "dapp.name.com"
+            },
+            "signature": "2c57f901ec181576b39233d9ab014675437ba0e90c62199bdb59b3ba57f53f0d099cd947999c287a087d16c5928c72c02f8af06ebff1577408fecb1979c769151b"
         },
-        "signature": "100312def8ecc438ff86539543f55121e8f6b8450f0e84d395fc0db23554ecea491283c4476ed493f1430efb81b6483f2567b566b9a63f4984a93f40214280861b"
-    },
-    "usdtToken": {
-        "token":
         {
-            "address": "dac17f958d2ee523a2206206994597c13d831ec7",
-            "ticker": "USDT",
-            "chainId": 1,
-            "decimals": 6
+            "payload":
+            {
+                "type": "token",
+                "name": "Shapeshift Fox",
+                "contract": "c770eefad204b5180df6a14ee197d99d808ee52d",
+                "blockchain": "Ethereum mainnet",
+                "decimals": 18,
+                "symbol": "FOX",
+                "chainId": 1
+            },
+            "signature": "2029e464b14030c52b1234839efd06bae90ace956115c789f03df49c2f5e9b6c2c48585190c04cc0baa77136f1f65e03b684ad5bd955ab8fcccaf5657465ccda1b"
         },
-        "signature": "5c7a0c62e90e1ca8490c3f34402d3c417d5899b230a7113a4e0d736612f5eb1e184795880ede17ab8b8a53f1f50a9a0958658c71c3fbd7173781fc9c67f07d851b"
-    },
-    "usdcToken": {
-        "token":
         {
-            "address": "A0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-            "ticker": "USDC",
-            "chainId": 1,
-            "decimals": 6
+            "payload":
+            {
+                "type": "token",
+                "name": "Tether",
+                "contract": "dac17f958d2ee523a2206206994597c13d831ec7",
+                "blockchain": "Ethereum mainnet",
+                "decimals": 6,
+                "symbol": "USDT",
+                "chainId": 1
+            },
+            "signature": "b1ba6d15996f05cde4503adb925e7af9c3c726baf68670653c291a9ed3efd9db0f043fa112939efed9de797fbd8504dffd635f5455a852a9129a77e4ccea6d9b1c"
         },
-        "signature": "bac42582f5fd6f4ff06bd4be01889773a9d587960ecf0d5eccd3fef8759dce98708e4d09a4c4fe7440cd6c5985905acf04df4334fa9ab39f369e4c23871630ed1b"
-    },
-    "zrxToken": {
-        "token":
         {
-            "address": "E41d2489571d322189246DaFA5ebDe1F4699F498",
-            "ticker": "ZRX",
-            "chainId": 1,
-            "decimals": 18
+            "payload":
+            {
+                "type": "token",
+                "name": "US Dollar Coin",
+                "contract": "A0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                "blockchain": "Ethereum mainnet",
+                "decimals": 6,
+                "symbol": "USDC",
+                "chainId": 1
+            },
+            "signature": "74627bf0dca5557719f56af333babb70c3a9b2f3e53ba0515ac6f8f1b734d678285a8ee2263f9656a44fa2ae9567c72900d76fa56e97a69cecb7ffe73e70589c1b"
         },
-        "signature": "2d1c257bb1bcdf0a2139ec381df05239e89536c7b4742cda21ace82dab044ee27cad8b50a51fe6c325e7d4c90b79040d1c77cd0c0f79dbb924b5ad2925b1b7ab1c"
-    },
-
-    "resetToken": {
-        "token":
         {
-            "address": "0000000000000000000000000000000000000000",
-            "ticker": "RESET",
-            "chainId": 0,
-            "decimals": 0
+            "payload":
+            {
+                "type": "token",
+                "name": "0x Token",
+                "contract": "E41d2489571d322189246DaFA5ebDe1F4699F498",
+                "blockchain": "Ethereum mainnet",
+                "decimals": 18,
+                "symbol": "ZRX",
+                "chainId": 1
+            },
+            "signature": "272932583b3cf3601a61607b9797d301f58adc92427134a387d310d000ce51b604e9c56f40336bac18ae37cf46c947eb01afe421c45e70ac1e278111826653d01b"
         },
-        "signature": "9393f3552650149cdfed70668300c64918fe20258450657d7e5d8947d133d30175eda75aecadfbd6a6be2d5b271f13ee7cd5f14ba7df38e17f310ab80166540f1c"
-    },
-
-    "usdcTokenGnosis": {
-        "token":
         {
-            "address": "DDAfbb505ad214D7b80b1f830fcCc89B60fb7A83",
-            "ticker": "USDC",
-            "chainId": 100,
-            "decimals": 6
+            "payload":
+            {
+                "type": "token",
+                "name": "reset",
+                "contract": "0000000000000000000000000000000000000000",
+                "blockchain": "none",
+                "decimals": 0,
+                "symbol": "RESET",
+                "chainId": 0
+            },
+            "signature": "edddc0f5f17f5b90c1f33540ab0f63a1626d4a250fefede08b6e7d400f4aa72d32a2d9fc061c124602abdb7607720a244ae46ce76944a7d24c56cfe9f89a07331b"
         },
-        "signature": "d6234ac5ebe734b017c62119985d4721bcd6f2d0e67ed802a73493884cdcfe39281296112f62d0b7bc9e10b2426ed9eca56e0ae64252a4ed8ceb0b20284db07c1c"
-    },
-
-    "civicToken": {
-        "token":
         {
-            "address": "41e5560054824ea6b0732e656e3ad64e20e94e45",
-            "ticker": "CVC",
-            "chainId": 1,
-            "decimals": 8
+            "payload":
+            {
+                "type": "token",
+                "name": "Gnosis US Dollar",
+                "contract": "DDAfbb505ad214D7b80b1f830fcCc89B60fb7A83",
+                "blockchain": "xdai",
+                "decimals": 6,
+                "symbol": "USDC",
+                "chainId": 100
+            },
+            "signature": "b511188b14d1aa9036f6d965abbc041fb0c88d942131ceb555c2cf8714e29f646a87864de64bf3085a9faa0ebbe50c9f1c46f66b21722d28cb0e345cf13235801b"
         },
-        "signature": "206accc4d87ee4e34af7cb437d1cae90ff7a76b4e4e36adc5903b811b59f7e304c2d995e3db7820b52723bc6e9053a7b5d57dc46c1f449eaeb8dbea5ae6987601b"
-    }
-
+        {
+            "payload":
+            {
+                "type": "token",
+                "name": "Civic",
+                "contract": "41e5560054824ea6b0732e656e3ad64e20e94e45",
+                "blockchain": "Ethereum mainnet",
+                "decimals": 8,
+                "symbol": "CVC",
+                "chainId": 1
+            },
+            "signature": "0cf6ec023ffb310cbd451ca09da0606253d30faa31cfef1aacb990a178dea54a559c82c8ed1a448d806e819e611b6351e53373625d19d7dc066cfbeb0a3b5afb1c"
+        }
+    ]
 }
