@@ -1,6 +1,4 @@
-# This file is part of the TREZOR project.
-#
-# Copyright (C) 2022 markrypto
+# Copyright (C) 2023 markrypto
 #
 # This library is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -57,7 +55,8 @@ _test = True
 
 authErrs = ('Invalid PIN', 'PIN Cancelled', 'PIN expected', 'Auth secret unknown error', 
                          'Account name missing or too long, or seed/message string missing', 
-                         'Authenticator secret can\'t be decoded', 'Authenticator secret seed too large')
+                         'Authenticator secret can\'t be decoded', 'Authenticator secret seed too large',
+                         'passphrase incorrect for authdata')
 class kkClient:
     def __init__(self):
         self.client = None
@@ -106,8 +105,9 @@ class kkClient:
         return self.client
 
     def closeClient(self):
-        self.client.close()
-        self.client=None
+        if self.client != None:
+            self.client.close()
+            self.client=None
 
 def error_popup(errmsg, infotext):
     # set up error/status message box popup
@@ -407,6 +407,7 @@ class Ui(Ui):
         self.ConnectKKButton.clicked.connect(self.KKConnect)
         self.AddAccButton.clicked.connect(self.addAcc)
         self.RemoveAccButton.clicked.connect(self.removeAcc)
+        self.WipeAccButton.clicked.connect(self.wipeData)
         if _test:
             self.testButton.clicked.connect(self.Test)
         else:
@@ -440,6 +441,8 @@ class Ui(Ui):
             self.ConnectKKButton.setText(_translate("MainWindow", "KeepKey\nConnected"))
             # get accounts if connected
             self.getAccounts(client)
+        else:
+            self.KKDisconnect()
             
     def KKDisconnect(self):
         self.accounts = None
@@ -456,8 +459,12 @@ class Ui(Ui):
             
     def getAccounts(self, client):
         self.accounts, err = self.authOps.auth_accGet(client)
+        if _test:print("get accounts err: "+err)
         if err in ('Invalid PIN', 'PIN Cancelled', 'PIN expected', 'usb err', 'Device not initialized'):
             self.KKDisconnect()
+            return
+        if (err == 'passphrase incorrect for authdata'):
+            self.clearAccounts()
             return
         
         if _test: print(self.accounts)
@@ -541,6 +548,20 @@ class Ui(Ui):
         x = RemAccDialog.exec()    # show pin dialog
         self.getAccounts(client)   
         
+    def wipeData(self):
+        client = self.clientOps.getClient()
+
+        if (client != None):
+            try:
+                self.authOps.auth_wipe(client)
+                self.KKDisconnect() # disconnect and reestablish 
+            except PinException as e:
+                error_popup("Invalid PIN", "")
+            return
+        else:
+            error_popup('Keepkey not connected', '')
+            return
+ 
     def Test(self):
         #test the keepkey function
         client = self.clientOps.getClient()
@@ -592,7 +613,8 @@ class AuthClass:
         T0 = datetime.now().timestamp()
         Tslice = int(T0/interval)
         Tremain = interval - int((int(T0) - Tslice*30))
-        if _test: print(Tremain)
+        if _test: print(b'\x16' + bytes("generateOTPFrom:"+domain+":"+account+":", 'utf8') + 
+                                    bytes(str(Tslice), 'utf8') + bytes(":" + str(Tremain), 'utf8'))
         retval, err = self.sendMsg(client, 
             msg = b'\x16' + bytes("generateOTPFrom:"+domain+":"+account+":", 'utf8') + 
                                     bytes(str(Tslice), 'utf8') + bytes(":" + str(Tremain), 'utf8')
@@ -603,6 +625,9 @@ class AuthClass:
         elif err != '':
             error_popup(err, '')
             return 'usb err'
+        
+        if _test: print("OTP return: "+retval)
+        
         return 'noerr'
     
     def auth_accGet(self, client):
@@ -640,12 +665,22 @@ class AuthClass:
 
         return 'noerr'
 
+    def auth_wipe(self, client):
+        retval, err = self.sendMsg(client, msg = b'\x19' + bytes("wipeAuthdata:", 'utf8'))
+        if err in authErrs:
+            error_popup(E.args[1])
+        elif err != '':
+            error_popup(err, '')
+            return 'usb err'
+
+        return 'noerr'
+
     def auth_test(self, client):
         # otpauth://totp/KeepKey:markrypto?secret=ZKLHM3W3XAHG4CBN&issuer=kk
         for msg in (
             b'\x15' + bytes("initializeAuth:"+"KeepKey"+":"+"markrypto"+":"+"ZKLHM3W3XAHG4CBN", 'utf8'),
             b'\x15' + bytes("initializeAuth:"+"Shapeshift"+":"+"markrypto"+":"+"BASE32SECRET2345AB", 'utf8'),
-            b'\x15' + bytes("initializeAuth:"+"KeepKey"+":"+"markrypto2"+":"+"BASE32SECRET2345AD", 'utf8')
+            b'\x15' + bytes("initializeAuth:"+"KeepKey"+":"+"markrypto2"+":"+"JBSWY3DPEHPK3PXP", 'utf8')
             ):
             retval, err = self.sendMsg(client, msg)
             if err == 'Authenticator secret storage full':

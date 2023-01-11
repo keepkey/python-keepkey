@@ -293,6 +293,19 @@ class Ui_MainWindow(object):
         self.Version.setStyleSheet("color: rgb(255, 255, 255);")
         self.Version.setText("")
         self.Version.setObjectName("Version")
+        self.WipeAccButton = QtWidgets.QPushButton(self.centralwidget)
+        self.WipeAccButton.setGeometry(QtCore.QRect(30, 380, 200, 50))
+        font = QtGui.QFont()
+        font.setPointSize(24)
+        self.WipeAccButton.setFont(font)
+        self.WipeAccButton.setStyleSheet("border-radius: 10px;\n"
+"background-color: rgb(103, 103, 103);\n"
+"border-width: 2px;\n"
+"border-style: solid;\n"
+"border-color: black;\n"
+"color: rgb(255, 255, 255)")
+        self.WipeAccButton.setAutoDefault(True)
+        self.WipeAccButton.setObjectName("WipeAccButton")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 772, 21))
@@ -317,6 +330,7 @@ class Ui_MainWindow(object):
         self.AccountList.setText(_translate("MainWindow", "Accounts"))
         self.RemoveAccButton.setText(_translate("MainWindow", "Remove Account"))
         self.AccountList_2.setText(_translate("MainWindow", "Click on account to generate OTP on KeepKey"))
+        self.WipeAccButton.setText(_translate("MainWindow", "Wipe All Accounts"))
 
 
 if __name__ == "__main__":

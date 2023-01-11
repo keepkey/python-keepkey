@@ -635,6 +635,35 @@ text-align:left;</string>
      <string/>
     </property>
    </widget>
+   <widget class="QPushButton" name="WipeAccButton">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>380</y>
+      <width>200</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>24</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border-radius: 10px;
+background-color: rgb(103, 103, 103);
+border-width: 2px;
+border-style: solid;
+border-color: black;
+color: rgb(255, 255, 255)</string>
+    </property>
+    <property name="text">
+     <string>Wipe All Accounts</string>
+    </property>
+    <property name="autoDefault">
+     <bool>true</bool>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

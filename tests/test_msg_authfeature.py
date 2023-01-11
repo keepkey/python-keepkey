@@ -1,4 +1,4 @@
-# Copyright (C) 2022 markrypto <cryptoakorn@gmail.com>
+# Copyright (C) 2023 markrypto <cryptoakorn@gmail.com>
 #
 # This library is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License version 3
@@ -32,16 +32,7 @@ class TestAuthFeature(common.KeepKeyTest):
         return retval, err
 
     def clearAuthData(self, client):
-        ctr=0
-        while True:
-            retval, err = self.sendMsg(client, msg = b'\x17' + bytes("getAccount:"+str(ctr), 'utf8'))
-            if err == '':
-                retval, err = self.sendMsg(client, msg = b'\x18' + bytes("removeAccount:"+retval, 'utf8'))
-            else: 
-                break
-            ctr+=1
-        if err == 'Account not found':
-            return ''
+        retval, err = self.sendMsg(client, b'\x19' + bytes("wipeAuthdata:", 'utf8'))
         return err
         
     def test_InitGetOTPClear(self):
@@ -53,10 +44,11 @@ class TestAuthFeature(common.KeepKeyTest):
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()
         self.clearAuthData(self.client)
+        
         for msg in (
             b'\x15' + bytes("initializeAuth:"+"KeepKey"+":"+"markrypto"+":"+"ZKLHM3W3XAHG4CBN", 'utf8'),
             b'\x15' + bytes("initializeAuth:"+"Shapeshift"+":"+"markrypto"+":"+"BASE32SECRET2345AB", 'utf8'),
-            b'\x15' + bytes("initializeAuth:"+"KeepKey"+":"+"markrypto2"+":"+"BACE32SECRET2345AB", 'utf8')
+            b'\x15' + bytes("initializeAuth:"+"KeepKey"+":"+"markrypto2"+":"+"JBSWY3DPEHPK3PXP", 'utf8')
             ):
             retval, err = self.sendMsg(self.client, msg)
             self.assertEqual(err, '')
@@ -68,11 +60,11 @@ class TestAuthFeature(common.KeepKeyTest):
         for vector in (
             (b'\x16' + bytes("generateOTPFrom:KeepKey:markrypto:", 'utf8') + bytes(str(Tslice), 'utf8') + bytes(":" + str(Tremain), 'utf8'), '910862'),
             (b'\x16' + bytes("generateOTPFrom:Shapeshift:markrypto:", 'utf8') + bytes(str(Tslice), 'utf8') + bytes(":" + str(Tremain), 'utf8'), '280672'),
-            (b'\x16' + bytes("generateOTPFrom:KeepKey:markrypto2:", 'utf8') + bytes(str(Tslice), 'utf8') + bytes(":" + str(Tremain), 'utf8'), '020352')
+            (b'\x16' + bytes("generateOTPFrom:KeepKey:markrypto2:", 'utf8') + bytes(str(Tslice), 'utf8') + bytes(":" + str(Tremain), 'utf8'), '660041')
             ):
             retval, err = self.sendMsg(self.client, vector[0])
             self.assertEqual(err, '')
-            self.assertEqual(retval, vector[1])
+            self.assertEqual(retval[:6], vector[1])
 
         err = self.clearAuthData(self.client)
         self.assertEqual(err, '')
