@@ -10,7 +10,12 @@ Make sure you have python-keepkey built and installed:
 
     $ python python-keepkey/setup.py build install
 
-KeepKeyAuthenticator.app is built using py2app. The setup file was created from the command line:
+KeepKeyAuthenticator.app is built using py2app.
+If not already installed, install py2app with:
+
+    $ pip install py2app
+
+The setup file was created from the command line:
 
     $ py2applet --make-setup KeepKeyAuthenticator.py authResources/*.png
 
