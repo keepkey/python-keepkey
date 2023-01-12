@@ -14,6 +14,10 @@ KeepKeyAuthenticator.app is built using py2app.
 If not already installed, install py2app with:
 
     $ pip install py2app
+    
+Change to the pytthon-keepkey/authenticator directory:
+
+    $ cd authenticator
 
 The setup file was created from the command line:
 
