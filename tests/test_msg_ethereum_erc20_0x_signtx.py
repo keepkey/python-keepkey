@@ -47,7 +47,7 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
 
         # add USDC gnosis token
         retval = addSignedToken(self, 'Gnosis US Dollar')
-        self.assertEqual(retval.message, "Signed token received")
+        self.assertEqual(retval.message, "Signed evp data received")
 
         # swap $2 of ETH to USDC
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -91,7 +91,7 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
 
         # add USDC and USDT
         retval = addSignedToken(self, 'US Dollar Coin')
-        self.assertEqual(retval.message, "Signed token received")
+        self.assertEqual(retval.message, "Signed evp data received")
 
         # swap $2 of ETH to USDC
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -135,7 +135,7 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
 
         # add USDC gnosis token
         retval = addSignedToken(self, 'US Dollar Coin')
-        self.assertEqual(retval.message, "Signed token received")
+        self.assertEqual(retval.message, "Signed evp data received")
 
         # swap $2 to USDC to ETH
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -245,9 +245,9 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
 
         # add USDC and USDT
         retval = addSignedToken(self, 'US Dollar Coin')
-        self.assertEqual(retval.message, "Signed token received")
+        self.assertEqual(retval.message, "Signed evp data received")
         retval = addSignedToken(self, 'Tether')
-        self.assertEqual(retval.message, "Signed token received")
+        self.assertEqual(retval.message, "Signed evp data received")
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             # Data from:

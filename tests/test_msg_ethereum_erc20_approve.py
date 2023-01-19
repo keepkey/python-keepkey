@@ -39,7 +39,7 @@ class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
 
         # add civic token
         retval = addSignedToken(self, 'Civic')
-        self.assertEqual(retval.message, "Signed token received")
+        self.assertEqual(retval.message, "Signed evp data received")
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
@@ -67,7 +67,7 @@ class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
 
         # add civic token
         retval = addSignedToken(self, 'Civic')
-        self.assertEqual(retval.message, "Signed token received")
+        self.assertEqual(retval.message, "Signed evp data received")
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
@@ -95,7 +95,7 @@ class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
 
         # add civic token
         retval = addSignedToken(self, 'Civic')
-        self.assertEqual(retval.message, "Signed token received")
+        self.assertEqual(retval.message, "Signed evp data received")
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],

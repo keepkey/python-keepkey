@@ -66,7 +66,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
 
         # add civic token
         retval = addSignedToken(self, 'Shapeshift Fox')
-        self.assertEqual(retval.message, "Signed token received")
+        self.assertEqual(retval.message, "Signed evp data received")
 
         # Add liquidity to ETH/FOX pool
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -105,7 +105,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
 
         # add civic token
         retval = addSignedToken(self, 'Shapeshift Fox')
-        self.assertEqual(retval.message, "Signed token received")
+        self.assertEqual(retval.message, "Signed evp data received")
 
         # remove liquidity from the ETH/FOX pool
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
