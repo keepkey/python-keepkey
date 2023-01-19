@@ -31,9 +31,7 @@ class TestMsgEthvm(common.KeepKeyTest):
         f.close()
         
         self.client.load_device_by_mnemonic(mnemonic=test['mnemonic'], pin='', passphrase_protection=False, label='test', language='english')
-                
-        self.client.setAutoButton(False)
-        
+                        
         # verify dapp
         retval = verifySignedDapp(self, 'dapp.name')
         self.assertEqual(retval.message, 'Signed evp data received')
