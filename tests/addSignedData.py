@@ -41,11 +41,9 @@ def verifySignedDapp(self, dappName):
 
     for payload in tests['payloads']:
         if payload['payload']['type'] == 'dapp' and payload['payload']['name'] == dappName:
-            break;
-    
-    retval = self.client.ethereum_verify_message(
-        # This is a no-op address, not the address used to sign the message
-        signature = bytes.fromhex(json.dumps(payload['signature'])[1:-1]),
-        message = bytes(json.dumps(payload['payload']), 'utf8')
-    )
+            retval = self.client.ethereum_verify_message(
+            # This is a no-op address, not the address used to sign the message
+            signature = bytes.fromhex(json.dumps(payload['signature'])[1:-1]),
+            message = bytes(json.dumps(payload['payload']), 'utf8')
+        )
     return retval

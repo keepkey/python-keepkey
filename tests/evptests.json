@@ -11,6 +11,14 @@
             "signature": "2c57f901ec181576b39233d9ab014675437ba0e90c62199bdb59b3ba57f53f0d099cd947999c287a087d16c5928c72c02f8af06ebff1577408fecb1979c769151b"
         },
         {
+            "payload": {
+                "type": "dapp",
+                "name": "dapp.name",
+                "url": "dapp.name.com"
+            },
+            "signature": "e75690e03c5557dad69cf33b3c42733227f4b21ac600348dbf3b47764e8134bc2fce03b606eb47e3bda873c8b62f37e189aceab125034665f898910b39fd710a1c"
+        },
+        {
             "payload":
             {
                 "type": "token",

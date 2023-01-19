@@ -27,19 +27,25 @@ class SignEvpPayload(common.KeepKeyTest):
     def test_ethereum_verify_message(self):
         # self.setup_mnemonic_nopin_nopassphrase()
 
-        self.requires_firmware("7.7.0")
+        self.requires_firmware("7.8.0")
         f = open('evptests.json')
         test = json.load(f)
         f.close()
         
         self.client.load_device_by_mnemonic(mnemonic=test['mnemonic'], pin='', passphrase_protection=False, label='test', language='english')
         
-        for payload in test['payloads']:
+        # debug firmware knows this is the test key path
+        testPath = "m/44'/60'/1'/0/0"
+        n = tools.parse_path(testPath)
+        sigAddress = self.client.ethereum_get_address(n, show_display=False, multisig=None)
 
+        print("Verify address %s" % binascii.hexlify(sigAddress))
+
+        for payload in test['payloads']:
             retval = self.client.ethereum_sign_message(
-                n = tools.parse_path("m/44'/60'/1'/0/0"),
+                n = n,
                 message = bytes(json.dumps(payload['payload']), 'utf8')
-            ) 
+            )
             print(bytes(json.dumps(payload['payload']['name']), 'utf8'))
             print(binascii.hexlify(retval.signature))
             print(" ")

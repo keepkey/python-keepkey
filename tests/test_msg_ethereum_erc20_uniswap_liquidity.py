@@ -24,7 +24,7 @@ import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
 from keepkeylib.tools import int_to_big_endian
-from addSignedData import addSignedToken, addSignedIcon
+from addSignedData import addSignedToken
 
 class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
     
@@ -57,7 +57,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         if self.client.features.firmware_variant == "Emulator":
             self.skipTest("Skip until emulator issue resolved")
             return
-        self.requires_firmware("7.7.0")
+        self.requires_firmware("7.8.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # reset the token list
@@ -96,7 +96,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         if self.client.features.firmware_variant == "Emulator":
             self.skipTest("Skip until emulator issue resolved")
             return
-        self.requires_firmware("7.7.0")
+        self.requires_firmware("7.8.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # reset the token list

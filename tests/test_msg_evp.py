@@ -25,7 +25,7 @@ from addSignedData import addSignedToken, verifySignedDapp
 
 class TestMsgEthvm(common.KeepKeyTest): 
     def test_ethereum_verify_message_token(self):  
-        self.requires_firmware("7.7.0")
+        self.requires_firmware("7.8.0")
         f = open('evptests.json')
         test = json.load(f)
         f.close()

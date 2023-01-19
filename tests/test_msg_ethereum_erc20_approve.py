@@ -25,12 +25,12 @@ import struct
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
-from addSignedData import addSignedToken, addSignedIcon
+from addSignedData import addSignedToken
 
 class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
 
     def test_approve_cvc_100(self):
-        self.requires_firmware("7.7.0")
+        self.requires_firmware("7.8.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # reset the token list
@@ -58,7 +58,7 @@ class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '093b9e3cff2cb73d563fe123aa88e09f197a08a250f68b69fec15c86657b43d8')
 
     def test_approve_cvc_0(self):
-        self.requires_firmware("7.7.0")
+        self.requires_firmware("7.8.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # reset the token list
@@ -86,7 +86,7 @@ class TestMsgEthereumtxERC20_approve(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '0bc7319762281d839c436adb41c35f8de5f4db1aec953f677c3a83062d93fc51')
 
     def test_approve_cvc_all(self):
-        self.requires_firmware("7.7.0")
+        self.requires_firmware("7.8.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # reset the token list
