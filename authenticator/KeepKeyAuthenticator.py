@@ -51,7 +51,7 @@ from manualaddacc import Ui_ManualAddAccDialog as ManAddAcc_Dialog
 from passphrasedialog import Ui_PassphraseDialog as Passphrase_Dialog
 
 # for dev testing
-_test = True
+_test = False
 
 authErrs = ('Invalid PIN', 'PIN Cancelled', 'PIN expected', 'Auth secret unknown error', 
                          'Account name missing or too long, or seed/message string missing', 
