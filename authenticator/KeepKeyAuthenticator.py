@@ -50,7 +50,7 @@ from addaccdialog import Ui_AddAccDialog as AddAcc_Dialog
 from manualaddacc import Ui_ManualAddAccDialog as ManAddAcc_Dialog
 from passphrasedialog import Ui_PassphraseDialog as Passphrase_Dialog
 
-# for dev testing
+# logs for dev testing
 _test = False
 
 authErrs = ('Invalid PIN', 'PIN Cancelled', 'PIN expected', 'Auth secret unknown error', 
@@ -334,14 +334,27 @@ class AddAcc_Dialog(AddAcc_Dialog):
         if (data == []):
             error_popup("QR Code Error", "Could not read QR code")
             return
-        data1 = str(data[0][0]).replace("b'",'').replace("'","")
+        rawdata = str(data[0][0]).replace("b'",'').replace("'","")
         type1 = str(data[0][1])
-        if _test: print(data1)
+        if _test: print(rawdata)
         if _test: print(type1)
-        secret = urlparse(data1).query.split('=')[1].split('&')[0]
-        domain = urlparse(data1).path.split('/')[1].split(':')[0]
-        account = urlparse(data1).path.split('/')[1].split(':')[1]
         
+        
+        unqData = urllib.parse.unquote(rawdata)     # replace any %xx escapes with single char equivalent
+        # parse check
+        pUrl = urlparse(unqData)
+        if pUrl.scheme == 'otpauth' and pUrl.netloc == 'totp':
+            try:
+                secret = pUrl.query.split('=')[1].split('&')[0]
+                domain = pUrl.path.split('/')[1].split(':')[0]
+                account = pUrl.path.split('/')[1].split(':')[1]
+            except (IndexError, ValueError):
+                error_popup("QR Code Parse Error", ("Could not parse %s" % unqData))
+                return
+        else:
+            error_popup("QR Code Error", ("invalid otpauth url\n%s" % unqData))
+            return
+
         self.KKAddAcc(self.client, secret, domain, account)
         return
         
@@ -680,7 +693,9 @@ class AuthClass:
         for msg in (
             b'\x15' + bytes("initializeAuth:"+"KeepKey"+":"+"markrypto"+":"+"ZKLHM3W3XAHG4CBN", 'utf8'),
             b'\x15' + bytes("initializeAuth:"+"Shapeshift"+":"+"markrypto"+":"+"BASE32SECRET2345AB", 'utf8'),
-            b'\x15' + bytes("initializeAuth:"+"KeepKey"+":"+"markrypto2"+":"+"JBSWY3DPEHPK3PXP", 'utf8')
+            b'\x15' + bytes("initializeAuth:"+"KeepKey"+":"+"markrypto2"+":"+"JBSWY3DPEHPK3PXP", 'utf8'),
+            # 160-bit key
+            b'\x15' + bytes("initializeAuth:"+"Google"+":"+"novicecoingroup"+":"+"liabmylfzm3qta2txzqgcunbp3y76pkb", 'utf8')
             ):
             retval, err = self.sendMsg(client, msg)
             if err == 'Authenticator secret storage full':
