@@ -68,5 +68,10 @@
         "chain_id": 10,
         "symbol": "OP",
         "name": "Optimism"
+    },
+    {
+        "chain_id": 137,
+        "symbol": "MATIC",
+        "name": "Polygon"
     }
 ]
