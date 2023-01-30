@@ -4542,5 +4542,13 @@
     "contractAddress": "0x0Ae055097C6d159879521C384F1D2123D1f195e6",
     "precision": 18,
     "network": "ETH"
+  },
+  {
+    "symbol": "OP",
+    "identifier": "optimism",
+    "displayName": "Optimism",
+    "contractAddress": "0x4200000000000000000000000000000000000042",
+    "precision": 18,
+    "network": "ETH"
   }
 ]
