@@ -63,5 +63,10 @@
         "chain_id": 64,
         "symbol": "ELLA",
         "name": "Ellaism"
+    },
+    {
+        "chain_id": 137,
+        "symbol": "MATIC",
+        "name": "Polygon"
     }
 ]
