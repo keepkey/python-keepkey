@@ -282,7 +282,7 @@
   {
     "symbol": "MATIC",
     "identifier": "matic-network",
-    "displayName": "Polygon",
+    "displayName": "Matic Network",
     "contractAddress": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0",
     "precision": 18,
     "network": "ETH"
