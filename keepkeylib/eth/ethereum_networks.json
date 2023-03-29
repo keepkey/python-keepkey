@@ -1,67 +1,297 @@
 [
     {
         "chain_id": 1,
-        "symbol": "ETH",
-        "name": "Ethereum"
+        "name": "Ethereum",
+        "symbol": "ETH"
     },
     {
         "chain_id": 2,
-        "symbol": "EXP",
-        "name": "Expanse"
+        "name": "Expanse",
+        "symbol": "EXP"
     },
     {
         "chain_id": 3,
-        "symbol": "tETH",
-        "name": "Ethereum Testnet Ropsten"
+        "name": "Ethereum Testnet Ropsten",
+        "symbol": "ETH"
     },
     {
         "chain_id": 4,
-        "symbol": "tETH",
-        "name": "Ethereum Testnet Rinkeby"
+        "name": "Ethereum Testnet Rinkeby",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 5,
+        "name": "Ethereum Testnet Goerli",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 7,
+        "name": "Thaichain",
+        "symbol": "TCH"
     },
     {
         "chain_id": 8,
-        "symbol": "UBQ",
-        "name": "UBIQ"
+        "name": "Ubiq",
+        "symbol": "UBQ"
+    },
+    {
+        "chain_id": 10,
+        "name": "Optimism",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 14,
+        "name": "Flare",
+        "symbol": "FLR"
     },
     {
         "chain_id": 20,
-        "symbol": "EOSC",
-        "name": "EOS Classic"
+        "name": "Elastos Smart Chain",
+        "symbol": "ELA"
+    },
+    {
+        "chain_id": 25,
+        "name": "Cronos Mainnet Beta",
+        "symbol": "CRO"
+    },
+    {
+        "chain_id": 27,
+        "name": "ShibaChain",
+        "symbol": "SHIB"
     },
     {
         "chain_id": 28,
-        "symbol": "ETSC",
-        "name": "Ethereum Social"
+        "name": "Boba Network Rinkeby Testnet",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 29,
+        "name": "Genesis L1",
+        "symbol": "L1"
     },
     {
         "chain_id": 30,
-        "symbol": "RSK",
-        "name": "RSK"
+        "name": "RSK Mainnet",
+        "symbol": "RBTC"
     },
     {
         "chain_id": 31,
-        "symbol": "tRSK",
-        "name": "RSK Testnet"
+        "name": "RSK Testnet",
+        "symbol": "tRBTC"
+    },
+    {
+        "chain_id": 40,
+        "name": "Telos EVM Mainnet",
+        "symbol": "TLOS"
     },
     {
         "chain_id": 42,
-        "symbol": "tETH",
-        "name": "Ethereum Testnet Kovan"
+        "name": "Ethereum Testnet Kovan",
+        "symbol": "tETH"
+    },
+    {
+        "chain_id": 52,
+        "name": "CoinEx Smart Chain Mainnet",
+        "symbol": "cet"
+    },
+    {
+        "chain_id": 55,
+        "name": "Zyx Mainnet",
+        "symbol": "ZYX"
+    },
+    {
+        "chain_id": 56,
+        "name": "Binance Smart Chain Mainnet",
+        "symbol": "BNB"
+    },
+    {
+        "chain_id": 57,
+        "name": "Syscoin Mainnet",
+        "symbol": "SYS"
+    },
+    {
+        "chain_id": 58,
+        "name": "Ontology Mainnet",
+        "symbol": "ONG"
+    },
+    {
+        "chain_id": 59,
+        "name": "EOS Mainnet",
+        "symbol": "EOS"
+    },
+    {
+        "chain_id": 60,
+        "name": "GoChain",
+        "symbol": "GO"
     },
     {
         "chain_id": 61,
-        "symbol": "ETC",
-        "name": "Ethereum Classic"
+        "name": "Ethereum Classic Mainnet",
+        "symbol": "ETC"
     },
     {
         "chain_id": 62,
-        "symbol": "tETC",
-        "name": "Ethereum Classic Testnet"
+        "name": "Ethereum Classic Testnet",
+        "symbol": "TETC"
     },
     {
         "chain_id": 64,
-        "symbol": "ELLA",
-        "name": "Ellaism"
+        "name": "Ellaism",
+        "symbol": "ELLA"
+    },
+    {
+        "chain_id": 69,
+        "name": "Optimism Kovan",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 74,
+        "name": "IDChain Mainnet",
+        "symbol": "EIDI"
+    },
+    {
+        "chain_id": 76,
+        "name": "Mix",
+        "symbol": "MIX"
+    },
+    {
+        "chain_id": 77,
+        "name": "POA Network Sokol",
+        "symbol": "SPOA"
+    },
+    {
+        "chain_id": 87,
+        "name": "Nova Network",
+        "symbol": "SNT"
+    },
+    {
+        "chain_id": 88,
+        "name": "TomoChain",
+        "symbol": "TOMO"
+    },
+    {
+        "chain_id": 96,
+        "name": "Bitkub Chain",
+        "symbol": "KUB"
+    },
+    {
+        "chain_id": 99,
+        "name": "POA Network Core",
+        "symbol": "POA"
+    },
+    {
+        "chain_id": 100,
+        "name": "Gnosis",
+        "symbol": "xDAI"
+    },
+    {
+        "chain_id": 111,
+        "name": "EtherLite Chain",
+        "symbol": "ETL"
+    },
+    {
+        "chain_id": 122,
+        "name": "Fuse Mainnet",
+        "symbol": "FUSE"
+    },
+    {
+        "chain_id": 137,
+        "name": "Polygon Mainnet",
+        "symbol": "MATIC"
+    },
+    {
+        "chain_id": 199,
+        "name": "BitTorrent Chain Mainnet",
+        "symbol": "BTT"
+    },
+    {
+        "chain_id": 200,
+        "name": "Arbitrum on xDai",
+        "symbol": "xDAI"
+    },
+    {
+        "chain_id": 288,
+        "name": "Boba Network",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 300,
+        "name": "Optimism on Gnosis",
+        "symbol": "xDAI"
+    },
+    {
+        "chain_id": 369,
+        "name": "PulseChain Mainnet",
+        "symbol": "PLS"
+    },
+    {
+        "chain_id": 420,
+        "name": "Optimism Goerli Testnet",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 787,
+        "name": "Acala Network",
+        "symbol": "ACA"
+    },
+    {
+        "chain_id": 888,
+        "name": "Wanchain",
+        "symbol": "WAN"
+    },
+    {
+        "chain_id": 998,
+        "name": "Lucky Network",
+        "symbol": "L99"
+    },
+    {
+        "chain_id": 5315,
+        "name": "Uzmi Network Mainnet",
+        "symbol": "UZMI"
+    },
+    {
+        "chain_id": 9001,
+        "name": "Evmos",
+        "symbol": "EVMOS"
+    },
+    {
+        "chain_id": 10000,
+        "name": "Smart Bitcoin Cash",
+        "symbol": "BCH"
+    },
+    {
+        "chain_id": 11111,
+        "name": "WAGMI",
+        "symbol": "WGM"
+    },
+    {
+        "chain_id": 42161,
+        "name": "Arbitrum One",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 42220,
+        "name": "Celo Mainnet",
+        "symbol": "CELO"
+    },
+    {
+        "chain_id": 43110,
+        "name": "Athereum",
+        "symbol": "ATH"
+    },
+    {
+        "chain_id": 43114,
+        "name": "Avalanche C-Chain",
+        "symbol": "AVAX"
+    },
+    {
+        "chain_id": 421611,
+        "name": "Arbitrum Rinkeby",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 421613,
+        "name": "Arbitrum Goerli",
+        "symbol": "AGOR"
     }
 ]
