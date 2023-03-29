@@ -1,67 +1,447 @@
 [
     {
         "chain_id": 1,
-        "symbol": "ETH",
-        "name": "Ethereum"
+        "name": "Ethereum Mainnet",
+        "symbol": "ETH"
     },
     {
         "chain_id": 2,
-        "symbol": "EXP",
-        "name": "Expanse"
+        "name": "Expanse",
+        "symbol": "EXP"
     },
     {
         "chain_id": 3,
-        "symbol": "tETH",
-        "name": "Ethereum Testnet Ropsten"
+        "name": "Ethereum Ropsten Testnet",
+        "symbol": "ETH"
     },
     {
         "chain_id": 4,
-        "symbol": "tETH",
-        "name": "Ethereum Testnet Rinkeby"
+        "name": "Ethereum Rinkeby Testnet",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 5,
+        "name": "Ethereum Goerli Testnet",
+        "symbol": "ETH"
     },
     {
         "chain_id": 8,
-        "symbol": "UBQ",
-        "name": "UBIQ"
+        "name": "UBIQ",
+        "symbol": "UBQ"
+    },
+    {
+        "chain_id": 10,
+        "name": "Optimism",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 19,
+        "name": "Songbird",
+        "symbol": "SGB"
     },
     {
         "chain_id": 20,
-        "symbol": "EOSC",
-        "name": "EOS Classic"
+        "name": "Elastos Smart Chain",
+        "symbol": "ELA"
+    },
+    {
+        "chain_id": 24,
+        "name": "Kardia",
+        "symbol": "KAI"
+    },
+    {
+        "chain_id": 25,
+        "name": "Cronos",
+        "symbol": "CRO"
     },
     {
         "chain_id": 28,
-        "symbol": "ETSC",
-        "name": "Ethereum Social"
+        "name": "Ethereum Social",
+        "symbol": "ETSC"
     },
     {
         "chain_id": 30,
-        "symbol": "RSK",
-        "name": "RSK"
+        "name": "Rootstock",
+        "symbol": "RBTC"
     },
     {
-        "chain_id": 31,
-        "symbol": "tRSK",
-        "name": "RSK Testnet"
+        "chain_id": 30,
+        "name": "Rootstock Testnet",
+        "symbol": "tRBTC"
+    },
+    {
+        "chain_id": 40,
+        "name": "Telos",
+        "symbol": "TLOS"
     },
     {
         "chain_id": 42,
-        "symbol": "tETH",
-        "name": "Ethereum Testnet Kovan"
+        "name": "Ethereum Kovan Testnet",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 44,
+        "name": "Darwinia Crab Network",
+        "symbol": "CRAB"
+    },
+    {
+        "chain_id": 56,
+        "name": "BNB Chain",
+        "symbol": "BNB"
+    },
+    {
+        "chain_id": 56,
+        "name": "BSC Smart Chain",
+        "symbol": "BNB"
+    },
+    {
+        "chain_id": 57,
+        "name": "Syscoin",
+        "symbol": "SYS"
     },
     {
         "chain_id": 61,
-        "symbol": "ETC",
-        "name": "Ethereum Classic"
+        "name": "Ethereum Classic Mainnet",
+        "symbol": "ETC"
     },
     {
         "chain_id": 62,
-        "symbol": "tETC",
-        "name": "Ethereum Classic Testnet"
+        "name": "Ethereum Classic Testnet",
+        "symbol": "ETC"
     },
     {
         "chain_id": 64,
-        "symbol": "ELLA",
-        "name": "Ellaism"
+        "name": "Ellaism",
+        "symbol": "ELLA"
+    },
+    {
+        "chain_id": 66,
+        "name": "OKXChain",
+        "symbol": "OKT"
+    },
+    {
+        "chain_id": 69,
+        "name": "Optimism Kovan Testnet",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 82,
+        "name": "Meter",
+        "symbol": "MTR"
+    },
+    {
+        "chain_id": 97,
+        "name": "BSC Smart Chain Testnet",
+        "symbol": "tBNB"
+    },
+    {
+        "chain_id": 100,
+        "name": "Gnosis",
+        "symbol": "xDAI"
+    },
+    {
+        "chain_id": 106,
+        "name": "Velas",
+        "symbol": "VLX"
+    },
+    {
+        "chain_id": 108,
+        "name": "ThunderCore",
+        "symbol": "TT"
+    },
+    {
+        "chain_id": 112,
+        "name": "Step",
+        "symbol": "FITFI"
+    },
+    {
+        "chain_id": 122,
+        "name": "58",
+        "symbol": "ONG"
+    },
+    {
+        "chain_id": 122,
+        "name": "Fuse",
+        "symbol": "FUSE"
+    },
+    {
+        "chain_id": 128,
+        "name": "Huobi ECO Chain",
+        "symbol": "HT"
+    },
+    {
+        "chain_id": 137,
+        "name": "Polygon Mainnet",
+        "symbol": "MATIC"
+    },
+    {
+        "chain_id": 199,
+        "name": "Bittorrent",
+        "symbol": "BTT"
+    },
+    {
+        "chain_id": 200,
+        "name": "Arbitrum on xDai",
+        "symbol": "xDai"
+    },
+    {
+        "chain_id": 250,
+        "name": "Fantom",
+        "symbol": "FTM"
+    },
+    {
+        "chain_id": 288,
+        "name": "Boba",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 295,
+        "name": "Hedera",
+        "symbol": "HBAR"
+    },
+    {
+        "chain_id": 300,
+        "name": "Optimism on Gnosis",
+        "symbol": "xDAI"
+    },
+    {
+        "chain_id": 314,
+        "name": "Filecoin",
+        "symbol": "FIL"
+    },
+    {
+        "chain_id": 321,
+        "name": "KCC",
+        "symbol": "KCS"
+    },
+    {
+        "chain_id": 324,
+        "name": "zkSync Era",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 361,
+        "name": "Theta",
+        "symbol": "TFUEL"
+    },
+    {
+        "chain_id": 416,
+        "name": "SX Network",
+        "symbol": "SX"
+    },
+    {
+        "chain_id": 420,
+        "name": "Optimism Goerli Testnet",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 592,
+        "name": "Astar",
+        "symbol": "ASTR"
+    },
+    {
+        "chain_id": 888,
+        "name": "Wanchain",
+        "symbol": "WAN"
+    },
+    {
+        "chain_id": 1088,
+        "name": "Metis",
+        "symbol": "METIS"
+    },
+    {
+        "chain_id": 1101,
+        "name": "Polygon zkEVM",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 1116,
+        "name": "CORE",
+        "symbol": "CORE"
+    },
+    {
+        "chain_id": 1231,
+        "name": "Ultron",
+        "symbol": "ULX"
+    },
+    {
+        "chain_id": 1284,
+        "name": "Moonbeam",
+        "symbol": "GLMR"
+    },
+    {
+        "chain_id": 1285,
+        "name": "Moonriver",
+        "symbol": "MOVR"
+    },
+    {
+        "chain_id": 1402,
+        "name": "Polygon zkEVM Testnet",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 2000,
+        "name": "Dogechain",
+        "symbol": "DOGE"
+    },
+    {
+        "chain_id": 2001,
+        "name": "Milkomeda C1",
+        "symbol": "mADA"
+    },
+    {
+        "chain_id": 2020,
+        "name": "Ronin",
+        "symbol": "RON"
+    },
+    {
+        "chain_id": 4099,
+        "name": "Bitindi",
+        "symbol": "$BNI"
+    },
+    {
+        "chain_id": 4689,
+        "name": "IoTeX",
+        "symbol": "IOTX"
+    },
+    {
+        "chain_id": 5177,
+        "name": "Tlchain",
+        "symbol": "TLC"
+    },
+    {
+        "chain_id": 5551,
+        "name": "Nahmii",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 7700,
+        "name": "Canto",
+        "symbol": "CANTO"
+    },
+    {
+        "chain_id": 8217,
+        "name": "Klaytn",
+        "symbol": "KLAY"
+    },
+    {
+        "chain_id": 9001,
+        "name": "Evmos",
+        "symbol": "EVMOS"
+    },
+    {
+        "chain_id": 10000,
+        "name": "Smart Bitcoin Cash",
+        "symbol": "BCH"
+    },
+    {
+        "chain_id": 22776,
+        "name": "Map",
+        "symbol": "MAP"
+    },
+    {
+        "chain_id": 28528,
+        "name": "Optimism Bedrock",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 32520,
+        "name": "Bitgert",
+        "symbol": "Brise"
+    },
+    {
+        "chain_id": 39797,
+        "name": "Energi",
+        "symbol": "NRG"
+    },
+    {
+        "chain_id": 42161,
+        "name": "Arbitrum Mainnet",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 42170,
+        "name": "Arbitrum Nova",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 42170,
+        "name": "Arbitrum Nova",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 42220,
+        "name": "Celo",
+        "symbol": "CELO"
+    },
+    {
+        "chain_id": 42262,
+        "name": "Oasis",
+        "symbol": "ROSE"
+    },
+    {
+        "chain_id": 43113,
+        "name": "Avalanche Fuji Testnet",
+        "symbol": "AVAX"
+    },
+    {
+        "chain_id": 43114,
+        "name": "Avalanche C-Chain",
+        "symbol": "AVAX"
+    },
+    {
+        "chain_id": 53935,
+        "name": "DFK",
+        "symbol": "JEWEL"
+    },
+    {
+        "chain_id": 71402,
+        "name": "Godwoken",
+        "symbol": "pCKB"
+    },
+    {
+        "chain_id": 80001,
+        "name": "Polygon Mumbai Testnet",
+        "symbol": "MATIC"
+    },
+    {
+        "chain_id": 90001,
+        "name": "FunctionX",
+        "symbol": "FX"
+    },
+    {
+        "chain_id": 421611,
+        "name": "Arbitrum Rinkeby",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 421613,
+        "name": "Arbitrum Goerli",
+        "symbol": "AGOR"
+    },
+    {
+        "chain_id": 888888,
+        "name": "Vision",
+        "symbol": "VS"
+    },
+    {
+        "chain_id": 1313161554,
+        "name": "Aurora",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 1666600000,
+        "name": "Harmony",
+        "symbol": "ONE"
+    },
+    {
+        "chain_id": 1666600000,
+        "name": "Harmony",
+        "symbol": "ONE"
+    },
+    {
+        "chain_id": 383414847825,
+        "name": "Zeniq",
+        "symbol": "ZENIQ"
     }
 ]
