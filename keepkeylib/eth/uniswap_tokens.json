@@ -4542,5 +4542,61 @@
     "contractAddress": "0x0Ae055097C6d159879521C384F1D2123D1f195e6",
     "precision": 18,
     "network": "ETH"
+  },
+  {
+    symbol: 'TLOS',
+    identifier: 'Telos',
+    displayName: 'Telos',
+    contractAddress: '0x7825e833d495f3d1c28872415a4aee339d26ac88',
+    precision: 18
+  },
+  {
+    symbol: 'BNB',
+    identifier: 'BSC Smart Chain',
+    displayName: 'BSC Smart Chain',
+    contractAddress: '0xB8c77482e45F1F44dE1745F52C74426C631bDD52',
+    precision: 18
+  },
+  {
+    symbol: 'FUSE',
+    identifier: 'Fuse',
+    displayName: 'Fuse',
+    contractAddress: '0x970b9bb2c0444f5e81e9d0efb84c8ccdcdcaf84d',
+    precision: 18
+  },
+  {
+    symbol: 'KCS',
+    identifier: 'KCC',
+    displayName: 'KCC',
+    contractAddress: '0xf34960d9d60be18cc1d5afc1a6f012a723a28811',
+    precision: 6
+  },
+  {
+    symbol: 'METIS',
+    identifier: 'Metis',
+    displayName: 'Metis',
+    contractAddress: '0x9e32b13ce7f2e80a01932b42553652e053d6ed8e',
+    precision: 18
+  },
+  {
+    symbol: 'IOTX',
+    identifier: 'IoTeX',
+    displayName: 'IoTeX',
+    contractAddress: '0x6fb3e0a217407efff7ca062d46c26e5d60a14d69',
+    precision: 18
+  },
+  {
+    symbol: 'MAP',
+    identifier: 'Map',
+    displayName: 'Map',
+    contractAddress: '0x9e976f211daea0d652912ab99b0dc21a7fd728e4',
+    precision: 18
+  },
+  {
+    symbol: 'FX',
+    identifier: 'FunctionX',
+    displayName: 'FunctionX',
+    contractAddress: '0x8c15ef5b4b21951d50e53e4fbda8298ffad25057',
+    precision: 18
   }
 ]
