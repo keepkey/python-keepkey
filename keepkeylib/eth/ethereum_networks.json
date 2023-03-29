@@ -365,11 +365,6 @@
         "symbol": "ETH"
     },
     {
-        "chain_id": 42170,
-        "name": "Arbitrum Nova",
-        "symbol": "ETH"
-    },
-    {
         "chain_id": 42220,
         "name": "Celo",
         "symbol": "CELO"
