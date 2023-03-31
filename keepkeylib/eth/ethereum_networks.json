@@ -10,16 +10,6 @@
         "symbol": "EXP"
     },
     {
-        "chain_id": 3,
-        "name": "Ethereum Ropsten Testnet",
-        "symbol": "ETH"
-    },
-    {
-        "chain_id": 4,
-        "name": "Ethereum Rinkeby Testnet",
-        "symbol": "ETH"
-    },
-    {
         "chain_id": 5,
         "name": "Ethereum Goerli Testnet",
         "symbol": "ETH"
@@ -70,24 +60,9 @@
         "symbol": "ETC"
     },
     {
-        "chain_id": 62,
-        "name": "Ethereum Classic Testnet",
-        "symbol": "ETC"
-    },
-    {
         "chain_id": 64,
         "name": "Ellaism",
         "symbol": "ELLA"
-    },
-    {
-        "chain_id": 69,
-        "name": "Optimism Kovan Testnet",
-        "symbol": "ETH"
-    },
-    {
-        "chain_id": 97,
-        "name": "BSC Smart Chain Testnet",
-        "symbol": "tBNB"
     },
     {
         "chain_id": 100,
