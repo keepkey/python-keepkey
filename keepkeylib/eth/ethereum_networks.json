@@ -1,28 +1,33 @@
 [
     {
         "chain_id": 1,
-        "symbol": "ETH",
-        "name": "Ethereum"
+        "name": "Ethereum Mainnet",
+        "symbol": "ETH"
     },
     {
         "chain_id": 2,
-        "symbol": "EXP",
-        "name": "Expanse"
+        "name": "Expanse",
+        "symbol": "EXP"
     },
     {
         "chain_id": 3,
-        "symbol": "tETH",
-        "name": "Ethereum Testnet Ropsten"
+        "name": "Ethereum Ropsten Testnet",
+        "symbol": "ETH"
     },
     {
         "chain_id": 4,
-        "symbol": "tETH",
-        "name": "Ethereum Testnet Rinkeby"
+        "name": "Ethereum Rinkeby Testnet",
+        "symbol": "ETH"
+    },
+    {
+        "chain_id": 5,
+        "name": "Ethereum Goerli Testnet",
+        "symbol": "ETH"
     },
     {
         "chain_id": 8,
-        "symbol": "UBQ",
-        "name": "UBIQ"
+        "name": "UBIQ",
+        "symbol": "UBQ"
     },
     {
         "chain_id": 10,
@@ -31,28 +36,28 @@
     },
     {
         "chain_id": 20,
-        "symbol": "EOSC",
-        "name": "EOS Classic"
+        "name": "Elastos Smart Chain",
+        "symbol": "ELA"
     },
     {
         "chain_id": 28,
-        "symbol": "ETSC",
-        "name": "Ethereum Social"
+        "name": "Ethereum Social",
+        "symbol": "ETSC"
     },
     {
         "chain_id": 30,
-        "symbol": "RSK",
-        "name": "RSK"
+        "name": "Rootstock",
+        "symbol": "RBTC"
     },
     {
-        "chain_id": 31,
-        "symbol": "tRSK",
-        "name": "RSK Testnet"
+        "chain_id": 40,
+        "name": "Telos",
+        "symbol": "TLOS"
     },
     {
         "chain_id": 42,
-        "symbol": "tETH",
-        "name": "Ethereum Testnet Kovan"
+        "name": "Ethereum Kovan Testnet",
+        "symbol": "ETH"
     },
     {
         "chain_id": 56,
@@ -61,23 +66,33 @@
     },
     {
         "chain_id": 61,
-        "symbol": "ETC",
-        "name": "Ethereum Classic"
+        "name": "Ethereum Classic Mainnet",
+        "symbol": "ETC"
     },
     {
         "chain_id": 62,
-        "symbol": "tETC",
-        "name": "Ethereum Classic Testnet"
+        "name": "Ethereum Classic Testnet",
+        "symbol": "ETC"
     },
     {
         "chain_id": 64,
-        "symbol": "ELLA",
-        "name": "Ellaism"
+        "name": "Ellaism",
+        "symbol": "ELLA"
+    },
+    {
+        "chain_id": 69,
+        "name": "Optimism Kovan Testnet",
+        "symbol": "ETH"
     },
     {
         "chain_id": 97,
         "name": "BSC Smart Chain Testnet",
         "symbol": "tBNB"
+    },
+    {
+        "chain_id": 100,
+        "name": "Gnosis",
+        "symbol": "xDAI"
     },
     {
         "chain_id": 137,
