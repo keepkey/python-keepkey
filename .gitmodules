@@ -1,6 +1,8 @@
 [submodule "device-protocol"]
-	path = device-protocol
-	url = https://github.com/keepkey/device-protocol.git
+path = device-protocol
+url = https://github.com/keepkey/device-protocol.git
+branch = master
 [submodule "keepkeylib/eth/ethereum-lists"]
-	path = keepkeylib/eth/ethereum-lists
-	url = https://github.com/keepkey/ethereum-lists.git
+path = keepkeylib/eth/ethereum-lists
+url = https://github.com/keepkey/ethereum-lists.git
+branch = master

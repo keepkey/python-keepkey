@@ -12,7 +12,7 @@
     {
         "chain_id": 5,
         "name": "Ethereum Goerli Testnet",
-        "symbol": "ETH"
+        "symbol": "tETH"
     },
     {
         "chain_id": 8,
@@ -22,7 +22,7 @@
     {
         "chain_id": 10,
         "name": "Optimism",
-        "symbol": "ETH"
+        "symbol": "OP"
     },
     {
         "chain_id": 20,
@@ -47,7 +47,7 @@
     {
         "chain_id": 42,
         "name": "Ethereum Kovan Testnet",
-        "symbol": "ETH"
+        "symbol": "tETH"
     },
     {
         "chain_id": 56,
