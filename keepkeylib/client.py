@@ -44,6 +44,7 @@ from . import messages_osmosis_pb2 as osmosis_proto
 from . import messages_ripple_pb2 as ripple_proto
 from . import messages_tendermint_pb2 as tendermint_proto
 from . import messages_thorchain_pb2 as thorchain_proto
+from . import messages_mayachain_pb2 as mayachain_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -1045,6 +1046,94 @@ class ProtocolMixin(object):
         if not isinstance(resp, thorchain_proto.ThorchainSignedTx):
             raise CallException(
                 "Thorchain.UnexpectedEndOfOperations",
+                "Reached end of operations without a signature.",
+            )
+
+        return resp
+
+
+    @field('address')
+    @expect(mayachain_proto.MayachainAddress)
+    def mayachain_get_address(self, address_n, show_display=False, testnet=False):
+        return self.call(
+            mayachain_proto.MayachainGetAddress(address_n=address_n, show_display=show_display, testnet=testnet)
+        )
+
+    @session
+    def mayachain_sign_tx(
+        self,
+        address_n,
+        account_number,
+        chain_id,
+        fee,
+        gas,
+        msgs,
+        memo,
+        sequence,
+        testnet=None
+    ):
+        resp = self.call(mayachain_proto.MayachainSignTx(
+            address_n=address_n,
+            account_number=account_number,
+            chain_id=chain_id,
+            fee_amount=fee,
+            gas=gas,
+            memo=memo,
+            sequence=sequence,
+            msg_count=len(msgs),
+            testnet=testnet
+        ))
+
+        for msg in msgs:
+            if not isinstance(resp, mayachain_proto.MayachainMsgRequest):
+                raise CallException(
+                    "Mayachain.ExpectedMsgRequest",
+                    "Message request expected but not received.",
+                )
+
+            if msg['type'] == "mayachain/MsgSend":
+                if len(msg['value']['amount']) != 1:
+                    raise CallException("Mayachain.MsgSend", "Multiple amounts per send msg not supported")
+
+                denom = msg['value']['amount'][0]['denom']
+                if denom != 'rune':
+                    raise CallException("Mayachain.MsgSend", "Unsupported denomination: " + denom)
+
+                resp = self.call(mayachain_proto.MayachainMsgAck(
+                    send=mayachain_proto.MayachainMsgSend(
+                        from_address=msg['value']['from_address'],
+                        to_address=msg['value']['to_address'],
+                        amount=int(msg['value']['amount'][0]['amount']),
+                        address_type=types.SPEND,
+                    )
+                ))
+
+            elif msg['type'] == "mayachain/MsgDeposit":
+                if len(msg['value']['coins']) != 1:
+                    raise CallException("Mayachain.MsgDeposit", "Multiple coins per deposit msg not supported")
+
+                asset = msg['value']['coins'][0]['asset']
+                if asset != 'MAYA.CACAO':
+                    raise CallException("Mayachain.MsgDeposit", "Unsupported asset: " + asset)
+
+                resp = self.call(mayachain_proto.MayachainMsgAck(
+                    deposit=mayachain_proto.MayachainMsgDeposit(
+                        asset=asset,
+                        amount=int(msg['value']['coins'][0]['amount']),
+                        memo=msg['value']['memo'],
+                        signer=msg['value']['signer']
+                    )
+                ))
+
+            else:
+                raise CallException(
+                    "Mayachain.UnknownMsg",
+                    "Mayachain message %s is not yet supported" % (msg['type'],)
+                )
+
+        if not isinstance(resp, mayachain_proto.MayachainSignedTx):
+            raise CallException(
+                "Mayachain.UnexpectedEndOfOperations",
                 "Reached end of operations without a signature.",
             )
 
