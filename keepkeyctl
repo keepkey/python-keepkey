@@ -422,6 +422,43 @@ class Commands(object):
 
         return signed
 
+def mayachain_get_address(self, args):
+        address_n = self.client.expand_path(args.n)
+        address = self.client.mayachain_get_address(address_n, args.show_display, args.testnet)
+        return address
+
+    def mayachain_sign_tx(self, args):
+        address_n = self.client.expand_path(args.n)
+        chain_id = args.chain_id
+        account_number = args.account_number
+        sequence = args.sequence
+        with open(args.file, 'r') as f:
+            unsigned = json.load(f)
+
+        from keepkeylib.mayachain import mayachain_parse_tx, mayachain_append_sig
+
+        parsed = mayachain_parse_tx(unsigned)
+
+        res = self.client.mayachain_sign_tx(
+            address_n=address_n,
+            account_number=account_number,
+            chain_id=chain_id,
+            fee=int(parsed['fee']),
+            gas=int(parsed['gas']),
+            msgs=parsed['msgs'],
+            memo=parsed['memo'],
+            sequence=sequence,
+            testnet=args.testnet
+        )
+
+        unsigned['tx']['chain_id'] = chain_id
+        unsigned['tx']['account_number'] = account_number
+        unsigned['tx']['sequence'] = sequence
+
+        signed = mayachain_append_sig(unsigned, res.public_key, res.signature)
+
+        return signed
+
     def get_entropy(self, args):
         return binascii.hexlify(self.client.get_entropy(args.size))
 
@@ -558,6 +595,8 @@ class Commands(object):
     cosmos_sign_tx.help = 'Sign Cosmos transaction'
     thorchain_get_address.help = 'Get THORchain address'
     thorchain_sign_tx.help = 'Sign THORChain transaction'
+    mayachain_get_address.help = 'Get MAYAchain address'
+    mayachain_sign_tx.help = 'Sign MAYAChain transaction'
     get_entropy.help = 'Get example entropy'
     get_features.help = 'Retrieve device features and settings'
     get_public_node.help = 'Get public node of given path'
@@ -672,6 +711,21 @@ class Commands(object):
         (('--chain-id',), {'type': str, 'help': "Chain ID of tendermint node", 'dest': 'chain_id', 'default': 'thorchain'}),
         (('--account-number',), {'type': int, 'help': 'THORchain account number', 'dest': 'account_number', 'required': True}),
         (('--sequence', ), {'type': int, 'help': 'THORchain account sequence', 'dest': 'sequence', 'required': True}),
+        (('-f', '--file'), {'type': str, 'required': True}),
+        (('-t', '--testnet'), {'action': 'store_true', 'default': False}),
+    )
+
+  mayachain_get_address.arguments = (
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/931'/0'/0/0"}),
+        (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
+        (('-t', '--testnet'), {'action': 'store_true', 'default': False}),
+    )
+
+    mayachain_sign_tx.arguments = (
+        (('-n', '-address'), {'type': str, 'help': "BIP-32 path to source address", 'default': "m/44'/931'/0'/0/0"}),
+        (('--chain-id',), {'type': str, 'help': "Chain ID of tendermint node", 'dest': 'chain_id', 'default': 'mayachain'}),
+        (('--account-number',), {'type': int, 'help': 'MAYAChain account number', 'dest': 'account_number', 'required': True}),
+        (('--sequence', ), {'type': int, 'help': 'MAYAChain account sequence', 'dest': 'sequence', 'required': True}),
         (('-f', '--file'), {'type': str, 'required': True}),
         (('-t', '--testnet'), {'action': 'store_true', 'default': False}),
     )
