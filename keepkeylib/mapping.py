@@ -8,6 +8,7 @@ from . import messages_ripple_pb2 as ripple_proto
 from . import messages_binance_pb2 as binance_proto
 from . import messages_tendermint_pb2 as tendermint_proto
 from . import messages_thorchain_pb2 as thorchain_proto
+from . import messages_mayachain_pb2 as mayachain_proto
 
 map_type_to_class = {}
 map_class_to_type = {}
@@ -33,6 +34,8 @@ def build_map():
             msg_class = getattr(tendermint_proto, msg_name)
         elif msg_type.startswith('MessageType_Thorchain'):
             msg_class = getattr(thorchain_proto, msg_name)
+        elif msg_type.startswith('MessageType_Mayachain'):
+            msg_class = getattr(mayachain_proto, msg_name)
         else:
             msg_class = getattr(proto, msg_name)
 
