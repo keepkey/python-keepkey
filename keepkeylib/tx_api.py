@@ -228,8 +228,8 @@ class TxApiBs(TxApi):
 
 
 TxApiBitcoin = TxApiInsight(network='insight_bitcoin', url='https://btc.coinquery.com/api')
-# TxApiTestnet = TxApiInsight(network='insight_testnet', url='https://test-insight.bitpay.com/api')
-TxApiTestnet = TxApiBs(network='blockstream_testnet', url='https://blockstream.info/testnet/api')
+TxApiTestnet = TxApiInsight(network='insight_testnet', url='https://test-insight.bitpay.com/api')
+# TxApiTestnet = TxApiBs(network='blockstream_testnet', url='https://blockstream.info/testnet/api')
 TxApiZcashTestnet = TxApiInsight(network='insight_zcashtestnet', url='https://explorer.testnet.z.cash/api', zcash=True)
 TxApiBitcoinGold = TxApiInsight(network='insight_bitcoingold', url='https://btg.coinquery.com/api')
 TxApiGroestlcoin = TxApiInsight(network='insight_groestlcoin', url='https://groestlsight.groestlcoin.org/api')
