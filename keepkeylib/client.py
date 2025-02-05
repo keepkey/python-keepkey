@@ -44,6 +44,7 @@ from . import messages_osmosis_pb2 as osmosis_proto
 from . import messages_ripple_pb2 as ripple_proto
 from . import messages_tendermint_pb2 as tendermint_proto
 from . import messages_thorchain_pb2 as thorchain_proto
+from . import messages_mayachain_pb2 as mayachain_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -362,6 +363,7 @@ class DebugLinkMixin(object):
         # Always press Yes and provide correct pin
         self.setup_debuglink(True, True)
         self.auto_button = True
+        # self.auto_button = False
 
         # Do not expect any specific response from device
         self.expected_responses = None
@@ -1189,6 +1191,7 @@ class ProtocolMixin(object):
             if not self.tx_api:
                 raise Exception('TX_API not defined')
 
+
             prev_tx = self.tx_api.get_tx(binascii.hexlify(inp.prev_hash).decode('utf-8'))
             txes[inp.prev_hash] = prev_tx
 
@@ -1199,7 +1202,6 @@ class ProtocolMixin(object):
 
         start = time.time()
         txes = self._prepare_sign_tx(coin_name, inputs, outputs)
-
         # Prepare and send initial message
         tx = proto.SignTx()
         tx.inputs_count = len(inputs)
