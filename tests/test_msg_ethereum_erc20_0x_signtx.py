@@ -28,6 +28,7 @@ from keepkeylib.tools import int_to_big_endian
 class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
     
     def test_sign_0x_swap_ETH_to_ERC20(self):
+        self.requires_fullFeature()
         self.requires_firmware("7.0.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -60,6 +61,7 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '51ef1578d4f4bece1ffe3759209088f02cb9d2b21e64d5c32c8b4ebce95417e0')
 
     def test_sign_0x_swap_ERC20_to_ETH(self):
+        self.requires_fullFeature()
         self.requires_firmware("7.0.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -93,6 +95,7 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '1ec122b3e92daa3b5e5e17e9c775644448831f8af3228d80c2de0cec301715a5')
 
     def test_sign_longdata_swap(self):
+        self.requires_fullFeature()
         self.requires_firmware("7.0.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -159,6 +162,7 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
 
     # test transformERC20
     def test__sign_transformERC20(self):
+        self.requires_fullFeature()
         self.requires_firmware("7.1.5")
         self.setup_mnemonic_nopin_nopassphrase()
 

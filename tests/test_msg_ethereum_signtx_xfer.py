@@ -30,6 +30,7 @@ from keepkeylib.tools import int_to_big_endian
 
 class TestMsgEthereumSigntx(common.KeepKeyTest):
     def test_ethereum_tx_xfer_acc1(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('ShapeShift', 1)
 
@@ -54,6 +55,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.client.apply_policy('ShapeShift', 0)
 
     def test_ethereum_tx_xfer_acc2(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('ShapeShift', 1)
 
@@ -78,6 +80,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.client.apply_policy('ShapeShift', 0)
 
     def test_ethereum_xfer_account_path_error_0(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('ShapeShift', 1)
 
@@ -113,6 +116,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.client.apply_policy('ShapeShift', 0)
 
     def test_ethereum_xfer_account_path_error_1(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('ShapeShift', 1)
 
@@ -141,6 +145,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.client.apply_policy('ShapeShift', 0)
 
     def test_ethereum_xfer_account_path_error_2(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('ShapeShift', 1)
 
@@ -166,6 +171,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.client.apply_policy('ShapeShift', 0)
 
     def test_ethereum_xfer_account_path_error_3(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('ShapeShift', 1)
 

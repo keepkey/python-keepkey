@@ -36,6 +36,7 @@ ACCOUNT_NONE_PUBKEY  = '8hhFGcdMry96GpvyxnAGFsnyaNHzXu3Hw61Fy1CnmJUQDQBhqk'
 class TestMsgEosGetPublicKey(common.KeepKeyTest):
 
     def test(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         vec = [
             (EOS_ACCOUNT_0_PATH, False, True,  'EOS' + EOS_ACCOUNT_0_PUBKEY),
@@ -51,6 +52,7 @@ class TestMsgEosGetPublicKey(common.KeepKeyTest):
             self.assertEqual(res.wif_public_key, wif)
 
     def test_trezor(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_abandon()
 
         derivation_paths = [

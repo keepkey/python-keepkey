@@ -29,6 +29,7 @@ from keepkeylib import tx_api
 class TestMsgSigntxBitcoinGold(common.KeepKeyTest):
 
     def test_send_bitcoin_gold_nochange(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.client.set_tx_api(tx_api.TxApiBitcoinGold)
         inp1 = proto_types.TxInputType(

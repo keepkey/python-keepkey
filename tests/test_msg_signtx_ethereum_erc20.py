@@ -30,6 +30,7 @@ from keepkeylib.tools import int_to_big_endian
 class TestMsgEthereumSigntxERC20(common.KeepKeyTest):
 
     def test_approve_none(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -48,6 +49,7 @@ class TestMsgEthereumSigntxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '03a733a7cfb176aa16a28349e92cc4c5d239f9b9176718507997e467c330eb84')
 
     def test_approve_some(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -66,6 +68,7 @@ class TestMsgEthereumSigntxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '5b8b0e5b7b8f6d5269ce4dc266e6901f3284079fa1f0cd358d2987336dc8ba3a')
 
     def test_approve_all(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(

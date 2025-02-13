@@ -25,6 +25,7 @@ from keepkeylib import tx_api
 
 class TestMsgSigntxDash(common.KeepKeyTest):
     def test_send_dash(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.client.set_tx_api(tx_api.TxApiDash)
         inp1 = proto_types.TxInputType(
@@ -108,6 +109,7 @@ class TestMsgSigntxDash(common.KeepKeyTest):
         )
 
     def test_send_dash_dip2_input(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.client.set_tx_api(tx_api.TxApiDash)
         inp1 = proto_types.TxInputType(

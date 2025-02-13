@@ -31,6 +31,7 @@ from keepkeylib.tools import int_to_big_endian
 
 class TestMsgEthereumSigntx(common.KeepKeyTest):
     def test_ethereum_signtx_data(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 0)
 
@@ -117,6 +118,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.client.apply_policy("AdvancedMode", 0)
 
     def test_ethereum_signtx_message(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 
@@ -140,6 +142,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_newcontract(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 
@@ -175,6 +178,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_sanity_checks(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 
@@ -224,6 +228,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_nodata_eip155(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.client.apply_policy("AdvancedMode", 0)
 
@@ -266,6 +271,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_data_eip155(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.client.apply_policy("AdvancedMode", 1)
 
@@ -350,6 +356,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_eip_1559(self):
+        self.requires_fullFeature()
         self.requires_firmware("7.2.1")
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -375,6 +382,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_nodata_eip_1559(self):
+        self.requires_fullFeature()
         self.requires_firmware("7.2.1")
         self.setup_mnemonic_allallall()
 
@@ -401,6 +409,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_knownerc20_eip_1559(self):
+        self.requires_fullFeature()
         self.requires_firmware("7.2.1")
         self.setup_mnemonic_allallall()
 
@@ -429,6 +438,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_data1_eip_1559(self):
+        self.requires_fullFeature()
         self.requires_firmware("7.2.1")
         self.setup_mnemonic_allallall()
 
@@ -457,6 +467,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
 
     def test_ethereum_signtx_nodata(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 0)
 

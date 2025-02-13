@@ -102,3 +102,9 @@ class KeepKeyTest(unittest.TestCase):
         if semver.VersionInfo.parse(version) < semver.VersionInfo.parse(ver_required):
             self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
 
+    def requires_fullFeature(self):
+      if self.client.features.firmware_variant == "KeepKeyBTC":
+        self.skipTest("Full feature firmware required to run this test")
+
+            
+

@@ -43,6 +43,7 @@ RECIPIENT_DONATIONS_PUBLICKEY = 'f2612dfe03fdec8169fcaa2aad9384d28853f22b01d4e54
 class TestMsgNanoSignTx(common.KeepKeyTest):
 
     def test_encode_balance(self):
+        self.requires_fullFeature()
         self.assertEqual(hexlify(nano.encode_balance(0)), '00000000000000000000000000000000')
         self.assertEqual(hexlify(nano.encode_balance(4440329590121742105910495447534801366)), '03572d26b8163ca8016a76280cb011d6')
         self.assertEqual(hexlify(nano.encode_balance(340282366920938463463374607431768211455)), 'ffffffffffffffffffffffffffffffff')
@@ -176,6 +177,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
     #         self.assertEqual(hexlify(res.signature), '1dcd8a27aeac1cab9a2054d5cc6df1b80be46290596dcf6d195c2c286b1615d4139276f9be9c6f202ee1ee8a5569b4a4fc838b1d7306aa71c8e431a6b8075707')
 
     def test_invalid_block_1(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # Missing link_hash
@@ -186,6 +188,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_2(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # Missing representative
@@ -196,6 +199,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_3(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # Missing balance
@@ -206,6 +210,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_4(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # Account first block cannot be 0 balance
@@ -217,6 +222,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_5(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # First block must use link_hash, not other link_* fields
@@ -228,6 +234,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_6(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # First block must use link_hash, not other link_* fields
@@ -239,6 +246,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_7(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # Only one of link_* fields can be specified
@@ -251,6 +259,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_8(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # Only one of link_* fields can be specified
@@ -263,6 +272,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_9(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # Only one of link_* fields can be specified
@@ -275,6 +285,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_10(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # Missing parent_representative
@@ -289,6 +300,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_11(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # Missing parent_balance
@@ -303,6 +315,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_12(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # Invalid parent_representative value
@@ -318,6 +331,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_13(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # Invalid representative value
@@ -333,6 +347,7 @@ class TestMsgNanoSignTx(common.KeepKeyTest):
             )
 
     def test_invalid_block_14(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         with self.assertRaises(CallException):
             # Invalid link_recipient value

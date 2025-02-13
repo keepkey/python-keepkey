@@ -25,6 +25,7 @@ def make_send(from_address, to_address, amount):
 
 class TestMsgCosmosSignTx(common.KeepKeyTest):
     def test_cosmos_sign_tx(self):
+        self.requires_fullFeature()
         self.requires_firmware("6.3.0")
         self.setup_mnemonic_nopin_nopassphrase()
         signature = self.client.cosmos_sign_tx(
@@ -46,6 +47,7 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
 
 
     def test_cosmos_sign_tx_memo(self):
+        self.requires_fullFeature()
         self.requires_firmware("6.3.0")
         self.setup_mnemonic_nopin_nopassphrase()
         signature = self.client.cosmos_sign_tx(
@@ -67,6 +69,7 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
 
 
     def test_onchain1(self):
+        self.requires_fullFeature()
         self.requires_firmware("6.3.0")
         self.client.load_device_by_mnemonic(
           mnemonic='hybrid anger habit story vibrant grit ill sense duck butter heavy frame',
@@ -96,6 +99,7 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
 
 
     def test_onchain2(self):
+        self.requires_fullFeature()
         self.requires_firmware("6.3.0")
         self.client.load_device_by_mnemonic(
           mnemonic='hybrid anger habit story vibrant grit ill sense duck butter heavy frame',

@@ -33,6 +33,7 @@ ACCOUNT_NONE_ADDRESS = 'xrb_1b9dutog4daytip1meckewxqq9fmir49amq451pmef4bm7rihcjc
 class TestMsgNanoGetAddress(common.KeepKeyTest):
 
     def test(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         vec = [
             (NANO_ACCOUNT_0_PATH,  False, NANO_ACCOUNT_0_ADDRESS),

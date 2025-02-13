@@ -34,6 +34,7 @@ EOS_CHAIN_ID = binascii.unhexlify("aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119
 class TestMsgEosSignTx(common.KeepKeyTest):
 
     def test_name_to_number(self):
+        self.requires_fullFeature()
         self.assertEqual(eos.name_to_number("eosio"), 0x5530ea0000000000)
         self.assertEqual(eos.name_to_number("eosio.token"), 0x5530EA033482A600)
         self.assertEqual(eos.name_to_number("eos42freedom"), 0x5530412eea526920)
@@ -371,6 +372,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         return ret
 
     def test_action_surplus(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         try:
@@ -387,6 +389,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             self.assert_(False, "Negative test passed")
 
     def test_action_deficit(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         try:
@@ -403,6 +406,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             self.assert_(False, "Negative test passed")
 
     def test_wrong_account(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         try:
@@ -428,6 +432,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             self.assert_(False, "Negative test passed")
 
     def test_transfer(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -441,6 +446,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "c7c33bd395fb7764021082abe1a02609492b8b1209ce6a3cf2db381d89128c71")
 
     def test_delegatebw(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -455,6 +461,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "b4921554b1ae7a7960477e9b89cb4d410493cef8a71bc60ead48882721eadcbd")
 
     def test_undelegatebw(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -468,6 +475,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "af1471bb07540299f6f9cabb1fdf542063bd6c73d6535534f4627ef765ef21b3")
 
     def test_refund(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -481,6 +489,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "c87fbd785bb6b3463f781d8a90a096719d15164f288c3a731ad3d00c65df93ab")
 
     def test_buyram(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -494,6 +503,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "b78f9754929c06ba92115756a0385cf74058353171bb1a29c471259ae6a6f67c")
 
     def test_buyrambytes(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -507,6 +517,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "27c6be3d214fa69a2bfabf31de2f05951fe8ff903c5af2933489b2d06aa48c11")
 
     def test_sellram(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -520,6 +531,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "98445e80a9800d62227dc1d0ebfd0fa3fd060b79fbb6717f9c9bb462f21c6aef")
 
     def test_voteproducer(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -535,6 +547,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "ea13aad2ddb8485b1ff28399f350bf8e7182f68809957a226ccb9d9bed1e7e15")
 
     def test_updateauth(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -558,6 +571,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "fb936ef1be4bda680d93bd10b6d062357d8dd7272038a706dc0d61a91f39c5ee")
 
     def test_deleteauth(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -571,6 +585,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "90870fe5ac29ab077764e5ce88d24aef9b85b6670755f8cf4f42562e8faca431")
 
     def test_linkauth(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -584,6 +599,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "8705a2a7e96a8043fd034443e308b84fc9d8560434393b0520dce324e92afeba")
 
     def test_unlinkauth(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -597,6 +613,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "7f8668920192ab6132821e823cf05f52ccfd4bc724341903acf827db30a0c280")
 
     def test_newaccount(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         res = self.client.eos_sign_tx_raw(
@@ -610,6 +627,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(res.hash), "8e0accde9fb6529b5d72b4d9a9859e1dae0c6ae9a159bb1ea8c8f579f942c291")
 
     def test_unknown_advanced(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('AdvancedMode', 1)
 
@@ -634,6 +652,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             self.assertEqual(binascii.hexlify(res.hash), h)
 
     def test_eos_signtx_transfer_token(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -677,6 +696,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 31)
 
     def test_eos_signtx_buyram(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -719,6 +739,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 31)
 
     def test_eos_signtx_buyrambytes(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -761,6 +782,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 32)
 
     def test_eos_signtx_sellram(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -802,6 +824,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 32)
 
     def test_eos_signtx_delegate(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -846,6 +869,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 32)
 
     def test_eos_signtx_undelegate(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -889,6 +913,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 31)
 
     def test_eos_signtx_refund(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -929,6 +954,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 32)
 
     def test_eos_signtx_linkauth(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -972,6 +998,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 32)
 
     def test_eos_signtx_unlinkauth(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -1014,6 +1041,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 32)
 
     def test_eos_signtx_updateauth(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -1084,6 +1112,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 31)
 
     def test_eos_signtx_deleteauth(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -1125,6 +1154,8 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 32)
 
     def test_eos_signtx_vote(self):
+        self.requires_fullFeature()
+
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -1200,6 +1231,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 31)
 
     def test_eos_signtx_vote_proxy(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -1242,6 +1274,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 32)
 
     def test_eos_signtx_unknown(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('AdvancedMode', 1)
         data = '''{
@@ -1281,6 +1314,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 32)
 
     def test_eos_signtx_newaccount(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         data = '''{
             "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -1376,6 +1410,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         self.assertEqual(actionResp.signature_v, 32)
 
     def test_eos_signtx_setcontract(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('AdvancedMode', 1)
         data = '''{

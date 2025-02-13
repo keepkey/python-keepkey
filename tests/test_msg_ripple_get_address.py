@@ -22,6 +22,7 @@ from common import KeepKeyTest
 
 class TestMsgRippleGetAddress(KeepKeyTest):
     def test_ripple_get_address(self):
+        self.requires_fullFeature()
         self.requires_firmware("6.4.0")
 
         # data from https://iancoleman.io/bip39/#english
@@ -35,6 +36,7 @@ class TestMsgRippleGetAddress(KeepKeyTest):
         self.assertEqual(address, "rJX2KwzaLJDyFhhtXKi3htaLfaUH2tptEX")
 
     def test_ripple_get_address_other(self):
+        self.requires_fullFeature()
         self.requires_firmware("6.4.0")
 
         # data from https://github.com/you21979/node-ripple-bip32/blob/master/test/test.js
