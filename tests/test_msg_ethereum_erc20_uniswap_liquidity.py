@@ -55,7 +55,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
                  
     def test_sign_uni_add_liquidity_ETH(self):
         self.requires_fullFeature()
-        if self.client.features.firmware_variant == "Emulator":
+        if self.client.features.firmware_variant[1:8] == "Emulator":
             self.skipTest("Skip until emulator issue resolved")
             return
         self.requires_firmware("7.1.0")
@@ -87,7 +87,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
 
     def test_sign_uni_remove_liquidity_ETH(self):
         self.requires_fullFeature()
-        if self.client.features.firmware_variant == "Emulator":
+        if self.client.features.firmware_variant[1:8] == "Emulator":
             self.skipTest("Skip until emulator issue resolved")
             return
         self.requires_firmware("7.1.0")

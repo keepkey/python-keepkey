@@ -103,7 +103,8 @@ class KeepKeyTest(unittest.TestCase):
             self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
 
     def requires_fullFeature(self):
-      if self.client.features.firmware_variant == "KeepKeyBTC":
+      if self.client.features.firmware_variant == "KeepKeyBTC" or \
+            self.client.features.firmware_variant == "EmulatorBTC":
         self.skipTest("Full feature firmware required to run this test")
 
             
