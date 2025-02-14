@@ -116,7 +116,7 @@ class TestProtectCall(common.KeepKeyTest):
         self.assertRaises(PinException, self._some_protected_call, False, True, False)
 
     def test_exponential_backoff_with_reboot(self):
-        if self.client.features.firmware_variant[1:8] == "Emulator":
+        if self.client.features.firmware_variant[0:8] == "Emulator":
             self.skipTest("Due to a known defect in the emulator, pin timeouts don't work.")
             return
 
