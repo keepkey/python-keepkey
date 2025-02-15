@@ -32,6 +32,7 @@ from keepkeylib.tx_api import TxApiGroestlcoinTestnet
 class TestMsgSigntxSegwitGRS(KeepKeyTest):
 
     def test_send_p2sh(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.client.set_tx_api(TxApiGroestlcoinTestnet)
         inp1 = proto_types.TxInputType(
@@ -71,6 +72,7 @@ class TestMsgSigntxSegwitGRS(KeepKeyTest):
         self.assertEqual(hexlify(serialized_tx), b'01000000000101cf60ded29a2bd7ebf93453feace8551889d0321beab90c4f6e5c9d2fce8ba4090000000017160014d16b8c0680c61fc6ed2e407455715055e41052f5feffffff02e0aebb00000000001976a914a579388225827d9f2fe9014add644487808c695d88ac3df39f060000000017a91458b53ea7f832e8f096e896b8713a8c6df0e892ca8702483045022100b7ce2972bcbc3a661fe320ba901e680913b2753fcb47055c9c6ba632fc4acf81022001c3cfd6c2fe92eb60f5176ce0f43707114dd7223da19c56f2df89c13c2fef80012103e7bfe10708f715e8538c92d46ca50db6f657bbc455b7494e6a0303ccdb868b7904ee0900')
 
     def test_send_p2sh_change(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.client.set_tx_api(TxApiGroestlcoinTestnet)
         inp1 = proto_types.TxInputType(

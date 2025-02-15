@@ -35,6 +35,7 @@ class TestMsgGetaddress(common.KeepKeyTest):
         self.assertEqual(self.client.get_address('Bitcoin', [0, 9999999]), '1GS8X3yc7ntzwGw9vXwj9wqmBWZkTFewBV')
 
     def test_ltc(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.assertEqual(self.client.get_address('Litecoin', []), 'LYtGrdDeqYUQnTkr5sHT2DKZLG7Hqg7HTK')
         self.assertEqual(self.client.get_address('Litecoin', [1]), 'LKRGNecThFP3Q6c5fosLVA53Z2hUDb1qnE')
@@ -43,18 +44,21 @@ class TestMsgGetaddress(common.KeepKeyTest):
         self.assertEqual(self.client.get_address('Litecoin', [0, 9999999]), 'Laf5nGHSCT94C5dK6fw2RxuXPiw2ZuRR9S')
 
     def test_grs(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.assertEqual(self.client.get_address('Groestlcoin', [44 | 0x80000000, 17 | 0x80000000, 0 | 0x80000000, 0, 0]), 'Fj62rBJi8LvbmWu2jzkaUX1NFXLEqDLoZM')
         self.assertEqual(self.client.get_address('Groestlcoin', [44 | 0x80000000, 17 | 0x80000000, 0 | 0x80000000, 1, 0]), 'FmRaqvVBRrAp2Umfqx9V1ectZy8gw54QDN')
         self.assertEqual(self.client.get_address('Groestlcoin', [44 | 0x80000000, 17 | 0x80000000, 0 | 0x80000000, 1, 1]), 'Fmhtxeh7YdCBkyQF7AQG4QnY8y3rJg89di')
 
     def test_tgrs(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.assertEqual(self.client.get_address('GRS Testnet', [44 | 0x80000000, 1 | 0x80000000, 0 | 0x80000000, 0, 0]), 'mvbu1Gdy8SUjTenqerxUaZyYjmvedc787y')
         self.assertEqual(self.client.get_address('GRS Testnet', [44 | 0x80000000, 1 | 0x80000000, 0 | 0x80000000, 1, 0]), 'mm6kLYbGEL1tGe4ZA8xacfgRPdW1LMq8cN')
         self.assertEqual(self.client.get_address('GRS Testnet', [44 | 0x80000000, 1 | 0x80000000, 0 | 0x80000000, 1, 1]), 'mjXZwmEi1z1MzveZrKUAo4DBgbdq6ZhGD6')
 
     def test_ltc_m_address(self):
+        self.requires_fullFeature()
         # generate a 1 of 1 multisig and make sure we get an M address
         self.setup_mnemonic_nopin_nopassphrase()
         node = bip32.deserialize('xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy')
