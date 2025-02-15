@@ -46,6 +46,7 @@ class TestMsgSignmessageSegwit(KeepKeyTest):
         self.assertEqual(hexlify(sig.signature), b'245ff795c29aef7538f8b3bdb2e8add0d0722ad630a140b6aefd504a5a895cbd867cbb00981afc50edd0398211e8d7c304bb8efa461181bc0afa67ea4a720a89ed')
 
     def test_sign_grs(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         sig = self.client.sign_message('Groestlcoin', parse_path("49'/17'/0'/0/0"), "test", script_type=proto_types.SPENDP2SHWITNESS)
         self.assertEqual(sig.address, '31inaRqambLsd9D7Ke4USZmGEVd3PHkh7P')
