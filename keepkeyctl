@@ -173,6 +173,10 @@ class Commands(object):
         script_type = typemap[args.script_type];
         return self.client.get_public_node(n=address_n, show_display=args.show_display, coin_name=args.coin, script_type=script_type).xpub
 
+    def ripple_get_address(self, args):
+        address_n = self.client.expand_path(args.n)
+        return self.client.ripple_get_address(address_n, args.show_display)
+
     def ethereum_get_address(self, args):
         address_n = self.client.expand_path(args.n)
         address = self.client.ethereum_get_address(address_n, args.show_display)
@@ -546,6 +550,7 @@ class Commands(object):
     ping.help = 'Send ping message'
     get_address.help = 'Get bitcoin address in base58 encoding'
     get_xpub.help = 'Get xpub'
+    ripple_get_address.help = 'Get Ripple address'
     ethereum_get_address.help = 'Get Ethereum address in hex encoding'
     ethereum_sign_msg.help = 'Sign Ethereum message'
     ethereum_sign_tx.help = 'Sign (and optionally publish) Ethereum transaction'
@@ -588,6 +593,11 @@ class Commands(object):
         (('-c', '--coin'), {'type': str, 'default': 'Bitcoin'}),
         (('-n', '-address'), {'type': str}),
         (('-t', '--script-type'), {'type': str, 'choices': ['address', 'segwit', 'p2shsegwit'], 'default': 'address'}),
+        (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
+    )
+
+    ripple_get_address.arguments = (
+        (('-n', '-address'), {'type': str}),
         (('-d', '--show-display'), {'action': 'store_true', 'default': False}),
     )
 
