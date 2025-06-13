@@ -56,8 +56,13 @@ class TxApi(object):
             except:
                 pass
         try:
+            # print('request %s/%s/%s' % (self.url, resource, resourceid))
             r = requests.get('%s/%s/%s' % (self.url, resource, resourceid), headers={'User-agent': 'Mozilla/5.0'})
+            r.raise_for_status()  # raises exception when not a 2xx response
+            if r.status_code != 204:
+              return r.json()
             j = r.json()
+
         except:
             raise Exception('URL error: %s' % url)
         if cache_file:
@@ -78,8 +83,9 @@ class TxApiInsight(TxApi):
         self.zcash = zcash
 
     def get_tx(self, txhash):
-
         data = self.fetch_json(self.url, 'tx', txhash)
+        # print(json.dumps(data, indent=2))
+
 
         t = proto_types.TransactionType()
         t.version = data['version']
@@ -144,9 +150,86 @@ class TxApiInsight(TxApi):
         data = self.fetch_json(self.url, 'rawtx', txhash)['rawtx']
         return data
 
+class TxApiBs(TxApi):
+  # parser for blockstream.info api
+
+    def __init__(self, network, url, zcash=None):
+        super(TxApiBs, self).__init__(network, url)
+        self.zcash = zcash
+
+    def get_tx(self, txhash):
+        data = self.fetch_json(self.url, 'tx', txhash)
+        print(json.dumps(data, indent=2))
+
+
+        t = proto_types.TransactionType()
+        t.version = data['version']
+        t.lock_time = data['locktime']
+
+        for vin in data['vin']:
+            i = t.inputs.add()
+            if 'coinbase' in vin.keys():
+                i.prev_hash = b"\0"*32
+                i.prev_index = 0xffffffff # signed int -1
+                i.script_sig = binascii.unhexlify(vin['coinbase'])
+                i.sequence = vin['sequence']
+
+            else:
+                i.prev_hash = binascii.unhexlify(vin['txid'])
+                i.prev_index = vin['vout']
+                # i.script_sig = binascii.unhexlify(vin['scriptsig'])
+                i.script_sig = bytes.fromhex(vin['scriptsig'])
+                i.sequence = vin['sequence']
+
+        for vout in data['vout']:
+            o = t.bin_outputs.add()
+            o.amount = int(Decimal(str(vout['value'])) * 100000000)
+            o.script_pubkey = bytes.fromhex(vout['scriptpubkey'])
+
+        if self.zcash:
+            if t.version == 2:
+                joinsplit_cnt = len(data['vjoinsplit'])
+                if joinsplit_cnt == 0:
+                    t.extra_data =b'\x00'
+                else:
+                    if joinsplit_cnt >= 253:
+                        # we assume cnt < 253, so we can treat varIntLen(cnt) as 1
+                        raise ValueError('Too many joinsplits')
+                    extra_data_len = 1 + joinsplit_cnt * 1802 + 32 + 64
+                    raw = self.fetch_json(self.url, 'rawtx', txhash)
+                    raw = binascii.unhexlify(raw['rawtx'])
+                    t.extra_data = raw[-extra_data_len:]
+
+        if "_dash" in self.network:
+            dip2_type = data.get("type", 0)
+
+            if t.version == 3 and dip2_type != 0:
+                # It's a DIP2 special TX with payload
+
+                if "extrapayloadsize" not in data or "extrapayload" not in data:
+                    raise ValueError("Payload data missing in DIP2 transaction")
+
+                if data["extrapayloadsize"] * 2 != len(data["extrasayload"]):
+                    raise ValueError("length mismatch")
+                t.extra_data = pack_varint(data["extrapayloadsize"]) + binascii.unhexlify(
+                    data["extrapayload"]
+                )
+
+            # Trezor (and therefore KeepKey) firmware doesn't understand the
+            # split of version and type, so let's mimic the old serialization
+            # format
+            t.version |= dip2_type << 16
+
+        return t
+
+    def get_raw_tx(self, txhash):
+        data = self.fetch_json(self.url, 'rawtx', txhash)['rawtx']
+        return data
+
 
 TxApiBitcoin = TxApiInsight(network='insight_bitcoin', url='https://btc.coinquery.com/api')
 TxApiTestnet = TxApiInsight(network='insight_testnet', url='https://test-insight.bitpay.com/api')
+# TxApiTestnet = TxApiBs(network='blockstream_testnet', url='https://blockstream.info/testnet/api')
 TxApiZcashTestnet = TxApiInsight(network='insight_zcashtestnet', url='https://explorer.testnet.z.cash/api', zcash=True)
 TxApiBitcoinGold = TxApiInsight(network='insight_bitcoingold', url='https://btg.coinquery.com/api')
 TxApiGroestlcoin = TxApiInsight(network='insight_groestlcoin', url='https://groestlsight.groestlcoin.org/api')

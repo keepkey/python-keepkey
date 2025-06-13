@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-osmosis.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x16messages-osmosis.proto\x1a\x0btypes.proto\"M\n\x11OsmosisGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12\x0f\n\x07testnet\x18\x03 \x01(\x08\"!\n\x0eOsmosisAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\xb9\x01\n\rOsmosisSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\x0e\x61\x63\x63ount_number\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x08\x63hain_id\x18\x03 \x01(\t\x12\x12\n\nfee_amount\x18\x04 \x01(\r\x12\x0b\n\x03gas\x18\x05 \x01(\r\x12\x0c\n\x04memo\x18\x06 \x01(\t\x12\x14\n\x08sequence\x18\x07 \x01(\x04\x42\x02\x30\x01\x12\x11\n\tmsg_count\x18\x08 \x01(\r\x12\x0f\n\x07testnet\x18\t \x01(\x08\"\x13\n\x11OsmosisMsgRequest\"\xb7\x03\n\rOsmosisMsgAck\x12\x1d\n\x04send\x18\x01 \x01(\x0b\x32\x0f.OsmosisMsgSend\x12%\n\x08\x64\x65legate\x18\x02 \x01(\x0b\x32\x13.OsmosisMsgDelegate\x12)\n\nundelegate\x18\x03 \x01(\x0b\x32\x15.OsmosisMsgUndelegate\x12)\n\nredelegate\x18\x04 \x01(\x0b\x32\x15.OsmosisMsgRedelegate\x12#\n\x07rewards\x18\x05 \x01(\x0b\x32\x12.OsmosisMsgRewards\x12 \n\x06lp_add\x18\x06 \x01(\x0b\x32\x10.OsmosisMsgLPAdd\x12&\n\tlp_remove\x18\x07 \x01(\x0b\x32\x13.OsmosisMsgLPRemove\x12$\n\x08lp_stake\x18\x08 \x01(\x0b\x32\x12.OsmosisMsgLPStake\x12(\n\nlp_unstake\x18\t \x01(\x0b\x32\x14.OsmosisMsgLPUnstake\x12,\n\x0cibc_transfer\x18\n \x01(\x0b\x32\x16.OsmosisMsgIBCTransfer\x12\x1d\n\x04swap\x18\x0b \x01(\x0b\x32\x0f.OsmosisMsgSwap\"\x87\x01\n\x0eOsmosisMsgSend\x12\x14\n\x0c\x66rom_address\x18\x01 \x01(\t\x12\x12\n\nto_address\x18\x02 \x01(\t\x12\r\n\x05\x64\x65nom\x18\x03 \x01(\t\x12\x12\n\x06\x61mount\x18\x04 \x01(\x04\x42\x02\x30\x01\x12(\n\x0c\x61\x64\x64ress_type\x18\x05 \x01(\x0e\x32\x12.OutputAddressType\"m\n\x12OsmosisMsgDelegate\x12\x19\n\x11\x64\x65legator_address\x18\x01 \x01(\t\x12\x19\n\x11validator_address\x18\x02 \x01(\t\x12\r\n\x05\x64\x65nom\x18\x03 \x01(\t\x12\x12\n\x06\x61mount\x18\x04 \x01(\x04\x42\x02\x30\x01\"o\n\x14OsmosisMsgUndelegate\x12\x19\n\x11\x64\x65legator_address\x18\x01 \x01(\t\x12\x19\n\x11validator_address\x18\x02 \x01(\t\x12\r\n\x05\x64\x65nom\x18\x03 \x01(\t\x12\x12\n\x06\x61mount\x18\x04 \x01(\x04\x42\x02\x30\x01\"\x92\x01\n\x14OsmosisMsgRedelegate\x12\x19\n\x11\x64\x65legator_address\x18\x01 \x01(\t\x12\x1d\n\x15validator_src_address\x18\x02 \x01(\t\x12\x1d\n\x15validator_dst_address\x18\x03 \x01(\t\x12\r\n\x05\x64\x65nom\x18\x04 \x01(\t\x12\x12\n\x06\x61mount\x18\x05 \x01(\x04\x42\x02\x30\x01\"l\n\x11OsmosisMsgRewards\x12\x19\n\x11\x64\x65legator_address\x18\x01 \x01(\t\x12\x19\n\x11validator_address\x18\x02 \x01(\t\x12\r\n\x05\x64\x65nom\x18\x03 \x01(\t\x12\x12\n\x06\x61mount\x18\x04 \x01(\x04\x42\x02\x30\x01\"\xb6\x01\n\x0fOsmosisMsgLPAdd\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x0f\n\x07pool_id\x18\x02 \x01(\t\x12\x18\n\x10share_out_amount\x18\x03 \x01(\x04\x12\x16\n\x0e\x64\x65nom_in_max_a\x18\x04 \x01(\t\x12\x1b\n\x0f\x61mount_in_max_a\x18\x05 \x01(\x04\x42\x02\x30\x01\x12\x16\n\x0e\x64\x65nom_in_max_b\x18\x06 \x01(\t\x12\x1b\n\x0f\x61mount_in_max_b\x18\x07 \x01(\x04\x42\x02\x30\x01\"\xbd\x01\n\x12OsmosisMsgLPRemove\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x0f\n\x07pool_id\x18\x02 \x01(\t\x12\x18\n\x10share_out_amount\x18\x03 \x01(\x04\x12\x17\n\x0f\x64\x65nom_out_min_a\x18\x04 \x01(\t\x12\x1c\n\x10\x61mount_out_min_a\x18\x05 \x01(\x04\x42\x02\x30\x01\x12\x17\n\x0f\x64\x65nom_out_min_b\x18\x06 \x01(\t\x12\x1c\n\x10\x61mount_out_min_b\x18\x07 \x01(\x04\x42\x02\x30\x01\"W\n\x11OsmosisMsgLPStake\x12\r\n\x05owner\x18\x01 \x01(\t\x12\x10\n\x08\x64uration\x18\x02 \x01(\x04\x12\r\n\x05\x64\x65nom\x18\x04 \x01(\t\x12\x12\n\x06\x61mount\x18\x05 \x01(\x04\x42\x02\x30\x01\"0\n\x13OsmosisMsgLPUnstake\x12\r\n\x05owner\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\"\xbb\x01\n\x15OsmosisMsgIBCTransfer\x12\x13\n\x0bsource_port\x18\x01 \x01(\t\x12\x16\n\x0esource_channel\x18\x02 \x01(\t\x12\r\n\x05\x64\x65nom\x18\x03 \x01(\t\x12\x12\n\x06\x61mount\x18\x04 \x01(\x04\x42\x02\x30\x01\x12\x0e\n\x06sender\x18\x05 \x01(\t\x12\x10\n\x08receiver\x18\x06 \x01(\t\x12\x17\n\x0frevision_number\x18\x07 \x01(\t\x12\x17\n\x0frevision_height\x18\x08 \x01(\t\"\x9d\x01\n\x0eOsmosisMsgSwap\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x0f\n\x07pool_id\x18\x02 \x01(\t\x12\x17\n\x0ftoken_out_denom\x18\x03 \x01(\t\x12\x16\n\x0etoken_in_denom\x18\x04 \x01(\t\x12\x1b\n\x0ftoken_in_amount\x18\x05 \x01(\x04\x42\x02\x30\x01\x12\x1c\n\x14token_out_min_amount\x18\x06 \x01(\x04\"8\n\x0fOsmosisSignedTx\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42\x33\n\x1a\x63om.keepkey.deviceprotocolB\x15KeepKeyMessageOsmosis')
+  serialized_pb=_b('\n\x16messages-osmosis.proto\x1a\x0btypes.proto\"M\n\x11OsmosisGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12\x0f\n\x07testnet\x18\x03 \x01(\x08\"!\n\x0eOsmosisAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\xb9\x01\n\rOsmosisSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\x0e\x61\x63\x63ount_number\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x08\x63hain_id\x18\x03 \x01(\t\x12\x12\n\nfee_amount\x18\x04 \x01(\r\x12\x0b\n\x03gas\x18\x05 \x01(\r\x12\x0c\n\x04memo\x18\x06 \x01(\t\x12\x14\n\x08sequence\x18\x07 \x01(\x04\x42\x02\x30\x01\x12\x11\n\tmsg_count\x18\x08 \x01(\r\x12\x0f\n\x07testnet\x18\t \x01(\x08\"\x13\n\x11OsmosisMsgRequest\"\xb7\x03\n\rOsmosisMsgAck\x12\x1d\n\x04send\x18\x01 \x01(\x0b\x32\x0f.OsmosisMsgSend\x12%\n\x08\x64\x65legate\x18\x02 \x01(\x0b\x32\x13.OsmosisMsgDelegate\x12)\n\nundelegate\x18\x03 \x01(\x0b\x32\x15.OsmosisMsgUndelegate\x12)\n\nredelegate\x18\x04 \x01(\x0b\x32\x15.OsmosisMsgRedelegate\x12#\n\x07rewards\x18\x05 \x01(\x0b\x32\x12.OsmosisMsgRewards\x12 \n\x06lp_add\x18\x06 \x01(\x0b\x32\x10.OsmosisMsgLPAdd\x12&\n\tlp_remove\x18\x07 \x01(\x0b\x32\x13.OsmosisMsgLPRemove\x12$\n\x08lp_stake\x18\x08 \x01(\x0b\x32\x12.OsmosisMsgLPStake\x12(\n\nlp_unstake\x18\t \x01(\x0b\x32\x14.OsmosisMsgLPUnstake\x12,\n\x0cibc_transfer\x18\n \x01(\x0b\x32\x16.OsmosisMsgIBCTransfer\x12\x1d\n\x04swap\x18\x0b \x01(\x0b\x32\x0f.OsmosisMsgSwap\"\x83\x01\n\x0eOsmosisMsgSend\x12\x14\n\x0c\x66rom_address\x18\x01 \x01(\t\x12\x12\n\nto_address\x18\x02 \x01(\t\x12\r\n\x05\x64\x65nom\x18\x03 \x01(\t\x12\x0e\n\x06\x61mount\x18\x04 \x01(\t\x12(\n\x0c\x61\x64\x64ress_type\x18\x05 \x01(\x0e\x32\x12.OutputAddressType\"i\n\x12OsmosisMsgDelegate\x12\x19\n\x11\x64\x65legator_address\x18\x01 \x01(\t\x12\x19\n\x11validator_address\x18\x02 \x01(\t\x12\r\n\x05\x64\x65nom\x18\x03 \x01(\t\x12\x0e\n\x06\x61mount\x18\x04 \x01(\t\"k\n\x14OsmosisMsgUndelegate\x12\x19\n\x11\x64\x65legator_address\x18\x01 \x01(\t\x12\x19\n\x11validator_address\x18\x02 \x01(\t\x12\r\n\x05\x64\x65nom\x18\x03 \x01(\t\x12\x0e\n\x06\x61mount\x18\x04 \x01(\t\"\x8e\x01\n\x14OsmosisMsgRedelegate\x12\x19\n\x11\x64\x65legator_address\x18\x01 \x01(\t\x12\x1d\n\x15validator_src_address\x18\x02 \x01(\t\x12\x1d\n\x15validator_dst_address\x18\x03 \x01(\t\x12\r\n\x05\x64\x65nom\x18\x04 \x01(\t\x12\x0e\n\x06\x61mount\x18\x05 \x01(\t\"\xb2\x01\n\x0fOsmosisMsgLPAdd\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x13\n\x07pool_id\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x18\n\x10share_out_amount\x18\x03 \x01(\t\x12\x16\n\x0e\x64\x65nom_in_max_a\x18\x04 \x01(\t\x12\x17\n\x0f\x61mount_in_max_a\x18\x05 \x01(\t\x12\x16\n\x0e\x64\x65nom_in_max_b\x18\x06 \x01(\t\x12\x17\n\x0f\x61mount_in_max_b\x18\x07 \x01(\t\"\xb8\x01\n\x12OsmosisMsgLPRemove\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x13\n\x07pool_id\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x17\n\x0fshare_in_amount\x18\x03 \x01(\t\x12\x17\n\x0f\x64\x65nom_out_min_a\x18\x04 \x01(\t\x12\x18\n\x10\x61mount_out_min_a\x18\x05 \x01(\t\x12\x17\n\x0f\x64\x65nom_out_min_b\x18\x06 \x01(\t\x12\x18\n\x10\x61mount_out_min_b\x18\x07 \x01(\t\"W\n\x11OsmosisMsgLPStake\x12\r\n\x05owner\x18\x01 \x01(\t\x12\x14\n\x08\x64uration\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\r\n\x05\x64\x65nom\x18\x04 \x01(\t\x12\x0e\n\x06\x61mount\x18\x05 \x01(\t\"0\n\x13OsmosisMsgLPUnstake\x12\r\n\x05owner\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\"I\n\x11OsmosisMsgRewards\x12\x19\n\x11\x64\x65legator_address\x18\x01 \x01(\t\x12\x19\n\x11validator_address\x18\x02 \x01(\t\"\xb7\x01\n\x15OsmosisMsgIBCTransfer\x12\x13\n\x0bsource_port\x18\x01 \x01(\t\x12\x16\n\x0esource_channel\x18\x02 \x01(\t\x12\r\n\x05\x64\x65nom\x18\x03 \x01(\t\x12\x0e\n\x06\x61mount\x18\x04 \x01(\t\x12\x0e\n\x06sender\x18\x05 \x01(\t\x12\x10\n\x08receiver\x18\x06 \x01(\t\x12\x17\n\x0frevision_number\x18\x07 \x01(\t\x12\x17\n\x0frevision_height\x18\x08 \x01(\t\"\x9d\x01\n\x0eOsmosisMsgSwap\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x13\n\x07pool_id\x18\x02 \x01(\x04\x42\x02\x30\x01\x12\x17\n\x0ftoken_out_denom\x18\x03 \x01(\t\x12\x16\n\x0etoken_in_denom\x18\x04 \x01(\t\x12\x17\n\x0ftoken_in_amount\x18\x05 \x01(\t\x12\x1c\n\x14token_out_min_amount\x18\x06 \x01(\t\"8\n\x0fOsmosisSignedTx\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42\x33\n\x1a\x63om.keepkey.deviceprotocolB\x15KeepKeyMessageOsmosis')
   ,
   dependencies=[types__pb2.DESCRIPTOR,])
 
@@ -345,11 +345,11 @@ _OSMOSISMSGSEND = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='amount', full_name='OsmosisMsgSend.amount', index=3,
-      number=4, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='address_type', full_name='OsmosisMsgSend.address_type', index=4,
       number=5, type=14, cpp_type=8, label=1,
@@ -370,7 +370,7 @@ _OSMOSISMSGSEND = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=805,
-  serialized_end=940,
+  serialized_end=936,
 )
 
 
@@ -404,11 +404,11 @@ _OSMOSISMSGDELEGATE = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='amount', full_name='OsmosisMsgDelegate.amount', index=3,
-      number=4, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -421,8 +421,8 @@ _OSMOSISMSGDELEGATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=942,
-  serialized_end=1051,
+  serialized_start=938,
+  serialized_end=1043,
 )
 
 
@@ -456,11 +456,11 @@ _OSMOSISMSGUNDELEGATE = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='amount', full_name='OsmosisMsgUndelegate.amount', index=3,
-      number=4, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -473,8 +473,8 @@ _OSMOSISMSGUNDELEGATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1053,
-  serialized_end=1164,
+  serialized_start=1045,
+  serialized_end=1152,
 )
 
 
@@ -515,11 +515,11 @@ _OSMOSISMSGREDELEGATE = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='amount', full_name='OsmosisMsgRedelegate.amount', index=4,
-      number=5, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -532,60 +532,8 @@ _OSMOSISMSGREDELEGATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1167,
-  serialized_end=1313,
-)
-
-
-_OSMOSISMSGREWARDS = _descriptor.Descriptor(
-  name='OsmosisMsgRewards',
-  full_name='OsmosisMsgRewards',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='delegator_address', full_name='OsmosisMsgRewards.delegator_address', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='validator_address', full_name='OsmosisMsgRewards.validator_address', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='denom', full_name='OsmosisMsgRewards.denom', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='amount', full_name='OsmosisMsgRewards.amount', index=3,
-      number=4, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto2',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=1315,
-  serialized_end=1423,
+  serialized_start=1155,
+  serialized_end=1297,
 )
 
 
@@ -605,15 +553,15 @@ _OSMOSISMSGLPADD = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pool_id', full_name='OsmosisMsgLPAdd.pool_id', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      number=2, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='share_out_amount', full_name='OsmosisMsgLPAdd.share_out_amount', index=2,
-      number=3, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -626,11 +574,11 @@ _OSMOSISMSGLPADD = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='amount_in_max_a', full_name='OsmosisMsgLPAdd.amount_in_max_a', index=4,
-      number=5, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='denom_in_max_b', full_name='OsmosisMsgLPAdd.denom_in_max_b', index=5,
       number=6, type=9, cpp_type=9, label=1,
@@ -640,11 +588,11 @@ _OSMOSISMSGLPADD = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='amount_in_max_b', full_name='OsmosisMsgLPAdd.amount_in_max_b', index=6,
-      number=7, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -657,8 +605,8 @@ _OSMOSISMSGLPADD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1426,
-  serialized_end=1608,
+  serialized_start=1300,
+  serialized_end=1478,
 )
 
 
@@ -678,15 +626,15 @@ _OSMOSISMSGLPREMOVE = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pool_id', full_name='OsmosisMsgLPRemove.pool_id', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      number=2, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='share_out_amount', full_name='OsmosisMsgLPRemove.share_out_amount', index=2,
-      number=3, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      name='share_in_amount', full_name='OsmosisMsgLPRemove.share_in_amount', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -699,11 +647,11 @@ _OSMOSISMSGLPREMOVE = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='amount_out_min_a', full_name='OsmosisMsgLPRemove.amount_out_min_a', index=4,
-      number=5, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='denom_out_min_b', full_name='OsmosisMsgLPRemove.denom_out_min_b', index=5,
       number=6, type=9, cpp_type=9, label=1,
@@ -713,11 +661,11 @@ _OSMOSISMSGLPREMOVE = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='amount_out_min_b', full_name='OsmosisMsgLPRemove.amount_out_min_b', index=6,
-      number=7, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -730,8 +678,8 @@ _OSMOSISMSGLPREMOVE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1611,
-  serialized_end=1800,
+  serialized_start=1481,
+  serialized_end=1665,
 )
 
 
@@ -755,7 +703,7 @@ _OSMOSISMSGLPSTAKE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='denom', full_name='OsmosisMsgLPStake.denom', index=2,
       number=4, type=9, cpp_type=9, label=1,
@@ -765,11 +713,11 @@ _OSMOSISMSGLPSTAKE = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='amount', full_name='OsmosisMsgLPStake.amount', index=3,
-      number=5, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -782,8 +730,8 @@ _OSMOSISMSGLPSTAKE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1802,
-  serialized_end=1889,
+  serialized_start=1667,
+  serialized_end=1754,
 )
 
 
@@ -820,8 +768,46 @@ _OSMOSISMSGLPUNSTAKE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1891,
-  serialized_end=1939,
+  serialized_start=1756,
+  serialized_end=1804,
+)
+
+
+_OSMOSISMSGREWARDS = _descriptor.Descriptor(
+  name='OsmosisMsgRewards',
+  full_name='OsmosisMsgRewards',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='delegator_address', full_name='OsmosisMsgRewards.delegator_address', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='validator_address', full_name='OsmosisMsgRewards.validator_address', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1806,
+  serialized_end=1879,
 )
 
 
@@ -855,11 +841,11 @@ _OSMOSISMSGIBCTRANSFER = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='amount', full_name='OsmosisMsgIBCTransfer.amount', index=3,
-      number=4, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='sender', full_name='OsmosisMsgIBCTransfer.sender', index=4,
       number=5, type=9, cpp_type=9, label=1,
@@ -900,8 +886,8 @@ _OSMOSISMSGIBCTRANSFER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1942,
-  serialized_end=2129,
+  serialized_start=1882,
+  serialized_end=2065,
 )
 
 
@@ -921,11 +907,11 @@ _OSMOSISMSGSWAP = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pool_id', full_name='OsmosisMsgSwap.pool_id', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      number=2, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='token_out_denom', full_name='OsmosisMsgSwap.token_out_denom', index=2,
       number=3, type=9, cpp_type=9, label=1,
@@ -942,15 +928,15 @@ _OSMOSISMSGSWAP = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='token_in_amount', full_name='OsmosisMsgSwap.token_in_amount', index=4,
-      number=5, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='token_out_min_amount', full_name='OsmosisMsgSwap.token_out_min_amount', index=5,
-      number=6, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -966,8 +952,8 @@ _OSMOSISMSGSWAP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2132,
-  serialized_end=2289,
+  serialized_start=2068,
+  serialized_end=2225,
 )
 
 
@@ -1004,8 +990,8 @@ _OSMOSISSIGNEDTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2291,
-  serialized_end=2347,
+  serialized_start=2227,
+  serialized_end=2283,
 )
 
 _OSMOSISMSGACK.fields_by_name['send'].message_type = _OSMOSISMSGSEND
@@ -1029,11 +1015,11 @@ DESCRIPTOR.message_types_by_name['OsmosisMsgSend'] = _OSMOSISMSGSEND
 DESCRIPTOR.message_types_by_name['OsmosisMsgDelegate'] = _OSMOSISMSGDELEGATE
 DESCRIPTOR.message_types_by_name['OsmosisMsgUndelegate'] = _OSMOSISMSGUNDELEGATE
 DESCRIPTOR.message_types_by_name['OsmosisMsgRedelegate'] = _OSMOSISMSGREDELEGATE
-DESCRIPTOR.message_types_by_name['OsmosisMsgRewards'] = _OSMOSISMSGREWARDS
 DESCRIPTOR.message_types_by_name['OsmosisMsgLPAdd'] = _OSMOSISMSGLPADD
 DESCRIPTOR.message_types_by_name['OsmosisMsgLPRemove'] = _OSMOSISMSGLPREMOVE
 DESCRIPTOR.message_types_by_name['OsmosisMsgLPStake'] = _OSMOSISMSGLPSTAKE
 DESCRIPTOR.message_types_by_name['OsmosisMsgLPUnstake'] = _OSMOSISMSGLPUNSTAKE
+DESCRIPTOR.message_types_by_name['OsmosisMsgRewards'] = _OSMOSISMSGREWARDS
 DESCRIPTOR.message_types_by_name['OsmosisMsgIBCTransfer'] = _OSMOSISMSGIBCTRANSFER
 DESCRIPTOR.message_types_by_name['OsmosisMsgSwap'] = _OSMOSISMSGSWAP
 DESCRIPTOR.message_types_by_name['OsmosisSignedTx'] = _OSMOSISSIGNEDTX
@@ -1102,13 +1088,6 @@ OsmosisMsgRedelegate = _reflection.GeneratedProtocolMessageType('OsmosisMsgRedel
   ))
 _sym_db.RegisterMessage(OsmosisMsgRedelegate)
 
-OsmosisMsgRewards = _reflection.GeneratedProtocolMessageType('OsmosisMsgRewards', (_message.Message,), dict(
-  DESCRIPTOR = _OSMOSISMSGREWARDS,
-  __module__ = 'messages_osmosis_pb2'
-  # @@protoc_insertion_point(class_scope:OsmosisMsgRewards)
-  ))
-_sym_db.RegisterMessage(OsmosisMsgRewards)
-
 OsmosisMsgLPAdd = _reflection.GeneratedProtocolMessageType('OsmosisMsgLPAdd', (_message.Message,), dict(
   DESCRIPTOR = _OSMOSISMSGLPADD,
   __module__ = 'messages_osmosis_pb2'
@@ -1136,6 +1115,13 @@ OsmosisMsgLPUnstake = _reflection.GeneratedProtocolMessageType('OsmosisMsgLPUnst
   # @@protoc_insertion_point(class_scope:OsmosisMsgLPUnstake)
   ))
 _sym_db.RegisterMessage(OsmosisMsgLPUnstake)
+
+OsmosisMsgRewards = _reflection.GeneratedProtocolMessageType('OsmosisMsgRewards', (_message.Message,), dict(
+  DESCRIPTOR = _OSMOSISMSGREWARDS,
+  __module__ = 'messages_osmosis_pb2'
+  # @@protoc_insertion_point(class_scope:OsmosisMsgRewards)
+  ))
+_sym_db.RegisterMessage(OsmosisMsgRewards)
 
 OsmosisMsgIBCTransfer = _reflection.GeneratedProtocolMessageType('OsmosisMsgIBCTransfer', (_message.Message,), dict(
   DESCRIPTOR = _OSMOSISMSGIBCTRANSFER,
@@ -1165,28 +1151,12 @@ _OSMOSISSIGNTX.fields_by_name['account_number'].has_options = True
 _OSMOSISSIGNTX.fields_by_name['account_number']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
 _OSMOSISSIGNTX.fields_by_name['sequence'].has_options = True
 _OSMOSISSIGNTX.fields_by_name['sequence']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
-_OSMOSISMSGSEND.fields_by_name['amount'].has_options = True
-_OSMOSISMSGSEND.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
-_OSMOSISMSGDELEGATE.fields_by_name['amount'].has_options = True
-_OSMOSISMSGDELEGATE.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
-_OSMOSISMSGUNDELEGATE.fields_by_name['amount'].has_options = True
-_OSMOSISMSGUNDELEGATE.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
-_OSMOSISMSGREDELEGATE.fields_by_name['amount'].has_options = True
-_OSMOSISMSGREDELEGATE.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
-_OSMOSISMSGREWARDS.fields_by_name['amount'].has_options = True
-_OSMOSISMSGREWARDS.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
-_OSMOSISMSGLPADD.fields_by_name['amount_in_max_a'].has_options = True
-_OSMOSISMSGLPADD.fields_by_name['amount_in_max_a']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
-_OSMOSISMSGLPADD.fields_by_name['amount_in_max_b'].has_options = True
-_OSMOSISMSGLPADD.fields_by_name['amount_in_max_b']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
-_OSMOSISMSGLPREMOVE.fields_by_name['amount_out_min_a'].has_options = True
-_OSMOSISMSGLPREMOVE.fields_by_name['amount_out_min_a']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
-_OSMOSISMSGLPREMOVE.fields_by_name['amount_out_min_b'].has_options = True
-_OSMOSISMSGLPREMOVE.fields_by_name['amount_out_min_b']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
-_OSMOSISMSGLPSTAKE.fields_by_name['amount'].has_options = True
-_OSMOSISMSGLPSTAKE.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
-_OSMOSISMSGIBCTRANSFER.fields_by_name['amount'].has_options = True
-_OSMOSISMSGIBCTRANSFER.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
-_OSMOSISMSGSWAP.fields_by_name['token_in_amount'].has_options = True
-_OSMOSISMSGSWAP.fields_by_name['token_in_amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_OSMOSISMSGLPADD.fields_by_name['pool_id'].has_options = True
+_OSMOSISMSGLPADD.fields_by_name['pool_id']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_OSMOSISMSGLPREMOVE.fields_by_name['pool_id'].has_options = True
+_OSMOSISMSGLPREMOVE.fields_by_name['pool_id']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_OSMOSISMSGLPSTAKE.fields_by_name['duration'].has_options = True
+_OSMOSISMSGLPSTAKE.fields_by_name['duration']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_OSMOSISMSGSWAP.fields_by_name['pool_id'].has_options = True
+_OSMOSISMSGSWAP.fields_by_name['pool_id']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
 # @@protoc_insertion_point(module_scope)

@@ -26,6 +26,7 @@ def make_deposit(asset, amount, memo, signer):
 class TestMsg2ThorChainSignTx(common.KeepKeyTest):
 
     def test_thorchain_sign_tx_deposit(self):
+        self.requires_fullFeature()
         self.requires_firmware("7.1.3")
         self.setup_mnemonic_nopin_nopassphrase()
         signature = self.client.thorchain_sign_tx(

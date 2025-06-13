@@ -26,6 +26,7 @@ import binascii
 class TestMsgEthereumGetaddress(common.KeepKeyTest):
 
     def test_ethereum_getaddress(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.assertEqual(binascii.hexlify(self.client.ethereum_get_address([])), '1d1c328764a41bda0492b66baa30c4a339ff85ef')
         self.assertEqual(binascii.hexlify(self.client.ethereum_get_address([1])), '437207ca3cf43bf2e47dea0756d736c5df4f597a')

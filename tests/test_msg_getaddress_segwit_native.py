@@ -26,6 +26,7 @@ from keepkeylib.tools import parse_path
 class TestMsgGetaddressSegwitNative(common.KeepKeyTest):
 
     def test_show_segwit(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.client.clear_session()
         self.assertEqual(self.client.get_address("Testnet", parse_path("49'/1'/0'/0/0"), True, None, script_type=proto.SPENDWITNESS), 'tb1qqzv60m9ajw8drqulta4ld4gfx0rdh82un5s65s')

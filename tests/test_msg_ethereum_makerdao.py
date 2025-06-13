@@ -28,6 +28,7 @@ from keepkeylib.client import CallException
 class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
 
     def test_generate(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -47,6 +48,7 @@ class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '645568ec1d8f270069c5f08a82e1e5a3efee817a347d70f336408a99973b6650')
 
     def test_deposit(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -67,6 +69,7 @@ class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
 
 
     def test_close(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -87,6 +90,7 @@ class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
 
 
     def test_free(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(

@@ -29,6 +29,7 @@ from keepkeylib import tools
 class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
   
     def test_ethereum_sign_typed_data_hash(self):
+        self.requires_fullFeature()
         self.requires_firmware("7.4.0")
         self.setup_mnemonic_allallall()
         f = open('sign_typed_data.json')

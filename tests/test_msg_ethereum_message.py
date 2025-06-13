@@ -24,6 +24,7 @@ from keepkeylib import tools
 
 class TestMsgEthereumMessage(common.KeepKeyTest):
     def test_ethereum_sign_message(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         retval = self.client.ethereum_sign_message(
@@ -36,6 +37,7 @@ class TestMsgEthereumMessage(common.KeepKeyTest):
 
     def test_ethereum_sign_message_from_metamask(self):
         # This test data is what is used on the Shapeshift native wallet
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         retval = self.client.ethereum_sign_message(
@@ -46,6 +48,7 @@ class TestMsgEthereumMessage(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(retval.signature), '111128bb8685b85843d423fa4844f2b4521b6e5aae8a5f7e1cc09bf9da116d5e27df6c7abb170853ca874fd9c4b413dd35a3c63e5a7d47594391a758b09d000f1b')
  
     def test_ethereum_verify_message(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         retval = self.client.ethereum_verify_message(
@@ -63,6 +66,7 @@ class TestMsgEthereumMessage(common.KeepKeyTest):
    
     def test_ethereum_sign_message_from_nativedata(self):
         # This test data is what is used on the Shapeshift native wallet
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         retval = self.client.ethereum_sign_message(
@@ -73,6 +77,7 @@ class TestMsgEthereumMessage(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(retval.signature), '05a0edb4b98fe6b6ed270bf55aef84ddcb641512e19e340bf9eed3427854a7a4734fe45551dc24f1843cf2c823a73aa2454e3785eb15120573c522cc114e472d1c')
    
     def test_ethereum_sign_bytes(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         retval = self.client.ethereum_sign_message(
@@ -84,6 +89,7 @@ class TestMsgEthereumMessage(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(retval.signature), 'fc44af700a747a68b1b79170dd46fb5aad2ffe2aee2a6a9ef653a29350967daf1bf62ffb84a3523356baff572d1b1285a14036212e69a26ca194adb53a0e22a61b')
 
     def test_ethereum_verify_message(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         retval = self.client.ethereum_verify_message(
@@ -95,6 +101,7 @@ class TestMsgEthereumMessage(common.KeepKeyTest):
         self.assertEqual(retval.message, 'Message verified')
 
     def test_ethereum_verify_bytes(self):
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         retval = self.client.ethereum_verify_message(

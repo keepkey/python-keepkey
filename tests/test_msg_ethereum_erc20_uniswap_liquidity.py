@@ -28,6 +28,7 @@ from keepkeylib.tools import int_to_big_endian
 class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
     
     def test_sign_uni_approve_liquidity_ETH(self):
+        self.requires_fullFeature()
         self.requires_firmware("7.1.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -53,7 +54,8 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '329954b284ed1df9a6242820e793b9719c0c6c21cae5f90190ce61c7f73c731e')
                  
     def test_sign_uni_add_liquidity_ETH(self):
-        if self.client.features.firmware_variant == "Emulator":
+        self.requires_fullFeature()
+        if self.client.features.firmware_variant[0:8] == "Emulator":
             self.skipTest("Skip until emulator issue resolved")
             return
         self.requires_firmware("7.1.0")
@@ -84,7 +86,8 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '0a8eec6856aef8caa234240b06862976f8e238e8b24f5c989279507dd7e51ccd')
 
     def test_sign_uni_remove_liquidity_ETH(self):
-        if self.client.features.firmware_variant == "Emulator":
+        self.requires_fullFeature()
+        if self.client.features.firmware_variant[0:8] == "Emulator":
             self.skipTest("Skip until emulator issue resolved")
             return
         self.requires_firmware("7.1.0")

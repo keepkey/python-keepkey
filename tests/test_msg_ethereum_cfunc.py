@@ -32,6 +32,7 @@ from keepkeylib.tools import int_to_big_endian
 class TestMsgEthereumCfunc(common.KeepKeyTest):
     
     def test_sign_execTx(self):
+        self.requires_fullFeature()
         self.requires_firmware("7.5.2")
         self.setup_mnemonic_nopin_nopassphrase()
 

@@ -11,6 +11,7 @@ DEFAULT_BIP32_PATH = "m/44h/118h/0h/0/0"
 
 class TestMsgCosmosGetAddress(common.KeepKeyTest):
     def test_standard(self):
+        self.requires_fullFeature()
         self.requires_firmware("6.3.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -38,6 +39,7 @@ class TestMsgCosmosGetAddress(common.KeepKeyTest):
 
 
     def test_nonstandard(self):
+        self.requires_fullFeature()
         self.requires_firmware("6.3.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -70,6 +72,7 @@ class TestMsgCosmosGetAddress(common.KeepKeyTest):
 
 
     def test_cosmos_get_address_sep(self):
+        self.requires_fullFeature()
         self.requires_firmware("6.3.0")
         self.client.load_device_by_mnemonic(
           mnemonic='illness spike retreat truth genius clock brain pass fit cave bargain toe',
@@ -88,6 +91,7 @@ class TestMsgCosmosGetAddress(common.KeepKeyTest):
         assert address == "cosmos1280uphuty5rxr2m05t6xujvylkkftlrvdnw0pp"
 
     def test_onchain(self):
+        self.requires_fullFeature()
         self.requires_firmware("6.3.0")
         self.client.load_device_by_mnemonic(
           mnemonic='hybrid anger habit story vibrant grit ill sense duck butter heavy frame',
