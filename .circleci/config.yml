@@ -6,11 +6,13 @@ jobs:
       - image: circleci/python:3.7      # upgrade to cimg/python:3.12 if you like
     steps:
       # ────────────────────────────────────────────────────────────────
-      # 1) Pull python-keepkey via HTTPS so no SSH key is required
+      # 1) Clone the current branch of python-keepkey via HTTPS
       # ────────────────────────────────────────────────────────────────
       - run:
-          name: Clone python-keepkey
-          command: git clone --depth 1 https://github.com/keepkey/python-keepkey.git .pykk
+          name: Clone python-keepkey (current branch)
+          command: |
+            git clone --depth 1 -b "$CIRCLE_BRANCH" https://github.com/keepkey/python-keepkey.git .pykk
+            cd .pykk && git submodule update --init --recursive
 
       # ────────────────────────────────────────────────────────────────
       # 2) Grab firmware repo and inject our fresh python-keepkey copy
@@ -22,7 +24,7 @@ jobs:
             git config --global url."https://github.com/".insteadOf git@github.com:
             git config --global url."https://".insteadOf git://
 
-            # Move python-keepkey out of the way for the moment
+            # Move python-keepkey out of the way
             mv .pykk ../
 
             # Clone firmware repository (expects $FIRMWARE_REPO env var)
@@ -31,14 +33,9 @@ jobs:
             # Initialise firmware submodules
             git submodule update --init --recursive
 
-            # Replace the vendor copy with our freshly–cloned python-keepkey
+            # Replace the vendor copy with our PR branch python-keepkey
             rm -rf deps/python-keepkey
             mv ../.pykk deps/python-keepkey
-
-            # Pull python-keepkey submodules too
-            cd deps/python-keepkey
-            git submodule update --init --recursive
-            cd ../../..
 
       # ────────────────────────────────────────────────────────────────
       # 3) Build the Docker-based emulator tests
