@@ -10,7 +10,6 @@ DEFAULT_BIP32_PATH = "m/44h/931h/0h/0/0"
 
 class TestMsgMayaChainGetAddress(common.KeepKeyTest):
 
-    @unittest.skip("Expected values need to be captured from emulator - mayachain uses smaya prefix, not tthor")
     def test_mayachain_get_address(self):
         self.requires_firmware("7.9.1")
         self.requires_fullFeature()

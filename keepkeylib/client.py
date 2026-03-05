@@ -1096,14 +1096,13 @@ class ProtocolMixin(object):
                     raise CallException("Mayachain.MsgSend", "Multiple amounts per send msg not supported")
 
                 denom = msg['value']['amount'][0]['denom']
-                if denom != 'cacao':
-                    raise CallException("Mayachain.MsgSend", "Unsupported denomination: " + denom)
 
                 resp = self.call(mayachain_proto.MayachainMsgAck(
                     send=mayachain_proto.MayachainMsgSend(
                         from_address=msg['value']['from_address'],
                         to_address=msg['value']['to_address'],
                         amount=int(msg['value']['amount'][0]['amount']),
+                        denom=denom,
                         address_type=types.SPEND,
                     )
                 ))
