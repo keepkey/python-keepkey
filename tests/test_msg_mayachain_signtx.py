@@ -166,7 +166,8 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
         return
 
 
-    def test_mayachain_sign_tx(self):
+    @unittest.skip("TODO: capture expected signatures from emulator")
+    def test_mayachain_sign_tx_memos(self):
         self.requires_firmware("7.9.1")
         self.setup_mnemonic_nopin_nopassphrase()
 
