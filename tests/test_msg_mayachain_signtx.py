@@ -70,6 +70,7 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
   
     def test_sign_eth_btc_swap(self):
         self.requires_firmware("7.1.0")
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
@@ -116,6 +117,7 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
   
     def test_sign_eth_add_liquidity(self):
         self.requires_firmware("7.9.1")
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
                         n=[2147483692,2147483708,2147483648,0,0],

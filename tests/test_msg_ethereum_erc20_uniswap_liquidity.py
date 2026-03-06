@@ -29,7 +29,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
     
     def test_sign_uni_approve_liquidity_ETH(self):
         self.requires_fullFeature()
-        self.requires_firmware("7.1.0")
+        self.requires_firmware("7.13.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # Approval tx for the ETH/FOX pool
