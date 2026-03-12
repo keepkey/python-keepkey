@@ -27,6 +27,7 @@ from keepkeylib.tools import int_to_big_endian
 
 class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
     
+    @unittest.skip("Requires WETH in firmware token database — pending firmware update")
     def test_sign_uni_approve_liquidity_ETH(self):
         self.requires_fullFeature()
         self.requires_firmware("7.1.0")
