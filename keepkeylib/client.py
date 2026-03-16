@@ -48,6 +48,7 @@ from . import messages_mayachain_pb2 as mayachain_proto
 from . import messages_solana_pb2 as solana_proto
 from . import messages_tron_pb2 as tron_proto
 from . import messages_ton_pb2 as ton_proto
+from . import messages_zcash_pb2 as zcash_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -1602,6 +1603,17 @@ class ProtocolMixin(object):
     def ton_sign_tx(self, address_n, raw_tx):
         return self.call(
             ton_proto.TonSignTx(address_n=address_n, raw_tx=raw_tx)
+        )
+
+    # ── Zcash Orchard ──────────────────────────────────────────
+    @expect(zcash_proto.ZcashOrchardFVK)
+    def zcash_get_orchard_fvk(self, address_n, account=0, show_display=False):
+        return self.call(
+            zcash_proto.ZcashGetOrchardFVK(
+                address_n=address_n,
+                account=account,
+                show_display=show_display,
+            )
         )
 
 class KeepKeyClient(ProtocolMixin, TextUIMixin, BaseClient):
