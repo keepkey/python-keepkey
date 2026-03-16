@@ -45,6 +45,9 @@ from . import messages_ripple_pb2 as ripple_proto
 from . import messages_tendermint_pb2 as tendermint_proto
 from . import messages_thorchain_pb2 as thorchain_proto
 from . import messages_mayachain_pb2 as mayachain_proto
+from . import messages_solana_pb2 as solana_proto
+from . import messages_tron_pb2 as tron_proto
+from . import messages_ton_pb2 as ton_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -1555,6 +1558,51 @@ class ProtocolMixin(object):
             return False
 
         raise Exception("Unexpected result %s" % resp)
+
+    # ── Solana ──────────────────────────────────────────────────
+    @expect(solana_proto.SolanaAddress)
+    def solana_get_address(self, address_n, show_display=False):
+        return self.call(
+            solana_proto.SolanaGetAddress(address_n=address_n, show_display=show_display)
+        )
+
+    @expect(solana_proto.SolanaSignedTx)
+    def solana_sign_tx(self, address_n, raw_tx):
+        return self.call(
+            solana_proto.SolanaSignTx(address_n=address_n, raw_tx=raw_tx)
+        )
+
+    @expect(solana_proto.SolanaMessageSignature)
+    def solana_sign_message(self, address_n, message):
+        return self.call(
+            solana_proto.SolanaSignMessage(address_n=address_n, message=message)
+        )
+
+    # ── Tron ───────────────────────────────────────────────────
+    @expect(tron_proto.TronAddress)
+    def tron_get_address(self, address_n, show_display=False):
+        return self.call(
+            tron_proto.TronGetAddress(address_n=address_n, show_display=show_display)
+        )
+
+    @expect(tron_proto.TronSignedTx)
+    def tron_sign_tx(self, address_n, raw_tx):
+        return self.call(
+            tron_proto.TronSignTx(address_n=address_n, raw_tx=raw_tx)
+        )
+
+    # ── TON ────────────────────────────────────────────────────
+    @expect(ton_proto.TonAddress)
+    def ton_get_address(self, address_n, show_display=False):
+        return self.call(
+            ton_proto.TonGetAddress(address_n=address_n, show_display=show_display)
+        )
+
+    @expect(ton_proto.TonSignedTx)
+    def ton_sign_tx(self, address_n, raw_tx):
+        return self.call(
+            ton_proto.TonSignTx(address_n=address_n, raw_tx=raw_tx)
+        )
 
 class KeepKeyClient(ProtocolMixin, TextUIMixin, BaseClient):
     pass
