@@ -1616,7 +1616,8 @@ class ProtocolMixin(object):
             )
         )
 
-    def zcash_sign_pczt(self, address_n, actions, account=0,
+    @session
+    def zcash_sign_pczt(self, address_n, actions, account=None,
                         total_amount=0, fee=0, branch_id=0x37519621,
                         header_digest=None, transparent_digest=None,
                         sapling_digest=None, orchard_digest=None,
@@ -1630,7 +1631,7 @@ class ProtocolMixin(object):
         Args:
             address_n: ZIP-32 derivation path [32', 133', account']
             actions: list of dicts, each with keys matching ZcashPCZTAction fields
-            account: account index
+            account: account index (default: derived from address_n[2])
             total_amount: total ZEC in zatoshis (for display)
             fee: fee in zatoshis (for display)
             branch_id: consensus branch ID (default NU5)
@@ -1649,15 +1650,18 @@ class ProtocolMixin(object):
         if n_actions == 0:
             raise ValueError("Must have at least one action")
 
-        # Build the initial signing request
+        # Build the initial signing request — only send address_n,
+        # let firmware derive account from the path. Only set account
+        # explicitly if the caller passed it.
         kwargs = dict(
             address_n=address_n,
-            account=account,
             n_actions=n_actions,
             total_amount=total_amount,
             fee=fee,
             branch_id=branch_id,
         )
+        if account is not None:
+            kwargs['account'] = account
         if header_digest is not None:
             kwargs['header_digest'] = header_digest
         if transparent_digest is not None:
