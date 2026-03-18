@@ -81,11 +81,9 @@ class TestZcashSignPCZT(common.KeepKeyTest):
         )
 
         self.assertEqual(len(resp.signatures), 3)
-        for i, sig in enumerate(resp.signatures):
-            self.assertEqual(len(sig), 64,
-                             "Signature %d must be 64 bytes, got %d" % (i, len(sig)))
-            self.assertTrue(sig != b'\x00' * 64,
-                            "Signature %d must be nonzero" % i)
+        for sig in resp.signatures:
+            self.assertEqual(len(sig), 64)
+            self.assertTrue(sig != b'\x00' * 64)
 
     def test_different_accounts_different_signatures(self):
         """Same transaction with different accounts must produce different sigs."""
