@@ -74,7 +74,6 @@ class TestZcashOrchardFVK(common.KeepKeyTest):
 
         Uses mnemonic "all all all all all all all all all all all all"
         with account 0, which is the standard test seed.
-        Firmware now uses storage_getSeed() for real BIP-39 seed.
         """
         self.setup_mnemonic_allallall()
 
