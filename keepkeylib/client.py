@@ -1607,14 +1607,11 @@ class ProtocolMixin(object):
 
     # ── Zcash Orchard ──────────────────────────────────────────
     @expect(zcash_proto.ZcashOrchardFVK)
-    def zcash_get_orchard_fvk(self, address_n, account=0, show_display=False):
-        return self.call(
-            zcash_proto.ZcashGetOrchardFVK(
-                address_n=address_n,
-                account=account,
-                show_display=show_display,
-            )
-        )
+    def zcash_get_orchard_fvk(self, address_n, account=None, show_display=False):
+        kwargs = dict(address_n=address_n, show_display=show_display)
+        if account is not None:
+            kwargs['account'] = account
+        return self.call(zcash_proto.ZcashGetOrchardFVK(**kwargs))
 
     @session
     def zcash_sign_pczt(self, address_n, actions, account=None,
