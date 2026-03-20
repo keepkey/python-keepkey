@@ -39,7 +39,6 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             self.client.set_expected_responses(
                 [
                     proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
-                    proto.ButtonRequest(code=proto_types.ButtonRequest_Other),
                     proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                     proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
                     eth_proto.EthereumTxRequest(),
