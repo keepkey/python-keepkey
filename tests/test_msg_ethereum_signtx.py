@@ -33,7 +33,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
     def test_ethereum_signtx_data(self):
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy("AdvancedMode", 0)
+        self.client.apply_policy("AdvancedMode", 1)
 
         with self.client:
             self.client.set_expected_responses(
@@ -441,6 +441,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.requires_firmware("7.2.1")
         self.setup_mnemonic_allallall()
+        self.client.apply_policy("AdvancedMode", 1)
 
         # from trezor test vector:
         # https://github.com/trezor/trezor-firmware/blob/master/common/tests/fixtures/ethereum/sign_tx_eip1559.json#L27
