@@ -55,13 +55,11 @@ from . import nano
 from .debuglink import DebugLink
 
 
-# try:
-#     from PIL import Image
-#     SCREENSHOT = True
-# except:
-#     SCREENSHOT = False
-
-SCREENSHOT = False
+try:
+    from PIL import Image
+    SCREENSHOT = os.environ.get('KEEPKEY_SCREENSHOT', '') == '1'
+except ImportError:
+    SCREENSHOT = False
 
 DEFAULT_CURVE = 'secp256k1'
 
@@ -426,16 +424,24 @@ class DebugLinkMixin(object):
     def call_raw(self, msg):
 
         if SCREENSHOT and self.debug:
-            layout = self.debug.read_layout()
-            im = Image.new("RGB", (128, 64))
-            pix = im.load()
-            for x in range(128):
-                for y in range(64):
-                    rx, ry = 127 - x, 63 - y
-                    if (ord(layout[rx + (ry / 8) * 128]) & (1 << (ry % 8))) > 0:
-                        pix[x, y] = (255, 255, 255)
-            im.save('scr%05d.png' % self.screenshot_id)
-            self.screenshot_id += 1
+            try:
+                layout = self.debug.read_layout()
+                if layout and len(layout) >= 2048:
+                    # KeepKey OLED: 256x64, packed as 1bpp (2048 bytes)
+                    im = Image.new("RGB", (256, 64))
+                    pix = im.load()
+                    for x in range(256):
+                        for y in range(64):
+                            byte_idx = x + (y // 8) * 256
+                            b = layout[byte_idx] if isinstance(layout[byte_idx], int) else ord(layout[byte_idx])
+                            if (b >> (y % 8)) & 1:
+                                pix[x, y] = (255, 255, 255)
+                    screenshot_dir = getattr(self, 'screenshot_dir', os.environ.get('SCREENSHOT_DIR', '.'))
+                    os.makedirs(screenshot_dir, exist_ok=True)
+                    im.save(os.path.join(screenshot_dir, 'scr%05d.png' % self.screenshot_id))
+                    self.screenshot_id += 1
+            except Exception:
+                pass  # Don't let screenshot failures break tests
 
         resp = super(DebugLinkMixin, self).call_raw(msg)
         self._check_request(resp)
