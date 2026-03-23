@@ -111,18 +111,20 @@ def parse_junit(junit_path):
     tree = ET.parse(junit_path)
     results = {}
     for tc in tree.iter('testcase'):
+        classname = tc.get('classname', '')
         name = tc.get('name', '')
+        key = '%s.%s' % (classname, name) if classname else name
         failure = tc.find('failure')
         error = tc.find('error')
         skip = tc.find('skipped')
         if failure is not None:
-            results[name] = 'FAIL'
+            results[key] = 'FAIL'
         elif error is not None:
-            results[name] = 'ERROR'
+            results[key] = 'ERROR'
         elif skip is not None:
-            results[name] = 'SKIP'
+            results[key] = 'SKIP'
         else:
-            results[name] = 'PASS'
+            results[key] = 'PASS'
     return results
 
 
@@ -276,7 +278,14 @@ def generate_html(screenshots, junit_results, output_path):
             for test_name, pngs in sorted(tests.items()):
                 test_counter[letter] += 1
                 idx = f"{letter}{test_counter[letter]}"
-                result = junit_results.get(test_name, 'UNKNOWN')
+                # Try classname.name first, fall back to bare name
+                result = 'UNKNOWN'
+                for key, val in junit_results.items():
+                    if key.endswith('.' + test_name):
+                        result = val
+                        break
+                else:
+                    result = junit_results.get(test_name, 'UNKNOWN')
                 status_class = 'pass' if result == 'PASS' else 'fail' if result in ('FAIL', 'ERROR') else ''
                 badge_class = 'pass' if result == 'PASS' else 'fail' if result in ('FAIL', 'ERROR') else 'skip'
 

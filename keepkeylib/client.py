@@ -1625,11 +1625,13 @@ class ProtocolMixin(object):
                         header_digest=None, transparent_digest=None,
                         sapling_digest=None, orchard_digest=None,
                         orchard_flags=None, orchard_value_balance=None,
-                        orchard_anchor=None):
+                        orchard_anchor=None, transparent_inputs=None):
         """Sign a Zcash Orchard shielded transaction via PCZT protocol.
 
-        Sends ZcashSignPCZT, then loops on ZcashPCZTActionAck feeding
-        actions one at a time, until the device returns ZcashSignedPCZT.
+        Phase 2: Sends ZcashSignPCZT, then loops on ZcashPCZTActionAck
+        feeding Orchard actions one at a time.
+        Phase 3: If transparent_inputs provided, handles ZcashTransparentSig
+        loop for transparent-to-shielded (shielding) transactions.
 
         Args:
             address_n: ZIP-32 derivation path [32', 133', account']
@@ -1682,7 +1684,7 @@ class ProtocolMixin(object):
 
         resp = self.call(zcash_proto.ZcashSignPCZT(**kwargs))
 
-        # Ack loop: device asks for actions one at a time
+        # Phase 2: Orchard action-ack loop — device asks for actions one at a time
         while isinstance(resp, zcash_proto.ZcashPCZTActionAck):
             idx = resp.next_index
             if idx >= n_actions:
@@ -1691,6 +1693,21 @@ class ProtocolMixin(object):
                     % (idx, n_actions))
             action = actions[idx]
             resp = self.call(zcash_proto.ZcashPCZTAction(index=idx, **action))
+
+        # Phase 3: Transparent input signing — device sends back signatures
+        # and may request transparent inputs for shielding transactions
+        transparent_sigs = []
+        while isinstance(resp, zcash_proto.ZcashTransparentSig):
+            transparent_sigs.append(resp)
+            if not transparent_inputs:
+                raise Exception(
+                    "Device sent ZcashTransparentSig but no transparent_inputs provided")
+            if resp.input_index >= len(transparent_inputs):
+                raise Exception(
+                    "Device requested transparent input %d but only %d provided"
+                    % (resp.input_index, len(transparent_inputs)))
+            inp = transparent_inputs[resp.input_index]
+            resp = self.call(zcash_proto.ZcashTransparentInput(**inp))
 
         if isinstance(resp, proto.Failure):
             raise Exception("Zcash signing failed: %s" % resp.message)
