@@ -1702,11 +1702,11 @@ class ProtocolMixin(object):
             if not transparent_inputs:
                 raise Exception(
                     "Device sent ZcashTransparentSig but no transparent_inputs provided")
-            if resp.input_index >= len(transparent_inputs):
+            if resp.next_index >= len(transparent_inputs):
                 raise Exception(
                     "Device requested transparent input %d but only %d provided"
-                    % (resp.input_index, len(transparent_inputs)))
-            inp = transparent_inputs[resp.input_index]
+                    % (resp.next_index, len(transparent_inputs)))
+            inp = transparent_inputs[resp.next_index]
             resp = self.call(zcash_proto.ZcashTransparentInput(**inp))
 
         if isinstance(resp, proto.Failure):
