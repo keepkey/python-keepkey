@@ -48,7 +48,7 @@ class TestZcashOrchardFVK(common.KeepKeyTest):
 
         # ZIP-32 Orchard path: m/32'/133'/0'
         address_n = [0x80000000 + 32, 0x80000000 + 133, 0x80000000]
-        resp = self.client.zcash_get_orchard_fvk(address_n=address_n, account=0)
+        resp = self.client.zcash_get_orchard_fvk(address_n=address_n)
 
         ak = resp.ak
         nk = resp.nk
@@ -69,22 +69,16 @@ class TestZcashOrchardFVK(common.KeepKeyTest):
         rivk_int = bytes_to_int_le(rivk)
         self.assertTrue(rivk_int < PALLAS_Q, "rivk must be < Pallas order q, got 0x%064x" % rivk_int)
 
-    @unittest.expectedFailure
     def test_fvk_reference_vectors(self):
         """FVK must match reference values from the orchard Rust crate.
 
         Uses mnemonic "all all all all all all all all all all all all"
         with account 0, which is the standard test seed.
-
-        NOTE: expectedFailure because C derivation does not yet match
-        the orchard Rust crate output byte-for-byte. The seed access
-        is now correct (storage_getRawSeed), but the ZIP-32 derivation
-        internals need debugging. Remove once vectors match.
         """
         self.setup_mnemonic_allallall()
 
         address_n = [0x80000000 + 32, 0x80000000 + 133, 0x80000000]
-        resp = self.client.zcash_get_orchard_fvk(address_n=address_n, account=0)
+        resp = self.client.zcash_get_orchard_fvk(address_n=address_n)
 
         ak_hex = binascii.hexlify(resp.ak).decode()
         nk_hex = binascii.hexlify(resp.nk).decode()
@@ -100,8 +94,8 @@ class TestZcashOrchardFVK(common.KeepKeyTest):
 
         address_n = [0x80000000 + 32, 0x80000000 + 133, 0x80000000]
 
-        resp1 = self.client.zcash_get_orchard_fvk(address_n=address_n, account=0)
-        resp2 = self.client.zcash_get_orchard_fvk(address_n=address_n, account=0)
+        resp1 = self.client.zcash_get_orchard_fvk(address_n=address_n)
+        resp2 = self.client.zcash_get_orchard_fvk(address_n=address_n)
 
         self.assertTrue(resp1.ak == resp2.ak, "ak must be deterministic")
         self.assertTrue(resp1.nk == resp2.nk, "nk must be deterministic")
@@ -127,7 +121,7 @@ class TestZcashOrchardFVK(common.KeepKeyTest):
         self.setup_mnemonic_abandon()
 
         address_n = [0x80000000 + 32, 0x80000000 + 133, 0x80000000]
-        resp = self.client.zcash_get_orchard_fvk(address_n=address_n, account=0)
+        resp = self.client.zcash_get_orchard_fvk(address_n=address_n)
 
         # Check field ranges (not reference values — just validity)
         self.assertTrue(resp.ak[31] & 0x80 == 0, "ak sign bit must be 0 for abandon mnemonic")
