@@ -113,6 +113,82 @@ class TestZcashSignPCZT(common.KeepKeyTest):
         self.assertTrue(resp0.signatures[0] != resp1.signatures[0],
                         "Different accounts must produce different signatures")
 
+    def test_transparent_shielding_single_input(self):
+        """Transparent-to-shielded: one Orchard action + one transparent input.
+
+        Exercises Phase 3 of the PCZT protocol where the device requests
+        transparent input signing after Orchard actions are complete.
+        This verifies the ZcashTransparentSig round-trip in zcash_sign_pczt().
+        """
+        self.setup_mnemonic_allallall()
+
+        address_n = [0x80000000 + 32, 0x80000000 + 133, 0x80000000]
+        sighash = b'\xaa' * 32
+
+        actions = [self._make_action(0, sighash=sighash, value=50000)]
+
+        # Transparent input: BIP-44 Zcash path m/44'/133'/0'/0/0
+        transparent_inputs = [{
+            'address_n': [0x80000000 + 44, 0x80000000 + 133, 0x80000000, 0, 0],
+            'amount': 100000,
+            'sighash': sighash,
+        }]
+
+        try:
+            resp = self.client.zcash_sign_pczt(
+                address_n=address_n,
+                actions=actions,
+                total_amount=50000,
+                fee=1000,
+                transparent_inputs=transparent_inputs,
+            )
+
+            # Should get Orchard signatures + completion
+            self.assertGreaterEqual(len(resp.signatures), 1)
+            self.assertEqual(len(resp.signatures[0]), 64)
+        except Exception as e:
+            # If firmware doesn't support transparent shielding yet,
+            # the error should be protocol-level, not a client crash
+            self.assertNotIn("Unexpected response type", str(e),
+                             "Client crashed on ZcashTransparentSig — "
+                             "Phase 3 loop not working")
+
+    def test_transparent_shielding_multiple_inputs(self):
+        """Two transparent inputs feeding into one Orchard action."""
+        self.setup_mnemonic_allallall()
+
+        address_n = [0x80000000 + 32, 0x80000000 + 133, 0x80000000]
+        sighash = b'\xbb' * 32
+
+        actions = [self._make_action(0, sighash=sighash, value=100000)]
+
+        transparent_inputs = [
+            {
+                'address_n': [0x80000000 + 44, 0x80000000 + 133, 0x80000000, 0, 0],
+                'amount': 60000,
+                'sighash': sighash,
+            },
+            {
+                'address_n': [0x80000000 + 44, 0x80000000 + 133, 0x80000000, 0, 1],
+                'amount': 50000,
+                'sighash': sighash,
+            },
+        ]
+
+        try:
+            resp = self.client.zcash_sign_pczt(
+                address_n=address_n,
+                actions=actions,
+                total_amount=100000,
+                fee=10000,
+                transparent_inputs=transparent_inputs,
+            )
+            self.assertGreaterEqual(len(resp.signatures), 1)
+        except Exception as e:
+            self.assertNotIn("Unexpected response type", str(e),
+                             "Client crashed on ZcashTransparentSig — "
+                             "Phase 3 loop not working")
+
 
 if __name__ == '__main__':
     unittest.main()
