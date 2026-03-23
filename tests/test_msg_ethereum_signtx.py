@@ -35,17 +35,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 
-        with self.client:
-            self.client.set_expected_responses(
-                [
-                    proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
-                    proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
-                    proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
-                    eth_proto.EthereumTxRequest(),
-                ]
-            )
-
-            sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
                 n=[0, 0],
                 nonce=0,
                 gas_price=20,
