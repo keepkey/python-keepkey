@@ -59,6 +59,10 @@ def make_ton_address(workchain=0, hash_bytes=None, bounceable=True, testnet=Fals
 @unittest.skipUnless(_has_ton, "TON protobuf messages not available in this build")
 class TestMsgTonSignTx(common.KeepKeyTest):
 
+    def setUp(self):
+        super().setUp()
+        self.requires_firmware("7.14.0")
+
     def test_ton_get_address(self):
         """Test TON address derivation from device."""
         self.requires_fullFeature()

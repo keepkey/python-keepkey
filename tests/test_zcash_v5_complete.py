@@ -10,6 +10,7 @@ import sys
 import os
 import binascii
 import requests
+import pytest
 from hashlib import sha256
 
 # Setup paths
@@ -93,6 +94,10 @@ def compare_sighashes(firmware_sighash, expected_sighash):
         print("❌ SIGHASH MISMATCH!")
         return False
 
+@pytest.mark.skipif(
+    not os.environ.get('ZCASH_RPC_URL'),
+    reason="Zcash v5 test requires ZCASH_RPC_URL and firmware >= 7.14.0"
+)
 def test_v5_signing():
     """Test Zcash v5 transaction signing with proper scriptPubKey"""
 

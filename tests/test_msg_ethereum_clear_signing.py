@@ -411,6 +411,7 @@ class TestEthereumClearSigning(common.KeepKeyTest):
 
     def setUp(self):
         super().setUp()
+        self.requires_firmware("7.14.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
     def test_valid_metadata_returns_verified(self):

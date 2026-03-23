@@ -11,6 +11,10 @@ import os
 class TestZcashSignPCZT(common.KeepKeyTest):
     """Test Zcash Orchard PCZT signing protocol."""
 
+    def setUp(self):
+        super().setUp()
+        self.requires_firmware("7.14.0")
+
     def _make_action(self, index, sighash=None, value=10000, is_spend=True):
         """Build a minimal action dict for testing."""
         action = {

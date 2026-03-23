@@ -27,6 +27,10 @@ from keepkeylib.tools import parse_path
 @unittest.skipUnless(_has_tron, "TRON protobuf messages not available in this build")
 class TestMsgTronSignTx(common.KeepKeyTest):
 
+    def setUp(self):
+        super().setUp()
+        self.requires_firmware("7.14.0")
+
     def test_tron_get_address(self):
         """Test TRON address derivation from device."""
         self.requires_fullFeature()

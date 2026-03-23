@@ -62,6 +62,10 @@ def build_system_transfer_tx(from_pubkey, to_pubkey, lamports, blockhash=None):
 
 class TestMsgSolanaSignTx(common.KeepKeyTest):
 
+    def setUp(self):
+        super().setUp()
+        self.requires_firmware("7.14.0")
+
     def test_solana_get_address(self):
         """Test Solana address derivation from device."""
         self.requires_fullFeature()
