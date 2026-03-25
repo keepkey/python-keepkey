@@ -22,37 +22,19 @@ import base64
 
 from keepkeylib import messages_pb2 as messages
 from keepkeylib import messages_ton_pb2 as ton_messages
-from keepkeylib import types_pb2 as types
 from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
 
+TON_PATH = "m/44'/607'/0'/0'/0'/0'"
 
-def make_ton_address(workchain=0, hash_bytes=None, bounceable=True, testnet=False):
-    """Construct a TON user-friendly address (48-char base64)."""
+
+def make_ton_address(workchain=0, hash_bytes=None, bounceable=True):
+    """Build a base64url TON address string."""
     if hash_bytes is None:
-        hash_bytes = b'\xBB' * 32
-
-    if bounceable:
-        flags = 0x11
-    else:
-        flags = 0x51
-
-    if testnet:
-        flags |= 0x80
-
-    raw = bytes([flags, workchain & 0xFF]) + hash_bytes
-
-    # CRC16-XMODEM
-    crc = 0
-    for byte in raw:
-        crc ^= byte << 8
-        for _ in range(8):
-            if crc & 0x8000:
-                crc = (crc << 1) ^ 0x1021
-            else:
-                crc <<= 1
-            crc &= 0xFFFF
-
+        hash_bytes = b'\xAA' * 32
+    tag = 0x11 if bounceable else 0x51
+    raw = bytes([tag, workchain & 0xFF]) + hash_bytes
+    crc = binascii.crc_hqx(raw, 0)
     raw += struct.pack('>H', crc)
     return base64.b64encode(raw).decode('ascii')
 
@@ -70,80 +52,65 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.setup_mnemonic_allallall()
 
         msg = ton_messages.TonGetAddress(
-            address_n=parse_path("m/44'/607'/0'/0/0"),
+            address_n=parse_path(TON_PATH),
             show_display=False,
         )
         resp = self.client.call(msg)
 
-        # Should return a raw address
         self.assertTrue(resp.raw_address is not None or resp.address is not None)
 
     def test_ton_sign_structured(self):
-        """Test TON transfer using structured fields (reconstruct-then-sign)."""
+        """Test TON transfer using structured fields."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
-        dest_addr = make_ton_address(
-            workchain=0,
-            hash_bytes=b'\xCC' * 32,
-            bounceable=True
-        )
+        dest_addr = make_ton_address(workchain=0, hash_bytes=b'\xCC' * 32, bounceable=True)
 
         msg = ton_messages.TonSignTx(
-            address_n=parse_path("m/44'/607'/0'/0/0"),
-            destination=dest_addr,
-            ton_amount=1000000000,  # 1 TON
+            address_n=parse_path(TON_PATH),
+            to_address=dest_addr,
+            amount=1000000000,  # 1 TON in nanotons
             seqno=1,
             expire_at=1700000000,
             bounce=True,
-            mode=3,
         )
         resp = self.client.call(msg)
 
-        # Should have a 64-byte Ed25519 signature
         self.assertEqual(len(resp.signature), 64)
-
-        # Should return the cell hash
-        self.assertEqual(len(resp.cell_hash), 32)
-
-        # Verify signature is not all zeros
         self.assertFalse(all(b == 0 for b in resp.signature))
 
-    def test_ton_sign_with_comment(self):
-        """Test TON transfer with a text comment."""
+    def test_ton_sign_with_memo(self):
+        """Test TON transfer with a text memo."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
         dest_addr = make_ton_address()
 
         msg = ton_messages.TonSignTx(
-            address_n=parse_path("m/44'/607'/0'/0/0"),
-            destination=dest_addr,
-            ton_amount=500000000,  # 0.5 TON
+            address_n=parse_path(TON_PATH),
+            to_address=dest_addr,
+            amount=500000000,  # 0.5 TON
             seqno=2,
             expire_at=1700000000,
-            comment="Hello TON!",
+            memo="Hello TON!",
         )
         resp = self.client.call(msg)
 
         self.assertEqual(len(resp.signature), 64)
-        self.assertEqual(len(resp.cell_hash), 32)
 
     def test_ton_sign_legacy_raw_tx(self):
         """Test legacy blind-sign with raw_tx field."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
-        # Provide arbitrary raw_tx bytes (simulating a pre-built signing message)
-        raw_tx = b'\x00' * 64  # dummy signing message
+        raw_tx = b'\x00' * 64
 
         msg = ton_messages.TonSignTx(
-            address_n=parse_path("m/44'/607'/0'/0/0"),
+            address_n=parse_path(TON_PATH),
             raw_tx=raw_tx,
         )
         resp = self.client.call(msg)
 
-        # Should have a 64-byte Ed25519 signature
         self.assertEqual(len(resp.signature), 64)
 
     def test_ton_sign_missing_fields_rejected(self):
@@ -151,42 +118,40 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
-        # Has destination but no amount or seqno
         msg = ton_messages.TonSignTx(
-            address_n=parse_path("m/44'/607'/0'/0/0"),
-            destination=make_ton_address(),
+            address_n=parse_path(TON_PATH),
+            to_address=make_ton_address(),
         )
 
         with pytest.raises(CallException):
             self.client.call(msg)
 
     def test_ton_sign_deterministic(self):
-        """Test that signing the same message produces same cell hash."""
+        """Test that signing the same message produces same signature."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
         dest_addr = make_ton_address()
 
         msg1 = ton_messages.TonSignTx(
-            address_n=parse_path("m/44'/607'/0'/0/0"),
-            destination=dest_addr,
-            ton_amount=1000000000,
+            address_n=parse_path(TON_PATH),
+            to_address=dest_addr,
+            amount=1000000000,
             seqno=1,
             expire_at=1700000000,
         )
         resp1 = self.client.call(msg1)
 
         msg2 = ton_messages.TonSignTx(
-            address_n=parse_path("m/44'/607'/0'/0/0"),
-            destination=dest_addr,
-            ton_amount=1000000000,
+            address_n=parse_path(TON_PATH),
+            to_address=dest_addr,
+            amount=1000000000,
             seqno=1,
             expire_at=1700000000,
         )
         resp2 = self.client.call(msg2)
 
-        # Cell hash should be identical for same inputs
-        self.assertEqual(resp1.cell_hash, resp2.cell_hash)
+        self.assertEqual(resp1.signature, resp2.signature)
 
 
 if __name__ == '__main__':

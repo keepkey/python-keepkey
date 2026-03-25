@@ -47,8 +47,10 @@ class TestMsgBip85(common.KeepKeyTest):
         self.requires_firmware("7.14.0")
         self.setup_mnemonic_allallall()
 
-        resp = self.client.call(proto.GetBip85Mnemonic(word_count=15, index=0))
-        self.assertIsInstance(resp, proto.Failure)
+        from keepkeylib.client import CallException
+        with self.assertRaises(CallException) as ctx:
+            self.client.call(proto.GetBip85Mnemonic(word_count=15, index=0))
+        self.assertIn('word_count', str(ctx.exception))
 
     def test_bip85_18word_flow(self):
         """18-word derivation: verify the third word_count variant works."""
