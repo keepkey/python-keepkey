@@ -10,8 +10,8 @@ import pytest
 import unittest
 
 try:
-    from keepkeylib import messages_pb2 as _msgs
-    _has_ton = hasattr(_msgs, 'TonGetAddress')
+    from keepkeylib import messages_ton_pb2 as _ton_msgs
+    _has_ton = hasattr(_ton_msgs, 'TonGetAddress')
 except Exception:
     _has_ton = False
 import common
@@ -21,6 +21,7 @@ import hashlib
 import base64
 
 from keepkeylib import messages_pb2 as messages
+from keepkeylib import messages_ton_pb2 as ton_messages
 from keepkeylib import types_pb2 as types
 from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
@@ -68,7 +69,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
-        msg = messages.TonGetAddress(
+        msg = ton_messages.TonGetAddress(
             address_n=parse_path("m/44'/607'/0'/0/0"),
             show_display=False,
         )
@@ -88,7 +89,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
             bounceable=True
         )
 
-        msg = messages.TonSignTx(
+        msg = ton_messages.TonSignTx(
             address_n=parse_path("m/44'/607'/0'/0/0"),
             destination=dest_addr,
             ton_amount=1000000000,  # 1 TON
@@ -115,7 +116,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
 
         dest_addr = make_ton_address()
 
-        msg = messages.TonSignTx(
+        msg = ton_messages.TonSignTx(
             address_n=parse_path("m/44'/607'/0'/0/0"),
             destination=dest_addr,
             ton_amount=500000000,  # 0.5 TON
@@ -136,7 +137,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         # Provide arbitrary raw_tx bytes (simulating a pre-built signing message)
         raw_tx = b'\x00' * 64  # dummy signing message
 
-        msg = messages.TonSignTx(
+        msg = ton_messages.TonSignTx(
             address_n=parse_path("m/44'/607'/0'/0/0"),
             raw_tx=raw_tx,
         )
@@ -151,7 +152,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.setup_mnemonic_allallall()
 
         # Has destination but no amount or seqno
-        msg = messages.TonSignTx(
+        msg = ton_messages.TonSignTx(
             address_n=parse_path("m/44'/607'/0'/0/0"),
             destination=make_ton_address(),
         )
@@ -166,7 +167,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
 
         dest_addr = make_ton_address()
 
-        msg1 = messages.TonSignTx(
+        msg1 = ton_messages.TonSignTx(
             address_n=parse_path("m/44'/607'/0'/0/0"),
             destination=dest_addr,
             ton_amount=1000000000,
@@ -175,7 +176,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         )
         resp1 = self.client.call(msg1)
 
-        msg2 = messages.TonSignTx(
+        msg2 = ton_messages.TonSignTx(
             address_n=parse_path("m/44'/607'/0'/0/0"),
             destination=dest_addr,
             ton_amount=1000000000,

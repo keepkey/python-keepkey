@@ -10,8 +10,8 @@ import pytest
 import unittest
 
 try:
-    from keepkeylib import messages_pb2 as _msgs
-    _has_tron = hasattr(_msgs, 'TronGetAddress')
+    from keepkeylib import messages_tron_pb2 as _tron_msgs
+    _has_tron = hasattr(_tron_msgs, 'TronGetAddress')
 except Exception:
     _has_tron = False
 import common
@@ -19,6 +19,7 @@ import binascii
 import struct
 
 from keepkeylib import messages_pb2 as messages
+from keepkeylib import messages_tron_pb2 as tron_messages
 from keepkeylib import types_pb2 as types
 from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
@@ -36,7 +37,7 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
-        msg = messages.TronGetAddress(
+        msg = tron_messages.TronGetAddress(
             address_n=parse_path("m/44'/195'/0'/0/0"),
             show_display=False,
         )
@@ -51,13 +52,13 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
-        msg = messages.TronSignTx(
+        msg = tron_messages.TronSignTx(
             address_n=parse_path("m/44'/195'/0'/0/0"),
             ref_block_bytes=b'\xab\xcd',
             ref_block_hash=b'\x42' * 8,
             expiration=1700000000000,
             timestamp=1699999990000,
-            transfer=messages.TronTransferContract(
+            transfer=tron_messages.TronTransferContract(
                 to_address="TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
                 amount=1000000,  # 1 TRX
             ),
@@ -85,7 +86,7 @@ class TestMsgTronSignTx(common.KeepKeyTest):
             '80e8ded785315a67'                   # dummy contract data
         )
 
-        msg = messages.TronSignTx(
+        msg = tron_messages.TronSignTx(
             address_n=parse_path("m/44'/195'/0'/0/0"),
             raw_data=raw_data,
         )
@@ -100,7 +101,7 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         self.setup_mnemonic_allallall()
 
         # No raw_data and no transfer/trigger_smart
-        msg = messages.TronSignTx(
+        msg = tron_messages.TronSignTx(
             address_n=parse_path("m/44'/195'/0'/0/0"),
             ref_block_bytes=b'\xab\xcd',
             ref_block_hash=b'\x42' * 8,
@@ -128,13 +129,13 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         # Amount
         struct.pack_into('>Q', abi_data, 60, 1000000)
 
-        msg = messages.TronSignTx(
+        msg = tron_messages.TronSignTx(
             address_n=parse_path("m/44'/195'/0'/0/0"),
             ref_block_bytes=b'\xab\xcd',
             ref_block_hash=b'\x42' * 8,
             expiration=1700000000000,
             timestamp=1699999990000,
-            trigger_smart=messages.TronTriggerSmartContract(
+            trigger_smart=tron_messages.TronTriggerSmartContract(
                 contract_address="TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
                 data=bytes(abi_data),
             ),

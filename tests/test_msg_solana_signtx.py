@@ -86,7 +86,17 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
-        from_pubkey = b'\x11' * 32
+        # Get the actual derived pubkey from the device (must match the tx signer)
+        addr_resp = self.client.call(messages.SolanaGetAddress(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            show_display=False,
+        ))
+        # Decode base58 address to raw 32-byte pubkey
+        ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+        n = 0
+        for c in addr_resp.address:
+            n = n * 58 + ALPHABET.index(c)
+        from_pubkey = n.to_bytes(32, 'big')
         to_pubkey = b'\x22' * 32
         raw_tx = build_system_transfer_tx(from_pubkey, to_pubkey, 1000000000)
 
@@ -132,7 +142,16 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
-        from_pubkey = b'\x11' * 32
+        # Get the actual derived pubkey from the device
+        addr_resp = self.client.call(messages.SolanaGetAddress(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            show_display=False,
+        ))
+        ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+        n = 0
+        for c in addr_resp.address:
+            n = n * 58 + ALPHABET.index(c)
+        from_pubkey = n.to_bytes(32, 'big')
         to_pubkey = b'\x22' * 32
         raw_tx = build_system_transfer_tx(from_pubkey, to_pubkey, 1000000000)
 
