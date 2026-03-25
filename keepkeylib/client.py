@@ -54,13 +54,21 @@ from . import nano
 from .debuglink import DebugLink
 
 
-# try:
-#     from PIL import Image
-#     SCREENSHOT = True
-# except:
-#     SCREENSHOT = False
+import struct
+import zlib
 
-SCREENSHOT = False
+SCREENSHOT = os.environ.get('KEEPKEY_SCREENSHOT', '') == '1'
+
+
+def _write_png(path, width, height, pixels):
+    """Write a minimal grayscale PNG. pixels = list of rows, each row = bytes."""
+    def _chunk(tag, data):
+        raw = tag + data
+        return struct.pack('>I', len(data)) + raw + struct.pack('>I', zlib.crc32(raw) & 0xffffffff)
+
+    ihdr = struct.pack('>IIBBBBB', width, height, 8, 0, 0, 0, 0)
+    raw_data = b''.join(b'\x00' + row for row in pixels)
+    return b'\x89PNG\r\n\x1a\n' + _chunk(b'IHDR', ihdr) + _chunk(b'IDAT', zlib.compress(raw_data)) + _chunk(b'IEND', b'')
 
 DEFAULT_CURVE = 'secp256k1'
 
@@ -424,17 +432,8 @@ class DebugLinkMixin(object):
 
     def call_raw(self, msg):
 
-        if SCREENSHOT and self.debug:
-            layout = self.debug.read_layout()
-            im = Image.new("RGB", (128, 64))
-            pix = im.load()
-            for x in range(128):
-                for y in range(64):
-                    rx, ry = 127 - x, 63 - y
-                    if (ord(layout[rx + (ry / 8) * 128]) & (1 << (ry % 8))) > 0:
-                        pix[x, y] = (255, 255, 255)
-            im.save('scr%05d.png' % self.screenshot_id)
-            self.screenshot_id += 1
+        # Screenshot capture disabled in call_raw (too slow, captures idle screens).
+        # Real confirmation screenshots are captured in callback_ButtonRequest instead.
 
         resp = super(DebugLinkMixin, self).call_raw(msg)
         self._check_request(resp)
@@ -461,6 +460,29 @@ class DebugLinkMixin(object):
     def callback_ButtonRequest(self, msg):
         if self.verbose:
             log("ButtonRequest code: " + get_buttonrequest_value(msg.code))
+
+        # Capture OLED screenshot BEFORE pressing button (this is the confirmation screen)
+        if SCREENSHOT and self.debug:
+            try:
+                layout = self.debug.read_layout()
+                if layout and len(layout) >= 2048:
+                    rows = []
+                    for y in range(64):
+                        row = bytearray(256)
+                        for x in range(256):
+                            byte_idx = x + (y // 8) * 256
+                            b = layout[byte_idx] if isinstance(layout[byte_idx], int) else ord(layout[byte_idx])
+                            if (b >> (y % 8)) & 1:
+                                row[x] = 255
+                        rows.append(bytes(row))
+                    screenshot_dir = getattr(self, 'screenshot_dir', os.environ.get('SCREENSHOT_DIR', '.'))
+                    os.makedirs(screenshot_dir, exist_ok=True)
+                    png_data = _write_png(os.path.join(screenshot_dir, 'btn%05d.png' % self.screenshot_id), 256, 64, rows)
+                    with open(os.path.join(screenshot_dir, 'btn%05d.png' % self.screenshot_id), 'wb') as f:
+                        f.write(png_data)
+                    self.screenshot_id += 1
+            except Exception:
+                pass
 
         if self.auto_button:
             if self.verbose:
