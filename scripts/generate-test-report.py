@@ -246,16 +246,24 @@ def detect_fw():
     except: return None
 
 def parse_junit(path):
-    """Parse junit XML for pass/fail per test method. Returns {method_name: 'pass'|'fail'|'error'|'skip'}"""
+    """Parse junit XML for pass/fail. Returns dict keyed by both 'classname.method' and 'method'.
+    When names collide, pass wins over fail (avoids false negatives from unrelated test classes)."""
     if not path or not os.path.exists(path): return {}
     import xml.etree.ElementTree as ET
     results = {}
     for tc in ET.parse(path).iter('testcase'):
-        name = tc.get('name','')
-        if tc.find('failure') is not None: results[name] = 'fail'
-        elif tc.find('error') is not None: results[name] = 'error'
-        elif tc.find('skipped') is not None: results[name] = 'skip'
-        else: results[name] = 'pass'
+        name = tc.get('name', '')
+        cls = tc.get('classname', '')
+        if tc.find('failure') is not None: status = 'fail'
+        elif tc.find('error') is not None: status = 'error'
+        elif tc.find('skipped') is not None: status = 'skip'
+        else: status = 'pass'
+        # Key by classname.method (precise) and method-only (fallback)
+        if cls:
+            results[f'{cls}.{name}'] = status
+        # For method-only key, pass wins over fail (avoid collision false negatives)
+        if name not in results or status == 'pass':
+            results[name] = status
     return results
 
 # ---------------------------------------------------------------
@@ -512,10 +520,9 @@ SECTIONS = [
           'Sign multi-input BTC tx',
           'Two inputs, two outputs. Verifies correct fee calculation across multiple inputs.',
           []),
-         ('B12', 'test_msg_signtx', 'test_lots_of_inputs',
-          'Sign tx with many inputs',
-          'Stress test with many UTXOs. Verifies the device handles the serialization and memory '
-          'correctly without truncation or overflow.',
+         ('B12', 'test_msg_signtx', 'test_spend_coinbase',
+          'Sign coinbase spend',
+          'Spending a coinbase (mining reward) output. Coinbase outputs have special maturity rules.',
           []),
          ('B13', 'test_msg_signtx', 'test_lots_of_outputs',
           'Sign tx with many outputs',
@@ -628,8 +635,8 @@ SECTIONS = [
           'MakerDAO generate DAI', 'Complex DeFi contract interaction (MakerDAO CDP).', []),
          ('E13', 'test_msg_ethereum_sablier', 'test_sign_salarywithdrawal',
           'Sablier salary withdrawal', 'Streaming payment protocol contract call.', []),
-         ('E14', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_add_liquidity_ETH',
-          'Uniswap add liquidity', 'DEX liquidity provision contract interaction.', []),
+         ('E14', 'test_msg_ethereum_erc20_0x_signtx', 'test_sign_0x_swap_ETH_to_ERC20',
+          '0x swap ETH to ERC-20', 'DEX aggregator swap via 0x protocol.', []),
          ('E15', 'test_msg_ethereum_cfunc', 'test_sign_execTx',
           'Contract function call', 'Generic contract call signing.', []),
      ]),
@@ -712,9 +719,9 @@ SECTIONS = [
      [
          ('M1', 'test_msg_mayachain_getaddress', 'test_mayachain_get_address',
           'Derive Maya address', 'Bech32 maya1... address.', []),
-         ('M2', 'test_msg_mayachain_signtx', 'test_mayachain_sign_tx',
-          'Sign Maya tx', 'Native CACAO transfer.', ['Maya confirm']),
-         ('M3', 'test_msg_mayachain_signtx', 'test_sign_btc_eth_swap',
+         ('M2', 'test_msg_mayachain_signtx', 'test_sign_btc_eth_swap',
+          'Sign BTC-ETH swap via Maya', 'Cross-chain swap via Maya memo routing.', []),
+         ('M3', 'test_msg_mayachain_signtx', 'test_sign_eth_add_liquidity',
           'Sign swap via Maya', 'Cross-chain swap via Maya memo routing.', []),
      ]),
 

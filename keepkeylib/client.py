@@ -465,16 +465,21 @@ class DebugLinkMixin(object):
         if SCREENSHOT and self.debug:
             try:
                 layout = self.debug.read_layout()
-                if layout and len(layout) >= 2048:
+                if layout and len(layout) >= 1024:
+                    layout_bytes = len(layout)
+                    height = 64 if layout_bytes >= 2048 else 32
                     rows = []
-                    for y in range(64):
+                    for y in range(height):
                         row = bytearray(256)
                         for x in range(256):
                             byte_idx = x + (y // 8) * 256
-                            b = layout[byte_idx] if isinstance(layout[byte_idx], int) else ord(layout[byte_idx])
-                            if (b >> (y % 8)) & 1:
-                                row[x] = 255
+                            if byte_idx < layout_bytes:
+                                b = layout[byte_idx] if isinstance(layout[byte_idx], int) else ord(layout[byte_idx])
+                                if (b >> (y % 8)) & 1:
+                                    row[x] = 255
                         rows.append(bytes(row))
+                    while len(rows) < 64:
+                        rows.append(bytes(256))
                     screenshot_dir = getattr(self, 'screenshot_dir', os.environ.get('SCREENSHOT_DIR', '.'))
                     os.makedirs(screenshot_dir, exist_ok=True)
                     png_path = os.path.join(screenshot_dir, 'btn%05d.png' % self.screenshot_id)

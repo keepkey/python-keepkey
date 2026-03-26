@@ -47,12 +47,16 @@ class KeepKeyTest(unittest.TestCase):
             self.client = KeepKeyClient(transport)
         self.client.set_tx_api(tx_api.TxApiBitcoin)
 
-        # Per-test screenshot directory
+        # Per-test screenshot directory (unittest runner — conftest.py handles pytest)
         if os.environ.get('KEEPKEY_SCREENSHOT') == '1':
             test_id = self.id()
-            parts = test_id.rsplit('.', 2)
-            mod = parts[0].replace('test_', '') if len(parts) >= 2 else 'unknown'
+            parts = test_id.split('.')
             test_name = parts[-1] if parts else 'unknown'
+            mod = 'unknown'
+            for p in parts:
+                if p.startswith('test_msg_') or p.startswith('test_sign_') or p.startswith('test_verify_'):
+                    mod = p.replace('test_', '', 1)
+                    break
             sdir = os.path.join(os.environ.get('SCREENSHOT_DIR', 'screenshots'), mod, test_name)
             os.makedirs(sdir, exist_ok=True)
             self.client.screenshot_dir = sdir
