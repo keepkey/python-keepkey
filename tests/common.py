@@ -24,6 +24,7 @@ from __future__ import print_function
 import unittest
 import config
 import time
+import os
 import semver
 
 from keepkeylib.client import KeepKeyClient, KeepKeyDebuglinkClient, KeepKeyDebuglinkClientVerbose
@@ -45,7 +46,17 @@ class KeepKeyTest(unittest.TestCase):
         else:
             self.client = KeepKeyClient(transport)
         self.client.set_tx_api(tx_api.TxApiBitcoin)
-        # self.client.set_buttonwait(3)
+
+        # Per-test screenshot directory
+        if os.environ.get('KEEPKEY_SCREENSHOT') == '1':
+            test_id = self.id()
+            parts = test_id.rsplit('.', 2)
+            mod = parts[0].replace('test_', '') if len(parts) >= 2 else 'unknown'
+            test_name = parts[-1] if parts else 'unknown'
+            sdir = os.path.join(os.environ.get('SCREENSHOT_DIR', 'screenshots'), mod, test_name)
+            os.makedirs(sdir, exist_ok=True)
+            self.client.screenshot_dir = sdir
+            self.client.screenshot_id = 0
 
         #                     1      2     3    4      5      6      7     8      9    10    11    12
         self.mnemonic12 = 'alcohol woman abuse must during monitor noble actual mixed trade anger aisle'

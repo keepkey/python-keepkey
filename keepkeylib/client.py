@@ -55,11 +55,20 @@ from . import nano
 from .debuglink import DebugLink
 
 
-try:
-    from PIL import Image
-    SCREENSHOT = os.environ.get('KEEPKEY_SCREENSHOT', '') == '1'
-except ImportError:
-    SCREENSHOT = False
+import struct as _struct
+import zlib as _zlib
+
+SCREENSHOT = os.environ.get('KEEPKEY_SCREENSHOT', '') == '1'
+
+
+def _write_png(path, width, height, pixels):
+    """Write a minimal grayscale PNG. No Pillow needed."""
+    def _chunk(tag, data):
+        raw = tag + data
+        return _struct.pack('>I', len(data)) + raw + _struct.pack('>I', _zlib.crc32(raw) & 0xffffffff)
+    ihdr = _struct.pack('>IIBBBBB', width, height, 8, 0, 0, 0, 0)
+    raw_data = b''.join(b'\x00' + row for row in pixels)
+    return b'\x89PNG\r\n\x1a\n' + _chunk(b'IHDR', ihdr) + _chunk(b'IDAT', _zlib.compress(raw_data)) + _chunk(b'IEND', b'')
 
 DEFAULT_CURVE = 'secp256k1'
 
@@ -423,25 +432,8 @@ class DebugLinkMixin(object):
 
     def call_raw(self, msg):
 
-        if SCREENSHOT and self.debug:
-            try:
-                layout = self.debug.read_layout()
-                if layout and len(layout) >= 2048:
-                    # KeepKey OLED: 256x64, packed as 1bpp (2048 bytes)
-                    im = Image.new("RGB", (256, 64))
-                    pix = im.load()
-                    for x in range(256):
-                        for y in range(64):
-                            byte_idx = x + (y // 8) * 256
-                            b = layout[byte_idx] if isinstance(layout[byte_idx], int) else ord(layout[byte_idx])
-                            if (b >> (y % 8)) & 1:
-                                pix[x, y] = (255, 255, 255)
-                    screenshot_dir = getattr(self, 'screenshot_dir', os.environ.get('SCREENSHOT_DIR', '.'))
-                    os.makedirs(screenshot_dir, exist_ok=True)
-                    im.save(os.path.join(screenshot_dir, 'scr%05d.png' % self.screenshot_id))
-                    self.screenshot_id += 1
-            except Exception:
-                pass  # Don't let screenshot failures break tests
+        # Screenshot capture disabled in call_raw (captures idle screens, adds latency).
+        # Real confirmation screenshots are captured in callback_ButtonRequest instead.
 
         resp = super(DebugLinkMixin, self).call_raw(msg)
         self._check_request(resp)
@@ -468,6 +460,29 @@ class DebugLinkMixin(object):
     def callback_ButtonRequest(self, msg):
         if self.verbose:
             log("ButtonRequest code: " + get_buttonrequest_value(msg.code))
+
+        # Capture OLED screenshot BEFORE pressing button (confirmation screen)
+        if SCREENSHOT and self.debug:
+            try:
+                layout = self.debug.read_layout()
+                if layout and len(layout) >= 2048:
+                    rows = []
+                    for y in range(64):
+                        row = bytearray(256)
+                        for x in range(256):
+                            byte_idx = x + (y // 8) * 256
+                            b = layout[byte_idx] if isinstance(layout[byte_idx], int) else ord(layout[byte_idx])
+                            if (b >> (y % 8)) & 1:
+                                row[x] = 255
+                        rows.append(bytes(row))
+                    screenshot_dir = getattr(self, 'screenshot_dir', os.environ.get('SCREENSHOT_DIR', '.'))
+                    os.makedirs(screenshot_dir, exist_ok=True)
+                    png_path = os.path.join(screenshot_dir, 'btn%05d.png' % self.screenshot_id)
+                    with open(png_path, 'wb') as f:
+                        f.write(_write_png(png_path, 256, 64, rows))
+                    self.screenshot_id += 1
+            except Exception:
+                pass
 
         if self.auto_button:
             if self.verbose:
