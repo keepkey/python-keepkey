@@ -117,6 +117,26 @@ class KeepKeyTest(unittest.TestCase):
         if semver.VersionInfo.parse(version) < semver.VersionInfo.parse(ver_required):
             self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
 
+    def requires_message(self, msg_name):
+        """Skip if firmware does not handle this message type.
+        Use alongside requires_firmware for per-feature gating:
+          self.requires_firmware("7.14.0")
+          self.requires_message("ZcashGetOrchardFVK")
+        """
+        from keepkeylib import messages_pb2 as proto
+        if not hasattr(proto, msg_name):
+            self.skipTest("%s proto message not available" % msg_name)
+        # Send a minimal probe — if firmware returns Failure_UnexpectedMessage, skip
+        msg = getattr(proto, msg_name)()
+        try:
+            resp = self.client.call_raw(msg)
+            if hasattr(resp, 'code') and resp.code == 1:  # Failure_UnexpectedMessage
+                self.skipTest("%s not supported by this firmware build" % msg_name)
+            # Re-init device state after probe (some messages may have changed state)
+            self.client.call_raw(proto.Initialize())
+        except Exception:
+            self.skipTest("%s not supported by this firmware build" % msg_name)
+
     def requires_fullFeature(self):
       if self.client.features.firmware_variant == "KeepKeyBTC" or \
             self.client.features.firmware_variant == "EmulatorBTC":

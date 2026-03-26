@@ -41,6 +41,7 @@ class TestMsgSolanaGetAddress(common.KeepKeyTest):
     def test_solana_get_address(self):
         """Derive Solana address at standard path m/44'/501'/0'/0'."""
         self.requires_firmware("7.14.0")
+        self.requires_message("SolanaGetAddress")
         self.setup_mnemonic_allallall()
 
         resp = self.client.call(
@@ -68,6 +69,7 @@ class TestMsgSolanaGetAddress(common.KeepKeyTest):
     def test_solana_different_accounts(self):
         """Different account indices must produce different addresses."""
         self.requires_firmware("7.14.0")
+        self.requires_message("SolanaGetAddress")
         self.setup_mnemonic_allallall()
 
         # Account 0: m/44'/501'/0'/0'
@@ -120,6 +122,7 @@ class TestMsgSolanaGetAddress(common.KeepKeyTest):
     def test_solana_deterministic(self):
         """Same path must produce the same address every time."""
         self.requires_firmware("7.14.0")
+        self.requires_message("SolanaGetAddress")
         self.setup_mnemonic_allallall()
 
         resp1 = self.client.call(

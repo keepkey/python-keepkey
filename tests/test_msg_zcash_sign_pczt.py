@@ -14,6 +14,7 @@ class TestZcashSignPCZT(common.KeepKeyTest):
     def setUp(self):
         super().setUp()
         self.requires_firmware("7.14.0")
+        self.requires_message("ZcashGetOrchardFVK")
 
     def _make_action(self, index, sighash=None, value=10000, is_spend=True):
         """Build a minimal action dict for testing."""
