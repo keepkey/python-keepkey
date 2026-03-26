@@ -942,7 +942,10 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
     # Separate specs section (no tests) from test sections
     specs = [s for s in active if not s[5]]
-    test_sections = [s for s in active if s[5]]
+    # NEW sections first (7.14.0+), then existing — new features at top of report
+    new_sects = [s for s in active if s[5] and ver_t(s[2]) > (7, 10, 0)]
+    old_sects = [s for s in active if s[5] and ver_t(s[2]) <= (7, 10, 0)]
+    test_sections = new_sects + old_sects
     total = sum(len(s[5]) for s in test_sections)
     passed = sum(1 for s in test_sections for t in s[5] if results.get(t[2]) == 'pass')
     failed = sum(1 for s in test_sections for t in s[5] if results.get(t[2]) in ('fail','error'))
@@ -959,8 +962,16 @@ def render(output_path, fw_version, results, screenshot_dir=None):
         pb.text(10, f'Firmware {fw_version}  |  {ts}  |  {total} tests: {passed} passed, {skipped} pending')
     pb.gap(6)
     pb.text(12, 'Sections', bold=True)
+    _shown_new = _shown_old = False
     for letter, title, mf, _, _, tests in test_sections:
-        tag = ' [NEW]' if ver_t(mf) > (7, 10, 0) else ''
+        is_new = ver_t(mf) > (7, 10, 0)
+        if is_new and not _shown_new:
+            pb.text(9, f'  --- {fw_version} New Features ---', bold=True)
+            _shown_new = True
+        elif not is_new and not _shown_old:
+            pb.text(9, f'  --- Existing Chains ---', bold=True)
+            _shown_old = True
+        tag = ' [NEW]' if is_new else ''
         p = sum(1 for t in tests if results.get(t[2]) == 'pass')
         if p == len(tests) and len(tests) > 0:
             pb.text(8, f'  {letter}  {title}{tag} -- {p}/{len(tests)} passed', color=GREEN)
