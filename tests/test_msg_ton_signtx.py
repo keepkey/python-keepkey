@@ -61,14 +61,29 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.assertTrue(resp.raw_address is not None or resp.address is not None)
 
     def test_ton_sign_structured(self):
-        """Test TON transfer using structured fields."""
+        """Test TON transfer with structured fields + raw_tx hash.
+
+        The firmware requires raw_tx even when structured fields are present.
+        Clear-sign mode activates when raw_tx is exactly 32 bytes (a SHA-256
+        hash of the unsigned body cell tree).  The firmware reconstructs the
+        cell tree from the structured fields and verifies the hash matches.
+
+        Without a Python cell-hash implementation, we send a non-matching
+        32-byte raw_tx which causes the firmware to fall back to blind-sign
+        with the structured fields shown as display context.
+        """
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
         dest_addr = make_ton_address(workchain=0, hash_bytes=b'\xCC' * 32, bounceable=True)
 
+        # 64-byte raw_tx triggers blind-sign path (not 32-byte hash path)
+        # Structured fields (to_address, amount) are used for display context
+        raw_tx = hashlib.sha256(b'test-ton-structured').digest() * 2  # 64 bytes
+
         msg = ton_messages.TonSignTx(
             address_n=parse_path(TON_PATH),
+            raw_tx=raw_tx,
             to_address=dest_addr,
             amount=1000000000,  # 1 TON in nanotons
             seqno=1,
@@ -81,14 +96,18 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.assertFalse(all(b == 0 for b in resp.signature))
 
     def test_ton_sign_with_memo(self):
-        """Test TON transfer with a text memo."""
+        """Test TON transfer with a text memo (blind-sign path)."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
         dest_addr = make_ton_address()
 
+        # raw_tx required; 64 bytes = blind-sign path with display context
+        raw_tx = hashlib.sha256(b'test-ton-memo').digest() * 2
+
         msg = ton_messages.TonSignTx(
             address_n=parse_path(TON_PATH),
+            raw_tx=raw_tx,
             to_address=dest_addr,
             amount=500000000,  # 0.5 TON
             seqno=2,
@@ -133,9 +152,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.setup_mnemonic_allallall()
 
         dest_addr = make_ton_address()
+        raw_tx = hashlib.sha256(b'test-ton-deterministic').digest() * 2  # 64 bytes
 
         msg1 = ton_messages.TonSignTx(
             address_n=parse_path(TON_PATH),
+            raw_tx=raw_tx,
             to_address=dest_addr,
             amount=1000000000,
             seqno=1,
@@ -145,6 +166,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
 
         msg2 = ton_messages.TonSignTx(
             address_n=parse_path(TON_PATH),
+            raw_tx=raw_tx,
             to_address=dest_addr,
             amount=1000000000,
             seqno=1,
