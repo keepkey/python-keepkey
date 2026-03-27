@@ -170,6 +170,7 @@ class TestMsgSolanaGetAddress(common.KeepKeyTest):
         is verified by test_solana_get_address (show_display=False).
         """
         self.requires_firmware("7.14.0")
+        self.requires_message("SolanaGetAddress")
         self.setup_mnemonic_allallall()
 
         resp = self.client.call(

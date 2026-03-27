@@ -102,6 +102,7 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
         This test only triggers the OLED display flow for screenshot capture.
         """
         self.requires_firmware("7.14.0")
+        self.requires_message("TronGetAddress")
         self.setup_mnemonic_allallall()
 
         resp = self.client.tron_get_address(

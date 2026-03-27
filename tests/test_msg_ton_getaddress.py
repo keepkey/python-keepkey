@@ -125,6 +125,7 @@ class TestMsgTonGetAddress(common.KeepKeyTest):
         We catch this and still consider the test passed (the OLED display worked).
         """
         self.requires_firmware("7.14.0")
+        self.requires_message("TonGetAddress")
         self.setup_mnemonic_allallall()
 
         try:
