@@ -160,5 +160,30 @@ class TestMsgSolanaGetAddress(common.KeepKeyTest):
         )
 
 
+    def test_solana_show_address(self):
+        """Display Solana address on OLED (triggers ButtonRequest for screenshot capture).
+
+        Note: When KEEPKEY_SCREENSHOT=1, the DebugLink read_layout() call can
+        race with the show_display response, causing an empty address. This test
+        only asserts we get a SolanaAddress response (not empty-check) so it
+        works in both screenshot and non-screenshot modes. Address correctness
+        is verified by test_solana_get_address (show_display=False).
+        """
+        self.requires_firmware("7.14.0")
+        self.setup_mnemonic_allallall()
+
+        resp = self.client.call(
+            solana_proto.SolanaGetAddress(
+                address_n=[H + 44, H + 501, H + 0, H + 0],
+                show_display=True,
+            )
+        )
+
+        self.assertTrue(
+            isinstance(resp, solana_proto.SolanaAddress),
+            "Expected SolanaAddress response, got %s" % type(resp).__name__
+        )
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -95,5 +95,21 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
             "Same path must produce identical addresses: '%s' vs '%s'" % (resp_1.address, resp_2.address)
         )
 
+    def test_tron_show_address(self):
+        """Display TRON address on OLED (triggers ButtonRequest for screenshot capture).
+
+        Address correctness verified by test_tron_get_address (show_display=False).
+        This test only triggers the OLED display flow for screenshot capture.
+        """
+        self.requires_firmware("7.14.0")
+        self.setup_mnemonic_allallall()
+
+        resp = self.client.tron_get_address(
+            parse_path(TRON_DEFAULT_PATH),
+            show_display=True
+        )
+        self.assertIsNotNone(resp)
+
+
 if __name__ == '__main__':
     unittest.main()
