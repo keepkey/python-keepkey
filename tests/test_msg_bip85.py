@@ -17,8 +17,12 @@ import keepkeylib.types_pb2 as proto_types
 
 class TestMsgBip85(common.KeepKeyTest):
 
-    def test_bip85_12word_flow(self):
+    def setUp(self):
+        super().setUp()
         self.requires_firmware("7.14.0")
+        self.requires_message("GetBip85Mnemonic")
+
+    def test_bip85_12word_flow(self):
         """12-word derivation: verify device goes through display flow and returns Success."""
         self.setup_mnemonic_allallall()
 
@@ -26,7 +30,6 @@ class TestMsgBip85(common.KeepKeyTest):
         self.assertIsInstance(resp, proto.Success)
 
     def test_bip85_24word_flow(self):
-        self.requires_firmware("7.14.0")
         """24-word derivation: verify display flow and Success."""
         self.setup_mnemonic_allallall()
 
@@ -34,7 +37,6 @@ class TestMsgBip85(common.KeepKeyTest):
         self.assertIsInstance(resp, proto.Success)
 
     def test_bip85_different_indices_different_flows(self):
-        self.requires_firmware("7.14.0")
         """Index 0 and index 1 must both succeed."""
         self.setup_mnemonic_allallall()
 
@@ -43,7 +45,6 @@ class TestMsgBip85(common.KeepKeyTest):
             self.assertIsInstance(resp, proto.Success)
 
     def test_bip85_invalid_word_count(self):
-        self.requires_firmware("7.14.0")
         """Invalid word_count (15) must be rejected by firmware."""
         self.setup_mnemonic_allallall()
 
@@ -53,7 +54,6 @@ class TestMsgBip85(common.KeepKeyTest):
         self.assertIn('word_count', str(ctx.exception))
 
     def test_bip85_18word_flow(self):
-        self.requires_firmware("7.14.0")
         """18-word derivation: verify the third word_count variant works."""
         self.setup_mnemonic_allallall()
 
@@ -61,7 +61,6 @@ class TestMsgBip85(common.KeepKeyTest):
         self.assertIsInstance(resp, proto.Success)
 
     def test_bip85_deterministic_flow(self):
-        self.requires_firmware("7.14.0")
         """Same parameters must produce identical results both times."""
         self.setup_mnemonic_allallall()
 
