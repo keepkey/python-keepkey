@@ -462,33 +462,44 @@ class DebugLinkMixin(object):
 
     def _capture_oled(self):
         """Capture current OLED layout to screenshot directory."""
-        if not SCREENSHOT or not self.debug:
+        if not SCREENSHOT:
+            return
+        if not self.debug:
+            import sys
+            print("[SCREENSHOT] SKIP: no debug link", file=sys.stderr)
             return
         try:
             layout = self.debug.read_layout()
-            if layout and len(layout) >= 1024:
-                layout_bytes = len(layout)
-                height = 64 if layout_bytes >= 2048 else 32
-                rows = []
-                for y in range(height):
-                    row = bytearray(256)
-                    for x in range(256):
-                        byte_idx = x + (y // 8) * 256
-                        if byte_idx < layout_bytes:
-                            b = layout[byte_idx] if isinstance(layout[byte_idx], int) else ord(layout[byte_idx])
-                            if (b >> (y % 8)) & 1:
-                                row[x] = 255
-                    rows.append(bytes(row))
-                while len(rows) < 64:
-                    rows.append(bytes(256))
-                screenshot_dir = getattr(self, 'screenshot_dir', os.environ.get('SCREENSHOT_DIR', '.'))
-                os.makedirs(screenshot_dir, exist_ok=True)
-                png_path = os.path.join(screenshot_dir, 'btn%05d.png' % self.screenshot_id)
-                with open(png_path, 'wb') as f:
-                    f.write(_write_png(png_path, 256, 64, rows))
-                self.screenshot_id += 1
-        except Exception:
-            pass
+            if not layout or len(layout) < 1024:
+                import sys
+                print("[SCREENSHOT] SKIP: layout too small (%d bytes)" % (len(layout) if layout else 0), file=sys.stderr)
+                return
+            layout_bytes = len(layout)
+            height = 64 if layout_bytes >= 2048 else 32
+            rows = []
+            for y in range(height):
+                row = bytearray(256)
+                for x in range(256):
+                    byte_idx = x + (y // 8) * 256
+                    if byte_idx < layout_bytes:
+                        b = layout[byte_idx] if isinstance(layout[byte_idx], int) else ord(layout[byte_idx])
+                        if (b >> (y % 8)) & 1:
+                            row[x] = 255
+                rows.append(bytes(row))
+            while len(rows) < 64:
+                rows.append(bytes(256))
+            screenshot_dir = getattr(self, 'screenshot_dir', os.environ.get('SCREENSHOT_DIR', '.'))
+            os.makedirs(screenshot_dir, exist_ok=True)
+            png_path = os.path.join(screenshot_dir, 'btn%05d.png' % self.screenshot_id)
+            with open(png_path, 'wb') as f:
+                f.write(_write_png(png_path, 256, 64, rows))
+            self.screenshot_id += 1
+            import sys
+            print("[SCREENSHOT] OK: %s (%d bytes layout)" % (png_path, layout_bytes), file=sys.stderr)
+        except Exception as e:
+            import sys, traceback
+            print("[SCREENSHOT] ERROR: %s" % e, file=sys.stderr)
+            traceback.print_exc(file=sys.stderr)
 
     def callback_ButtonRequest(self, msg):
         if self.verbose:
