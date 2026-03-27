@@ -434,8 +434,11 @@ class DebugLinkMixin(object):
 
         # Screenshot capture disabled in call_raw (captures idle screens, adds latency).
         # Real confirmation screenshots are captured in callback_ButtonRequest instead.
+        # Exception: capture on Failure (rejection screens like invalid BIP-39 word).
 
         resp = super(DebugLinkMixin, self).call_raw(msg)
+        if isinstance(resp, proto.Failure):
+            self._capture_oled()
         self._check_request(resp)
         return resp
 
@@ -457,37 +460,42 @@ class DebugLinkMixin(object):
                     raise CallException(types.Failure_Other,
                             "Expected %s, got %s" % (pprint(expected), pprint(msg)))
 
+    def _capture_oled(self):
+        """Capture current OLED layout to screenshot directory."""
+        if not SCREENSHOT or not self.debug:
+            return
+        try:
+            layout = self.debug.read_layout()
+            if layout and len(layout) >= 1024:
+                layout_bytes = len(layout)
+                height = 64 if layout_bytes >= 2048 else 32
+                rows = []
+                for y in range(height):
+                    row = bytearray(256)
+                    for x in range(256):
+                        byte_idx = x + (y // 8) * 256
+                        if byte_idx < layout_bytes:
+                            b = layout[byte_idx] if isinstance(layout[byte_idx], int) else ord(layout[byte_idx])
+                            if (b >> (y % 8)) & 1:
+                                row[x] = 255
+                    rows.append(bytes(row))
+                while len(rows) < 64:
+                    rows.append(bytes(256))
+                screenshot_dir = getattr(self, 'screenshot_dir', os.environ.get('SCREENSHOT_DIR', '.'))
+                os.makedirs(screenshot_dir, exist_ok=True)
+                png_path = os.path.join(screenshot_dir, 'btn%05d.png' % self.screenshot_id)
+                with open(png_path, 'wb') as f:
+                    f.write(_write_png(png_path, 256, 64, rows))
+                self.screenshot_id += 1
+        except Exception:
+            pass
+
     def callback_ButtonRequest(self, msg):
         if self.verbose:
             log("ButtonRequest code: " + get_buttonrequest_value(msg.code))
 
         # Capture OLED screenshot BEFORE pressing button (confirmation screen)
-        if SCREENSHOT and self.debug:
-            try:
-                layout = self.debug.read_layout()
-                if layout and len(layout) >= 1024:
-                    layout_bytes = len(layout)
-                    height = 64 if layout_bytes >= 2048 else 32
-                    rows = []
-                    for y in range(height):
-                        row = bytearray(256)
-                        for x in range(256):
-                            byte_idx = x + (y // 8) * 256
-                            if byte_idx < layout_bytes:
-                                b = layout[byte_idx] if isinstance(layout[byte_idx], int) else ord(layout[byte_idx])
-                                if (b >> (y % 8)) & 1:
-                                    row[x] = 255
-                        rows.append(bytes(row))
-                    while len(rows) < 64:
-                        rows.append(bytes(256))
-                    screenshot_dir = getattr(self, 'screenshot_dir', os.environ.get('SCREENSHOT_DIR', '.'))
-                    os.makedirs(screenshot_dir, exist_ok=True)
-                    png_path = os.path.join(screenshot_dir, 'btn%05d.png' % self.screenshot_id)
-                    with open(png_path, 'wb') as f:
-                        f.write(_write_png(png_path, 256, 64, rows))
-                    self.screenshot_id += 1
-            except Exception:
-                pass
+        self._capture_oled()
 
         if self.auto_button:
             if self.verbose:
