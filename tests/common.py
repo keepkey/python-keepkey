@@ -123,17 +123,38 @@ class KeepKeyTest(unittest.TestCase):
           self.requires_firmware("7.14.0")
           self.requires_message("ZcashGetOrchardFVK")
         """
-        from keepkeylib import messages_pb2 as proto
-        if not hasattr(proto, msg_name):
+        # Check all pb2 modules — message classes live in chain-specific pb2 files,
+        # not just messages_pb2 (which only has the MessageType enum values).
+        import keepkeylib
+        proto = None
+        for mod_name in dir(keepkeylib):
+            if mod_name.endswith('_pb2'):
+                mod = getattr(keepkeylib, mod_name, None)
+                if mod and hasattr(mod, msg_name):
+                    proto = mod
+                    break
+        if proto is None:
+            # Fallback: try importing chain-specific modules directly
+            for suffix in ['solana', 'tron', 'ton', 'zcash', 'ethereum', '']:
+                try:
+                    mod_path = 'messages_%s_pb2' % suffix if suffix else 'messages_pb2'
+                    mod = __import__('keepkeylib.%s' % mod_path, fromlist=[msg_name])
+                    if hasattr(mod, msg_name):
+                        proto = mod
+                        break
+                except ImportError:
+                    continue
+        if proto is None or not hasattr(proto, msg_name):
             self.skipTest("%s proto message not available" % msg_name)
         # Send a minimal probe — if firmware returns Failure_UnexpectedMessage, skip
+        from keepkeylib import messages_pb2 as base_proto
         msg = getattr(proto, msg_name)()
         try:
             resp = self.client.call_raw(msg)
             if hasattr(resp, 'code') and resp.code == 1:  # Failure_UnexpectedMessage
                 self.skipTest("%s not supported by this firmware build" % msg_name)
             # Re-init device state after probe (some messages may have changed state)
-            self.client.call_raw(proto.Initialize())
+            self.client.call_raw(base_proto.Initialize())
         except Exception:
             self.skipTest("%s not supported by this firmware build" % msg_name)
 
