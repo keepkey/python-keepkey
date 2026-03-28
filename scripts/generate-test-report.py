@@ -633,6 +633,16 @@ SECTIONS = [
           '0x swap ETH to ERC-20', 'DEX aggregator swap via 0x protocol.', []),
          ('E15', 'test_msg_ethereum_cfunc', 'test_sign_execTx',
           'Contract function call', 'Generic contract call signing.', []),
+         ('E16', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_blocked',
+          'Blind sign BLOCKED (AdvancedMode OFF)',
+          'Contract data with AdvancedMode disabled. Device shows BLOCKED screen and refuses to sign. '
+          'This is the default behavior — blind signing must be explicitly enabled.',
+          ['BLOCKED screen']),
+         ('E17', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_allowed',
+          'Blind sign ALLOWED (AdvancedMode ON)',
+          'Contract data with AdvancedMode enabled. Device shows BLIND SIGNATURE warning '
+          'before proceeding. User sees raw data and must explicitly confirm.',
+          ['BLIND SIGNATURE warning']),
      ]),
 
     ('R', 'Ripple (XRP)', '7.0.0',
