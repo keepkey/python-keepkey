@@ -691,7 +691,8 @@ SECTIONS = [
      ],
      [
          ('A1', 'test_msg_cosmos_getaddress', 'test_standard',
-          'Derive Cosmos address', 'Bech32 cosmos1... address from m/44\'/118\'/0\'/0/0.', ['ATOM address']),
+          'Derive Cosmos address', 'Bech32 cosmos1... address from m/44\'/118\'/0\'/0/0.',
+          []),  # show_display=True + set_expected_responses breaks with screenshot mode
          ('A2', 'test_msg_cosmos_signtx', 'test_cosmos_sign_tx',
           'Sign Cosmos send', 'MsgSend with amount + recipient display.', ['ATOM send']),
          ('A3', 'test_msg_cosmos_signtx', 'test_cosmos_sign_tx_memo',
