@@ -947,10 +947,11 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
     # Separate specs section (no tests) from test sections
     specs = [s for s in active if not s[5]]
-    # NEW sections first (7.14.0+), then existing — new features at top of report
-    new_sects = [s for s in active if s[5] and ver_t(s[2]) > (7, 10, 0)]
-    old_sects = [s for s in active if s[5] and ver_t(s[2]) <= (7, 10, 0)]
-    test_sections = new_sects + old_sects
+    # Sections with results first, pending sections at bottom.
+    # Within each group: existing chains first (proven), then new features.
+    has_results = [s for s in active if s[5] and any(results.get(t[2]) for t in s[5])]
+    no_results = [s for s in active if s[5] and not any(results.get(t[2]) for t in s[5])]
+    test_sections = has_results + no_results
     total = sum(len(s[5]) for s in test_sections)
     passed = sum(1 for s in test_sections for t in s[5] if results.get(t[2]) == 'pass')
     failed = sum(1 for s in test_sections for t in s[5] if results.get(t[2]) in ('fail','error'))
@@ -967,15 +968,15 @@ def render(output_path, fw_version, results, screenshot_dir=None):
         pb.text(10, f'Firmware {fw_version}  |  {ts}  |  {total} tests: {passed} passed, {skipped} pending')
     pb.gap(6)
     pb.text(12, 'Sections', bold=True)
-    _shown_new = _shown_old = False
+    _shown_tested = _shown_pending = False
     for letter, title, mf, _, _, tests in test_sections:
+        has_any = any(results.get(t[2]) for t in tests)
         is_new = ver_t(mf) > (7, 10, 0)
-        if is_new and not _shown_new:
-            pb.text(9, f'  --- {fw_version} New Features ---', bold=True)
-            _shown_new = True
-        elif not is_new and not _shown_old:
-            pb.text(9, f'  --- Existing Chains ---', bold=True)
-            _shown_old = True
+        if has_any and not _shown_tested:
+            _shown_tested = True
+        elif not has_any and not _shown_pending:
+            pb.text(9, f'  --- Pending (no firmware support yet) ---', bold=True, color=GRAY)
+            _shown_pending = True
         tag = ' [NEW]' if is_new else ''
         p = sum(1 for t in tests if results.get(t[2]) == 'pass')
         if p == len(tests) and len(tests) > 0:
@@ -985,16 +986,7 @@ def render(output_path, fw_version, results, screenshot_dir=None):
         else:
             pb.text(8, f'  {letter}  {title}{tag} -- {len(tests)} tests', color=GRAY)
 
-    # Render specs sections as informational (no test count in header)
-    for letter, title, mf, background, user_flow, tests in specs:
-        pb.gap(10); pb.need(80)
-        pb.text(14, f'{title}', bold=True)
-        pb.gap(2)
-        for line in _w(background, 95): pb.text(8, line)
-        pb.gap(3)
-        for line in user_flow: pb.text(7, line)
-
-    # Render test sections
+    # Render test sections (specs/device info moved to appendix after tests)
     for letter, title, mf, background, user_flow, tests in test_sections:
         pb.gap(10); pb.need(80)
         tag = ' [NEW]' if ver_t(mf) > (7, 10, 0) else ''
@@ -1050,6 +1042,16 @@ def render(output_path, fw_version, results, screenshot_dir=None):
             elif scr:
                 pb.text(7, f'OLED needed: {", ".join(scr)}', color=GRAY)
             pb.gap(3)
+
+    # Appendix: Device Specifications (after all test results)
+    if specs:
+        pb.gap(15)
+        pb.text(14, 'Appendix: Device Specifications', bold=True)
+        pb.gap(4)
+        for letter, title, mf, background, user_flow, tests in specs:
+            for line in _w(background, 95): pb.text(7, line)
+            pb.gap(2)
+            for line in user_flow: pb.text(6, line)
 
     pb.finish()
     pdf.write(output_path)
