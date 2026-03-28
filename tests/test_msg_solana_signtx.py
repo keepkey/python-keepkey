@@ -243,8 +243,8 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         from_pubkey = self._get_from_pubkey()
         to_account = b'\x33' * 32  # destination token account
         owner = from_pubkey  # token owner = signer
-        # SPL Token Transfer instruction: type=3 (LE u32) + amount (LE u64)
-        instr_data = struct.pack('<I', 3) + struct.pack('<Q', 50000000)  # 50M tokens
+        # SPL Token Transfer instruction: opcode=3 (u8) + amount (LE u64)
+        instr_data = bytes([3]) + struct.pack('<Q', 50000000)  # 50M tokens
         raw_tx = self._build_tx(from_pubkey, [to_account], self.TOKEN_PROGRAM, instr_data)
         resp = self.client.call(messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
@@ -256,8 +256,8 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.setup_mnemonic_allallall()
         from_pubkey = self._get_from_pubkey()
         delegate = b'\x44' * 32
-        # SPL Token Approve: type=4 (LE u32) + amount (LE u64)
-        instr_data = struct.pack('<I', 4) + struct.pack('<Q', 100000000)
+        # SPL Token Approve: opcode=4 (u8) + amount (LE u64)
+        instr_data = bytes([4]) + struct.pack('<Q', 100000000)
         raw_tx = self._build_tx(from_pubkey, [delegate], self.TOKEN_PROGRAM, instr_data)
         resp = self.client.call(messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))

@@ -128,7 +128,7 @@ class PDF:
             f.write(b'xref\n')
             f.write(f'0 {len(objs)+1}\n'.encode())
             f.write(b'0000000000 65535 f \n')
-            for o in offs: f.write(f'{o:010d} 00000 g \n'.encode())
+            for o in offs: f.write(f'{o:010d} 00000 n \n'.encode())
             f.write(f'trailer\n<< /Size {len(objs)+1} /Root 1 0 R >>\nstartxref\n{xr}\n%%EOF\n'.encode())
 
 GREEN = (0.13, 0.55, 0.13)
@@ -172,6 +172,10 @@ class PB:
         self.y -= h
     def finish(self):
         self._flush()
+
+def _lookup(results, mod, meth):
+    """Look up test result by module::method (precise), then bare method (fallback)."""
+    return results.get(f'{mod}::{meth}') or results.get(meth) or ''
 
 def ver_t(s): return tuple(int(x) for x in s.replace('v','').split('.')[:3])
 def ver_ge(a, b): return ver_t(a) >= ver_t(b)
@@ -235,8 +239,8 @@ def detect_fw():
     except: return None
 
 def parse_junit(path):
-    """Parse junit XML for pass/fail. Returns dict keyed by both 'classname.method' and 'method'.
-    When names collide, pass wins over fail (avoids false negatives from unrelated test classes)."""
+    """Parse junit XML for pass/fail. Returns dict keyed by 'module::method' (precise)
+    and 'method' (fallback). Module is extracted from classname: tests.test_msg_foo.TestBar → test_msg_foo."""
     if not path or not os.path.exists(path): return {}
     import xml.etree.ElementTree as ET
     results = {}
@@ -247,10 +251,19 @@ def parse_junit(path):
         elif tc.find('error') is not None: status = 'error'
         elif tc.find('skipped') is not None: status = 'skip'
         else: status = 'pass'
-        # Key by classname.method (precise) and method-only (fallback)
+        # Extract module from classname: tests.test_msg_foo.TestBar → test_msg_foo
+        mod = ''
         if cls:
+            parts = cls.split('.')
+            for p in parts:
+                if p.startswith('test_msg_') or p.startswith('test_sign_') or p.startswith('test_verify_'):
+                    mod = p
+                    break
             results[f'{cls}.{name}'] = status
-        # For method-only key, pass wins over fail (avoid collision false negatives)
+        # Key by module::method (disambiguates collisions like test_sign_btc_eth_swap)
+        if mod:
+            results[f'{mod}::{name}'] = status
+        # Bare method fallback — only set if no collision
         if name not in results or status == 'pass':
             results[name] = status
     return results
@@ -954,12 +967,12 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     specs = [s for s in active if not s[5]]
     # Sections with results first, pending sections at bottom.
     # Within each group: existing chains first (proven), then new features.
-    has_results = [s for s in active if s[5] and any(results.get(t[2]) for t in s[5])]
-    no_results = [s for s in active if s[5] and not any(results.get(t[2]) for t in s[5])]
+    has_results = [s for s in active if s[5] and any(_lookup(results, t[1], t[2]) for t in s[5])]
+    no_results = [s for s in active if s[5] and not any(_lookup(results, t[1], t[2]) for t in s[5])]
     test_sections = has_results + no_results
     total = sum(len(s[5]) for s in test_sections)
-    passed = sum(1 for s in test_sections for t in s[5] if results.get(t[2]) == 'pass')
-    failed = sum(1 for s in test_sections for t in s[5] if results.get(t[2]) in ('fail','error'))
+    passed = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) == 'pass')
+    failed = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) in ('fail','error'))
     skipped = total - passed - failed
 
     # Title
@@ -975,7 +988,7 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     pb.text(12, 'Sections', bold=True)
     _shown_tested = _shown_pending = False
     for letter, title, mf, _, _, tests in test_sections:
-        has_any = any(results.get(t[2]) for t in tests)
+        has_any = any(_lookup(results, t[1], t[2]) for t in tests)
         is_new = ver_t(mf) > (7, 10, 0)
         if has_any and not _shown_tested:
             _shown_tested = True
@@ -983,7 +996,7 @@ def render(output_path, fw_version, results, screenshot_dir=None):
             pb.text(9, f'  --- Pending (no firmware support yet) ---', bold=True, color=GRAY)
             _shown_pending = True
         tag = ' [NEW]' if is_new else ''
-        p = sum(1 for t in tests if results.get(t[2]) == 'pass')
+        p = sum(1 for t in tests if _lookup(results, t[1], t[2]) == 'pass')
         if p == len(tests) and len(tests) > 0:
             pb.text(8, f'  {letter}  {title}{tag} -- {p}/{len(tests)} passed', color=GREEN)
         elif p > 0:
@@ -1003,8 +1016,8 @@ def render(output_path, fw_version, results, screenshot_dir=None):
         for line in user_flow: pb.text(7, line)
         if not tests: continue
         pb.gap(3)
-        p = sum(1 for t in tests if results.get(t[2]) == 'pass')
-        f_count = sum(1 for t in tests if results.get(t[2]) in ('fail','error'))
+        p = sum(1 for t in tests if _lookup(results, t[1], t[2]) == 'pass')
+        f_count = sum(1 for t in tests if _lookup(results, t[1], t[2]) in ('fail','error'))
         if p == len(tests):
             pb.text(9, f'Tests: {p}/{len(tests)} -- ALL PASSED', bold=True, color=GREEN)
         elif f_count > 0:
@@ -1014,7 +1027,7 @@ def render(output_path, fw_version, results, screenshot_dir=None):
         pb.gap(2)
         for tid, mod, meth, title, ctx, scr in tests:
             pb.need(50)
-            r = results.get(meth, '')
+            r = _lookup(results, mod, meth)
             pb.check(9, f'{tid} {meth}', r)
             pb.text(7, f'{title}  ({mod}.py)')
             for cline in _w(ctx, 95): pb.text(7, cline)
