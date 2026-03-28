@@ -1085,20 +1085,43 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     pdf.write(output_path)
     print(f'{output_path}: fw={fw_version}, {len(active)} sections, {total} tests ({passed} passed, {failed} failed, {skipped} pending)')
 
+def screenshot_filter(fw_version):
+    """Return pytest -k expression for tests with non-empty screenshot expectations.
+
+    This is the SINGLE SOURCE OF TRUTH for which tests need OLED capture.
+    The shell script calls this instead of maintaining a hardcoded filter.
+    Adding screenshots to a test in SECTIONS automatically includes it in CI Phase 1.
+    """
+    active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
+    terms = []
+    for letter, title, mf, bg, fl, tests in active:
+        for tid, mod, meth, ttl, ctx, scr in tests:
+            if scr:  # non-empty screenshot list = needs OLED capture
+                # Use (method and module) for unambiguous pytest -k matching
+                terms.append(f'({meth} and {mod})')
+    return ' or '.join(terms)
+
+
 def main():
     p = argparse.ArgumentParser(description='KeepKey Firmware Test Report')
     p.add_argument('--output', default='test-report.pdf')
     p.add_argument('--fw-version', default=None)
     p.add_argument('--junit', default=None, help='JUnit XML for pass/fail results')
     p.add_argument('--screenshots', default=None, help='Directory with per-test OLED screenshots')
+    p.add_argument('--screenshot-filter', action='store_true',
+                   help='Print pytest -k expression for tests needing screenshots, then exit')
     args = p.parse_args()
 
     fw = args.fw_version
     if not fw:
-        print('Detecting firmware from emulator...')
+        print('Detecting firmware from emulator...', file=sys.stderr)
         fw = detect_fw()
-        if fw: print(f'Detected: {fw}')
-        else: print('No emulator, defaulting to 7.10.0'); fw = '7.10.0'
+        if fw: print(f'Detected: {fw}', file=sys.stderr)
+        else: print('No emulator, defaulting to 7.10.0', file=sys.stderr); fw = '7.10.0'
+
+    if args.screenshot_filter:
+        print(screenshot_filter(fw))
+        sys.exit(0)
 
     results = parse_junit(args.junit) if args.junit else {}
     render(args.output, fw, results, args.screenshots)
