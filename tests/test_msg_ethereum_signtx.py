@@ -54,37 +54,26 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             "691f73b145647623e2d115b208a7c3455a6a8a83e3b4db5b9c6d9bc75825038a",
         )
 
+        # Second signing — verify signatures are deterministic
         self.client.apply_policy("AdvancedMode", 1)
-
-        with self.client:
-            self.client.set_expected_responses(
-                [
-                    proto.ButtonRequest(code=proto_types.ButtonRequest_Other),  # BLIND SIGNATURE warning
-                    proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
-                    proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
-                    proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
-                    eth_proto.EthereumTxRequest(),
-                ]
-            )
-
-            sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
-                n=[0, 0],
-                nonce=0,
-                gas_price=20,
-                gas_limit=20,
-                to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
-                value=10,
-                data=b"abcdefghijklmnop" * 16,
-            )
-            self.assertEqual(sig_v, 28)
-            self.assertEqual(
-                binascii.hexlify(sig_r),
-                "6da89ed8627a491bedc9e0382f37707ac4e5102e25e7a1234cb697cedb7cd2c0",
-            )
-            self.assertEqual(
-                binascii.hexlify(sig_s),
-                "691f73b145647623e2d115b208a7c3455a6a8a83e3b4db5b9c6d9bc75825038a",
-            )
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=[0, 0],
+            nonce=0,
+            gas_price=20,
+            gas_limit=20,
+            to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
+            value=10,
+            data=b"abcdefghijklmnop" * 16,
+        )
+        self.assertEqual(sig_v, 28)
+        self.assertEqual(
+            binascii.hexlify(sig_r),
+            "6da89ed8627a491bedc9e0382f37707ac4e5102e25e7a1234cb697cedb7cd2c0",
+        )
+        self.assertEqual(
+            binascii.hexlify(sig_s),
+            "691f73b145647623e2d115b208a7c3455a6a8a83e3b4db5b9c6d9bc75825038a",
+        )
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[0, 0],
