@@ -231,8 +231,11 @@ def _pick_best_frame(test_dir, btn_files):
         # Likely just setUp frames (wipe + load). Return None.
         return None
     else:
-        # Single frame — could be setUp or test. Include it.
-        return os.path.join(test_dir, btn_files[0])
+        # Single frame — likely just setUp (wipe confirm). Check if it's noise.
+        candidate = os.path.join(test_dir, btn_files[0])
+        if _is_setup_frame(candidate):
+            return None
+        return candidate
 
 def detect_fw():
     try:
