@@ -4,9 +4,15 @@ conftest.py -- pytest plugin for per-test OLED screenshot directories.
 When KEEPKEY_SCREENSHOT=1, patches KeepKeyTest.setUp to set per-test
 screenshot directories BEFORE setUp runs (so wipe_device captures go
 to the right place).
+
+FAIL-FAST: If KEEPKEY_SCREENSHOT=1 and zero PNGs are captured after
+all tests complete, the session exits non-zero. This prevents silent
+screenshot pipeline failures from going unnoticed.
 """
 import pytest
 import os
+import glob
+import sys
 
 if os.environ.get('KEEPKEY_SCREENSHOT') == '1':
     import common
@@ -43,3 +49,17 @@ if os.environ.get('KEEPKEY_SCREENSHOT') == '1':
             self.client.screenshot_id = 0
 
     common.KeepKeyTest.setUp = _patched_setUp
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Fail-fast: if screenshots were requested but none captured, fail the session."""
+    if os.environ.get('KEEPKEY_SCREENSHOT') != '1':
+        return
+    screenshot_dir = os.environ.get('SCREENSHOT_DIR', 'screenshots')
+    pngs = glob.glob(os.path.join(screenshot_dir, '**', '*.png'), recursive=True)
+    count = len(pngs)
+    if count == 0:
+        print("FATAL: KEEPKEY_SCREENSHOT=1 but 0 PNGs captured. Screenshot pipeline is broken.", file=sys.stderr)
+        session.exitstatus = 1
+    else:
+        print("[SCREENSHOT] Session complete: %d PNGs captured" % count, file=sys.stderr)
