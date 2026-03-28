@@ -207,26 +207,14 @@ def _pick_best_frame(test_dir, btn_files):
     Real test frames come after. If only setUp frames exist, return None."""
     if not btn_files:
         return None
-    # If we have 3+ frames, skip the first 2 (setUp) and use the last real one
+    # 3+ frames: [0]=setUp wipe, [1]=setUp load or instruction detail, [-1]=final confirm
+    # Prefer second-to-last frame — it's the instruction-specific content
+    # (amounts, addresses, parameters). The last frame is usually a generic
+    # "Sign this transaction?" confirmation that's the same for every tx.
     if len(btn_files) > 2:
-        candidate = os.path.join(test_dir, btn_files[-1])
-        # Verify it's not another setUp frame (some tests trigger additional load_device calls)
-        # Read raw pixels and check if it looks like "IMPORT RECOVERY SENTENCE"
-        try:
-            pixels, w, h = _read_png_pixels(candidate)
-            # "IMPORT RECOVERY" screen has specific pixel pattern in top 16 rows
-            # It's bold white text starting at ~x=10. Check if top-left 200x16 region
-            # has high density (text) — this is a rough heuristic
-            top_region = pixels[:200*16]
-            top_lit = sum(1 for b in top_region if b > 128)
-            # IMPORT RECOVERY has ~800-1000 lit pixels in top region
-            # Other screens (SEND, TRANSACTION, addresses) have different patterns
-            # If the frame looks too similar to setUp, try the one before it
-            if top_lit > 700 and top_lit < 1100 and len(btn_files) > 3:
-                candidate = os.path.join(test_dir, btn_files[-2])
-        except:
-            pass
-        return candidate
+        # Use second-to-last for instruction detail, skip setUp frames
+        idx = -2 if len(btn_files) > 2 else -1
+        return os.path.join(test_dir, btn_files[idx])
     elif len(btn_files) == 2:
         # 2 frames: btn00000 is always setUp (wipe confirm), btn00001 is the test.
         # Always show btn00001 — it's the only real test frame.
