@@ -59,6 +59,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses(
                 [
+                    proto.ButtonRequest(code=proto_types.ButtonRequest_Other),  # BLIND SIGNATURE warning
                     proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                     proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                     proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
