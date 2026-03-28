@@ -228,12 +228,9 @@ def _pick_best_frame(test_dir, btn_files):
             pass
         return candidate
     elif len(btn_files) == 2:
-        # 2 frames: btn00000 is setUp (wipe confirm), btn00001 might be real.
-        # Check if btn00001 is a setUp frame — if not, it's test content.
-        candidate = os.path.join(test_dir, btn_files[1])
-        if _is_setup_frame(candidate):
-            return None
-        return candidate
+        # 2 frames: btn00000 is always setUp (wipe confirm), btn00001 is the test.
+        # Always show btn00001 — it's the only real test frame.
+        return os.path.join(test_dir, btn_files[1])
     else:
         # Single frame — almost always setUp noise (wipe confirm from setUp).
         return None
