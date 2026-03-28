@@ -1021,19 +1021,30 @@ def render(output_path, fw_version, results, screenshot_dir=None):
             pb.check(9, f'{tid} {meth}', r)
             pb.text(7, f'{title}  ({mod}.py)')
             for cline in _w(ctx, 95): pb.text(7, cline)
-            # Embed OLED screenshots (skip first 2 setUp frames, show all test frames)
+            # Embed OLED screenshots — use _pick_best_frame for the primary image,
+            # then show up to 2 more frames for multi-screen flows (signing, swaps)
             if screenshot_dir:
                 test_dir = os.path.join(screenshot_dir, mod.replace('test_',''), meth)
                 btn_files = sorted(f for f in os.listdir(test_dir) if f.startswith('btn')) if os.path.isdir(test_dir) else []
-                # Skip first 2 btn frames (setUp: wipe + load_device confirmations)
-                test_frames = btn_files[2:] if len(btn_files) > 2 else btn_files[:1] if len(btn_files) == 1 else []
-                if test_frames:
-                    for frame in test_frames:
+                best = _pick_best_frame(test_dir, btn_files)
+                if best:
+                    # Show the best frame (most representative)
+                    try:
+                        pb.need(55)
+                        pb.image(best, display_w=384, display_h=96)
+                    except Exception:
+                        pass
+                    # For multi-screen tests, show up to 2 additional frames
+                    test_frames = btn_files[2:] if len(btn_files) > 2 else []
+                    extra = [f for f in test_frames if os.path.join(test_dir, f) != best][:2]
+                    for frame in extra:
                         try:
                             pb.need(55)
                             pb.image(os.path.join(test_dir, frame), display_w=384, display_h=96)
                         except Exception:
                             pass
+                    if len(btn_files) > 5:
+                        pb.text(6, f'({len(btn_files)} OLED frames captured, showing best {min(3, len(test_frames)+1)})', color=GRAY)
                 elif scr:
                     pb.text(7, f'OLED needed: {", ".join(scr)}', color=GRAY)
             elif scr:
