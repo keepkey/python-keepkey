@@ -20,6 +20,8 @@ class TestMsgBip85(common.KeepKeyTest):
     def setUp(self):
         super().setUp()
         self.requires_firmware("7.14.0")
+        # Load device before probe — CHECK_INITIALIZED rejects on wiped device
+        self.setup_mnemonic_allallall()
         self.requires_message("GetBip85Mnemonic")
 
     def test_bip85_12word_flow(self):
