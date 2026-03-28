@@ -456,8 +456,11 @@ SECTIONS = [
           'Signs an identity challenge for SSH login or GPG key derivation. Derives a key from '
           'the identity URI and signs the challenge.',
           []),
-         # C31 (test_invalid_bip39_word_rejected) — added by PR #3 (BIP-39 validation).
-         # Uncomment when firmware has the per-word validation fix in recovery_cipher.c.
+         ('C31', 'test_msg_recoverydevice_cipher', 'test_invalid_bip39_word_rejected',
+          'BIP-39 invalid word rejected during cipher recovery',
+          'Enter a non-BIP-39 word ("zz") during cipher recovery with enforce_wordlist=True. '
+          'Firmware must reject immediately with Failure instead of silently accepting.',
+          ['Wordlist rejection warning']),
      ]),
 
     ('B', 'Bitcoin', '7.0.0',
