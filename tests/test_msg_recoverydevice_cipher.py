@@ -197,15 +197,15 @@ class TestDeviceRecovery(common.KeepKeyTest):
         self.assertIsInstance(ret, proto.CharacterRequest)
         ret = self.client.call_raw(proto.CharacterAck(character=' '))
 
-        # Firmware shows "Invalid Word / Word not found in BIP39 wordlist"
-        # on OLED via confirm() — ButtonRequest pauses for screenshot capture
-        self.assertIsInstance(ret, proto.ButtonRequest)
-        self.client.debug.press_yes()
-        ret = self.client.call_raw(proto.ButtonAck())
-
-        # Firmware should reject with Failure — word not in BIP-39 wordlist
+        # Firmware rejects immediately with Failure — word not in BIP-39 wordlist
         self.assertIsInstance(ret, proto.Failure)
         self.assertIn("Word not found", ret.message)
+
+        # Capture the OLED rejection screen via DebugLink
+        # The firmware renders "Word not in wordlist" before sending Failure
+        import os as _os
+        if _os.environ.get('KEEPKEY_SCREENSHOT') == '1' and self.client.debug:
+            self.client._capture_oled()
 
     def test_backspace(self):
         mnemonic = self.mnemonic12
