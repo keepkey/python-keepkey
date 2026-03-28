@@ -59,6 +59,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         with self.client:
             self.client.set_expected_responses(
                 [
+                    proto.ButtonRequest(code=proto_types.ButtonRequest_Other),  # BLIND SIGNATURE warning
                     proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                     proto.ButtonRequest(code=proto_types.ButtonRequest_ConfirmOutput),
                     proto.ButtonRequest(code=proto_types.ButtonRequest_SignTx),
@@ -104,6 +105,53 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             "3ff236e7d05f0f9b1ee3d70599bb4200638f28388a8faf6bb36db9e04dc544be",
         )
 
+        self.client.apply_policy("AdvancedMode", 0)
+
+    def test_ethereum_blind_sign_blocked(self):
+        """AdvancedMode OFF + contract data = device refuses to sign.
+
+        OLED shows 'BLOCKED — Blind signing is disabled' before returning Failure.
+        This is the default behavior — users must explicitly enable AdvancedMode.
+        """
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 0)
+
+        try:
+            self.client.ethereum_sign_tx(
+                n=[0, 0],
+                nonce=0,
+                gas_price=20,
+                gas_limit=20,
+                to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
+                value=0,
+                data=b"abcdefghijklmnop" * 16,
+            )
+            self.fail("Expected Failure — blind signing should be blocked")
+        except CallException as e:
+            self.assertIn("Blind signing disabled", str(e))
+
+    def test_ethereum_blind_sign_allowed(self):
+        """AdvancedMode ON + contract data = device shows BLIND SIGNATURE warning.
+
+        OLED shows 'BLIND SIGNATURE — You are signing raw contract data'
+        before showing the data and allowing signing.
+        """
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 1)
+
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=[0, 0],
+            nonce=0,
+            gas_price=20,
+            gas_limit=20,
+            to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
+            value=0,
+            data=b"abcdefghijklmnop" * 16,
+        )
+        # Should succeed — AdvancedMode allows blind signing
+        self.assertIsNotNone(sig_v)
         self.client.apply_policy("AdvancedMode", 0)
 
     def test_ethereum_signtx_message(self):
