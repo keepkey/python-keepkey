@@ -167,6 +167,39 @@ class TestDeviceRecovery(common.KeepKeyTest):
         ret = self.client.call_raw(proto.CharacterAck(character='1'))
         self.assertIsInstance(ret, proto.Failure)
 
+    def test_invalid_bip39_word_rejected(self):
+        """Enter a non-BIP-39 word during cipher recovery and verify rejection.
+
+        With enforce_wordlist=True, completing a word that isn't in the
+        BIP-39 wordlist must return Failure immediately.
+        """
+        ret = self.client.call_raw(proto.RecoveryDevice(word_count=12,
+                                   passphrase_protection=False,
+                                   pin_protection=False,
+                                   label='label',
+                                   language='english',
+                                   enforce_wordlist=True,
+                                   use_character_cipher=True))
+
+        # Reminder UI
+        assert isinstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
+
+        # Enter two 'z' characters via cipher — "zz" is not a BIP-39 word
+        for _ in range(2):
+            self.assertIsInstance(ret, proto.CharacterRequest)
+            cipher = self.client.debug.read_recovery_cipher()
+            encoded_z = cipher[ord('z') - 97]
+            ret = self.client.call_raw(proto.CharacterAck(character=encoded_z))
+
+        # Complete the word by pressing space
+        self.assertIsInstance(ret, proto.CharacterRequest)
+        ret = self.client.call_raw(proto.CharacterAck(character=' '))
+
+        # Firmware should reject with Failure — word not in BIP-39 wordlist
+        self.assertIsInstance(ret, proto.Failure)
+
     def test_backspace(self):
         mnemonic = self.mnemonic12
         ret = self.client.call_raw(proto.RecoveryDevice(word_count=12,
