@@ -65,7 +65,6 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     def setUp(self):
         super().setUp()
         self.requires_firmware("7.14.0")
-        self.requires_message("SolanaGetAddress")
 
     def test_solana_get_address(self):
         """Test Solana address derivation from device."""
