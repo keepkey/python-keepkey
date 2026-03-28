@@ -31,6 +31,7 @@ class TestMsgTonGetAddress(common.KeepKeyTest):
         """Derive TON address at the default path and verify it is non-empty."""
         self.requires_firmware("7.14.0")
         self.requires_message("TonGetAddress")
+        self.requires_message("TonGetAddress")
         self.setup_mnemonic_allallall()
 
         resp = self.client.ton_get_address(
@@ -44,6 +45,7 @@ class TestMsgTonGetAddress(common.KeepKeyTest):
     def test_ton_different_accounts(self):
         """Different derivation paths must produce different addresses."""
         self.requires_firmware("7.14.0")
+        self.requires_message("TonGetAddress")
         self.requires_message("TonGetAddress")
         self.setup_mnemonic_allallall()
 
@@ -70,6 +72,7 @@ class TestMsgTonGetAddress(common.KeepKeyTest):
         """Calling get_address twice with the same path returns the same address."""
         self.requires_firmware("7.14.0")
         self.requires_message("TonGetAddress")
+        self.requires_message("TonGetAddress")
         self.setup_mnemonic_allallall()
 
         resp_1 = self.client.ton_get_address(
@@ -89,6 +92,7 @@ class TestMsgTonGetAddress(common.KeepKeyTest):
     def test_ton_address_format(self):
         """Verify the TON address is valid Base64URL or raw hex format."""
         self.requires_firmware("7.14.0")
+        self.requires_message("TonGetAddress")
         self.requires_message("TonGetAddress")
         self.setup_mnemonic_allallall()
 
@@ -125,6 +129,7 @@ class TestMsgTonGetAddress(common.KeepKeyTest):
         We catch this and still consider the test passed (the OLED display worked).
         """
         self.requires_firmware("7.14.0")
+        self.requires_message("TonGetAddress")
         self.requires_message("TonGetAddress")
         self.setup_mnemonic_allallall()
 

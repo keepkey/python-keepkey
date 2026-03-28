@@ -31,6 +31,7 @@ class TestMsgTronSignTx(common.KeepKeyTest):
     def setUp(self):
         super().setUp()
         self.requires_firmware("7.14.0")
+        self.requires_message("TronGetAddress")
 
     def test_tron_get_address(self):
         """Test TRON address derivation from device."""

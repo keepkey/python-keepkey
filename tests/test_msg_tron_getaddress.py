@@ -29,6 +29,7 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
     def test_tron_get_address(self):
         """Derive Tron address at the default path and verify format."""
         self.requires_firmware("7.14.0")
+        self.requires_message("TronGetAddress")
         self.setup_mnemonic_allallall()
 
         resp = self.client.tron_get_address(
@@ -44,6 +45,7 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
     def test_tron_different_accounts(self):
         """Different derivation paths must produce different addresses."""
         self.requires_firmware("7.14.0")
+        self.requires_message("TronGetAddress")
         self.setup_mnemonic_allallall()
 
         resp_0 = self.client.tron_get_address(
@@ -76,6 +78,7 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
     def test_tron_deterministic(self):
         """Calling get_address twice with the same path returns the same address."""
         self.requires_firmware("7.14.0")
+        self.requires_message("TronGetAddress")
         self.setup_mnemonic_allallall()
 
         resp_1 = self.client.tron_get_address(
@@ -99,6 +102,7 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
         This test only triggers the OLED display flow for screenshot capture.
         """
         self.requires_firmware("7.14.0")
+        self.requires_message("TronGetAddress")
         self.setup_mnemonic_allallall()
 
         resp = self.client.tron_get_address(

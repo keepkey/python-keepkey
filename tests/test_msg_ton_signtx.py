@@ -46,6 +46,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         super().setUp()
         self.requires_firmware("7.14.0")
         self.requires_message("TonGetAddress")
+        self.requires_message("TonGetAddress")
 
     def test_ton_get_address(self):
         """Test TON address derivation from device."""
