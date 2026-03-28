@@ -228,12 +228,14 @@ def _pick_best_frame(test_dir, btn_files):
             pass
         return candidate
     elif len(btn_files) == 2:
-        # Likely just setUp frames (wipe + load). Return None.
-        return None
+        # 2 frames: btn00000 is setUp (wipe confirm), btn00001 might be real.
+        # Check if btn00001 is a setUp frame — if not, it's test content.
+        candidate = os.path.join(test_dir, btn_files[1])
+        if _is_setup_frame(candidate):
+            return None
+        return candidate
     else:
         # Single frame — almost always setUp noise (wipe confirm from setUp).
-        # Real test screenshots come in pairs or more (confirm + action).
-        # A single frame means the test used call_raw() with no callback screenshots.
         return None
 
 def detect_fw():
