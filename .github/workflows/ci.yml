@@ -1,0 +1,162 @@
+# KeepKey python-keepkey CI
+#
+# Pulls the published emulator image (kktech/kkemu) from DockerHub
+# and runs the full python integration test suite against it.
+#
+# Stage 1: GATE (seconds)
+#   └─ lint        basic Python syntax check
+#
+# Stage 2: TEST (gated by Stage 1)
+#   └─ integration full pytest suite against emulator
+
+name: CI
+
+on:
+  push:
+    branches: [master, develop, 'feature/**', 'fix/**', 'hotfix/**']
+  pull_request:
+    branches: [master, develop]
+
+jobs:
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 1: GATE
+  # ═══════════════════════════════════════════════════════════
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax check
+        run: python -m py_compile keepkeylib/*.py
+
+      - name: Lint summary
+        run: |
+          echo "## 🔑 KeepKey python-keepkey — Lint" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Check | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Syntax | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 2: TEST — pull published emulator, run pytest
+  # ═══════════════════════════════════════════════════════════
+
+  integration:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      kkemu:
+        image: kktech/kkemu:latest
+        ports:
+          - 11044:11044/udp
+          - 11045:11045/udp
+          - 5000:5000
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install "protobuf>=3.20,<4"
+          pip install -e .
+          pip install pytest semver rlp requests
+
+      - name: Wait for emulator
+        run: |
+          echo "Waiting for emulator bridge on port 5000..."
+          for i in $(seq 1 30); do
+            if curl -sf -X POST http://localhost:5000/exchange/main \
+                 -H 'Content-Type: application/json' \
+                 -d '{"data":""}' > /dev/null 2>&1; then
+              echo "Emulator ready after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run integration tests
+        env:
+          KK_TRANSPORT_MAIN: "127.0.0.1:11044"
+          KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
+          PYTHONPATH: "${{ github.workspace }}/keepkeylib:${{ github.workspace }}"
+        run: |
+          cd tests
+          pytest -v --junitxml=junit.xml 2>&1 | tee pytest-output.txt
+          echo "${PIPESTATUS[0]}" > status
+
+      - name: Test summary
+        if: always()
+        run: |
+          XML="tests/junit.xml"
+          echo "## 🔑 KeepKey python-keepkey — Integration Tests" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ ! -f "$XML" ]; then
+            echo "❌ **No test results found** — suite may have crashed before completion." >> "$GITHUB_STEP_SUMMARY"
+          else
+            TOTAL=$(grep -oP 'tests="\K[0-9]+' "$XML" | head -1)
+            FAILED=$(grep -oP 'failures="\K[0-9]+' "$XML" | head -1)
+            ERRORS=$(grep -oP 'errors="\K[0-9]+' "$XML" | head -1)
+            SKIPPED=$(grep -oP 'skipped="\K[0-9]+' "$XML" | head -1)
+            TIME=$(grep -oP 'time="\K[0-9.]+' "$XML" | head -1)
+
+            TOTAL=${TOTAL:-0}; FAILED=${FAILED:-0}; ERRORS=${ERRORS:-0}; SKIPPED=${SKIPPED:-0}
+            PASSED=$((TOTAL - FAILED - ERRORS - SKIPPED))
+
+            if [ "$FAILED" -eq 0 ] && [ "$ERRORS" -eq 0 ]; then
+              echo "✅ **$PASSED of $TOTAL TESTS PASSED** in ${TIME}s" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "❌ **$((FAILED + ERRORS)) of $TOTAL TESTS FAILED**" >> "$GITHUB_STEP_SUMMARY"
+            fi
+
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Metric | Count |" >> "$GITHUB_STEP_SUMMARY"
+            echo "|--------|-------|" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Total | $TOTAL |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| ✅ Passed | $PASSED |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| ⏭️ Skipped | $SKIPPED |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| ❌ Failed | $FAILED |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| 💥 Errors | $ERRORS |" >> "$GITHUB_STEP_SUMMARY"
+
+            # Itemize skipped with reasons
+            python3 -c "import xml.etree.ElementTree as ET,sys;tree=ET.parse(sys.argv[1]);[print(f'| \`{tc.get(\"classname\",\"\")}.{tc.get(\"name\",\"\")}\` | {tc.find(\"skipped\").get(\"message\",tc.find(\"skipped\").text or \"No reason given\")} |') for tc in tree.iter('testcase') if tc.find('skipped') is not None]" "$XML" > /tmp/skip_rows.txt 2>/dev/null || true
+
+            if [ -s /tmp/skip_rows.txt ]; then
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo "### Skipped Tests" >> "$GITHUB_STEP_SUMMARY"
+              echo "| Test | Reason |" >> "$GITHUB_STEP_SUMMARY"
+              echo "|------|--------|" >> "$GITHUB_STEP_SUMMARY"
+              cat /tmp/skip_rows.txt >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "---" >> "$GITHUB_STEP_SUMMARY"
+          echo "*KeepKey python-keepkey CI*" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test results
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: tests/junit.xml
+          check_name: Integration Tests
+
+      - name: Fail on test failure
+        if: always()
+        run: |
+          STATUS=$(cat tests/status 2>/dev/null || echo "1")
+          [ "$STATUS" = "0" ] || exit 1
