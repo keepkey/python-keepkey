@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-tron.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x13messages-tron.proto\"R\n\x0eTronGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Tron\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\"\x1e\n\x0bTronAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\xca\x01\n\nTronSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Tron\x12\x10\n\x08raw_data\x18\x03 \x01(\x0c\x12\x17\n\x0fref_block_bytes\x18\x04 \x01(\x0c\x12\x16\n\x0eref_block_hash\x18\x05 \x01(\x0c\x12\x12\n\nexpiration\x18\x06 \x01(\x04\x12\x15\n\rcontract_type\x18\x07 \x01(\t\x12\x12\n\nto_address\x18\x08 \x01(\t\x12\x0e\n\x06\x61mount\x18\t \x01(\x04\"!\n\x0cTronSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x42\x30\n\x1a\x63om.keepkey.deviceprotocolB\x12KeepKeyMessageTron')
+  serialized_pb=_b('\n\x13messages-tron.proto\"R\n\x0eTronGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Tron\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\"\x1e\n\x0bTronAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\":\n\x14TronTransferContract\x12\x12\n\nto_address\x18\x01 \x01(\t\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x04\"V\n\x18TronTriggerSmartContract\x12\x18\n\x10\x63ontract_address\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x12\n\ncall_value\x18\x03 \x01(\x04\"\xd9\x02\n\nTronSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Tron\x12\x10\n\x08raw_data\x18\x03 \x01(\x0c\x12\x17\n\x0fref_block_bytes\x18\x04 \x01(\x0c\x12\x16\n\x0eref_block_hash\x18\x05 \x01(\x0c\x12\x12\n\nexpiration\x18\x06 \x01(\x04\x12\x15\n\rcontract_type\x18\x07 \x01(\t\x12\x12\n\nto_address\x18\x08 \x01(\t\x12\x0e\n\x06\x61mount\x18\t \x01(\x04\x12\'\n\x08transfer\x18\n \x01(\x0b\x32\x15.TronTransferContract\x12\x30\n\rtrigger_smart\x18\x0b \x01(\x0b\x32\x19.TronTriggerSmartContract\x12\x11\n\tfee_limit\x18\x0c \x01(\x04\x12\x11\n\ttimestamp\x18\r \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x0e \x01(\x0c\"8\n\x0cTronSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x02 \x01(\x0c\x42\x30\n\x1a\x63om.keepkey.deviceprotocolB\x12KeepKeyMessageTron')
 )
 
 
@@ -101,6 +101,89 @@ _TRONADDRESS = _descriptor.Descriptor(
 )
 
 
+_TRONTRANSFERCONTRACT = _descriptor.Descriptor(
+  name='TronTransferContract',
+  full_name='TronTransferContract',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='to_address', full_name='TronTransferContract.to_address', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='amount', full_name='TronTransferContract.amount', index=1,
+      number=2, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=139,
+  serialized_end=197,
+)
+
+
+_TRONTRIGGERSMARTCONTRACT = _descriptor.Descriptor(
+  name='TronTriggerSmartContract',
+  full_name='TronTriggerSmartContract',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='contract_address', full_name='TronTriggerSmartContract.contract_address', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='data', full_name='TronTriggerSmartContract.data', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='call_value', full_name='TronTriggerSmartContract.call_value', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=199,
+  serialized_end=285,
+)
+
+
 _TRONSIGNTX = _descriptor.Descriptor(
   name='TronSignTx',
   full_name='TronSignTx',
@@ -171,6 +254,41 @@ _TRONSIGNTX = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='transfer', full_name='TronSignTx.transfer', index=9,
+      number=10, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='trigger_smart', full_name='TronSignTx.trigger_smart', index=10,
+      number=11, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='fee_limit', full_name='TronSignTx.fee_limit', index=11,
+      number=12, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='timestamp', full_name='TronSignTx.timestamp', index=12,
+      number=13, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='data', full_name='TronSignTx.data', index=13,
+      number=14, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -183,8 +301,8 @@ _TRONSIGNTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=140,
-  serialized_end=342,
+  serialized_start=288,
+  serialized_end=633,
 )
 
 
@@ -202,6 +320,13 @@ _TRONSIGNEDTX = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='serialized_tx', full_name='TronSignedTx.serialized_tx', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -214,12 +339,16 @@ _TRONSIGNEDTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=344,
-  serialized_end=377,
+  serialized_start=635,
+  serialized_end=691,
 )
 
+_TRONSIGNTX.fields_by_name['transfer'].message_type = _TRONTRANSFERCONTRACT
+_TRONSIGNTX.fields_by_name['trigger_smart'].message_type = _TRONTRIGGERSMARTCONTRACT
 DESCRIPTOR.message_types_by_name['TronGetAddress'] = _TRONGETADDRESS
 DESCRIPTOR.message_types_by_name['TronAddress'] = _TRONADDRESS
+DESCRIPTOR.message_types_by_name['TronTransferContract'] = _TRONTRANSFERCONTRACT
+DESCRIPTOR.message_types_by_name['TronTriggerSmartContract'] = _TRONTRIGGERSMARTCONTRACT
 DESCRIPTOR.message_types_by_name['TronSignTx'] = _TRONSIGNTX
 DESCRIPTOR.message_types_by_name['TronSignedTx'] = _TRONSIGNEDTX
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -237,6 +366,20 @@ TronAddress = _reflection.GeneratedProtocolMessageType('TronAddress', (_message.
   # @@protoc_insertion_point(class_scope:TronAddress)
   ))
 _sym_db.RegisterMessage(TronAddress)
+
+TronTransferContract = _reflection.GeneratedProtocolMessageType('TronTransferContract', (_message.Message,), dict(
+  DESCRIPTOR = _TRONTRANSFERCONTRACT,
+  __module__ = 'messages_tron_pb2'
+  # @@protoc_insertion_point(class_scope:TronTransferContract)
+  ))
+_sym_db.RegisterMessage(TronTransferContract)
+
+TronTriggerSmartContract = _reflection.GeneratedProtocolMessageType('TronTriggerSmartContract', (_message.Message,), dict(
+  DESCRIPTOR = _TRONTRIGGERSMARTCONTRACT,
+  __module__ = 'messages_tron_pb2'
+  # @@protoc_insertion_point(class_scope:TronTriggerSmartContract)
+  ))
+_sym_db.RegisterMessage(TronTriggerSmartContract)
 
 TronSignTx = _reflection.GeneratedProtocolMessageType('TronSignTx', (_message.Message,), dict(
   DESCRIPTOR = _TRONSIGNTX,

@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-solana.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x15messages-solana.proto\"V\n\x10SolanaGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\" \n\rSolanaAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"L\n\x0cSolanaSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x0e\n\x06raw_tx\x18\x03 \x01(\x0c\"#\n\x0eSolanaSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\"h\n\x11SolanaSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x14\n\x0cshow_display\x18\x04 \x01(\x08\"?\n\x16SolanaMessageSignature\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42\x32\n\x1a\x63om.keepkey.deviceprotocolB\x14KeepKeyMessageSolana')
+  serialized_pb=_b('\n\x15messages-solana.proto\"V\n\x10SolanaGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\" \n\rSolanaAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"A\n\x0fSolanaTokenInfo\x12\x0c\n\x04mint\x18\x01 \x01(\x0c\x12\x0e\n\x06symbol\x18\x02 \x01(\t\x12\x10\n\x08\x64\x65\x63imals\x18\x03 \x01(\r\"r\n\x0cSolanaSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x0e\n\x06raw_tx\x18\x03 \x01(\x0c\x12$\n\ntoken_info\x18\x04 \x03(\x0b\x32\x10.SolanaTokenInfo\"#\n\x0eSolanaSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\"h\n\x11SolanaSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x14\n\x0cshow_display\x18\x04 \x01(\x08\"?\n\x16SolanaMessageSignature\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42\x32\n\x1a\x63om.keepkey.deviceprotocolB\x14KeepKeyMessageSolana')
 )
 
 
@@ -101,6 +101,51 @@ _SOLANAADDRESS = _descriptor.Descriptor(
 )
 
 
+_SOLANATOKENINFO = _descriptor.Descriptor(
+  name='SolanaTokenInfo',
+  full_name='SolanaTokenInfo',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='mint', full_name='SolanaTokenInfo.mint', index=0,
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='symbol', full_name='SolanaTokenInfo.symbol', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='decimals', full_name='SolanaTokenInfo.decimals', index=2,
+      number=3, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=147,
+  serialized_end=212,
+)
+
+
 _SOLANASIGNTX = _descriptor.Descriptor(
   name='SolanaSignTx',
   full_name='SolanaSignTx',
@@ -129,6 +174,13 @@ _SOLANASIGNTX = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='token_info', full_name='SolanaSignTx.token_info', index=3,
+      number=4, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -141,8 +193,8 @@ _SOLANASIGNTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=147,
-  serialized_end=223,
+  serialized_start=214,
+  serialized_end=328,
 )
 
 
@@ -172,8 +224,8 @@ _SOLANASIGNEDTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=225,
-  serialized_end=260,
+  serialized_start=330,
+  serialized_end=365,
 )
 
 
@@ -224,8 +276,8 @@ _SOLANASIGNMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=262,
-  serialized_end=366,
+  serialized_start=367,
+  serialized_end=471,
 )
 
 
@@ -262,12 +314,14 @@ _SOLANAMESSAGESIGNATURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=368,
-  serialized_end=431,
+  serialized_start=473,
+  serialized_end=536,
 )
 
+_SOLANASIGNTX.fields_by_name['token_info'].message_type = _SOLANATOKENINFO
 DESCRIPTOR.message_types_by_name['SolanaGetAddress'] = _SOLANAGETADDRESS
 DESCRIPTOR.message_types_by_name['SolanaAddress'] = _SOLANAADDRESS
+DESCRIPTOR.message_types_by_name['SolanaTokenInfo'] = _SOLANATOKENINFO
 DESCRIPTOR.message_types_by_name['SolanaSignTx'] = _SOLANASIGNTX
 DESCRIPTOR.message_types_by_name['SolanaSignedTx'] = _SOLANASIGNEDTX
 DESCRIPTOR.message_types_by_name['SolanaSignMessage'] = _SOLANASIGNMESSAGE
@@ -287,6 +341,13 @@ SolanaAddress = _reflection.GeneratedProtocolMessageType('SolanaAddress', (_mess
   # @@protoc_insertion_point(class_scope:SolanaAddress)
   ))
 _sym_db.RegisterMessage(SolanaAddress)
+
+SolanaTokenInfo = _reflection.GeneratedProtocolMessageType('SolanaTokenInfo', (_message.Message,), dict(
+  DESCRIPTOR = _SOLANATOKENINFO,
+  __module__ = 'messages_solana_pb2'
+  # @@protoc_insertion_point(class_scope:SolanaTokenInfo)
+  ))
+_sym_db.RegisterMessage(SolanaTokenInfo)
 
 SolanaSignTx = _reflection.GeneratedProtocolMessageType('SolanaSignTx', (_message.Message,), dict(
   DESCRIPTOR = _SOLANASIGNTX,
