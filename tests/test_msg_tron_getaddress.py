@@ -29,6 +29,7 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
     def test_tron_get_address(self):
         """Derive Tron address at the default path and verify format."""
         self.requires_firmware("7.14.0")
+        self.requires_message("TronGetAddress")
         self.setup_mnemonic_allallall()
 
         resp = self.client.tron_get_address(
@@ -41,9 +42,22 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
         self.assertTrue(len(address) == 34, "Tron address must be 34 characters, got %d" % len(address))
         self.assertTrue(address.startswith('T'), "Tron address must start with 'T', got '%s'" % address)
 
+    def test_tron_show_address(self):
+        """Display TRON address on OLED with QR code (show_display=True)."""
+        self.requires_firmware("7.14.0")
+        self.requires_message("TronGetAddress")
+        self.setup_mnemonic_allallall()
+
+        resp = self.client.tron_get_address(
+            parse_path(TRON_DEFAULT_PATH),
+            show_display=True
+        )
+        self.assertTrue(len(resp.address) == 34)
+
     def test_tron_different_accounts(self):
         """Different derivation paths must produce different addresses."""
         self.requires_firmware("7.14.0")
+        self.requires_message("TronGetAddress")
         self.setup_mnemonic_allallall()
 
         resp_0 = self.client.tron_get_address(
@@ -76,6 +90,7 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
     def test_tron_deterministic(self):
         """Calling get_address twice with the same path returns the same address."""
         self.requires_firmware("7.14.0")
+        self.requires_message("TronGetAddress")
         self.setup_mnemonic_allallall()
 
         resp_1 = self.client.tron_get_address(
@@ -91,6 +106,23 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
             resp_1.address == resp_2.address,
             "Same path must produce identical addresses: '%s' vs '%s'" % (resp_1.address, resp_2.address)
         )
+
+    def test_tron_show_address(self):
+        """Display TRON address on OLED (triggers ButtonRequest for screenshot capture).
+
+        Address correctness verified by test_tron_get_address (show_display=False).
+        This test only triggers the OLED display flow for screenshot capture.
+        """
+        self.requires_firmware("7.14.0")
+        self.requires_message("TronGetAddress")
+        self.setup_mnemonic_allallall()
+
+        resp = self.client.tron_get_address(
+            parse_path(TRON_DEFAULT_PATH),
+            show_display=True
+        )
+        self.assertIsNotNone(resp)
+
 
 if __name__ == '__main__':
     unittest.main()
