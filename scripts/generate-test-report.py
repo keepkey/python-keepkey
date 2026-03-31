@@ -1109,6 +1109,26 @@ def screenshot_filter(fw_version):
     return ' or '.join(terms)
 
 
+def validate_junit(fw_version, results):
+    """Check SECTIONS tests against JUnit results. Returns (passed, failed_list).
+
+    A test is considered failed if it appears in SECTIONS for this firmware version
+    and the JUnit result is 'fail' or 'error' (not 'skip' or 'pass').
+    Tests with no JUnit entry are treated as missing (also a failure).
+    Tests that were skipped (gated by requires_message/requires_firmware) are OK.
+    """
+    active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
+    failures = []
+    for letter, title, mf, bg, fl, tests in active:
+        for tid, mod, meth, ttl, ctx, scr in tests:
+            status = _lookup(results, mod, meth)
+            if status in ('fail', 'error'):
+                failures.append((tid, mod, meth, status))
+            elif not status:
+                failures.append((tid, mod, meth, 'missing'))
+    return (len(failures) == 0, failures)
+
+
 def main():
     p = argparse.ArgumentParser(description='KeepKey Firmware Test Report')
     p.add_argument('--output', default='test-report.pdf')
@@ -1117,6 +1137,8 @@ def main():
     p.add_argument('--screenshots', default=None, help='Directory with per-test OLED screenshots')
     p.add_argument('--screenshot-filter', action='store_true',
                    help='Print pytest -k expression for tests needing screenshots, then exit')
+    p.add_argument('--validate-junit', action='store_true',
+                   help='Validate JUnit results against SECTIONS, exit non-zero on failures')
     args = p.parse_args()
 
     fw = args.fw_version
@@ -1129,6 +1151,21 @@ def main():
     if args.screenshot_filter:
         print(screenshot_filter(fw))
         sys.exit(0)
+
+    if args.validate_junit:
+        if not args.junit:
+            print('ERROR: --validate-junit requires --junit=<path>', file=sys.stderr)
+            sys.exit(2)
+        results = parse_junit(args.junit)
+        ok, failures = validate_junit(fw, results)
+        if ok:
+            print(f'SECTIONS validation passed: all tests for fw {fw} are pass or skip')
+            sys.exit(0)
+        else:
+            print(f'SECTIONS validation FAILED: {len(failures)} test(s) not green for fw {fw}:')
+            for tid, mod, meth, status in failures:
+                print(f'  {tid} {mod}::{meth} -> {status}')
+            sys.exit(1)
 
     results = parse_junit(args.junit) if args.junit else {}
     render(args.output, fw, results, args.screenshots)

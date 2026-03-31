@@ -20,6 +20,7 @@ class TestMsgBip85(common.KeepKeyTest):
     def setUp(self):
         super().setUp()
         self.requires_firmware("7.14.0")
+        self.requires_message("GetBip85Mnemonic")
 
     def test_bip85_12word_flow(self):
         """12-word derivation: verify device goes through display flow and returns Success."""
