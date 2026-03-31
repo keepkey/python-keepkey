@@ -857,13 +857,11 @@ SECTIONS = [
      ]),
 
     ('T', 'TRON', '7.14.0',
-     'NEW: TRON with protobuf deserialization and reconstruct-then-sign. 13 hardcoded TRC-20 tokens. '
-     'Device reconstructs tx hash from parsed fields (not raw blob) for clear-sign path.',
+     'NEW: TRON with secp256k1 signing, base58 addresses. Blind-sign via raw_data. '
+     'Structured reconstruct-then-sign and TRC-20 clear-signing deferred to 7.15+.',
      [
          'ADDRESS: m/44\'/195\'/0\'/0/0 -> full 34-char base58 TRON address',
-         'STRUCTURED: Parse fields -> reconstruct hash -> show amount + address -> sign',
-         'TRC-20: Decode transfer(to,amount) ABI -> show token name + decoded amount',
-         'LEGACY: Raw protobuf -> blind sign warning',
+         'BLIND-SIGN: Raw protobuf data -> hash + sign',
      ],
      [
          ('T1', 'test_msg_tron_getaddress', 'test_tron_get_address',
@@ -874,13 +872,9 @@ SECTIONS = [
           'Deterministic derivation', 'Same path always produces same address.', []),
          ('T3b', 'test_msg_tron_getaddress', 'test_tron_show_address',
           'Show address on OLED', 'Full 34-char Base58Check TRON address with QR code.', ['TRON QR + 34-char address']),
-         ('T4', 'test_msg_tron_signtx', 'test_tron_sign_transfer_structured',
-          'Sign TRX transfer', 'Structured clear-sign with full address display.', ['TRX send']),
-         ('T5', 'test_msg_tron_signtx', 'test_tron_sign_transfer_legacy_raw_data',
-          'Sign TRX legacy raw', 'Raw protobuf data triggers blind sign path.', ['Blind sign']),
-         ('T6', 'test_msg_tron_signtx', 'test_tron_sign_trc20_transfer',
-          'Sign TRC-20 USDT transfer', 'Known TRC-20 token decoded from ABI data. Shows "Send 1.00 USDT to [address]".', ['Token + amount']),
-         ('T7', 'test_msg_tron_signtx', 'test_tron_sign_missing_fields_rejected',
+         ('T4', 'test_msg_tron_signtx', 'test_tron_sign_transfer_legacy_raw_data',
+          'Sign TRX blind (raw_data)', 'Raw protobuf data triggers blind sign path.', ['Blind sign']),
+         ('T5', 'test_msg_tron_signtx', 'test_tron_sign_missing_fields_rejected',
           'Missing fields rejected', 'Incomplete transaction data is refused.', []),
      ]),
 
