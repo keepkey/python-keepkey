@@ -779,12 +779,11 @@ SECTIONS = [
     ('V', 'EVM Clear-Signing', '7.14.0',
      'NEW: Verified transaction metadata for EVM contracts. Host sends a signed blob with contract '
      'name, function, and decoded parameters. Device verifies blob signature against trusted key, '
-     'then shows human-readable details with VERIFIED icon. AdvancedMode policy gates blind-signing '
-     '(disabled by default = blind signing blocked).',
+     'then shows human-readable details with VERIFIED icon. Blind-sign policy gating is deferred '
+     'to firmware 7.15+.',
      [
          'CLEAR-SIGN: Signed metadata -> verify signature -> VERIFIED icon + method + decoded args',
-         'BLIND BLOCKED: No metadata + AdvancedMode off -> device refuses',
-         'BLIND ALLOWED: No metadata + AdvancedMode on -> warning -> sign',
+         'BLIND SIGN: No metadata + AdvancedMode on -> contract data signed (no gate until 7.15+)',
      ],
      [
          ('V1', 'test_msg_ethereum_clear_signing', 'test_valid_metadata_returns_verified',
@@ -800,22 +799,17 @@ SECTIONS = [
           'Tampered contract rejected', 'Modified contract address fails signature check.', []),
          ('V5', 'test_msg_ethereum_clear_signing', 'test_no_metadata_then_sign_unchanged',
           'No metadata = blind sign path',
-          'Without metadata, transaction goes through blind-sign path (gated by AdvancedMode).',
+          'Without metadata, transaction goes through existing blind-sign path.',
           ['Blind sign warning']),
          ('V6', 'test_msg_ethereum_clear_signing', 'test_signature_verification',
           'Signature verification math', 'Unit test for the metadata blob signature algorithm.', []),
          ('V7', 'test_msg_ethereum_clear_signing', 'test_tampered_blob_fails_verification',
           'Tampered blob fails', 'Any byte change in the blob invalidates the signature.', []),
-         ('V8', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_blocked',
-          'Blind sign BLOCKED (AdvancedMode OFF)',
-          'Contract data with AdvancedMode disabled. Device shows BLOCKED screen and refuses to sign. '
-          'This is the default behavior -- blind signing must be explicitly enabled.',
-          ['BLOCKED screen']),
-         ('V9', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_allowed',
-          'Blind sign ALLOWED (AdvancedMode ON)',
-          'Contract data with AdvancedMode enabled. Device shows BLIND SIGNATURE warning '
-          'before proceeding. User sees raw data and must explicitly confirm.',
-          ['BLIND SIGNATURE warning']),
+         ('V8', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_allowed',
+          'Blind sign permitted (AdvancedMode ON)',
+          'Contract data with AdvancedMode enabled. Device allows signing. '
+          'Blind-sign blocking deferred to 7.15+.',
+          []),
      ]),
 
     ('S', 'Solana', '7.14.0',
