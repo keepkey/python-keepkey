@@ -99,6 +99,19 @@ class DebugLink(object):
         obj = self._call(proto.DebugLinkGetState())
         return obj.recovery_auto_completed_word
 
+    def read_recovery_state(self):
+        """Read cipher + auto-completed word + layout in a single call.
+
+        Returns dict with keys: cipher, auto_completed_word, layout
+        Avoids 3 separate DebugLinkGetState round-trips per character.
+        """
+        obj = self._call(proto.DebugLinkGetState())
+        return {
+            'cipher': obj.recovery_cipher,
+            'auto_completed_word': obj.recovery_auto_completed_word,
+            'layout': obj.layout,
+        }
+
     def read_memory_hashes(self):
         obj = self._call(proto.DebugLinkGetState())
         return (obj.firmware_hash, obj.storage_hash)

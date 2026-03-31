@@ -24,6 +24,7 @@ from __future__ import print_function
 import unittest
 import config
 import time
+import os
 import semver
 
 from keepkeylib.client import KeepKeyClient, KeepKeyDebuglinkClient, KeepKeyDebuglinkClientVerbose
@@ -45,7 +46,21 @@ class KeepKeyTest(unittest.TestCase):
         else:
             self.client = KeepKeyClient(transport)
         self.client.set_tx_api(tx_api.TxApiBitcoin)
-        # self.client.set_buttonwait(3)
+
+        # Per-test screenshot directory (unittest runner — conftest.py handles pytest)
+        if os.environ.get('KEEPKEY_SCREENSHOT') == '1':
+            test_id = self.id()
+            parts = test_id.split('.')
+            test_name = parts[-1] if parts else 'unknown'
+            mod = 'unknown'
+            for p in parts:
+                if p.startswith('test_msg_') or p.startswith('test_sign_') or p.startswith('test_verify_'):
+                    mod = p.replace('test_', '', 1)
+                    break
+            sdir = os.path.join(os.environ.get('SCREENSHOT_DIR', 'screenshots'), mod, test_name)
+            os.makedirs(sdir, exist_ok=True)
+            self.client.screenshot_dir = sdir
+            self.client.screenshot_id = 0
 
         #                     1      2     3    4      5      6      7     8      9    10    11    12
         self.mnemonic12 = 'alcohol woman abuse must during monitor noble actual mixed trade anger aisle'
@@ -101,6 +116,47 @@ class KeepKeyTest(unittest.TestCase):
         version = "%s.%s.%s" % (features.major_version, features.minor_version, features.patch_version)
         if semver.VersionInfo.parse(version) < semver.VersionInfo.parse(ver_required):
             self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
+
+    def requires_message(self, msg_name):
+        """Skip if firmware does not handle this message type.
+        Use alongside requires_firmware for per-feature gating:
+          self.requires_firmware("7.14.0")
+          self.requires_message("ZcashGetOrchardFVK")
+        """
+        # Check all pb2 modules — message classes live in chain-specific pb2 files,
+        # not just messages_pb2 (which only has the MessageType enum values).
+        import keepkeylib
+        proto = None
+        for mod_name in dir(keepkeylib):
+            if mod_name.endswith('_pb2'):
+                mod = getattr(keepkeylib, mod_name, None)
+                if mod and hasattr(mod, msg_name):
+                    proto = mod
+                    break
+        if proto is None:
+            # Fallback: try importing chain-specific modules directly
+            for suffix in ['solana', 'tron', 'ton', 'zcash', 'ethereum', '']:
+                try:
+                    mod_path = 'messages_%s_pb2' % suffix if suffix else 'messages_pb2'
+                    mod = __import__('keepkeylib.%s' % mod_path, fromlist=[msg_name])
+                    if hasattr(mod, msg_name):
+                        proto = mod
+                        break
+                except ImportError:
+                    continue
+        if proto is None or not hasattr(proto, msg_name):
+            self.skipTest("%s proto message not available" % msg_name)
+        # Send a minimal probe -- if firmware returns Failure_UnexpectedMessage, skip.
+        from keepkeylib import messages_pb2 as base_proto
+        msg = getattr(proto, msg_name)()
+        try:
+            resp = self.client.call_raw(msg)
+            if hasattr(resp, 'code') and resp.code == 1:  # Failure_UnexpectedMessage
+                self.skipTest("%s not supported by this firmware build" % msg_name)
+            # Re-init device state after probe (some messages may have changed state)
+            self.client.call_raw(base_proto.Initialize())
+        except Exception:
+            self.skipTest("%s not supported by this firmware build" % msg_name)
 
     def requires_fullFeature(self):
       if self.client.features.firmware_variant == "KeepKeyBTC" or \

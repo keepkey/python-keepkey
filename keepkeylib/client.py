@@ -48,19 +48,27 @@ from . import messages_mayachain_pb2 as mayachain_proto
 from . import messages_solana_pb2 as solana_proto
 from . import messages_tron_pb2 as tron_proto
 from . import messages_ton_pb2 as ton_proto
+from . import messages_zcash_pb2 as zcash_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
 from .debuglink import DebugLink
 
 
-# try:
-#     from PIL import Image
-#     SCREENSHOT = True
-# except:
-#     SCREENSHOT = False
+import struct as _struct
+import zlib as _zlib
 
-SCREENSHOT = False
+SCREENSHOT = os.environ.get('KEEPKEY_SCREENSHOT', '') == '1'
+
+
+def _write_png(path, width, height, pixels):
+    """Write a minimal grayscale PNG. No Pillow needed."""
+    def _chunk(tag, data):
+        raw = tag + data
+        return _struct.pack('>I', len(data)) + raw + _struct.pack('>I', _zlib.crc32(raw) & 0xffffffff)
+    ihdr = _struct.pack('>IIBBBBB', width, height, 8, 0, 0, 0, 0)
+    raw_data = b''.join(b'\x00' + row for row in pixels)
+    return b'\x89PNG\r\n\x1a\n' + _chunk(b'IHDR', ihdr) + _chunk(b'IDAT', _zlib.compress(raw_data)) + _chunk(b'IEND', b'')
 
 DEFAULT_CURVE = 'secp256k1'
 
@@ -424,19 +432,13 @@ class DebugLinkMixin(object):
 
     def call_raw(self, msg):
 
-        if SCREENSHOT and self.debug:
-            layout = self.debug.read_layout()
-            im = Image.new("RGB", (128, 64))
-            pix = im.load()
-            for x in range(128):
-                for y in range(64):
-                    rx, ry = 127 - x, 63 - y
-                    if (ord(layout[rx + (ry / 8) * 128]) & (1 << (ry % 8))) > 0:
-                        pix[x, y] = (255, 255, 255)
-            im.save('scr%05d.png' % self.screenshot_id)
-            self.screenshot_id += 1
+        # Screenshot capture disabled in call_raw (captures idle screens, adds latency).
+        # Real confirmation screenshots are captured in callback_ButtonRequest instead.
+        # Exception: capture on Failure (rejection screens like invalid BIP-39 word).
 
         resp = super(DebugLinkMixin, self).call_raw(msg)
+        if isinstance(resp, proto.Failure):
+            self._capture_oled()
         self._check_request(resp)
         return resp
 
@@ -458,9 +460,53 @@ class DebugLinkMixin(object):
                     raise CallException(types.Failure_Other,
                             "Expected %s, got %s" % (pprint(expected), pprint(msg)))
 
+    def _capture_oled(self):
+        """Capture current OLED layout to screenshot directory."""
+        if not SCREENSHOT:
+            return
+        if not self.debug:
+            import sys
+            print("[SCREENSHOT] SKIP: no debug link", file=sys.stderr)
+            return
+        try:
+            layout = self.debug.read_layout()
+            if not layout or len(layout) < 1024:
+                import sys
+                print("[SCREENSHOT] SKIP: layout too small (%d bytes)" % (len(layout) if layout else 0), file=sys.stderr)
+                return
+            layout_bytes = len(layout)
+            height = 64 if layout_bytes >= 2048 else 32
+            rows = []
+            for y in range(height):
+                row = bytearray(256)
+                for x in range(256):
+                    byte_idx = x + (y // 8) * 256
+                    if byte_idx < layout_bytes:
+                        b = layout[byte_idx] if isinstance(layout[byte_idx], int) else ord(layout[byte_idx])
+                        if (b >> (y % 8)) & 1:
+                            row[x] = 255
+                rows.append(bytes(row))
+            while len(rows) < 64:
+                rows.append(bytes(256))
+            screenshot_dir = getattr(self, 'screenshot_dir', os.environ.get('SCREENSHOT_DIR', '.'))
+            os.makedirs(screenshot_dir, exist_ok=True)
+            png_path = os.path.join(screenshot_dir, 'btn%05d.png' % self.screenshot_id)
+            with open(png_path, 'wb') as f:
+                f.write(_write_png(png_path, 256, 64, rows))
+            self.screenshot_id += 1
+            import sys
+            print("[SCREENSHOT] OK: %s (%d bytes layout)" % (png_path, layout_bytes), file=sys.stderr)
+        except Exception as e:
+            import sys, traceback
+            print("[SCREENSHOT] ERROR: %s" % e, file=sys.stderr)
+            traceback.print_exc(file=sys.stderr)
+
     def callback_ButtonRequest(self, msg):
         if self.verbose:
             log("ButtonRequest code: " + get_buttonrequest_value(msg.code))
+
+        # Capture OLED screenshot BEFORE pressing button (confirmation screen)
+        self._capture_oled()
 
         if self.auto_button:
             if self.verbose:
@@ -633,6 +679,15 @@ class ProtocolMixin(object):
             )
         response = self.call(msg)
         return response
+
+    @expect(eth_proto.EthereumMetadataAck)
+    def ethereum_send_tx_metadata(self, signed_payload, metadata_version, key_id):
+        msg = eth_proto.EthereumTxMetadata(
+            signed_payload=signed_payload,
+            metadata_version=metadata_version,
+            key_id=key_id,
+        )
+        return self.call(msg)
 
     @session
     def ethereum_sign_tx(self, n, nonce, gas_limit,  value, gas_price=None, max_fee_per_gas=None, max_priority_fee_per_gas=None, to=None, to_n=None, address_type=None, data=None, chain_id=None):
@@ -1603,6 +1658,112 @@ class ProtocolMixin(object):
         return self.call(
             ton_proto.TonSignTx(address_n=address_n, raw_tx=raw_tx)
         )
+
+    # ── Zcash Orchard ──────────────────────────────────────────
+    @expect(zcash_proto.ZcashOrchardFVK)
+    def zcash_get_orchard_fvk(self, address_n, account=None, show_display=False):
+        kwargs = dict(address_n=address_n, show_display=show_display)
+        if account is not None:
+            kwargs['account'] = account
+        return self.call(zcash_proto.ZcashGetOrchardFVK(**kwargs))
+
+    @session
+    def zcash_sign_pczt(self, address_n, actions, account=None,
+                        total_amount=0, fee=0, branch_id=0x37519621,
+                        header_digest=None, transparent_digest=None,
+                        sapling_digest=None, orchard_digest=None,
+                        orchard_flags=None, orchard_value_balance=None,
+                        orchard_anchor=None, transparent_inputs=None):
+        """Sign a Zcash Orchard shielded transaction via PCZT protocol.
+
+        Phase 2: Sends ZcashSignPCZT, then loops on ZcashPCZTActionAck
+        feeding Orchard actions one at a time.
+        Phase 3: If transparent_inputs provided, handles ZcashTransparentSig
+        loop for transparent-to-shielded (shielding) transactions.
+
+        Args:
+            address_n: ZIP-32 derivation path [32', 133', account']
+            actions: list of dicts, each with keys matching ZcashPCZTAction fields
+            account: account index (default: derived from address_n[2])
+            total_amount: total ZEC in zatoshis (for display)
+            fee: fee in zatoshis (for display)
+            branch_id: consensus branch ID (default NU5)
+            header_digest: 32-byte header digest (enables on-device sighash)
+            transparent_digest: 32-byte transparent digest
+            sapling_digest: 32-byte sapling digest
+            orchard_digest: 32-byte orchard digest
+            orchard_flags: bundle flags byte (enables digest verification)
+            orchard_value_balance: signed i64 value balance
+            orchard_anchor: 32-byte anchor
+
+        Returns:
+            ZcashSignedPCZT with .signatures list and optional .txid
+        """
+        n_actions = len(actions)
+        if n_actions == 0:
+            raise ValueError("Must have at least one action")
+
+        # Build the initial signing request — only send address_n,
+        # let firmware derive account from the path. Only set account
+        # explicitly if the caller passed it.
+        kwargs = dict(
+            address_n=address_n,
+            n_actions=n_actions,
+            total_amount=total_amount,
+            fee=fee,
+            branch_id=branch_id,
+        )
+        if account is not None:
+            kwargs['account'] = account
+        if header_digest is not None:
+            kwargs['header_digest'] = header_digest
+        if transparent_digest is not None:
+            kwargs['transparent_digest'] = transparent_digest
+        if sapling_digest is not None:
+            kwargs['sapling_digest'] = sapling_digest
+        if orchard_digest is not None:
+            kwargs['orchard_digest'] = orchard_digest
+        if orchard_flags is not None:
+            kwargs['orchard_flags'] = orchard_flags
+        if orchard_value_balance is not None:
+            kwargs['orchard_value_balance'] = orchard_value_balance
+        if orchard_anchor is not None:
+            kwargs['orchard_anchor'] = orchard_anchor
+
+        resp = self.call(zcash_proto.ZcashSignPCZT(**kwargs))
+
+        # Phase 2: Orchard action-ack loop — device asks for actions one at a time
+        while isinstance(resp, zcash_proto.ZcashPCZTActionAck):
+            idx = resp.next_index
+            if idx >= n_actions:
+                raise Exception(
+                    "Device requested action index %d but only %d actions provided"
+                    % (idx, n_actions))
+            action = actions[idx]
+            resp = self.call(zcash_proto.ZcashPCZTAction(index=idx, **action))
+
+        # Phase 3: Transparent input signing — device sends back signatures
+        # and may request transparent inputs for shielding transactions
+        transparent_sigs = []
+        while isinstance(resp, zcash_proto.ZcashTransparentSig):
+            transparent_sigs.append(resp)
+            if not transparent_inputs:
+                raise Exception(
+                    "Device sent ZcashTransparentSig but no transparent_inputs provided")
+            if resp.next_index >= len(transparent_inputs):
+                raise Exception(
+                    "Device requested transparent input %d but only %d provided"
+                    % (resp.next_index, len(transparent_inputs)))
+            inp = transparent_inputs[resp.next_index]
+            resp = self.call(zcash_proto.ZcashTransparentInput(**inp))
+
+        if isinstance(resp, proto.Failure):
+            raise Exception("Zcash signing failed: %s" % resp.message)
+
+        if not isinstance(resp, zcash_proto.ZcashSignedPCZT):
+            raise Exception("Unexpected response type: %s" % type(resp))
+
+        return resp
 
 class KeepKeyClient(ProtocolMixin, TextUIMixin, BaseClient):
     pass
