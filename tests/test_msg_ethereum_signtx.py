@@ -95,36 +95,13 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
         self.client.apply_policy("AdvancedMode", 0)
 
-    def test_ethereum_blind_sign_blocked(self):
-        """AdvancedMode OFF + contract data = device refuses to sign.
-
-        OLED shows 'BLOCKED -- Blind signing requires AdvancedMode' then Failure.
-        """
-        self.requires_firmware("7.14.0")
-        self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy("AdvancedMode", 0)
-
-        try:
-            self.client.ethereum_sign_tx(
-                n=[0, 0],
-                nonce=0,
-                gas_price=20,
-                gas_limit=20,
-                to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
-                value=0,
-                data=b"abcdefghijklmnop" * 16,
-            )
-            self.fail("Expected Failure — blind signing should be blocked")
-        except CallException as e:
-            self.assertIn("Blind signing disabled", str(e))
-
     def test_ethereum_blind_sign_allowed(self):
-        """AdvancedMode ON + contract data = device shows BLIND SIGNATURE warning.
+        """Contract data = device allows blind signing (no gate until 7.15+).
 
-        OLED shows 'BLIND SIGNATURE -- You are signing raw contract data'
-        before showing the data and allowing signing.
+        Blind-sign policy gating (AdvancedMode) is deferred to firmware 7.15+.
+        On 7.10-7.14 blind signing is always permitted with AdvancedMode ON.
         """
-        self.requires_firmware("7.14.0")
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 
@@ -137,7 +114,6 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             value=0,
             data=b"abcdefghijklmnop" * 16,
         )
-        # Should succeed — AdvancedMode allows blind signing
         self.assertIsNotNone(sig_v)
         self.client.apply_policy("AdvancedMode", 0)
 

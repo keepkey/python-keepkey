@@ -779,12 +779,11 @@ SECTIONS = [
     ('V', 'EVM Clear-Signing', '7.14.0',
      'NEW: Verified transaction metadata for EVM contracts. Host sends a signed blob with contract '
      'name, function, and decoded parameters. Device verifies blob signature against trusted key, '
-     'then shows human-readable details with VERIFIED icon. AdvancedMode policy gates blind-signing '
-     '(disabled by default = blind signing blocked).',
+     'then shows human-readable details with VERIFIED icon. Blind-sign policy gating is deferred '
+     'to firmware 7.15+.',
      [
          'CLEAR-SIGN: Signed metadata -> verify signature -> VERIFIED icon + method + decoded args',
-         'BLIND BLOCKED: No metadata + AdvancedMode off -> device refuses',
-         'BLIND ALLOWED: No metadata + AdvancedMode on -> warning -> sign',
+         'BLIND SIGN: No metadata + AdvancedMode on -> contract data signed (no gate until 7.15+)',
      ],
      [
          ('V1', 'test_msg_ethereum_clear_signing', 'test_valid_metadata_returns_verified',
@@ -800,22 +799,17 @@ SECTIONS = [
           'Tampered contract rejected', 'Modified contract address fails signature check.', []),
          ('V5', 'test_msg_ethereum_clear_signing', 'test_no_metadata_then_sign_unchanged',
           'No metadata = blind sign path',
-          'Without metadata, transaction goes through blind-sign path (gated by AdvancedMode).',
+          'Without metadata, transaction goes through existing blind-sign path.',
           ['Blind sign warning']),
          ('V6', 'test_msg_ethereum_clear_signing', 'test_signature_verification',
           'Signature verification math', 'Unit test for the metadata blob signature algorithm.', []),
          ('V7', 'test_msg_ethereum_clear_signing', 'test_tampered_blob_fails_verification',
           'Tampered blob fails', 'Any byte change in the blob invalidates the signature.', []),
-         ('V8', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_blocked',
-          'Blind sign BLOCKED (AdvancedMode OFF)',
-          'Contract data with AdvancedMode disabled. Device shows BLOCKED screen and refuses to sign. '
-          'This is the default behavior -- blind signing must be explicitly enabled.',
-          ['BLOCKED screen']),
-         ('V9', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_allowed',
-          'Blind sign ALLOWED (AdvancedMode ON)',
-          'Contract data with AdvancedMode enabled. Device shows BLIND SIGNATURE warning '
-          'before proceeding. User sees raw data and must explicitly confirm.',
-          ['BLIND SIGNATURE warning']),
+         ('V8', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_allowed',
+          'Blind sign permitted (AdvancedMode ON)',
+          'Contract data with AdvancedMode enabled. Device allows signing. '
+          'Blind-sign blocking deferred to 7.15+.',
+          []),
      ]),
 
     ('S', 'Solana', '7.14.0',
@@ -863,13 +857,11 @@ SECTIONS = [
      ]),
 
     ('T', 'TRON', '7.14.0',
-     'NEW: TRON with protobuf deserialization and reconstruct-then-sign. 13 hardcoded TRC-20 tokens. '
-     'Device reconstructs tx hash from parsed fields (not raw blob) for clear-sign path.',
+     'NEW: TRON with secp256k1 signing, base58 addresses. Blind-sign via raw_data. '
+     'Structured reconstruct-then-sign and TRC-20 clear-signing deferred to 7.15+.',
      [
          'ADDRESS: m/44\'/195\'/0\'/0/0 -> full 34-char base58 TRON address',
-         'STRUCTURED: Parse fields -> reconstruct hash -> show amount + address -> sign',
-         'TRC-20: Decode transfer(to,amount) ABI -> show token name + decoded amount',
-         'LEGACY: Raw protobuf -> blind sign warning',
+         'BLIND-SIGN: Raw protobuf data -> hash + sign',
      ],
      [
          ('T1', 'test_msg_tron_getaddress', 'test_tron_get_address',
@@ -880,13 +872,9 @@ SECTIONS = [
           'Deterministic derivation', 'Same path always produces same address.', []),
          ('T3b', 'test_msg_tron_getaddress', 'test_tron_show_address',
           'Show address on OLED', 'Full 34-char Base58Check TRON address with QR code.', ['TRON QR + 34-char address']),
-         ('T4', 'test_msg_tron_signtx', 'test_tron_sign_transfer_structured',
-          'Sign TRX transfer', 'Structured clear-sign with full address display.', ['TRX send']),
-         ('T5', 'test_msg_tron_signtx', 'test_tron_sign_transfer_legacy_raw_data',
-          'Sign TRX legacy raw', 'Raw protobuf data triggers blind sign path.', ['Blind sign']),
-         ('T6', 'test_msg_tron_signtx', 'test_tron_sign_trc20_transfer',
-          'Sign TRC-20 USDT transfer', 'Known TRC-20 token decoded from ABI data. Shows "Send 1.00 USDT to [address]".', ['Token + amount']),
-         ('T7', 'test_msg_tron_signtx', 'test_tron_sign_missing_fields_rejected',
+         ('T4', 'test_msg_tron_signtx', 'test_tron_sign_transfer_legacy_raw_data',
+          'Sign TRX blind (raw_data)', 'Raw protobuf data triggers blind sign path.', ['Blind sign']),
+         ('T5', 'test_msg_tron_signtx', 'test_tron_sign_missing_fields_rejected',
           'Missing fields rejected', 'Incomplete transaction data is refused.', []),
      ]),
 

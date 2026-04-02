@@ -27,6 +27,9 @@ def build_system_transfer_tx(from_pubkey, to_pubkey, lamports, blockhash=None):
 
     tx = bytearray()
 
+    # Signature count (compact-u16: 0 signatures for unsigned tx)
+    tx.append(0)
+
     # Header
     tx.append(1)   # num_required_sigs
     tx.append(0)   # num_readonly_signed
@@ -191,6 +194,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         all_accounts = [from_pubkey] + (extra_accounts or []) + accounts + [program_id]
         blockhash = b'\xBB' * 32
         tx = bytearray()
+        tx.append(0)  # signature count (compact-u16: 0 = unsigned)
         tx.append(1)  # num_required_sigs
         tx.append(0)  # num_readonly_signed
         tx.append(1 + len(accounts) + (len(extra_accounts) if extra_accounts else 0))  # num_readonly_unsigned

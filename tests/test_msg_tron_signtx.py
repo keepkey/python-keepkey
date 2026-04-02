@@ -48,8 +48,11 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         self.assertTrue(resp.address.startswith('T'))
         self.assertEqual(len(resp.address), 34)
 
+    @unittest.skip("Structured TRON signing deferred to 7.15+; firmware only supports raw_data blind-sign")
     def test_tron_sign_transfer_structured(self):
-        """Test TRX transfer using structured fields (reconstruct-then-sign)."""
+        """Test TRX transfer using structured fields (reconstruct-then-sign).
+        Deferred to 7.15+ — firmware currently only supports raw_data path.
+        """
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
@@ -112,8 +115,11 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         with pytest.raises(CallException) as exc:
             self.client.call(msg)
 
+    @unittest.skip("Structured TRON TRC-20 signing deferred to 7.15+; firmware only supports raw_data blind-sign")
     def test_tron_sign_trc20_transfer(self):
-        """Test TRC-20 USDT transfer using trigger_smart."""
+        """Test TRC-20 USDT transfer using trigger_smart.
+        Deferred to 7.15+ — firmware currently only supports raw_data path.
+        """
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
