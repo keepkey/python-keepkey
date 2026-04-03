@@ -524,6 +524,102 @@ _ZCASHTRANSPARENTSIG = _descriptor.Descriptor(
   serialized_end=1021,
 )
 
+_ZCASHDISPLAYADDRESS = _descriptor.Descriptor(
+  name='ZcashDisplayAddress',
+  full_name='ZcashDisplayAddress',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address_n', full_name='ZcashDisplayAddress.address_n', index=0,
+      number=1, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='account', full_name='ZcashDisplayAddress.account', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='address', full_name='ZcashDisplayAddress.address', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='ak', full_name='ZcashDisplayAddress.ak', index=3,
+      number=4, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='nk', full_name='ZcashDisplayAddress.nk', index=4,
+      number=5, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='rivk', full_name='ZcashDisplayAddress.rivk', index=5,
+      number=6, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1023,
+  serialized_end=1133,
+)
+
+
+_ZCASHADDRESS = _descriptor.Descriptor(
+  name='ZcashAddress',
+  full_name='ZcashAddress',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address', full_name='ZcashAddress.address', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1135,
+  serialized_end=1167,
+)
+
 DESCRIPTOR.message_types_by_name['ZcashSignPCZT'] = _ZCASHSIGNPCZT
 DESCRIPTOR.message_types_by_name['ZcashPCZTAction'] = _ZCASHPCZTACTION
 DESCRIPTOR.message_types_by_name['ZcashPCZTActionAck'] = _ZCASHPCZTACTIONACK
@@ -532,6 +628,8 @@ DESCRIPTOR.message_types_by_name['ZcashGetOrchardFVK'] = _ZCASHGETORCHARDFVK
 DESCRIPTOR.message_types_by_name['ZcashOrchardFVK'] = _ZCASHORCHARDFVK
 DESCRIPTOR.message_types_by_name['ZcashTransparentInput'] = _ZCASHTRANSPARENTINPUT
 DESCRIPTOR.message_types_by_name['ZcashTransparentSig'] = _ZCASHTRANSPARENTSIG
+DESCRIPTOR.message_types_by_name['ZcashDisplayAddress'] = _ZCASHDISPLAYADDRESS
+DESCRIPTOR.message_types_by_name['ZcashAddress'] = _ZCASHADDRESS
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ZcashSignPCZT = _reflection.GeneratedProtocolMessageType('ZcashSignPCZT', (_message.Message,), dict(
@@ -589,6 +687,20 @@ ZcashTransparentSig = _reflection.GeneratedProtocolMessageType('ZcashTransparent
   # @@protoc_insertion_point(class_scope:ZcashTransparentSig)
   ))
 _sym_db.RegisterMessage(ZcashTransparentSig)
+
+ZcashDisplayAddress = _reflection.GeneratedProtocolMessageType('ZcashDisplayAddress', (_message.Message,), dict(
+  DESCRIPTOR = _ZCASHDISPLAYADDRESS,
+  __module__ = 'messages_zcash_pb2'
+  # @@protoc_insertion_point(class_scope:ZcashDisplayAddress)
+  ))
+_sym_db.RegisterMessage(ZcashDisplayAddress)
+
+ZcashAddress = _reflection.GeneratedProtocolMessageType('ZcashAddress', (_message.Message,), dict(
+  DESCRIPTOR = _ZCASHADDRESS,
+  __module__ = 'messages_zcash_pb2'
+  # @@protoc_insertion_point(class_scope:ZcashAddress)
+  ))
+_sym_db.RegisterMessage(ZcashAddress)
 
 
 DESCRIPTOR.has_options = True
