@@ -1659,6 +1659,14 @@ class ProtocolMixin(object):
             ton_proto.TonSignTx(address_n=address_n, raw_tx=raw_tx)
         )
 
+    # ── Zcash Address Display ─────────────────────────────────
+    @expect(zcash_proto.ZcashAddress)
+    def zcash_display_address(self, address_n, address, ak, nk, rivk, account=None):
+        kwargs = dict(address_n=address_n, address=address, ak=ak, nk=nk, rivk=rivk)
+        if account is not None:
+            kwargs['account'] = account
+        return self.call(zcash_proto.ZcashDisplayAddress(**kwargs))
+
     # ── Zcash Orchard ──────────────────────────────────────────
     @expect(zcash_proto.ZcashOrchardFVK)
     def zcash_get_orchard_fvk(self, address_n, account=None, show_display=False):

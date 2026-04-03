@@ -115,9 +115,13 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.assertFalse(all(b == 0 for b in resp.signature))
 
     def test_solana_sign_message(self):
-        """Test Solana arbitrary message signing."""
+        """Test Solana message signing -- requires AdvancedMode (7.15+).
+        Solana message signing has no domain separation (trezor #4371),
+        so it's gated behind AdvancedMode to prevent blind-sign attacks."""
         self.requires_fullFeature()
+        self.requires_message("SolanaSignMessage")
         self.setup_mnemonic_allallall()
+        self.client.apply_policy('AdvancedMode', True)
 
         msg = messages.SolanaSignMessage(
             address_n=parse_path("m/44'/501'/0'/0'"),
@@ -128,6 +132,24 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
 
         self.assertEqual(len(resp.signature), 64)
         self.assertEqual(len(resp.public_key), 32)
+        self.client.apply_policy('AdvancedMode', False)
+
+    def test_solana_sign_message_blocked_without_advanced_mode(self):
+        """Solana message signing BLOCKED without AdvancedMode.
+        Without domain separation, a signed message is indistinguishable from
+        a signed transaction. Device refuses to sign without explicit opt-in."""
+        self.requires_firmware("7.14.0")
+        self.requires_fullFeature()
+        self.requires_message("SolanaSignMessage")
+        self.setup_mnemonic_allallall()
+        self.client.apply_policy('AdvancedMode', False)
+
+        with pytest.raises(CallException) as exc:
+            self.client.call(messages.SolanaSignMessage(
+                address_n=parse_path("m/44'/501'/0'/0'"),
+                message=b"Hello Solana!",
+            ))
+        self.assertIn("disabled by policy", str(exc.value))
 
     def test_solana_sign_empty_rejected(self):
         """Test that empty raw_tx is rejected."""

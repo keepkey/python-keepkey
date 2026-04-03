@@ -199,12 +199,8 @@ class TestDeviceRecovery(common.KeepKeyTest):
         self.assertIsInstance(ret, proto.CharacterRequest)
         ret = self.client.call_raw(proto.CharacterAck(character=' '))
 
-        # Firmware 7.14.0+ rejects immediately with Failure -- word not in BIP-39 wordlist.
-        # Older firmware accepts any word (no per-word validation) -- skip if so.
-        if not isinstance(ret, proto.Failure):
-            # Cancel recovery and skip -- firmware lacks per-word validation
-            self.client.call_raw(proto.Cancel())
-            self.skipTest("Firmware does not reject invalid BIP-39 words (needs PR #3)")
+        # Firmware rejects immediately with Failure -- word not in BIP-39 wordlist
+        self.assertIsInstance(ret, proto.Failure)
         self.assertIn("Word not found", ret.message)
 
         # Capture the OLED rejection screen via DebugLink
