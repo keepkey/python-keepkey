@@ -206,8 +206,8 @@ class TestMsgTronSignTx(common.KeepKeyTest):
 
         self.assertEqual(len(resp1.signature), 65)
         self.assertEqual(len(resp2.signature), 65)
-        self.assertEqual(
-            resp1.signature, resp2.signature,
+        self.assertTrue(
+            resp1.signature == resp2.signature,
             "Same raw_data must produce identical signatures"
         )
 

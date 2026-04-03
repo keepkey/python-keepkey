@@ -16,10 +16,12 @@
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
+import pytest
 import common
 
 from keepkeylib.tools import parse_path
 from keepkeylib import messages_tron_pb2 as tron_proto
+from keepkeylib.client import CallException
 
 # TRON default BIP44 path: m/44'/195'/0'/0/0
 TRON_DEFAULT_PATH = "m/44'/195'/0'/0/0"
@@ -121,33 +123,16 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
             )
 
     def test_tron_path_wrong_coin(self):
-        """Ethereum coin type (m/44'/60'/0'/0/0) should still derive but produce a different address."""
+        """Ethereum coin type (m/44'/60'/0'/0/0) is rejected by firmware path validation."""
         self.requires_firmware("7.14.0")
         self.requires_message("TronGetAddress")
         self.setup_mnemonic_allallall()
 
-        resp_eth_path = self.client.tron_get_address(
-            parse_path("m/44'/60'/0'/0/0"),
-            show_display=False
-        )
-        resp_tron_path = self.client.tron_get_address(
-            parse_path(TRON_DEFAULT_PATH),
-            show_display=False
-        )
-
-        # Firmware may warn but should still return a valid Tron-format address
-        self.assertIsNotNone(resp_eth_path.address)
-        self.assertTrue(len(resp_eth_path.address) == 34,
-            "Tron address must be 34 characters, got %d" % len(resp_eth_path.address))
-        self.assertTrue(resp_eth_path.address.startswith('T'),
-            "Tron address must start with 'T', got '%s'" % resp_eth_path.address)
-
-        # Must differ from the address at the correct TRON coin type path
-        self.assertTrue(
-            resp_eth_path.address != resp_tron_path.address,
-            "Wrong coin-type path must produce a different address: '%s' vs '%s'" % (
-                resp_eth_path.address, resp_tron_path.address)
-        )
+        with pytest.raises(CallException):
+            self.client.tron_get_address(
+                parse_path("m/44'/60'/0'/0/0"),
+                show_display=False
+            )
 
 
 if __name__ == '__main__':
