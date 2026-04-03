@@ -177,6 +177,175 @@ class TestMsgTonSignTx(common.KeepKeyTest):
 
         self.assertEqual(resp1.signature, resp2.signature)
 
+    def test_ton_sign_empty_raw_tx(self):
+        """Empty raw_tx (0 bytes) should be rejected by firmware."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        msg = ton_messages.TonSignTx(
+            address_n=parse_path(TON_PATH),
+            raw_tx=b'',
+        )
+
+        with pytest.raises(CallException):
+            self.client.call(msg)
+
+    def test_ton_sign_oversized_raw_tx(self):
+        """raw_tx of 1025 bytes exceeds proto max (1024) and should be rejected."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        raw_tx = b'\xAB' * 1025
+
+        msg = ton_messages.TonSignTx(
+            address_n=parse_path(TON_PATH),
+            raw_tx=raw_tx,
+        )
+
+        with pytest.raises(CallException):
+            self.client.call(msg)
+
+    def test_ton_sign_with_empty_memo(self):
+        """Empty memo string should be accepted (memo is optional text)."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        dest_addr = make_ton_address()
+        raw_tx = hashlib.sha256(b'test-ton-empty-memo').digest() * 2  # 64 bytes
+
+        msg = ton_messages.TonSignTx(
+            address_n=parse_path(TON_PATH),
+            raw_tx=raw_tx,
+            to_address=dest_addr,
+            amount=100000000,  # 0.1 TON
+            seqno=3,
+            expire_at=1700000000,
+            memo="",
+        )
+        resp = self.client.call(msg)
+
+        self.assertEqual(len(resp.signature), 64)
+
+    def test_ton_sign_with_long_memo(self):
+        """Memo of 255 characters (near max 256) should be accepted."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        dest_addr = make_ton_address()
+        raw_tx = hashlib.sha256(b'test-ton-long-memo').digest() * 2  # 64 bytes
+        long_memo = "A" * 255
+
+        msg = ton_messages.TonSignTx(
+            address_n=parse_path(TON_PATH),
+            raw_tx=raw_tx,
+            to_address=dest_addr,
+            amount=200000000,  # 0.2 TON
+            seqno=4,
+            expire_at=1700000000,
+            memo=long_memo,
+        )
+        resp = self.client.call(msg)
+
+        self.assertEqual(len(resp.signature), 64)
+
+    def test_ton_sign_workchain_zero(self):
+        """Explicit workchain=0 (basechain) in TonSignTx."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        dest_addr = make_ton_address(workchain=0, hash_bytes=b'\xBB' * 32, bounceable=True)
+        raw_tx = hashlib.sha256(b'test-ton-workchain-zero').digest() * 2  # 64 bytes
+
+        msg = ton_messages.TonSignTx(
+            address_n=parse_path(TON_PATH),
+            raw_tx=raw_tx,
+            to_address=dest_addr,
+            amount=1000000000,  # 1 TON
+            seqno=5,
+            expire_at=1700000000,
+            workchain=0,
+            bounce=True,
+        )
+        resp = self.client.call(msg)
+
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+
+    def test_ton_sign_workchain_default(self):
+        """Omitting workchain field should default to 0 (basechain).
+
+        The signature must match an explicit workchain=0 request with
+        otherwise identical parameters.
+        """
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        dest_addr = make_ton_address(workchain=0, hash_bytes=b'\xDD' * 32, bounceable=True)
+        raw_tx = hashlib.sha256(b'test-ton-workchain-default').digest() * 2  # 64 bytes
+
+        # Without workchain field
+        msg_default = ton_messages.TonSignTx(
+            address_n=parse_path(TON_PATH),
+            raw_tx=raw_tx,
+            to_address=dest_addr,
+            amount=1000000000,
+            seqno=6,
+            expire_at=1700000000,
+            bounce=True,
+        )
+        resp_default = self.client.call(msg_default)
+
+        # With explicit workchain=0
+        msg_explicit = ton_messages.TonSignTx(
+            address_n=parse_path(TON_PATH),
+            raw_tx=raw_tx,
+            to_address=dest_addr,
+            amount=1000000000,
+            seqno=6,
+            expire_at=1700000000,
+            workchain=0,
+            bounce=True,
+        )
+        resp_explicit = self.client.call(msg_explicit)
+
+        self.assertEqual(len(resp_default.signature), 64)
+        self.assertEqual(resp_default.signature, resp_explicit.signature)
+
+    def test_ton_sign_different_accounts(self):
+        """Signing with different account paths must produce different signatures."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        dest_addr = make_ton_address(workchain=0, hash_bytes=b'\xEE' * 32, bounceable=True)
+        raw_tx = hashlib.sha256(b'test-ton-different-accounts').digest() * 2  # 64 bytes
+
+        msg_acct0 = ton_messages.TonSignTx(
+            address_n=parse_path("m/44'/607'/0'/0'/0'/0'"),
+            raw_tx=raw_tx,
+            to_address=dest_addr,
+            amount=1000000000,
+            seqno=1,
+            expire_at=1700000000,
+        )
+        resp_acct0 = self.client.call(msg_acct0)
+
+        msg_acct1 = ton_messages.TonSignTx(
+            address_n=parse_path("m/44'/607'/1'/0'/0'/0'"),
+            raw_tx=raw_tx,
+            to_address=dest_addr,
+            amount=1000000000,
+            seqno=1,
+            expire_at=1700000000,
+        )
+        resp_acct1 = self.client.call(msg_acct1)
+
+        self.assertEqual(len(resp_acct0.signature), 64)
+        self.assertEqual(len(resp_acct1.signature), 64)
+        self.assertNotEqual(
+            resp_acct0.signature, resp_acct1.signature,
+            "Different account paths must produce different signatures"
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

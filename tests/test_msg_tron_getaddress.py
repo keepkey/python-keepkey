@@ -107,21 +107,47 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
             "Same path must produce identical addresses: '%s' vs '%s'" % (resp_1.address, resp_2.address)
         )
 
-    def test_tron_show_address(self):
-        """Display TRON address on OLED (triggers ButtonRequest for screenshot capture).
-
-        Address correctness verified by test_tron_get_address (show_display=False).
-        This test only triggers the OLED display flow for screenshot capture.
-        """
+    def test_tron_path_too_short(self):
+        """A path with only 2 levels (m/44'/195') should be rejected by firmware."""
         self.requires_firmware("7.14.0")
         self.requires_message("TronGetAddress")
         self.setup_mnemonic_allallall()
 
-        resp = self.client.tron_get_address(
-            parse_path(TRON_DEFAULT_PATH),
-            show_display=True
+        from keepkeylib.client import CallException
+        with self.assertRaises(CallException):
+            self.client.tron_get_address(
+                parse_path("m/44'/195'"),
+                show_display=False
+            )
+
+    def test_tron_path_wrong_coin(self):
+        """Ethereum coin type (m/44'/60'/0'/0/0) should still derive but produce a different address."""
+        self.requires_firmware("7.14.0")
+        self.requires_message("TronGetAddress")
+        self.setup_mnemonic_allallall()
+
+        resp_eth_path = self.client.tron_get_address(
+            parse_path("m/44'/60'/0'/0/0"),
+            show_display=False
         )
-        self.assertIsNotNone(resp)
+        resp_tron_path = self.client.tron_get_address(
+            parse_path(TRON_DEFAULT_PATH),
+            show_display=False
+        )
+
+        # Firmware may warn but should still return a valid Tron-format address
+        self.assertIsNotNone(resp_eth_path.address)
+        self.assertTrue(len(resp_eth_path.address) == 34,
+            "Tron address must be 34 characters, got %d" % len(resp_eth_path.address))
+        self.assertTrue(resp_eth_path.address.startswith('T'),
+            "Tron address must start with 'T', got '%s'" % resp_eth_path.address)
+
+        # Must differ from the address at the correct TRON coin type path
+        self.assertTrue(
+            resp_eth_path.address != resp_tron_path.address,
+            "Wrong coin-type path must produce a different address: '%s' vs '%s'" % (
+                resp_eth_path.address, resp_tron_path.address)
+        )
 
 
 if __name__ == '__main__':

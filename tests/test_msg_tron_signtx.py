@@ -154,5 +154,92 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         self.assertGreater(len(resp.serialized_tx), 0)
 
 
+    def test_tron_sign_empty_raw_data(self):
+        """Signing with empty raw_data should be rejected by firmware."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        msg = tron_messages.TronSignTx(
+            address_n=parse_path("m/44'/195'/0'/0/0"),
+            raw_data=b'',
+        )
+
+        with pytest.raises(CallException):
+            self.client.call(msg)
+
+    def test_tron_sign_oversized_raw_data(self):
+        """Signing with raw_data over proto max (2049 bytes) should be rejected."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        oversized = b'\xab' * 2049
+
+        msg = tron_messages.TronSignTx(
+            address_n=parse_path("m/44'/195'/0'/0/0"),
+            raw_data=oversized,
+        )
+
+        with pytest.raises(CallException):
+            self.client.call(msg)
+
+    def test_tron_sign_deterministic(self):
+        """Signing the same raw_data twice must produce identical 65-byte signatures."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        raw_data = binascii.unhexlify(
+            '0a02abcd2208424242424242424240'
+            '80e8ded785315a67'
+        )
+
+        msg1 = tron_messages.TronSignTx(
+            address_n=parse_path("m/44'/195'/0'/0/0"),
+            raw_data=raw_data,
+        )
+        resp1 = self.client.call(msg1)
+
+        msg2 = tron_messages.TronSignTx(
+            address_n=parse_path("m/44'/195'/0'/0/0"),
+            raw_data=raw_data,
+        )
+        resp2 = self.client.call(msg2)
+
+        self.assertEqual(len(resp1.signature), 65)
+        self.assertEqual(len(resp2.signature), 65)
+        self.assertEqual(
+            resp1.signature, resp2.signature,
+            "Same raw_data must produce identical signatures"
+        )
+
+    def test_tron_sign_different_accounts(self):
+        """Signing the same raw_data with different account paths must produce different signatures."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        raw_data = binascii.unhexlify(
+            '0a02abcd2208424242424242424240'
+            '80e8ded785315a67'
+        )
+
+        msg_acct0 = tron_messages.TronSignTx(
+            address_n=parse_path("m/44'/195'/0'/0/0"),
+            raw_data=raw_data,
+        )
+        resp_acct0 = self.client.call(msg_acct0)
+
+        msg_acct1 = tron_messages.TronSignTx(
+            address_n=parse_path("m/44'/195'/1'/0/0"),
+            raw_data=raw_data,
+        )
+        resp_acct1 = self.client.call(msg_acct1)
+
+        self.assertEqual(len(resp_acct0.signature), 65)
+        self.assertEqual(len(resp_acct1.signature), 65)
+        self.assertNotEqual(
+            resp_acct0.signature, resp_acct1.signature,
+            "Different account paths must produce different signatures"
+        )
+
+
 if __name__ == '__main__':
     unittest.main()
