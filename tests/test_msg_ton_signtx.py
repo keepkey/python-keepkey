@@ -76,7 +76,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
-        dest_addr = make_ton_address(workchain=0, hash_bytes=b'\xCC' * 32, bounceable=True)
+        dest_addr = make_ton_address()
 
         # 64-byte raw_tx triggers blind-sign path (not 32-byte hash path)
         # Structured fields (to_address, amount) are used for display context
@@ -253,7 +253,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
-        dest_addr = make_ton_address(workchain=0, hash_bytes=b'\xBB' * 32, bounceable=True)
+        dest_addr = make_ton_address()
         raw_tx = hashlib.sha256(b'test-ton-workchain-zero').digest() * 2  # 64 bytes
 
         msg = ton_messages.TonSignTx(
@@ -280,7 +280,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
-        dest_addr = make_ton_address(workchain=0, hash_bytes=b'\xDD' * 32, bounceable=True)
+        dest_addr = make_ton_address()
         raw_tx = hashlib.sha256(b'test-ton-workchain-default').digest() * 2  # 64 bytes
 
         # Without workchain field
@@ -316,7 +316,7 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
-        dest_addr = make_ton_address(workchain=0, hash_bytes=b'\xEE' * 32, bounceable=True)
+        dest_addr = make_ton_address()
         raw_tx = hashlib.sha256(b'test-ton-different-accounts').digest() * 2  # 64 bytes
 
         msg_acct0 = ton_messages.TonSignTx(
