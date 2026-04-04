@@ -227,13 +227,13 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.assertEqual(len(resp.signature), 64)
 
     def test_ton_sign_with_long_memo(self):
-        """Memo of 255 characters (near max 256) should be accepted."""
+        """Memo of 120 characters (near max_size 121) should be accepted."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
         dest_addr = make_ton_address()
         raw_tx = hashlib.sha256(b'test-ton-long-memo').digest() * 2  # 64 bytes
-        long_memo = "A" * 255
+        long_memo = "A" * 120
 
         msg = ton_messages.TonSignTx(
             address_n=parse_path(TON_PATH),
