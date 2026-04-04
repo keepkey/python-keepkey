@@ -833,7 +833,7 @@ SECTIONS = [
          ('S4', 'test_msg_solana_signtx', 'test_solana_sign_system_transfer',
           'Sign SOL transfer', 'System::Transfer with full address + amount display.', ['SOL amount + address']),
          ('S5', 'test_msg_solana_signtx', 'test_solana_sign_message',
-          'Sign Solana message', 'Arbitrary message signing with Ed25519 key.', ['Message screen']),
+          'Sign Solana message', 'Arbitrary message signing with Ed25519 key. Requires AdvancedMode policy (no domain separation).', ['Message screen']),
          ('S6', 'test_msg_solana_signtx', 'test_solana_sign_empty_rejected',
           'Empty tx rejected', 'Zero-length transaction data is refused.', []),
          ('S7', 'test_msg_solana_signtx', 'test_solana_sign_deterministic',
@@ -854,6 +854,10 @@ SECTIONS = [
           'Compute budget unit price',
           'Set priority fee for transaction. OLED shows compute unit price.',
           ['Unit price']),
+         ('S12', 'test_msg_solana_signtx', 'test_solana_sign_token_transfer_with_metadata',
+          'SPL Token with metadata',
+          'Token transfer with SolanaTokenInfo (mint, symbol, decimals). OLED shows human-readable token name.',
+          ['Token name + amount']),
      ]),
 
     ('T', 'TRON', '7.14.0',
@@ -873,18 +877,19 @@ SECTIONS = [
          ('T3b', 'test_msg_tron_getaddress', 'test_tron_show_address',
           'Show address on OLED', 'Full 34-char Base58Check TRON address with QR code.', ['TRON QR + 34-char address']),
          ('T4', 'test_msg_tron_signtx', 'test_tron_sign_transfer_legacy_raw_data',
-          'Sign TRX blind (raw_data)', 'Raw protobuf data triggers blind sign path.', ['Blind sign']),
+          'Sign TRX blind (raw_data)', 'Raw protobuf data triggers blind sign path. Shows amount + address if provided.', ['TRON blind sign']),
          ('T5', 'test_msg_tron_signtx', 'test_tron_sign_missing_fields_rejected',
           'Missing fields rejected', 'Incomplete transaction data is refused.', []),
      ]),
 
     ('N', 'TON', '7.14.0',
-     'NEW: TON v4r2 wallet contracts. Clear-sign reconstructs cell tree + SHA-256 hash verification. '
-     'Blind-sign for StateInit deploys or hash mismatch. Memo/comment support.',
+     'NEW: TON v4r2 wallet contracts. Ed25519 signing with structured field display. '
+     'Blind-sign for raw transactions. Memo/comment support. '
+     'Full clear-sign with cell tree reconstruction deferred to 7.15+.',
      [
          'ADDRESS: m/44\'/607\'/0\' -> full 48-char base64url TON address',
-         'CLEAR-SIGN: Reconstruct v4r2 cell -> SHA-256 match -> show transfer details',
-         'BLIND-SIGN: Hash mismatch or deploy -> "BLIND SIGNATURE" warning',
+         'STRUCTURED: Amount + address + memo shown as display context -> sign',
+         'BLIND-SIGN: Raw tx without structured fields -> "BLIND SIGNATURE" warning',
      ],
      [
          ('N1', 'test_msg_ton_getaddress', 'test_ton_get_address',
@@ -896,9 +901,9 @@ SECTIONS = [
          ('N3', 'test_msg_ton_getaddress', 'test_ton_address_format',
           'Address format validation', 'Bounceable/non-bounceable format check.', []),
          ('N4', 'test_msg_ton_signtx', 'test_ton_sign_structured',
-          'Sign TON clear-sign', 'Hash verification passes, shows "TON Transfer" with details.', ['TON Transfer']),
-         ('N5', 'test_msg_ton_signtx', 'test_ton_sign_with_comment',
-          'Sign TON with memo', 'Comment displayed before signing.', ['Memo display']),
+          'Sign TON transfer', 'Structured fields shown as display context. Blind-sign with amount + address.', ['TON Transfer']),
+         ('N5', 'test_msg_ton_signtx', 'test_ton_sign_with_memo',
+          'Sign TON with memo', 'Memo/comment displayed before signing.', ['Memo display']),
          ('N6', 'test_msg_ton_signtx', 'test_ton_sign_legacy_raw_tx',
           'Sign TON blind', 'Raw tx without structured fields triggers blind sign.', ['Blind warning']),
          ('N7', 'test_msg_ton_signtx', 'test_ton_sign_missing_fields_rejected',

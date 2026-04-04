@@ -354,5 +354,342 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.assertEqual(len(resp.signature), 64)
 
 
+    # ================================================================
+    # Negative / rejection tests
+    # ================================================================
+
+    def test_solana_sign_malformed_truncated(self):
+        """Reject raw_tx that is too short to contain header + accounts."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        raw_tx = b'\x00\x01\x00\x01\x01'  # 5 bytes — header says 1 account but no data
+
+        with pytest.raises(CallException):
+            self.client.call(messages.SolanaSignTx(
+                address_n=parse_path("m/44'/501'/0'/0'"),
+                raw_tx=raw_tx,
+            ))
+
+    def test_solana_sign_malformed_bad_account_count(self):
+        """Reject raw_tx whose header claims 33 accounts (exceeds 32 limit)."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        tx = bytearray()
+        tx.append(0)    # sig count
+        tx.append(1)    # num_required_sigs
+        tx.append(0)    # num_readonly_signed
+        tx.append(1)    # num_readonly_unsigned
+        tx.append(33)   # 33 accounts — over the 32-account parser limit
+        # Pad 33 fake 32-byte account keys
+        for _ in range(33):
+            tx.extend(b'\xAA' * 32)
+        tx.extend(b'\xBB' * 32)  # blockhash
+        tx.append(0)    # 0 instructions
+
+        with pytest.raises(CallException):
+            self.client.call(messages.SolanaSignTx(
+                address_n=parse_path("m/44'/501'/0'/0'"),
+                raw_tx=bytes(tx),
+            ))
+
+    def test_solana_sign_malformed_trailing_bytes(self):
+        """Reject a valid transaction that has extra trailing bytes."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        from_pubkey = self._get_from_pubkey()
+        to_pubkey = b'\x22' * 32
+        raw_tx = build_system_transfer_tx(from_pubkey, to_pubkey, 1000000000)
+
+        # Append 10 trailing garbage bytes
+        raw_tx_bad = raw_tx + b'\xFF' * 10
+
+        with pytest.raises(CallException):
+            self.client.call(messages.SolanaSignTx(
+                address_n=parse_path("m/44'/501'/0'/0'"),
+                raw_tx=raw_tx_bad,
+            ))
+
+    def test_solana_sign_oversized_raw_tx(self):
+        """Reject raw_tx that exceeds the proto max_size (1232 bytes)."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        # 1233 bytes — one byte over the nanopb field limit
+        raw_tx = b'\x00' * 1233
+
+        with pytest.raises(CallException):
+            self.client.call(messages.SolanaSignTx(
+                address_n=parse_path("m/44'/501'/0'/0'"),
+                raw_tx=raw_tx,
+            ))
+
+    # ================================================================
+    # Multi-instruction tests
+    # ================================================================
+
+    def test_solana_sign_multi_instruction_2x_transfer(self):
+        """Two system transfers in a single transaction."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        from_pubkey = self._get_from_pubkey()
+        to_pubkey_1 = b'\x22' * 32
+        to_pubkey_2 = b'\x33' * 32
+        system_program = self.SYSTEM_PROGRAM
+        blockhash = b'\xBB' * 32
+
+        tx = bytearray()
+        tx.append(0)    # sig count
+        tx.append(1)    # num_required_sigs
+        tx.append(0)    # num_readonly_signed
+        tx.append(1)    # num_readonly_unsigned (system program)
+
+        # 4 accounts: from, to_1, to_2, system_program
+        tx.append(4)
+        tx.extend(from_pubkey)
+        tx.extend(to_pubkey_1)
+        tx.extend(to_pubkey_2)
+        tx.extend(system_program)
+
+        tx.extend(blockhash)
+
+        # 2 instructions
+        tx.append(2)
+
+        # Instruction 1: transfer 1 SOL to to_1
+        tx.append(3)    # program_id index (system program)
+        tx.append(2)    # 2 account indices
+        tx.append(0)    # from
+        tx.append(1)    # to_1
+        instr1 = struct.pack('<I', 2) + struct.pack('<Q', 1000000000)
+        tx.append(len(instr1))
+        tx.extend(instr1)
+
+        # Instruction 2: transfer 2 SOL to to_2
+        tx.append(3)    # program_id index (system program)
+        tx.append(2)    # 2 account indices
+        tx.append(0)    # from
+        tx.append(2)    # to_2
+        instr2 = struct.pack('<I', 2) + struct.pack('<Q', 2000000000)
+        tx.append(len(instr2))
+        tx.extend(instr2)
+
+        resp = self.client.call(messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            raw_tx=bytes(tx),
+        ))
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+
+    def test_solana_sign_multi_instruction_transfer_and_memo(self):
+        """System transfer + memo instruction in a single transaction."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        from_pubkey = self._get_from_pubkey()
+        to_pubkey = b'\x22' * 32
+        system_program = self.SYSTEM_PROGRAM
+        memo_program = self.MEMO_PROGRAM
+        blockhash = b'\xBB' * 32
+
+        tx = bytearray()
+        tx.append(0)    # sig count
+        tx.append(1)    # num_required_sigs
+        tx.append(0)    # num_readonly_signed
+        tx.append(2)    # num_readonly_unsigned (system_program + memo_program)
+
+        # 4 accounts: from, to, system_program, memo_program
+        tx.append(4)
+        tx.extend(from_pubkey)
+        tx.extend(to_pubkey)
+        tx.extend(system_program)
+        tx.extend(memo_program)
+
+        tx.extend(blockhash)
+
+        # 2 instructions
+        tx.append(2)
+
+        # Instruction 1: system transfer 1 SOL
+        tx.append(2)    # program_id index (system program)
+        tx.append(2)    # 2 account indices
+        tx.append(0)    # from
+        tx.append(1)    # to
+        instr1 = struct.pack('<I', 2) + struct.pack('<Q', 1000000000)
+        tx.append(len(instr1))
+        tx.extend(instr1)
+
+        # Instruction 2: memo
+        tx.append(3)    # program_id index (memo program)
+        tx.append(1)    # 1 account index (signer)
+        tx.append(0)    # from (signer)
+        memo_data = b"payment for services"
+        tx.append(len(memo_data))
+        tx.extend(memo_data)
+
+        resp = self.client.call(messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            raw_tx=bytes(tx),
+        ))
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+
+    # ================================================================
+    # Token metadata (token_info) tests
+    # ================================================================
+
+    def test_solana_sign_token_transfer_with_metadata(self):
+        """SPL Token transfer with SolanaTokenInfo for OLED display of symbol + decimals."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        from_pubkey = self._get_from_pubkey()
+        to_account = b'\x33' * 32  # destination token account
+
+        # USDC mint (EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v)
+        usdc_mint = bytes([
+            0xc6, 0xfa, 0x7a, 0xf3, 0xbe, 0xdb, 0xad, 0x3a,
+            0x3d, 0x65, 0xf3, 0x6a, 0xab, 0xc9, 0x74, 0x31,
+            0xb1, 0xbb, 0xe4, 0xc2, 0xd2, 0xf6, 0xe0, 0xe4,
+            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x20, 0x23, 0x34,
+        ])
+
+        # SPL Token Transfer instruction: opcode=3 (u8) + amount (LE u64)
+        instr_data = bytes([3]) + struct.pack('<Q', 1000000)  # 1.0 USDC (6 decimals)
+        raw_tx = self._build_tx(from_pubkey, [to_account], self.TOKEN_PROGRAM, instr_data)
+
+        token_info = messages.SolanaTokenInfo(
+            mint=usdc_mint,
+            symbol="USDC",
+            decimals=6,
+        )
+
+        resp = self.client.call(messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            raw_tx=raw_tx,
+            token_info=[token_info],
+        ))
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+
+    # ================================================================
+    # Path edge-case tests
+    # ================================================================
+
+    def test_solana_path_3_elements(self):
+        """Non-standard 3-element path m/44'/501'/0' — should still derive and sign."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        # Get address with 3-element path
+        addr_resp = self.client.call(messages.SolanaGetAddress(
+            address_n=parse_path("m/44'/501'/0'"),
+            show_display=False,
+        ))
+        ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+        n = 0
+        for c in addr_resp.address:
+            n = n * 58 + ALPHABET.index(c)
+        from_pubkey = n.to_bytes(32, 'big')
+        to_pubkey = b'\x22' * 32
+
+        raw_tx = build_system_transfer_tx(from_pubkey, to_pubkey, 500000000)
+
+        resp = self.client.call(messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'"),
+            raw_tx=raw_tx,
+        ))
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+
+    def test_solana_path_wrong_coin_type(self):
+        """Path with Ethereum coin type m/44'/60'/0'/0' — firmware should reject or warn."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        # Build a minimal valid-looking tx with a dummy from_pubkey
+        from_pubkey = b'\x11' * 32
+        to_pubkey = b'\x22' * 32
+        raw_tx = build_system_transfer_tx(from_pubkey, to_pubkey, 100000000)
+
+        with pytest.raises(CallException):
+            self.client.call(messages.SolanaSignTx(
+                address_n=parse_path("m/44'/60'/0'/0'"),
+                raw_tx=raw_tx,
+            ))
+
+    # ================================================================
+    # Versioned transaction test
+    # ================================================================
+
+    def test_solana_sign_versioned_v0_opaque(self):
+        """Versioned v0 transaction (first byte 0x80) — should require AdvancedMode
+        for blind/opaque signing since firmware cannot parse address lookup tables."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        from_pubkey = self._get_from_pubkey()
+
+        # Build a versioned v0 transaction:
+        # byte 0x80 = version prefix (bit 7 set = versioned, bits 0-6 = version 0)
+        # Then a minimal legacy-format body after the version byte
+        to_pubkey = b'\x22' * 32
+        system_program = self.SYSTEM_PROGRAM
+        blockhash = b'\xBB' * 32
+
+        tx = bytearray()
+        tx.append(0x80)  # version prefix: v0
+
+        # Header
+        tx.append(1)    # num_required_sigs
+        tx.append(0)    # num_readonly_signed
+        tx.append(1)    # num_readonly_unsigned
+
+        # 3 accounts
+        tx.append(3)
+        tx.extend(from_pubkey)
+        tx.extend(to_pubkey)
+        tx.extend(system_program)
+
+        # Recent blockhash
+        tx.extend(blockhash)
+
+        # 1 instruction
+        tx.append(1)
+        tx.append(2)    # program_id index
+        tx.append(2)    # 2 account indices
+        tx.append(0)    # from
+        tx.append(1)    # to
+        instr_data = struct.pack('<I', 2) + struct.pack('<Q', 1000000000)
+        tx.append(len(instr_data))
+        tx.extend(instr_data)
+
+        # Address table lookups: 0 entries
+        tx.append(0)
+
+        raw_tx = bytes(tx)
+
+        # Without AdvancedMode, versioned tx should be rejected
+        self.client.apply_policy('AdvancedMode', False)
+        with pytest.raises(CallException):
+            self.client.call(messages.SolanaSignTx(
+                address_n=parse_path("m/44'/501'/0'/0'"),
+                raw_tx=raw_tx,
+            ))
+
+        # With AdvancedMode, it should succeed (opaque/blind sign)
+        self.client.apply_policy('AdvancedMode', True)
+        resp = self.client.call(messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            raw_tx=raw_tx,
+        ))
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+        self.client.apply_policy('AdvancedMode', False)
+
+
 if __name__ == '__main__':
     unittest.main()
