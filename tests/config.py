@@ -82,6 +82,25 @@ elif len(webusb_devices) > 0:
     DEBUG_TRANSPORT = WebUsbTransport
     DEBUG_TRANSPORT_ARGS = (webusb_devices[0],)
     DEBUG_TRANSPORT_KWARGS = {'debug_link': True}
+elif os.getenv('KK_TRANSPORT') == 'dylib':
+    # In-process FFI transport against libkkemu.dylib (or libkkemu.so).
+    # Same firmware as UDP, different transport — exposes caller-driven
+    # polling bugs that the UDP daemon hides behind its own poll thread.
+    print('Using Emulator (dylib FFI)')
+    from keepkeylib.transport_dylib import DylibState, DylibTransport
+    _dylib_path = os.getenv('KK_DYLIB')
+    if not _dylib_path:
+        raise RuntimeError(
+            "KK_TRANSPORT=dylib requires KK_DYLIB=/path/to/libkkemu.dylib"
+        )
+    _dylib_state = DylibState.get_or_init(_dylib_path)
+    TRANSPORT = DylibTransport
+    TRANSPORT_ARGS = (_dylib_state, 0)
+    TRANSPORT_KWARGS = {}
+    DEBUG_TRANSPORT = DylibTransport
+    DEBUG_TRANSPORT_ARGS = (_dylib_state, 1)
+    DEBUG_TRANSPORT_KWARGS = {}
+
 else:
     print('Using Emulator')
     TRANSPORT = UDPTransport
