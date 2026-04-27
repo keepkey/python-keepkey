@@ -163,16 +163,15 @@ class DylibTransport(Transport):
         self.read_buffer = b""
 
     def ready_to_read(self):
-        # Drive the firmware once so any pending outbound frame surfaces
-        # in the ringbuffer. Without this, nothing ever appears to be ready.
-        with self.state.io_lock:
-            self.state.lib.kkemu_poll()
-            buf = (ctypes.c_uint8 * PACKET_SIZE)()
-            n = self.state.lib.kkemu_read(buf, PACKET_SIZE, self.iface)
-            if n > 0:
-                # Stash the frame so the next _read sees it without losing data.
-                self.read_buffer += bytes(buf[:n])
-            return bool(self.read_buffer)
+        # Drive the firmware once so any pending outbound frame surfaces in
+        # the ring. When a frame arrives, stash through the SAME path
+        # _pump_one uses (strip the leading '?' HID marker before
+        # appending). Mixing stripped + unstripped frames in one buffer
+        # corrupts multi-frame reassembly: _read_headers would see a stray
+        # '?' from one chunk in the middle of contiguous payload bytes
+        # from another, and decode the wrong message-type / length.
+        self._poll_and_stash()
+        return bool(self.read_buffer)
 
     # ── Wire protocol ───────────────────────────────────────────────────
 
@@ -226,17 +225,34 @@ class DylibTransport(Transport):
         return out
 
     def _pump_one(self):
-        """Run one poll/read cycle. Strips the leading '?' HID marker."""
+        """Run one poll/read cycle and back off briefly if no frame arrived.
+
+        Used inside the _read_bytes deadline loop. Sleeps so we don't spin
+        a hot CPU loop while waiting on the firmware.
+        """
+        if not self._poll_and_stash():
+            time.sleep(_POLL_QUANTUM_S)
+
+    def _poll_and_stash(self):
+        """Single poll + read; append any frame to read_buffer with '?'
+        marker stripped. Returns True if a frame was consumed.
+
+        Shared by ``ready_to_read`` (no sleep) and ``_pump_one``
+        (sleeps on miss). Centralises the strip-the-leading-'?' rule so
+        the buffer always contains continuation+payload bytes only.
+        """
         with self.state.io_lock:
             self.state.lib.kkemu_poll()
             buf = (ctypes.c_uint8 * PACKET_SIZE)()
             n = self.state.lib.kkemu_read(buf, PACKET_SIZE, self.iface)
             if n > 0:
-                # Drop the leading '?' marker; rest is payload.
+                # Drop the leading '?' marker; rest is payload (and HID
+                # padding zeros at the tail of the last frame of a short
+                # message — _read_headers' magic-character search skips
+                # those harmlessly on the next message).
                 self.read_buffer += bytes(buf[1:n])
-                return
-        # No frame available — back off briefly so we don't spin a hot loop.
-        time.sleep(_POLL_QUANTUM_S)
+                return True
+        return False
 
 
 class _FrameStream(object):

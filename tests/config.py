@@ -29,12 +29,25 @@ from keepkeylib.transport_pipe import PipeTransport
 from keepkeylib.transport_socket import SocketTransportClient
 from keepkeylib.transport_udp import UDPTransport
 
-# Skip HID/WebUSB autodetect when an explicit transport is requested.
-# Otherwise a connected real KeepKey wins over `KK_TRANSPORT=dylib` and the
-# dylib regression tests silently route to hardware instead.
-_explicit_transport = os.getenv("KK_TRANSPORT")
+# Explicit transport selection via KK_TRANSPORT. Currently only "dylib" is
+# implemented (UDP is the no-env-var default below). Any other non-empty
+# value is rejected up-front so a typo like "dyllib" doesn't silently fall
+# through to UDP with hardware autodetect disabled — which would route
+# tests to whichever emulator happened to be listening on 11044.
+_KNOWN_TRANSPORTS = {"dylib"}
+_explicit_transport = os.getenv("KK_TRANSPORT") or None
 
-if _explicit_transport:
+if _explicit_transport is not None and _explicit_transport not in _KNOWN_TRANSPORTS:
+    raise RuntimeError(
+        "Unsupported KK_TRANSPORT=%r — known values: %s. Unset to use "
+        "default HID/WebUSB autodetect or UDP fallback." %
+        (_explicit_transport, sorted(_KNOWN_TRANSPORTS))
+    )
+
+if _explicit_transport == "dylib":
+    # Skip HID/WebUSB autodetect — dylib is opt-in by env var. Without
+    # this skip, a connected real KeepKey would win over the explicit
+    # request and the dylib regression suite would route to hardware.
     hid_devices = []
     webusb_devices = []
 else:
