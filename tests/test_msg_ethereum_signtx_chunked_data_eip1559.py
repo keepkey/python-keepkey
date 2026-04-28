@@ -100,8 +100,7 @@ class TestMsgEthereumSigntxChunkedDataEip1559(common.KeepKeyTest):
 
     def test_eip1559_chunked_data_signature_recovers_to_device_address(self):
         self.requires_fullFeature()
-        self.requires_firmware("7.2.1")          # EIP-1559 support landed here
-        self.requires_message("EthereumTxAck")   # multi-chunk requires the ack frame
+        self.requires_firmware("7.2.1")  # EIP-1559 support landed here
         self.setup_mnemonic_allallall()
         self.client.apply_policy("AdvancedMode", 1)  # blind-sign opt-in
 
