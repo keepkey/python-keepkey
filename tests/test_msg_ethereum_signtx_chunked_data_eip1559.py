@@ -142,15 +142,32 @@ class TestMsgEthereumSigntxChunkedDataEip1559(common.KeepKeyTest):
 
         recovered = self._recover_eth_address(canonical_hash, sig_v, sig_r, sig_s)
 
+        recovered_hex = binascii.hexlify(recovered).decode()
+        expected_hex = binascii.hexlify(device_address).decode()
+
         # On broken firmware (<= 7.14.0) the device signs a different hash
-        # whose recovered signer is a wrong-but-deterministic address. The
-        # check below catches that and prints the divergence for triage.
-        self.assertEqual(
-            binascii.hexlify(recovered).decode(),
-            binascii.hexlify(device_address).decode(),
-            "EIP-1559 chunked-data signature does not recover to device address — "
-            "this is the firmware/ethereum.c access-list ordering bug fixed in 7.14.1.",
-        )
+        # whose recovered signer is a wrong-but-deterministic address. Print
+        # the divergence before asserting so triage doesn't have to re-run.
+        if recovered_hex != expected_hex:
+            print(
+                "\n[REGRESSION] EIP-1559 chunked-data signature does not recover to "
+                "device address. This is the firmware/ethereum.c access-list "
+                "ordering bug fixed in 7.14.1.\n"
+                "  expected (device): 0x%s\n"
+                "  recovered:         0x%s\n"
+                "  canonical hash:    0x%s\n"
+                "  sig: v=%d r=%s s=%s"
+                % (
+                    expected_hex,
+                    recovered_hex,
+                    binascii.hexlify(canonical_hash).decode(),
+                    sig_v,
+                    binascii.hexlify(sig_r).decode(),
+                    binascii.hexlify(sig_s).decode(),
+                )
+            )
+
+        self.assertEqual(recovered_hex, expected_hex)
 
 
 if __name__ == '__main__':
