@@ -618,6 +618,15 @@ SECTIONS = [
           'Sign EIP-1559 transaction',
           'Type 2 transaction with base fee + priority fee. Device shows both gas parameters.',
           ['EIP-1559 gas display']),
+         ('E5b', 'test_msg_ethereum_signtx_chunked_data_eip1559',
+          'test_eip1559_chunked_data_signature_recovers_to_device_address',
+          'Sign EIP-1559 with data > 1024 B (chunked transmission)',
+          'Regression for an access-list ordering bug in firmware/ethereum.c — when data exceeded '
+          'the 1024-byte single-chunk threshold, the empty access-list byte (0xC0) was hashed '
+          'between data chunks instead of after them, producing a non-canonical pre-image. The '
+          'signature recovered to a wrong-but-deterministic address and the broadcast tx was '
+          'dropped from the mempool. Fixed in 7.14.1.',
+          []),
          ('E6', 'test_msg_ethereum_signtx', 'test_ethereum_signtx_knownerc20_eip_1559',
           'Sign known ERC-20 (EIP-1559)',
           'Known token (in firmware token list) via EIP-1559. Shows human-readable token name + amount.',
