@@ -100,7 +100,11 @@ class TestMsgEthereumSigntxChunkedDataEip1559(common.KeepKeyTest):
 
     def test_eip1559_chunked_data_signature_recovers_to_device_address(self):
         self.requires_fullFeature()
-        self.requires_firmware("7.2.1")  # EIP-1559 support landed here
+        # Gate on the fixed firmware. The bug this test asserts against shipped
+        # in 7.x.0 .. 7.14.0 (see header comment); 7.14.1 is the first release
+        # where the canonical pre-image is hashed correctly. Skip on older
+        # firmware so CI doesn't flag a known-broken build as a new regression.
+        self.requires_firmware("7.14.1")
         self.setup_mnemonic_allallall()
         self.client.apply_policy("AdvancedMode", 1)  # blind-sign opt-in
 
