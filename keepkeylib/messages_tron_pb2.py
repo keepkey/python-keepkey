@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-tron.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x13messages-tron.proto\"R\n\x0eTronGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Tron\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\"\x1e\n\x0bTronAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\":\n\x14TronTransferContract\x12\x12\n\nto_address\x18\x01 \x01(\t\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x04\"V\n\x18TronTriggerSmartContract\x12\x18\n\x10\x63ontract_address\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x12\n\ncall_value\x18\x03 \x01(\x04\"\xd9\x02\n\nTronSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Tron\x12\x10\n\x08raw_data\x18\x03 \x01(\x0c\x12\x17\n\x0fref_block_bytes\x18\x04 \x01(\x0c\x12\x16\n\x0eref_block_hash\x18\x05 \x01(\x0c\x12\x12\n\nexpiration\x18\x06 \x01(\x04\x12\x15\n\rcontract_type\x18\x07 \x01(\t\x12\x12\n\nto_address\x18\x08 \x01(\t\x12\x0e\n\x06\x61mount\x18\t \x01(\x04\x12\'\n\x08transfer\x18\n \x01(\x0b\x32\x15.TronTransferContract\x12\x30\n\rtrigger_smart\x18\x0b \x01(\x0b\x32\x19.TronTriggerSmartContract\x12\x11\n\tfee_limit\x18\x0c \x01(\x04\x12\x11\n\ttimestamp\x18\r \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x0e \x01(\x0c\"8\n\x0cTronSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x02 \x01(\x0c\x42\x30\n\x1a\x63om.keepkey.deviceprotocolB\x12KeepKeyMessageTron')
+  serialized_pb=_b('\n\x13messages-tron.proto\"R\n\x0eTronGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Tron\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\"\x1e\n\x0bTronAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\":\n\x14TronTransferContract\x12\x12\n\nto_address\x18\x01 \x01(\t\x12\x0e\n\x06\x61mount\x18\x02 \x01(\x04\"V\n\x18TronTriggerSmartContract\x12\x18\n\x10\x63ontract_address\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x12\n\ncall_value\x18\x03 \x01(\x04\"\xd9\x02\n\nTronSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Tron\x12\x10\n\x08raw_data\x18\x03 \x01(\x0c\x12\x17\n\x0fref_block_bytes\x18\x04 \x01(\x0c\x12\x16\n\x0eref_block_hash\x18\x05 \x01(\x0c\x12\x12\n\nexpiration\x18\x06 \x01(\x04\x12\x15\n\rcontract_type\x18\x07 \x01(\t\x12\x12\n\nto_address\x18\x08 \x01(\t\x12\x0e\n\x06\x61mount\x18\t \x01(\x04\x12\'\n\x08transfer\x18\n \x01(\x0b\x32\x15.TronTransferContract\x12\x30\n\rtrigger_smart\x18\x0b \x01(\x0b\x32\x19.TronTriggerSmartContract\x12\x11\n\tfee_limit\x18\x0c \x01(\x04\x12\x11\n\ttimestamp\x18\r \x01(\x04\x12\x0c\n\x04\x64\x61ta\x18\x0e \x01(\x0c\"8\n\x0cTronSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x02 \x01(\x0c\"d\n\x0fTronSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Tron\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x14\n\x0cshow_display\x18\x04 \x01(\x08\":\n\x14TronMessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"H\n\x11TronVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\"t\n\x11TronSignTypedHash\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x17\n\tcoin_name\x18\x02 \x01(\t:\x04Tron\x12\x1d\n\x15\x64omain_separator_hash\x18\x03 \x02(\x0c\x12\x14\n\x0cmessage_hash\x18\x04 \x01(\x0c\"<\n\x16TronTypedDataSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\x12\x11\n\tsignature\x18\x02 \x02(\x0c\x42\x30\n\x1a\x63om.keepkey.deviceprotocolB\x12KeepKeyMessageTron')
 )
 
 
@@ -343,6 +343,231 @@ _TRONSIGNEDTX = _descriptor.Descriptor(
   serialized_end=691,
 )
 
+
+_TRONSIGNMESSAGE = _descriptor.Descriptor(
+  name='TronSignMessage',
+  full_name='TronSignMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address_n', full_name='TronSignMessage.address_n', index=0,
+      number=1, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='coin_name', full_name='TronSignMessage.coin_name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=True, default_value=_b("Tron").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='message', full_name='TronSignMessage.message', index=2,
+      number=3, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='show_display', full_name='TronSignMessage.show_display', index=3,
+      number=4, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=693,
+  serialized_end=793,
+)
+
+
+_TRONMESSAGESIGNATURE = _descriptor.Descriptor(
+  name='TronMessageSignature',
+  full_name='TronMessageSignature',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address', full_name='TronMessageSignature.address', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature', full_name='TronMessageSignature.signature', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=795,
+  serialized_end=853,
+)
+
+
+_TRONVERIFYMESSAGE = _descriptor.Descriptor(
+  name='TronVerifyMessage',
+  full_name='TronVerifyMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address', full_name='TronVerifyMessage.address', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature', full_name='TronVerifyMessage.signature', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='message', full_name='TronVerifyMessage.message', index=2,
+      number=3, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=855,
+  serialized_end=927,
+)
+
+
+_TRONSIGNTYPEDHASH = _descriptor.Descriptor(
+  name='TronSignTypedHash',
+  full_name='TronSignTypedHash',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address_n', full_name='TronSignTypedHash.address_n', index=0,
+      number=1, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='coin_name', full_name='TronSignTypedHash.coin_name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=True, default_value=_b("Tron").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='domain_separator_hash', full_name='TronSignTypedHash.domain_separator_hash', index=2,
+      number=3, type=12, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='message_hash', full_name='TronSignTypedHash.message_hash', index=3,
+      number=4, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=929,
+  serialized_end=1045,
+)
+
+
+_TRONTYPEDDATASIGNATURE = _descriptor.Descriptor(
+  name='TronTypedDataSignature',
+  full_name='TronTypedDataSignature',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address', full_name='TronTypedDataSignature.address', index=0,
+      number=1, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature', full_name='TronTypedDataSignature.signature', index=1,
+      number=2, type=12, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1047,
+  serialized_end=1107,
+)
+
 _TRONSIGNTX.fields_by_name['transfer'].message_type = _TRONTRANSFERCONTRACT
 _TRONSIGNTX.fields_by_name['trigger_smart'].message_type = _TRONTRIGGERSMARTCONTRACT
 DESCRIPTOR.message_types_by_name['TronGetAddress'] = _TRONGETADDRESS
@@ -351,6 +576,11 @@ DESCRIPTOR.message_types_by_name['TronTransferContract'] = _TRONTRANSFERCONTRACT
 DESCRIPTOR.message_types_by_name['TronTriggerSmartContract'] = _TRONTRIGGERSMARTCONTRACT
 DESCRIPTOR.message_types_by_name['TronSignTx'] = _TRONSIGNTX
 DESCRIPTOR.message_types_by_name['TronSignedTx'] = _TRONSIGNEDTX
+DESCRIPTOR.message_types_by_name['TronSignMessage'] = _TRONSIGNMESSAGE
+DESCRIPTOR.message_types_by_name['TronMessageSignature'] = _TRONMESSAGESIGNATURE
+DESCRIPTOR.message_types_by_name['TronVerifyMessage'] = _TRONVERIFYMESSAGE
+DESCRIPTOR.message_types_by_name['TronSignTypedHash'] = _TRONSIGNTYPEDHASH
+DESCRIPTOR.message_types_by_name['TronTypedDataSignature'] = _TRONTYPEDDATASIGNATURE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 TronGetAddress = _reflection.GeneratedProtocolMessageType('TronGetAddress', (_message.Message,), dict(
@@ -394,6 +624,41 @@ TronSignedTx = _reflection.GeneratedProtocolMessageType('TronSignedTx', (_messag
   # @@protoc_insertion_point(class_scope:TronSignedTx)
   ))
 _sym_db.RegisterMessage(TronSignedTx)
+
+TronSignMessage = _reflection.GeneratedProtocolMessageType('TronSignMessage', (_message.Message,), dict(
+  DESCRIPTOR = _TRONSIGNMESSAGE,
+  __module__ = 'messages_tron_pb2'
+  # @@protoc_insertion_point(class_scope:TronSignMessage)
+  ))
+_sym_db.RegisterMessage(TronSignMessage)
+
+TronMessageSignature = _reflection.GeneratedProtocolMessageType('TronMessageSignature', (_message.Message,), dict(
+  DESCRIPTOR = _TRONMESSAGESIGNATURE,
+  __module__ = 'messages_tron_pb2'
+  # @@protoc_insertion_point(class_scope:TronMessageSignature)
+  ))
+_sym_db.RegisterMessage(TronMessageSignature)
+
+TronVerifyMessage = _reflection.GeneratedProtocolMessageType('TronVerifyMessage', (_message.Message,), dict(
+  DESCRIPTOR = _TRONVERIFYMESSAGE,
+  __module__ = 'messages_tron_pb2'
+  # @@protoc_insertion_point(class_scope:TronVerifyMessage)
+  ))
+_sym_db.RegisterMessage(TronVerifyMessage)
+
+TronSignTypedHash = _reflection.GeneratedProtocolMessageType('TronSignTypedHash', (_message.Message,), dict(
+  DESCRIPTOR = _TRONSIGNTYPEDHASH,
+  __module__ = 'messages_tron_pb2'
+  # @@protoc_insertion_point(class_scope:TronSignTypedHash)
+  ))
+_sym_db.RegisterMessage(TronSignTypedHash)
+
+TronTypedDataSignature = _reflection.GeneratedProtocolMessageType('TronTypedDataSignature', (_message.Message,), dict(
+  DESCRIPTOR = _TRONTYPEDDATASIGNATURE,
+  __module__ = 'messages_tron_pb2'
+  # @@protoc_insertion_point(class_scope:TronTypedDataSignature)
+  ))
+_sym_db.RegisterMessage(TronTypedDataSignature)
 
 
 DESCRIPTOR.has_options = True

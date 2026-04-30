@@ -29,19 +29,28 @@ from keepkeylib.transport_pipe import PipeTransport
 from keepkeylib.transport_socket import SocketTransportClient
 from keepkeylib.transport_udp import UDPTransport
 
-try:
-    from keepkeylib.transport_hid import HidTransport
-    hid_devices = HidTransport.enumerate()
-except Exception:
-    print("Error loading HID. HID devices not enumerated.")
-    hid_devices = []
+# Skip HID/WebUSB autodetect when an explicit transport is requested.
+# Otherwise a connected real KeepKey wins over `KK_TRANSPORT=dylib` and the
+# dylib regression tests silently route to hardware instead.
+_explicit_transport = os.getenv("KK_TRANSPORT")
 
-try:
-    from keepkeylib.transport_webusb import WebUsbTransport
-    webusb_devices = WebUsbTransport.enumerate()
-except Exception:
-    print("Error loading WebUSB. WebUSB devices not enumerated.")
+if _explicit_transport:
+    hid_devices = []
     webusb_devices = []
+else:
+    try:
+        from keepkeylib.transport_hid import HidTransport
+        hid_devices = HidTransport.enumerate()
+    except Exception:
+        print("Error loading HID. HID devices not enumerated.")
+        hid_devices = []
+
+    try:
+        from keepkeylib.transport_webusb import WebUsbTransport
+        webusb_devices = WebUsbTransport.enumerate()
+    except Exception:
+        print("Error loading WebUSB. WebUSB devices not enumerated.")
+        webusb_devices = []
 
 # Only count a hid device if it has more than just the U2F interface exposed
 onlyU2F = len(hid_devices) > 0 and \
