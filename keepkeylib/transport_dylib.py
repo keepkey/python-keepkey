@@ -96,7 +96,8 @@ class DylibState(object):
 
         # Allocate flash as 0xFF (erased NOR state). Held by the singleton so
         # GC doesn't free it underneath the firmware's still-live mlock.
-        self.flash = (ctypes.c_uint8 * FLASH_SIZE)(*([0xFF] * FLASH_SIZE))
+        self.flash = (ctypes.c_uint8 * FLASH_SIZE)()
+        ctypes.memset(self.flash, 0xFF, FLASH_SIZE)
 
         rc = self.lib.kkemu_init(ctypes.cast(self.flash, ctypes.c_void_p), FLASH_SIZE)
         if rc != 0:
