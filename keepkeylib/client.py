@@ -1638,17 +1638,18 @@ class ProtocolMixin(object):
         )
 
     @expect(solana_proto.SolanaOffchainMessageSignature)
-    def solana_sign_offchain_message(self, address_n, message, message_format,
+    def solana_sign_offchain_message(self, address_n, message, message_format=None,
                                      version=0, show_display=False):
-        return self.call(
-            solana_proto.SolanaSignOffchainMessage(
-                address_n=address_n,
-                version=version,
-                message_format=message_format,
-                message=message,
-                show_display=show_display,
-            )
-        )
+        kwargs = {
+            "address_n": address_n,
+            "version": version,
+            "message": message,
+            "show_display": show_display,
+        }
+        if message_format is not None:
+            kwargs["message_format"] = message_format
+
+        return self.call(solana_proto.SolanaSignOffchainMessage(**kwargs))
 
     # ── Tron ───────────────────────────────────────────────────
     @expect(tron_proto.TronAddress)
