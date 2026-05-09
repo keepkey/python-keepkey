@@ -1628,10 +1628,28 @@ class ProtocolMixin(object):
         )
 
     @expect(solana_proto.SolanaMessageSignature)
-    def solana_sign_message(self, address_n, message):
+    def solana_sign_message(self, address_n, message, show_display=False):
         return self.call(
-            solana_proto.SolanaSignMessage(address_n=address_n, message=message)
+            solana_proto.SolanaSignMessage(
+                address_n=address_n,
+                message=message,
+                show_display=show_display,
+            )
         )
+
+    @expect(solana_proto.SolanaOffchainMessageSignature)
+    def solana_sign_offchain_message(self, address_n, message, message_format=None,
+                                     version=0, show_display=False):
+        kwargs = {
+            "address_n": address_n,
+            "version": version,
+            "message": message,
+            "show_display": show_display,
+        }
+        if message_format is not None:
+            kwargs["message_format"] = message_format
+
+        return self.call(solana_proto.SolanaSignOffchainMessage(**kwargs))
 
     # ── Tron ───────────────────────────────────────────────────
     @expect(tron_proto.TronAddress)
@@ -1646,6 +1664,37 @@ class ProtocolMixin(object):
             tron_proto.TronSignTx(address_n=address_n, raw_tx=raw_tx)
         )
 
+    @expect(tron_proto.TronMessageSignature)
+    def tron_sign_message(self, address_n, message, show_display=False):
+        return self.call(
+            tron_proto.TronSignMessage(
+                address_n=address_n,
+                message=message,
+                show_display=show_display,
+            )
+        )
+
+    @expect(proto.Success)
+    def tron_verify_message(self, address, signature, message):
+        return self.call(
+            tron_proto.TronVerifyMessage(
+                address=address,
+                signature=signature,
+                message=message,
+            )
+        )
+
+    @expect(tron_proto.TronTypedDataSignature)
+    def tron_sign_typed_hash(self, address_n, domain_separator_hash,
+                             message_hash=None):
+        kwargs = dict(
+            address_n=address_n,
+            domain_separator_hash=domain_separator_hash,
+        )
+        if message_hash is not None:
+            kwargs['message_hash'] = message_hash
+        return self.call(tron_proto.TronSignTypedHash(**kwargs))
+
     # ── TON ────────────────────────────────────────────────────
     @expect(ton_proto.TonAddress)
     def ton_get_address(self, address_n, show_display=False):
@@ -1657,6 +1706,16 @@ class ProtocolMixin(object):
     def ton_sign_tx(self, address_n, raw_tx):
         return self.call(
             ton_proto.TonSignTx(address_n=address_n, raw_tx=raw_tx)
+        )
+
+    @expect(ton_proto.TonMessageSignature)
+    def ton_sign_message(self, address_n, message, show_display=False):
+        return self.call(
+            ton_proto.TonSignMessage(
+                address_n=address_n,
+                message=message,
+                show_display=show_display,
+            )
         )
 
     # ── Zcash Address Display ─────────────────────────────────

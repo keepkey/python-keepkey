@@ -743,6 +743,42 @@ _MESSAGETYPE = _descriptor.EnumDescriptor(
       name='MessageType_TonSignedTx', index=177, number=1503,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_SolanaSignOffchainMessage', index=178, number=756,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_SolanaOffchainMessageSignature', index=179, number=757,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_TronSignMessage', index=180, number=1404,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_TronMessageSignature', index=181, number=1405,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_TronVerifyMessage', index=182, number=1406,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_TronSignTypedHash', index=183, number=1407,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_TronTypedDataSignature', index=184, number=1408,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_TonSignMessage', index=185, number=1504,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_TonMessageSignature', index=186, number=1505,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
   ],
   containing_type=None,
   options=None,
@@ -858,6 +894,8 @@ MessageType_SolanaSignTx = 752
 MessageType_SolanaSignedTx = 753
 MessageType_SolanaSignMessage = 754
 MessageType_SolanaMessageSignature = 755
+MessageType_SolanaSignOffchainMessage = 756
+MessageType_SolanaOffchainMessageSignature = 757
 MessageType_BinanceGetAddress = 800
 MessageType_BinanceAddress = 801
 MessageType_BinanceGetPublicKey = 802
@@ -926,10 +964,17 @@ MessageType_TronGetAddress = 1400
 MessageType_TronAddress = 1401
 MessageType_TronSignTx = 1402
 MessageType_TronSignedTx = 1403
+MessageType_TronSignMessage = 1404
+MessageType_TronMessageSignature = 1405
+MessageType_TronVerifyMessage = 1406
+MessageType_TronSignTypedHash = 1407
+MessageType_TronTypedDataSignature = 1408
 MessageType_TonGetAddress = 1500
 MessageType_TonAddress = 1501
 MessageType_TonSignTx = 1502
 MessageType_TonSignedTx = 1503
+MessageType_TonSignMessage = 1504
+MessageType_TonMessageSignature = 1505
 
 
 
@@ -4609,6 +4654,10 @@ _MESSAGETYPE.values_by_name["MessageType_SolanaSignMessage"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_SolanaSignMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
 _MESSAGETYPE.values_by_name["MessageType_SolanaMessageSignature"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_SolanaMessageSignature"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_SolanaSignOffchainMessage"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_SolanaSignOffchainMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_SolanaOffchainMessageSignature"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_SolanaOffchainMessageSignature"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
 _MESSAGETYPE.values_by_name["MessageType_BinanceGetAddress"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_BinanceGetAddress"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
 _MESSAGETYPE.values_by_name["MessageType_BinanceAddress"].has_options = True
@@ -4745,6 +4794,16 @@ _MESSAGETYPE.values_by_name["MessageType_TronSignTx"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_TronSignTx"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
 _MESSAGETYPE.values_by_name["MessageType_TronSignedTx"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_TronSignedTx"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_TronSignMessage"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_TronSignMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_TronMessageSignature"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_TronMessageSignature"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_TronVerifyMessage"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_TronVerifyMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_TronSignTypedHash"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_TronSignTypedHash"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_TronTypedDataSignature"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_TronTypedDataSignature"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
 _MESSAGETYPE.values_by_name["MessageType_TonGetAddress"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_TonGetAddress"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
 _MESSAGETYPE.values_by_name["MessageType_TonAddress"].has_options = True
@@ -4753,4 +4812,8 @@ _MESSAGETYPE.values_by_name["MessageType_TonSignTx"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_TonSignTx"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
 _MESSAGETYPE.values_by_name["MessageType_TonSignedTx"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_TonSignedTx"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_TonSignMessage"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_TonSignMessage"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_TonMessageSignature"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_TonMessageSignature"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
 # @@protoc_insertion_point(module_scope)

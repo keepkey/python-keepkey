@@ -29,19 +29,41 @@ from keepkeylib.transport_pipe import PipeTransport
 from keepkeylib.transport_socket import SocketTransportClient
 from keepkeylib.transport_udp import UDPTransport
 
-try:
-    from keepkeylib.transport_hid import HidTransport
-    hid_devices = HidTransport.enumerate()
-except Exception:
-    print("Error loading HID. HID devices not enumerated.")
-    hid_devices = []
+# Explicit transport selection via KK_TRANSPORT. Currently only "dylib" is
+# implemented (UDP is the no-env-var default below). Any other non-empty
+# value is rejected up-front so a typo like "dyllib" doesn't silently fall
+# through to UDP with hardware autodetect disabled — which would route
+# tests to whichever emulator happened to be listening on 11044.
+_KNOWN_TRANSPORTS = {"dylib"}
+_explicit_transport = os.getenv("KK_TRANSPORT") or None
 
-try:
-    from keepkeylib.transport_webusb import WebUsbTransport
-    webusb_devices = WebUsbTransport.enumerate()
-except Exception:
-    print("Error loading WebUSB. WebUSB devices not enumerated.")
+if _explicit_transport is not None and _explicit_transport not in _KNOWN_TRANSPORTS:
+    raise RuntimeError(
+        "Unsupported KK_TRANSPORT=%r — known values: %s. Unset to use "
+        "default HID/WebUSB autodetect or UDP fallback." %
+        (_explicit_transport, sorted(_KNOWN_TRANSPORTS))
+    )
+
+if _explicit_transport == "dylib":
+    # Skip HID/WebUSB autodetect — dylib is opt-in by env var. Without
+    # this skip, a connected real KeepKey would win over the explicit
+    # request and the dylib regression suite would route to hardware.
+    hid_devices = []
     webusb_devices = []
+else:
+    try:
+        from keepkeylib.transport_hid import HidTransport
+        hid_devices = HidTransport.enumerate()
+    except Exception:
+        print("Error loading HID. HID devices not enumerated.")
+        hid_devices = []
+
+    try:
+        from keepkeylib.transport_webusb import WebUsbTransport
+        webusb_devices = WebUsbTransport.enumerate()
+    except Exception:
+        print("Error loading WebUSB. WebUSB devices not enumerated.")
+        webusb_devices = []
 
 # Only count a hid device if it has more than just the U2F interface exposed
 onlyU2F = len(hid_devices) > 0 and \
@@ -73,6 +95,25 @@ elif len(webusb_devices) > 0:
     DEBUG_TRANSPORT = WebUsbTransport
     DEBUG_TRANSPORT_ARGS = (webusb_devices[0],)
     DEBUG_TRANSPORT_KWARGS = {'debug_link': True}
+elif os.getenv('KK_TRANSPORT') == 'dylib':
+    # In-process FFI transport against libkkemu.dylib (or libkkemu.so).
+    # Same firmware as UDP, different transport — exposes caller-driven
+    # polling bugs that the UDP daemon hides behind its own poll thread.
+    print('Using Emulator (dylib FFI)')
+    from keepkeylib.transport_dylib import DylibState, DylibTransport
+    _dylib_path = os.getenv('KK_DYLIB')
+    if not _dylib_path:
+        raise RuntimeError(
+            "KK_TRANSPORT=dylib requires KK_DYLIB=/path/to/libkkemu.dylib"
+        )
+    _dylib_state = DylibState.get_or_init(_dylib_path)
+    TRANSPORT = DylibTransport
+    TRANSPORT_ARGS = (_dylib_state, 0)
+    TRANSPORT_KWARGS = {}
+    DEBUG_TRANSPORT = DylibTransport
+    DEBUG_TRANSPORT_ARGS = (_dylib_state, 1)
+    DEBUG_TRANSPORT_KWARGS = {}
+
 else:
     print('Using Emulator')
     TRANSPORT = UDPTransport
