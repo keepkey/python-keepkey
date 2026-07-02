@@ -342,8 +342,31 @@ def _v_catalog_tests(start_id=17):
         if f['key'] == 'aave-v3-supply':
             continue
         method = 'test_clearsign_' + f['key'].replace('-', '_').replace('.', '_')
-        shows = '; '.join('%s: %s' % (a['name'], a['value'].decode('ascii', 'replace')
-                                      if a['format'] == 4 else a['name'])
+
+        def _arg_shown(a):
+            # Render what the OLED will actually show for this arg:
+            # STRING -> the attested label; ADDRESS -> abbreviated 0x…;
+            # TOKEN_AMOUNT -> decimal-scaled amount + symbol (or UNLIMITED).
+            v = a['value']
+            if a['format'] == 4:      # ARG_FORMAT_STRING
+                return v.decode('ascii', 'replace')
+            if a['format'] == 1:      # ARG_FORMAT_ADDRESS
+                return '0x%s..%s' % (v.hex()[:4], v.hex()[-4:])
+            if a['format'] == 5:      # ARG_FORMAT_TOKEN_AMOUNT
+                dec, symlen = v[0], v[1]
+                sym = v[2:2+symlen].decode('ascii', 'replace')
+                amt = v[2+symlen:]
+                if len(amt) == 32 and amt == b'\xff' * 32:
+                    return 'UNLIMITED ' + sym
+                n = int.from_bytes(amt, 'big')
+                if dec:
+                    scaled = ('%f' % (n / 10 ** dec)).rstrip('0').rstrip('.')
+                else:
+                    scaled = str(n)
+                return '%s %s' % (scaled, sym)
+            return a['name']
+
+        shows = '; '.join('%s: %s' % (a['name'], _arg_shown(a))
                           for a in f['args'][:3])
         # Prefer any TOKEN_AMOUNT/ADDRESS/STRING label as the screenshot hint
         # so it reads like what the OLED will actually show.
