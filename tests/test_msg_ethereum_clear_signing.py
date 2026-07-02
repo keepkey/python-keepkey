@@ -97,6 +97,21 @@ DEFAULT_ARGS = [
 # test_msg_ethereum_erc20_approve.py, which signs to it with AdvancedMode OFF.
 CVC_TOKEN = bytes.fromhex('41e5560054824ea6b0732e656e3ad64e20e94e45')
 
+# Real mainnet contracts for the full clear-sign flow suite (mirrors the
+# keepkey-sdk tests/evm-clearsign payload set).
+USDC = bytes.fromhex('a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48')
+WETH = bytes.fromhex('c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2')
+UNISWAP_V2_ROUTER = bytes.fromhex('7a250d5630b4cf539739df2c5dacb4c659f2488d')
+UNISWAP_V3_ROUTER = bytes.fromhex('e592427a0aece92de3edee1f18e0157c05861564')
+UNISWAP_V3_ROUTER2 = bytes.fromhex('68b3465833fb72a70ecdf485e0e4c7bd8665fc45')
+RECIPIENT_742 = bytes.fromhex('742d35cc6634c0532950a20547b231011e30c8e7')
+
+def _word(v):
+    return v.to_bytes(32, 'big')
+
+def _addr_word(a):
+    return b'\x00' * 12 + a
+
 # Device wallet path. With mnemonic12 (common.KeepKeyTest) this is signer
 # 0x3f2329c9adfbccd9a84f52c906e936a42da18cb8 — used to check recovered signer.
 DEVICE_PATH = "44'/60'/0'/0/0"
@@ -708,6 +723,159 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         # over THIS tx's digest — the metadata was bound to the exact tx.
         signer = recover_eth_signer(sig_r, sig_s, sig_v, tx_hash, chain_id)
         self.assertEqual(signer, self.client.ethereum_get_address(n))
+
+    def _clearsign_flow(self, to, data, method_name, args, value=0,
+                        nonce=0, gas_price=20000000000, gas_limit=250000,
+                        chain_id=1):
+        """Run one FULL clear-sign flow with AdvancedMode OFF: build the real
+        tx, sign per-tx-bound metadata, confirm the who/what/why screens
+        (auto-acked), sign, and assert the signature recovers to the device
+        signer over this exact digest. The user never sees calldata hex —
+        with AdvancedMode OFF the VERIFIED metadata is the ONLY reason the
+        contract data may sign at all."""
+        self.client.apply_policy("AdvancedMode", 0)
+        self._drop_setup_screenshots()
+        n = parse_path(DEVICE_PATH)
+        tx_hash = eth_sighash_legacy(nonce, gas_price, gas_limit, to, value,
+                                     data, chain_id)
+        blob = bound_metadata(tx_hash, contract=to, selector=data[:4],
+                              chain_id=chain_id, method_name=method_name,
+                              args=args)
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=blob, metadata_version=1, key_id=TEST_KEY_ID)
+        self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
+
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=n, nonce=nonce, gas_price=gas_price, gas_limit=gas_limit,
+            to=to, value=value, data=data, chain_id=chain_id)
+        self.assertIsNotNone(sig_r)
+        signer = recover_eth_signer(sig_r, sig_s, sig_v, tx_hash, chain_id)
+        self.assertEqual(signer, self.client.ethereum_get_address(n))
+
+    # ── The real-world clear-sign payload suite ────────────────────────
+    # Mirrors keepkey-sdk tests/evm-clearsign: every flow a user actually
+    # performs, each confirmed end-to-end with AdvancedMode OFF and ZERO
+    # calldata hex on the OLED — only who/what/why screens.
+
+    def test_clearsign_erc20_transfer_usdc(self):
+        """USDC transfer: to + "amount: 1 USDC" (6 decimals), no hex."""
+        data = (bytes.fromhex('a9059cbb')
+                + _addr_word(RECIPIENT_742) + _word(1000000))
+        self._clearsign_flow(
+            USDC, data, 'transfer',
+            [{'name': 'token', 'format': ARG_FORMAT_STRING, 'value': b'USD Coin'},
+             {'name': 'to', 'format': ARG_FORMAT_ADDRESS, 'value': RECIPIENT_742},
+             {'name': 'amount', 'format': ARG_FORMAT_TOKEN_AMOUNT,
+              'value': token_amount_value(1000000, 6, 'USDC')}])
+
+    def test_clearsign_erc20_approve_usdc(self):
+        """USDC approve: spender (Uniswap router) + "1000 USDC"."""
+        data = (bytes.fromhex('095ea7b3')
+                + _addr_word(UNISWAP_V3_ROUTER2) + _word(1000000000))
+        self._clearsign_flow(
+            USDC, data, 'approve',
+            [{'name': 'spender', 'format': ARG_FORMAT_ADDRESS,
+              'value': UNISWAP_V3_ROUTER2},
+             {'name': 'amount', 'format': ARG_FORMAT_TOKEN_AMOUNT,
+              'value': token_amount_value(1000000000, 6, 'USDC')}])
+
+    def test_clearsign_erc20_approve_unlimited(self):
+        """Unlimited USDC approve: device MUST show "UNLIMITED USDC"."""
+        unlimited = (2 ** 256) - 1
+        data = (bytes.fromhex('095ea7b3')
+                + _addr_word(UNISWAP_V3_ROUTER2) + _word(unlimited))
+        self._clearsign_flow(
+            USDC, data, 'approve',
+            [{'name': 'spender', 'format': ARG_FORMAT_ADDRESS,
+              'value': UNISWAP_V3_ROUTER2},
+             {'name': 'amount', 'format': ARG_FORMAT_TOKEN_AMOUNT,
+              'value': token_amount_value(unlimited, 6, 'USDC')}])
+
+    def test_clearsign_uniswap_v2_swap_eth_for_tokens(self):
+        """swapExactETHForTokens sending 0.01 ETH: the tx value is shown on
+        the final Transaction screen ("Send 0.01 ETH ... for gas?"), the
+        decode shows protocol + min-out + recipient. No hex."""
+        deadline = 1700000000
+        data = (bytes.fromhex('7ff36ab5')
+                + _word(9500000)            # amountOutMin (9.5 USDC)
+                + _word(0x80)               # path offset
+                + _addr_word(RECIPIENT_742)  # to
+                + _word(deadline)
+                + _word(2)                  # path length
+                + _addr_word(WETH) + _addr_word(USDC))
+        self._clearsign_flow(
+            UNISWAP_V2_ROUTER, data, 'swapExactETHForTokens',
+            [{'name': 'protocol', 'format': ARG_FORMAT_STRING,
+              'value': b'Uniswap V2'},
+             {'name': 'amountOutMin', 'format': ARG_FORMAT_TOKEN_AMOUNT,
+              'value': token_amount_value(9500000, 6, 'USDC')},
+             {'name': 'to', 'format': ARG_FORMAT_ADDRESS,
+              'value': RECIPIENT_742}],
+            value=10000000000000000)  # 0.01 ETH in
+
+    def test_clearsign_uniswap_v2_swap_tokens_for_eth(self):
+        """swapExactTokensForETH: "100 USDC" in, min "0.003 ETH" out."""
+        deadline = 1700000000
+        data = (bytes.fromhex('18cbafe5')
+                + _word(100000000)              # amountIn (100 USDC)
+                + _word(3000000000000000)       # amountOutMin (0.003 ETH)
+                + _word(0xa0)                   # path offset
+                + _addr_word(RECIPIENT_742)      # to
+                + _word(deadline)
+                + _word(2)
+                + _addr_word(USDC) + _addr_word(WETH))
+        self._clearsign_flow(
+            UNISWAP_V2_ROUTER, data, 'swapExactTokensForETH',
+            [{'name': 'protocol', 'format': ARG_FORMAT_STRING,
+              'value': b'Uniswap V2'},
+             {'name': 'amountIn', 'format': ARG_FORMAT_TOKEN_AMOUNT,
+              'value': token_amount_value(100000000, 6, 'USDC')},
+             {'name': 'amountOutMin', 'format': ARG_FORMAT_TOKEN_AMOUNT,
+              'value': token_amount_value(3000000000000000, 18, 'ETH')},
+             {'name': 'to', 'format': ARG_FORMAT_ADDRESS,
+              'value': RECIPIENT_742}])
+
+    def test_clearsign_uniswap_v3_exact_input_single(self):
+        """Uniswap V3 exactInputSingle: WETH -> USDC, typed in/out amounts."""
+        deadline = 1700000000
+        data = (bytes.fromhex('414bf389')
+                + _addr_word(WETH)               # tokenIn
+                + _addr_word(USDC)               # tokenOut
+                + _word(3000)                    # fee (0.3%)
+                + _addr_word(RECIPIENT_742)       # recipient
+                + _word(deadline)
+                + _word(10000000000000000)       # amountIn (0.01 WETH)
+                + _word(9500000)                 # amountOutMinimum
+                + _word(0))                      # sqrtPriceLimitX96
+        self._clearsign_flow(
+            UNISWAP_V3_ROUTER, data, 'exactInputSingle',
+            [{'name': 'protocol', 'format': ARG_FORMAT_STRING,
+              'value': b'Uniswap V3'},
+             {'name': 'tokenIn', 'format': ARG_FORMAT_ADDRESS, 'value': WETH},
+             {'name': 'tokenOut', 'format': ARG_FORMAT_ADDRESS, 'value': USDC},
+             {'name': 'amountIn', 'format': ARG_FORMAT_TOKEN_AMOUNT,
+              'value': token_amount_value(10000000000000000, 18, 'WETH')},
+             {'name': 'amountOutMin', 'format': ARG_FORMAT_TOKEN_AMOUNT,
+              'value': token_amount_value(9500000, 6, 'USDC')}])
+
+    def test_clearsign_uniswap_v3_multicall(self):
+        """Uniswap V3 multicall: opaque inner calls, but the attested decode
+        names the protocol — still no raw hex shown to the user."""
+        deadline = 1700000000
+        inner = bytes.fromhex('12210e8a')  # refundETH()
+        data = (bytes.fromhex('5ae401dc')
+                + _word(deadline)
+                + _word(0x40)   # offset of bytes[] array
+                + _word(1)      # one inner call
+                + _word(0x20)   # offset of element 0
+                + _word(len(inner))
+                + inner + b'\x00' * (32 - len(inner)))
+        self._clearsign_flow(
+            UNISWAP_V3_ROUTER2, data, 'multicall',
+            [{'name': 'protocol', 'format': ARG_FORMAT_STRING,
+              'value': b'Uniswap V3'},
+             {'name': 'calls', 'format': ARG_FORMAT_STRING,
+              'value': b'1 inner call: refundETH'}])
 
     def test_replay_rejected_when_digest_differs(self):
         """Metadata bound to tx A, then sign tx B (same contract+selector+chain,

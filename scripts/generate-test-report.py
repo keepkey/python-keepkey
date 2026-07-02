@@ -297,6 +297,8 @@ def parse_junit(path):
 # every review screen in order (who/what/why), not a single "best" thumbnail.
 FULL_SEQUENCE_TESTS = {
     ('test_msg_ethereum_clear_signing', 'test_binding_happy_path_signs_and_recovers'),
+    ('test_msg_ethereum_clear_signing', 'test_clearsign_erc20_approve_unlimited'),
+    ('test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v2_swap_eth_for_tokens'),
 }
 
 SECTIONS = [
@@ -903,6 +905,43 @@ SECTIONS = [
           'Empty, oversized, control-char and format-specifier aliases are rejected — the alias '
           'is rendered on the warning screen, so it cannot carry a display-spoofing payload.',
           []),
+         ('V17', 'test_msg_ethereum_clear_signing', 'test_clearsign_erc20_transfer_usdc',
+          'ERC-20 transfer — clear-signed, zero hex',
+          'Real USDC transfer(to, 1000000): decode shows token "USD Coin", full recipient '
+          'address, and "amount: 1 USDC" (6-decimal scaled). AdvancedMode OFF; the bound '
+          'metadata is the only reason the contract data may sign. No calldata hex shown.',
+          ['to (full address)', 'amount: 1 USDC']),
+         ('V18', 'test_msg_ethereum_clear_signing', 'test_clearsign_erc20_approve_usdc',
+          'ERC-20 approve — spender + typed amount',
+          'USDC approve(spender=Uniswap router, 1000000000): decode shows the spender address '
+          'and "amount: 1000 USDC". The user sees exactly who may withdraw and how much.',
+          ['spender', 'amount: 1000 USDC']),
+         ('V19', 'test_msg_ethereum_clear_signing', 'test_clearsign_erc20_approve_unlimited',
+          'Unlimited approve — the danger case, in words',
+          'approve(spender, 2^256-1). The single most drainer-abused action in EVM. Device '
+          'shows "amount: UNLIMITED USDC" — not 32 bytes of ff. Full ordered screens below.',
+          ['warning', 'Call: approve', 'Contract', 'spender', 'amount: UNLIMITED USDC']),
+         ('V20', 'test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v2_swap_eth_for_tokens',
+          'Uniswap V2 swap ETH->USDC — value + decode',
+          'swapExactETHForTokens sending 0.01 ETH: decode shows protocol "Uniswap V2", '
+          '"amountOutMin: 9.5 USDC", recipient; the final Transaction screen shows the real '
+          'ETH value leaving the wallet ("Send 0.01 ETH ... for gas?"). Full screens below.',
+          ['warning', 'protocol: Uniswap V2', 'amountOutMin: 9.5 USDC', 'to', 'Send 0.01 ETH']),
+         ('V21', 'test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v2_swap_tokens_for_eth',
+          'Uniswap V2 swap USDC->ETH',
+          'swapExactTokensForETH: "amountIn: 100 USDC", "amountOutMin: 0.003 ETH", recipient — '
+          'both legs of the swap in human units.',
+          ['amountIn: 100 USDC', 'amountOutMin: 0.003 ETH']),
+         ('V22', 'test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v3_exact_input_single',
+          'Uniswap V3 exactInputSingle',
+          'WETH->USDC single-hop: tokenIn/tokenOut addresses, "amountIn: 0.01 WETH", '
+          '"amountOutMin: 9.5 USDC".',
+          ['tokenIn', 'amountIn: 0.01 WETH']),
+         ('V23', 'test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v3_multicall',
+          'Uniswap V3 multicall — opaque calls, named protocol',
+          'multicall(deadline, bytes[]): the inner calls are opaque, but the attested decode '
+          'names the protocol and summarizes the calls in words — the user still never sees hex.',
+          ['protocol: Uniswap V3']),
      ]),
 
     ('G', 'Hive', '7.15.0',
