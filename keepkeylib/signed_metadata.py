@@ -278,7 +278,12 @@ def sign_metadata(payload: bytes, private_key: bytes = None) -> bytes:
         ) from exc
 
     sk = SigningKey.from_string(private_key, curve=SECP256k1)
-    sig = sk.sign_digest(digest, sigencode=util.sigencode_string)  # r(32)||s(32)
+    # RFC 6979 deterministic nonce: same payload + key => byte-identical blob.
+    # Reference vectors stay reproducible and signers never depend on an RNG
+    # (nonce reuse with a bad RNG would leak the signing key).
+    sig = sk.sign_digest_deterministic(
+        digest, hashfunc=hashlib.sha256,
+        sigencode=util.sigencode_string)  # r(32)||s(32)
     r = sig[:32]
     s = sig[32:]
 

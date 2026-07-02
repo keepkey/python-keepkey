@@ -942,6 +942,15 @@ SECTIONS = [
           'multicall(deadline, bytes[]): the inner calls are opaque, but the attested decode '
           'names the protocol and summarizes the calls in words — the user still never sees hex.',
           ['protocol: Uniswap V3']),
+         ('V24', 'test_msg_ethereum_clear_signing', 'test_clearsign_batch_all_payloads',
+          'Batch: sign + device-validate the whole catalog',
+          'Signs every CLEARSIGN_FLOWS payload in one batch and has the device validate each: '
+          'every blob returns VERIFIED, and the same blob with one tampered byte returns '
+          'MALFORMED. Together with the frozen offline reference vectors (RFC 6979 '
+          'deterministic — byte-identical blobs, sha256 snapshots in the test), this makes '
+          'python-keepkey the complete signer reference: produce these bytes and the device '
+          'accepts them; deviate by one byte and it refuses.',
+          []),
      ]),
 
     ('G', 'Hive', '7.15.0',
