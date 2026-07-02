@@ -205,27 +205,46 @@ def _is_setup_frame(path):
     except:
         return False
 
+def _frame_lit_ratio(path):
+    """Fraction of lit pixels in an OLED PNG, or None if unreadable."""
+    try:
+        pixels, w, h = _read_png_pixels(path)
+        if not w or not h:
+            return None
+        return sum(1 for b in pixels if b > 128) / float(w * h)
+    except Exception:
+        return None
+
+
 def _pick_best_frame(test_dir, btn_files):
-    """Pick the best screenshot for a test, skipping setUp noise frames.
-    setUp always produces: btn00000 (wipe confirm) + btn00001 (load_device confirm).
-    Real test frames come after. If only setUp frames exist, return None."""
+    """Pick the best screenshot for a test.
+
+    setUp noise (wipe/load frames) is removed at capture time for the signing
+    tests (see reset_screenshots / setup_mnemonic_*), so the frames here are
+    the test's own operation confirms. We still drop blank/near-blank and
+    full-screen frames defensively, then prefer the most content-rich frame
+    (the address/amount/parameter screen carries more lit pixels than a plain
+    "Sign this transaction?" prompt). Returns None if nothing meaningful.
+
+    ponytail: density heuristic, no OCR — a text-heavy idle screen could still
+    pass; capture-time reset is the real guard, this is the safety net.
+    """
     if not btn_files:
         return None
-    # 3+ frames: [0]=setUp wipe, [1]=setUp load or instruction detail, [-1]=final confirm
-    # Prefer second-to-last frame -- it's the instruction-specific content
-    # (amounts, addresses, parameters). The last frame is usually a generic
-    # "Sign this transaction?" confirmation that's the same for every tx.
-    if len(btn_files) > 2:
-        # Use second-to-last for instruction detail, skip setUp frames
-        idx = -2 if len(btn_files) > 2 else -1
-        return os.path.join(test_dir, btn_files[idx])
-    elif len(btn_files) == 2:
-        # 2 frames: btn00000 is always setUp (wipe confirm), btn00001 is the test.
-        # Always show btn00001 -- it's the only real test frame.
-        return os.path.join(test_dir, btn_files[1])
-    else:
-        # Single frame -- almost always setUp noise (wipe confirm from setUp).
+    scored = []
+    for f in btn_files:
+        r = _frame_lit_ratio(os.path.join(test_dir, f))
+        if r is None:
+            continue
+        # Blank/near-blank (idle, lock) or near-full (logo/inverted) = noise.
+        if r < 0.02 or r > 0.55:
+            continue
+        scored.append((r, f))
+    if not scored:
         return None
+    # Most content-rich meaningful frame.
+    scored.sort()
+    return os.path.join(test_dir, scored[-1][1])
 
 def detect_fw():
     try:
@@ -786,21 +805,26 @@ SECTIONS = [
 
     # ===== 7.15.1 NEW FEATURES =====
     ('V', 'EVM Clear-Signing', '7.15.0',
-     'NEW: Verified transaction metadata for EVM contracts. Host sends a signed blob with contract '
-     'name, function, and decoded parameters. Device verifies blob signature against trusted key, '
-     'then shows human-readable details with VERIFIED icon. The signature is bound to the full tx '
-     'hash, and AdvancedMode is the single blind-sign gate (off = reject unknown contract data).',
+     'NEW (phase 1): Verified transaction metadata for EVM contracts. Host sends a signed blob with '
+     'contract name, function, and decoded parameters; the device verifies the blob signature and '
+     'shows human-readable details. Phase 1 ships with NO built-in "KeepKey says this is safe" key: '
+     'every clearsign signer is loaded at runtime (LoadClearsignSigner, user-confirmed on device, '
+     'RAM-only), and EVERY transaction it describes is preceded by a warning screen naming the '
+     'signer alias + key fingerprint ("NOT verified by KeepKey"). The signature is bound to the '
+     'full tx hash, and AdvancedMode is the single blind-sign gate (off = reject unknown data). '
+     'The built-in warning-free path returns in a later phase once the signer infra is hardened.',
      [
-         'CLEAR-SIGN: Signed metadata -> verify signature -> VERIFIED icon + method + decoded args',
+         'LOAD SIGNER: LoadClearsignSigner -> on-device confirm (alias + fingerprint) -> RAM slot',
+         'CLEAR-SIGN: Signed metadata -> verify -> WARNING (signer alias) -> method + decoded args',
          'BINDING: metadata committed to tx A, signing tx B is refused at send_signature',
          'BLIND SIGN: No metadata + AdvancedMode off -> unknown contract data hard-rejected',
      ],
      [
          ('V1', 'test_msg_ethereum_clear_signing', 'test_valid_metadata_returns_verified',
           'Valid metadata accepted',
-          'Correctly signed metadata blob is accepted. Device shows VERIFIED icon with decoded '
-          'method name and contract address.',
-          ['VERIFIED icon + method']),
+          'Correctly signed metadata blob from a loaded signer is accepted. Device shows the '
+          'clearsign warning (signer alias + fingerprint) then the decoded method + contract.',
+          ['Clearsign warning (signer alias)']),
          ('V2', 'test_msg_ethereum_clear_signing', 'test_wrong_key_returns_malformed',
           'Wrong signing key rejected', 'Metadata signed with wrong key is rejected as malformed.', []),
          ('V3', 'test_msg_ethereum_clear_signing', 'test_tampered_method_returns_malformed',
@@ -822,9 +846,10 @@ SECTIONS = [
           []),
          ('V9', 'test_msg_ethereum_clear_signing', 'test_binding_happy_path_signs_and_recovers',
           'Full tx-hash binding (happy path)',
-          'Metadata tx_hash = the real sighash of the EthereumSignTx. Device shows the verified '
-          'decoded screens, signs, and the signature recovers to the device signer.',
-          ['VERIFIED icon + method', 'Decoded contract + args']),
+          'Metadata tx_hash = the real sighash of the EthereumSignTx. Device shows the warning '
+          '(loaded signer alias) then the decoded screens, signs, and the signature recovers to '
+          'the device signer.',
+          ['Clearsign warning (signer alias)', 'Decoded contract + args']),
          ('V10', 'test_msg_ethereum_clear_signing', 'test_replay_rejected_when_digest_differs',
           'Replay reject (binding enforced)',
           'Metadata committed to tx A; signing tx B (same contract/selector/chain, different '
@@ -840,6 +865,67 @@ SECTIONS = [
           'Cancelling the verified confirm clears the blob; a later matching tx is not silently '
           'signed with the stale metadata.',
           []),
+         ('V13', 'test_msg_ethereum_clear_signing', 'test_load_required_before_verify',
+          'No built-in key: load required (phase 1)',
+          'On a fresh device a valid metadata blob is MALFORMED until a signer is loaded. Proves '
+          'there is no hardcoded warning-free trust path in phase 1.',
+          []),
+         ('V14', 'test_msg_ethereum_clear_signing', 'test_load_signer_cancel_refuses',
+          'Load signer requires on-device consent',
+          'Pressing reject on the LoadClearsignSigner confirm refuses the signer; the slot stays '
+          'empty and metadata for it is MALFORMED.',
+          ['Load clearsigner confirm']),
+         ('V15', 'test_msg_ethereum_clear_signing', 'test_load_signer_invalid_pubkey_rejected',
+          'Invalid signer key rejected',
+          'Uncompressed, zero (empty-slot sentinel), and truncated pubkeys are refused before any '
+          'confirm — a malicious host cannot install a bogus key.',
+          []),
+         ('V16', 'test_msg_ethereum_clear_signing', 'test_load_signer_bad_alias_rejected',
+          'Signer alias sanitized',
+          'Empty, oversized, control-char and format-specifier aliases are rejected — the alias '
+          'is rendered on the warning screen, so it cannot carry a display-spoofing payload.',
+          []),
+     ]),
+
+    ('G', 'Hive', '7.15.0',
+     'NEW: Hive (Graphene) support with SLIP-0048 role derivation. Four role keys per account '
+     '(owner, active, posting, memo), each an STM-prefixed secp256k1 key. Signs Graphene '
+     'transactions — transfer, and the account-create / account-update authority operations '
+     'Pioneer uses to onboard sponsored accounts. Every signature recovers to the role key that '
+     'the transaction was signed under, and each serialized field is bound at its byte position.',
+     [
+         'KEYS: SLIP-0048 m/48\'/13\'/role\'/0\'/account\' -> STM-prefixed pubkey per role',
+         'SIGN TX: Graphene serialize -> per-op confirm (amount + recipient) -> ECDSA sign',
+         'ACCOUNT CREATE: attest 4 role authorities + new-account name -> owner-key signature',
+     ],
+     [
+         ('G1', 'test_msg_hive', 'test_hive_get_public_key_active',
+          'Derive active-role key',
+          'Active-role key derives and returns an STM-prefixed key plus the 33-byte compressed '
+          'raw pubkey (0x02/0x03 prefix).',
+          []),
+         ('G2', 'test_msg_hive', 'test_hive_get_public_keys_all_roles',
+          'Derive all four role keys',
+          'Owner, active, posting and memo keys all derive, are distinct, and STM-formatted. The '
+          'bulk path agrees with the single-key path for the active role.',
+          []),
+         ('G3', 'test_msg_hive', 'test_hive_sign_transfer',
+          'Sign Hive transfer',
+          'Transfer (op 2) signs; the signature recovers to the active key. The device shows the '
+          'recipient account and amount, and every serialized field (from/to/amount/asset/memo) '
+          'is bound at its position so a rewritten recipient or amount fails.',
+          ['Transfer amount + recipient']),
+         ('G4', 'test_msg_hive', 'test_hive_sign_account_create',
+          'Sign account-create attestation',
+          'account_create (op 9) signs and recovers to the owner key — the attestation a Pioneer '
+          'sponsor verifies before spending an account-creation token. Binds the four role '
+          'authorities, creator, new-account name and fee at their exact positions.',
+          ['Account-create confirm']),
+         ('G5', 'test_msg_hive', 'test_hive_sign_account_update',
+          'Sign account-update',
+          'account_update (op 10) signs and recovers to the owner key; the replacement '
+          'authorities are bound to their slots so updating the wrong authority fails.',
+          ['Account-update confirm']),
      ]),
 
     ('S', 'Solana', '7.14.0',
@@ -943,9 +1029,14 @@ SECTIONS = [
     ('Z', 'Zcash Orchard', '7.14.0',
      'NEW: Shielded transactions via PCZT streaming. Orchard hides sender, recipient, and amount '
      'using ZK proofs. Raw seed access (ZIP-32 Orchard derivation uses BIP-39 seed + Pallas curve). '
-     'Full Viewing Key (FVK) export for watch-only wallets.',
+     'Full Viewing Key (FVK) export for watch-only wallets, unified-address display with an '
+     'on-device seed-fingerprint attestation (ZIP-32 §6.1). NOTE: pure shielded Orchard action '
+     'signing (Z5-Z7) is deferred past 7.15 — legacy sighash needs header/orchard digests not yet '
+     'in firmware; those tests skip with that reason and do not block release. Transparent->Orchard '
+     'shielding, FVK export, address display and fingerprint binding are all live.',
      [
          'FVK: Derive ak, nk, rivk components via ZIP-32 Orchard path',
+         'ADDRESS: Device derives its own unified address + shows it; optional seed-fingerprint pin',
          'PCZT: Stream header -> actions one at a time -> confirm each -> return signatures',
          'HYBRID: Transparent inputs + Orchard outputs in same tx',
      ],
@@ -965,9 +1056,53 @@ SECTIONS = [
          ('Z7', 'test_msg_zcash_sign_pczt', 'test_signatures_are_64_bytes',
           'Signature format', 'Orchard signatures must be exactly 64 bytes (RedPallas).', []),
          ('Z8', 'test_msg_zcash_sign_pczt', 'test_transparent_shielding_single_input',
-          'Transparent to shielded', 'Transparent BTC-like input shielded into Orchard pool.', ['Hybrid shield']),
+          'Transparent to shielded', 'Transparent BTC-like input shielded into Orchard pool.', ['Shielding confirm']),
          ('Z9', 'test_msg_zcash_sign_pczt', 'test_transparent_shielding_multiple_inputs',
           'Multi-input shielding', 'Multiple transparent inputs shielded in one tx.', []),
+         ('Z10', 'test_msg_zcash_display_address', 'test_zcash_display_address_basic',
+          'Display unified address',
+          'Device derives its OWN Orchard unified address (u1...) from the ZIP-32 path, shows it '
+          'on the OLED for confirmation, and returns it with the device seed fingerprint. The host '
+          'does not supply the address — this defends against a compromised host showing a fake UA.',
+          ['Unified address (u1...)']),
+         ('Z11', 'test_msg_zcash_display_address', 'test_zcash_display_address_bad_path_rejected',
+          'Reject malformed address path',
+          'A path that is neither m/32\'/133\'/account\' nor an explicit account is rejected with a '
+          'SyntaxError, so no wrong-account address is ever derived silently.',
+          []),
+         ('Z12', 'test_msg_zcash_seed_fingerprint', 'test_get_orchard_fvk_returns_seed_fingerprint',
+          'FVK carries seed fingerprint',
+          'ZcashGetOrchardFVK returns a 32-byte ZIP-32 §6.1 seed fingerprint alongside the FVK.',
+          []),
+         ('Z13', 'test_msg_zcash_seed_fingerprint', 'test_fingerprint_stable_across_accounts',
+          'Fingerprint bound to seed not account',
+          'The seed fingerprint is identical across account indices — it identifies the device seed.',
+          []),
+         ('Z14', 'test_msg_zcash_seed_fingerprint', 'test_display_address_helper_accepts_matching_fingerprint',
+          'Address display accepts matching fingerprint',
+          'When the host supplies expected_seed_fingerprint and it matches, the device derives and '
+          'displays the address and echoes the fingerprint.',
+          ['Unified address (u1...)']),
+         ('Z15', 'test_msg_zcash_seed_fingerprint', 'test_display_address_helper_rejects_wrong_fingerprint',
+          'Address display rejects wrong fingerprint',
+          'A mismatched expected_seed_fingerprint is rejected before any derivation — the host '
+          'cannot get an attestation from the wrong device.',
+          []),
+         ('Z16', 'test_msg_zcash_seed_fingerprint', 'test_display_address_helper_backward_compat',
+          'Address display without fingerprint',
+          'Omitting expected_seed_fingerprint still works; the device populates the fingerprint on '
+          'the response regardless.',
+          []),
+         ('Z17', 'test_msg_zcash_seed_fingerprint', 'test_device_fingerprint_matches_python_helper',
+          'Fingerprint matches host computation',
+          'The device-derived fingerprint equals calculate_seed_fingerprint(seed) — firmware C and '
+          'the python helper agree byte-for-byte for the all-all-all seed.',
+          []),
+         ('Z18', 'test_msg_zcash_seed_fingerprint', 'test_sign_pczt_helper_rejects_wrong_fingerprint',
+          'PCZT signing rejects wrong fingerprint',
+          'A wrong expected_seed_fingerprint on a PCZT signing request is rejected before any '
+          'signing crypto runs.',
+          []),
      ]),
 
     ('D', 'BIP-85 Child Derivation', '7.14.0',

@@ -461,6 +461,26 @@ class DebugLinkMixin(object):
                     raise CallException(types.Failure_Other,
                             "Expected %s, got %s" % (pprint(expected), pprint(msg)))
 
+    def reset_screenshots(self):
+        """Drop screenshots captured so far this test and restart numbering.
+
+        Called at the end of the setup_mnemonic_* helpers so the wipe/load
+        "setUp noise" frames never get picked as a test's representative OLED
+        image. Lifecycle tests (wipe/reset/recovery) do not use those helpers,
+        so their setup screens — which ARE the content under test — are kept.
+        """
+        if not SCREENSHOT:
+            return
+        screenshot_dir = getattr(self, 'screenshot_dir', None)
+        if screenshot_dir and os.path.isdir(screenshot_dir):
+            import glob
+            for f in glob.glob(os.path.join(screenshot_dir, 'btn*.png')):
+                try:
+                    os.remove(f)
+                except OSError:
+                    pass
+        self.screenshot_id = 0
+
     def _capture_oled(self):
         """Capture current OLED layout to screenshot directory."""
         if not SCREENSHOT:
@@ -1734,24 +1754,27 @@ class ProtocolMixin(object):
 
     # ── Zcash Address Display ─────────────────────────────────
     @expect(zcash_proto.ZcashAddress)
-    def zcash_display_address(self, address_n, address, ak, nk, rivk,
-                              account=None, expected_seed_fingerprint=None):
+    def zcash_display_address(self, address_n, account=None,
+                              expected_seed_fingerprint=None):
         """Display a Zcash unified address on the device for user confirmation.
+
+        The device derives the unified address itself from its own seed — the
+        host does NOT supply the address or FVK components (that host-comparison
+        model was dropped; see messages-zcash.proto, where address/ak/nk/rivk
+        are reserved on ZcashDisplayAddress).
 
         Args:
             address_n: ZIP-32 derivation path [32', 133', account']
-            address: unified address string ("u1...")
-            ak, nk, rivk: 32-byte FVK components for verification
             account: account index (alternative to full path)
             expected_seed_fingerprint: optional 32-byte ZIP-32 §6.1 seed
                 fingerprint. If provided, device verifies the match before
-                displaying and rejects with Failure on mismatch.
+                deriving/displaying and rejects with Failure on mismatch.
 
         Returns:
             ZcashAddress with .address and .seed_fingerprint of the
             attesting device.
         """
-        kwargs = dict(address_n=address_n, address=address, ak=ak, nk=nk, rivk=rivk)
+        kwargs = dict(address_n=address_n)
         if account is not None:
             kwargs['account'] = account
         if expected_seed_fingerprint is not None:

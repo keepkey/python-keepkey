@@ -80,14 +80,24 @@ class KeepKeyTest(unittest.TestCase):
             print("Setup finished")
             print("--------------")
 
+    def _drop_setup_screenshots(self):
+        # Discard wipe/load "setUp noise" frames so they can't be picked as a
+        # test's representative OLED image. No-op without a debuglink client.
+        fn = getattr(self.client, 'reset_screenshots', None)
+        if fn:
+            fn()
+
     def setup_mnemonic_allallall(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic_all, pin='', passphrase_protection=False, label='test', language='english')
+        self._drop_setup_screenshots()
 
     def setup_mnemonic_abandon(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic_abandon, pin='', passphrase_protection=False, label='test', language='english')
+        self._drop_setup_screenshots()
 
     def setup_mnemonic_nopin_nopassphrase(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic12, pin='', passphrase_protection=False, label='test', language='english')
+        self._drop_setup_screenshots()
 
     def setup_mnemonic_vuln20007(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic20007, pin='', passphrase_protection=False, label='test', language='english')

@@ -526,6 +526,9 @@ class TestEthereumClearSigning(common.KeepKeyTest):
             pubkey=test_signer_compressed_pubkey(),
             alias=CI_SIGNER_ALIAS,
         )
+        # The load-confirm frame is setUp noise for the signing tests; drop it
+        # so each test's own operation frames are what the report picks.
+        self._drop_setup_screenshots()
 
     def test_valid_metadata_returns_verified(self):
         """Send valid signed metadata → device returns VERIFIED."""
