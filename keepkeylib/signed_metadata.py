@@ -20,6 +20,32 @@ ARG_FORMAT_RAW = 0
 ARG_FORMAT_ADDRESS = 1
 ARG_FORMAT_AMOUNT = 2
 ARG_FORMAT_BYTES = 3
+# Attested printable label (e.g. protocol name "Uniswap V2"). value = ASCII.
+ARG_FORMAT_STRING = 4
+# Human-readable token amount: value = decimals(1) + symbol_len(1) +
+# symbol(<=10 [A-Za-z0-9]) + amount(1..32 big-endian). Firmware renders it
+# decimal-scaled with the symbol, e.g. "1000 USDC" — this is the "what" the
+# clear-signing plan asks for instead of a raw wei integer.
+ARG_FORMAT_TOKEN_AMOUNT = 5
+
+# Max value bytes on the wire. Legacy formats stay <=32; TOKEN_AMOUNT needs
+# decimals(1)+symbol_len(1)+symbol(<=10)+amount(<=32) = up to 44.
+METADATA_MAX_ARG_VALUE_LEN = 44
+
+
+def token_amount_value(amount, decimals, symbol):
+    """Build an ARG_FORMAT_TOKEN_AMOUNT value: decimals + symbol + amount.
+
+    amount: non-negative int (raw on-chain units). decimals: int 0..36.
+    symbol: short ticker, [A-Za-z0-9], <=10 chars.
+    """
+    sym = symbol.encode('ascii')
+    assert 0 < len(sym) <= 10 and sym.isalnum()
+    assert 0 <= decimals <= 36
+    # Minimal big-endian amount, at least 1 byte, at most 32.
+    n = amount.to_bytes(32, 'big').lstrip(b'\x00') or b'\x00'
+    assert len(n) <= 32
+    return bytes([decimals, len(sym)]) + sym + n
 
 CLASSIFICATION_OPAQUE = 0
 CLASSIFICATION_VERIFIED = 1
@@ -204,7 +230,7 @@ def serialize_metadata(
 
         # value (2-byte length prefix + raw bytes)
         val = arg['value']
-        assert len(val) <= 32  # METADATA_MAX_ARG_VALUE_LEN
+        assert len(val) <= METADATA_MAX_ARG_VALUE_LEN
         buf.extend(struct.pack('>H', len(val)))
         buf.extend(val)
 

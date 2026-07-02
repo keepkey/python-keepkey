@@ -38,10 +38,13 @@ from keepkeylib.signed_metadata import (
     serialize_metadata,
     sign_metadata,
     build_test_metadata,
+    token_amount_value,
     ARG_FORMAT_RAW,
     ARG_FORMAT_ADDRESS,
     ARG_FORMAT_AMOUNT,
     ARG_FORMAT_BYTES,
+    ARG_FORMAT_STRING,
+    ARG_FORMAT_TOKEN_AMOUNT,
     CLASSIFICATION_VERIFIED,
     CLASSIFICATION_OPAQUE,
     CLASSIFICATION_MALFORMED,
@@ -75,10 +78,18 @@ ZERO_TX_HASH = b'\x00' * 32
 # Wrong key for adversarial tests (private key = 0x02)
 WRONG_PRIVATE_KEY = b'\x00' * 31 + b'\x02'
 
+# The decoded who/what/why for the Aave supply tx below. This is what the
+# device screen should show the user, in human terms — NOT raw hex/wei:
+#   protocol : Aave V3            (STRING  — "who": the attested protocol)
+#   asset    : 0x6B17…1d0F (DAI)  (ADDRESS — "what": full, never truncated)
+#   amount   : 10.5 DAI           (TOKEN_AMOUNT — decimals+symbol scaled)
+#   onBehalfOf: 0xd8dA…6045       (ADDRESS)
+# 10500000000000000000 raw / 1e18 = 10.5 DAI.
 DEFAULT_ARGS = [
+    {'name': 'protocol', 'format': ARG_FORMAT_STRING, 'value': b'Aave V3'},
     {'name': 'asset', 'format': ARG_FORMAT_ADDRESS, 'value': DAI_ADDRESS},
-    {'name': 'amount', 'format': ARG_FORMAT_AMOUNT,
-     'value': (10500000000000000000).to_bytes(32, 'big')},
+    {'name': 'amount', 'format': ARG_FORMAT_TOKEN_AMOUNT,
+     'value': token_amount_value(10500000000000000000, 18, 'DAI')},
     {'name': 'onBehalfOf', 'format': ARG_FORMAT_ADDRESS, 'value': VITALIK},
 ]
 
@@ -120,13 +131,17 @@ def recover_eth_signer(sig_r, sig_s, sig_v, digest, chain_id):
     return keccak256(keys[rec].to_string())[-20:]
 
 
-def aave_supply_calldata(amount, on_behalf=VITALIK, asset=DAI_ADDRESS):
-    """supply(asset,amount,onBehalfOf) calldata — 100 bytes, leads with the
-    AAVE supply selector so signed_metadata_matches_tx() binds it."""
+def aave_supply_calldata(amount, on_behalf=VITALIK, asset=DAI_ADDRESS,
+                         referral=0):
+    """Real Aave V3 supply(address asset, uint256 amount, address onBehalfOf,
+    uint16 referralCode) calldata — selector 0x617ba037 + 4 x 32-byte words =
+    132 bytes. Matches the on-chain ABI so the signed tx_hash binds a genuine
+    transaction, not a toy payload."""
     return (AAVE_SUPPLY_SELECTOR
             + b'\x00' * 12 + asset
             + amount.to_bytes(32, 'big')
-            + b'\x00' * 12 + on_behalf)
+            + b'\x00' * 12 + on_behalf
+            + referral.to_bytes(32, 'big'))
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -648,20 +663,40 @@ class TestEthereumClearSigning(common.KeepKeyTest):
     # ── tx_hash binding (the authoritative gate) ──────────────────────
 
     def test_binding_happy_path_signs_and_recovers(self):
-        """Metadata.tx_hash = real sighash of the SignTx → signing completes and
-        the signature recovers to the device's own signer (binds THIS tx)."""
-        # AdvancedMode OFF on purpose: a VERIFIED blob is the *only* reason this
-        # contract call is allowed to sign without the blind-sign gate.
+        """Full who/what/why clear-sign of a REAL Aave V3 supply() transaction.
+
+        The device is sent (1) an actual EthereumSignTx with genuine Aave
+        supply(asset,amount,onBehalfOf,referralCode) calldata, and (2) a signed
+        metadata blob whose tx_hash == the exact sighash of that tx. With
+        AdvancedMode OFF, the VERIFIED blob is the ONLY reason this contract
+        call may sign without the blind-sign gate.
+
+        On device this renders, in order:
+          WHO  -> Clearsign Warning (signer 'CI Test') + Contract: 0x7d27…c7a9
+          WHAT -> Call: supply / protocol: Aave V3 / asset: 0x6B17…1d0F (DAI)
+                  / amount: 10.5 DAI / onBehalfOf: 0xd8dA…6045
+          WHY  -> the signature is REFUSED unless the signed digest equals the
+                  metadata's committed tx_hash (asserted by the recover below).
+        """
         self.client.apply_policy("AdvancedMode", 0)
+        # Drop the AdvancedMode-toggle confirm frame so the captured OLED
+        # sequence is exactly the who/what/why review screens.
+        self._drop_setup_screenshots()
         n = parse_path(DEVICE_PATH)
         chain_id, nonce, gas_price, gas_limit, value = 1, 7, 20000000000, 200000, 0
-        data = aave_supply_calldata(10500000000000000000)
+        amount = 10500000000000000000  # 10.5 DAI (18 decimals)
+        data = aave_supply_calldata(amount)
+        # Byte-accurate real Aave supply calldata: selector + 4 x 32-byte words.
+        self.assertEqual(data[:4], bytes.fromhex('617ba037'))
+        self.assertEqual(len(data), 4 + 4 * 32)
         tx_hash = eth_sighash_legacy(nonce, gas_price, gas_limit, AAVE_V3_POOL,
                                      value, data, chain_id)
 
+        # The metadata blob carries the decoded who/what/why (see DEFAULT_ARGS):
+        # protocol=Aave V3, asset=DAI, amount=10.5 DAI, onBehalfOf.
+        blob = bound_metadata(tx_hash)
         resp = self.client.ethereum_send_tx_metadata(
-            signed_payload=bound_metadata(tx_hash),
-            metadata_version=1, key_id=TEST_KEY_ID)
+            signed_payload=blob, metadata_version=1, key_id=TEST_KEY_ID)
         self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -669,6 +704,8 @@ class TestEthereumClearSigning(common.KeepKeyTest):
             to=AAVE_V3_POOL, value=value, data=data, chain_id=chain_id)
         self.assertIsNotNone(sig_r)
         self.assertIsNotNone(sig_s)
+        # WHY it's trustworthy: the signature recovers to THIS device's signer
+        # over THIS tx's digest — the metadata was bound to the exact tx.
         signer = recover_eth_signer(sig_r, sig_s, sig_v, tx_hash, chain_id)
         self.assertEqual(signer, self.client.ethereum_get_address(n))
 

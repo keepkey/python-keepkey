@@ -293,6 +293,12 @@ def parse_junit(path):
 # (id, module, method, title, context, [screenshots])
 # context = why this test exists, what it proves, what user sees
 
+# Tests whose whole point is the ordered on-device review sequence — render
+# every review screen in order (who/what/why), not a single "best" thumbnail.
+FULL_SEQUENCE_TESTS = {
+    ('test_msg_ethereum_clear_signing', 'test_binding_happy_path_signs_and_recovers'),
+}
+
 SECTIONS = [
     ('X', 'Device Specifications', '0.0.0',
      'The KeepKey is an open-source hardware wallet built on an ARM Cortex-M3 (STM32F205, 120MHz) '
@@ -805,18 +811,25 @@ SECTIONS = [
 
     # ===== 7.15.1 NEW FEATURES =====
     ('V', 'EVM Clear-Signing', '7.15.0',
-     'NEW (phase 1): Verified transaction metadata for EVM contracts. Host sends a signed blob with '
-     'contract name, function, and decoded parameters; the device verifies the blob signature and '
-     'shows human-readable details. Phase 1 ships with NO built-in "KeepKey says this is safe" key: '
-     'every clearsign signer is loaded at runtime (LoadClearsignSigner, user-confirmed on device, '
-     'RAM-only), and EVERY transaction it describes is preceded by a warning screen naming the '
-     'signer alias + key fingerprint ("NOT verified by KeepKey"). The signature is bound to the '
-     'full tx hash, and AdvancedMode is the single blind-sign gate (off = reject unknown data). '
-     'The built-in warning-free path returns in a later phase once the signer infra is hardened.',
+     'The purpose of clear-signing: instead of blind-signing an opaque hash, the device screen '
+     'answers WHO / WHAT / WHY before the user approves. WHO = the validated contract address '
+     '(full, never truncated) + attested protocol name. WHAT = the decoded method and its typed '
+     'arguments in human terms (recipient address, "amount: 10.5 DAI" — not raw wei). WHY it can '
+     'be trusted = a signer whose key the device trusts attested that this exact description '
+     'matches this exact transaction, and the signature is REFUSED unless the signed digest '
+     'equals the metadata\'s committed tx hash (fail-closed, replay-proof). '
+     'NEW (phase 1): there is NO built-in "KeepKey says this is safe" key — every signer is loaded '
+     'at runtime (LoadClearsignSigner, user-confirmed, RAM-only) and EVERY tx it describes is '
+     'preceded by a warning naming the signer alias + fingerprint ("NOT verified by KeepKey"). '
+     'The built-in warning-free path returns once the signer infra is hardened. '
+     'The V9 flow below shows the full ordered review of a REAL Aave V3 supply() tx: the actual '
+     'calldata (selector 0x617ba037 + asset + amount + onBehalfOf + referralCode, 132 bytes) is '
+     'signed, and the metadata decodes it to protocol=Aave V3, asset=DAI, amount=10.5 DAI.',
      [
          'LOAD SIGNER: LoadClearsignSigner -> on-device confirm (alias + fingerprint) -> RAM slot',
-         'CLEAR-SIGN: Signed metadata -> verify -> WARNING (signer alias) -> method + decoded args',
-         'BINDING: metadata committed to tx A, signing tx B is refused at send_signature',
+         'WHO:  warning (signer alias) + Contract: 0x… (full address) + protocol name',
+         'WHAT: Call: <method> + each decoded arg (ADDRESS / TOKEN_AMOUNT "10.5 DAI" / STRING)',
+         'WHY:  signature refused unless signed digest == metadata tx_hash (replay-proof)',
          'BLIND SIGN: No metadata + AdvancedMode off -> unknown contract data hard-rejected',
      ],
      [
@@ -845,11 +858,16 @@ SECTIONS = [
           'Blind-sign policy gating covered in 7.15.0+.',
           []),
          ('V9', 'test_msg_ethereum_clear_signing', 'test_binding_happy_path_signs_and_recovers',
-          'Full tx-hash binding (happy path)',
-          'Metadata tx_hash = the real sighash of the EthereumSignTx. Device shows the warning '
-          '(loaded signer alias) then the decoded screens, signs, and the signature recovers to '
-          'the device signer.',
-          ['Clearsign warning (signer alias)', 'Decoded contract + args']),
+          'Full who/what/why review of a real Aave V3 supply()',
+          'TX: to=0x7d27..c7a9 (Aave V3 Pool), data=0x617ba037 + asset(DAI) + amount(10.5e18) + '
+          'onBehalfOf(0xd8dA..6045) + referralCode(0), chainId 1. METADATA decodes it to '
+          'protocol="Aave V3", asset=0x6B17..1d0F, amount=10.5 DAI, onBehalfOf=0xd8dA..6045, '
+          'bound to the exact sighash. The OLED screens below are the full ordered review the '
+          'user sees: warning -> Call: supply -> Contract -> protocol -> asset -> amount (10.5 '
+          'DAI, decimal-scaled, NOT wei) -> onBehalfOf -> tx confirm. The signature then recovers '
+          'to the device signer over THIS tx digest, proving the metadata was bound to this tx.',
+          ['warning', 'Call: supply', 'Contract', 'protocol: Aave V3', 'asset', 'amount: 10.5 DAI',
+           'onBehalfOf', 'tx confirm']),
          ('V10', 'test_msg_ethereum_clear_signing', 'test_replay_rejected_when_digest_differs',
           'Replay reject (binding enforced)',
           'Metadata committed to tx A; signing tx B (same contract/selector/chain, different '
@@ -1211,6 +1229,28 @@ def render(output_path, fw_version, results, screenshot_dir=None):
             if screenshot_dir:
                 test_dir = os.path.join(screenshot_dir, mod.replace('test_',''), meth)
                 btn_files = sorted(f for f in os.listdir(test_dir) if f.startswith('btn')) if os.path.isdir(test_dir) else []
+                # Flagship who/what/why flows: show EVERY review screen in the
+                # order the user sees them, not a "best" thumbnail. This is the
+                # proof that the device decodes and displays the transaction.
+                if (mod, meth) in FULL_SEQUENCE_TESTS:
+                    shown = 0
+                    for f in btn_files:
+                        p = os.path.join(test_dir, f)
+                        lr = _frame_lit_ratio(p)
+                        if lr is None or lr < 0.02 or lr > 0.55:
+                            continue
+                        try:
+                            pb.need(55)
+                            pb.image(p, display_w=384, display_h=96)
+                            shown += 1
+                        except Exception:
+                            pass
+                    if shown:
+                        pb.text(6, f'({shown} OLED review screens, in order)', color=GRAY)
+                    elif scr:
+                        pb.text(7, f'OLED needed: {", ".join(scr)}', color=GRAY)
+                    pb.gap(3)
+                    continue
                 best = _pick_best_frame(test_dir, btn_files)
                 if best:
                     # Show the best frame (most representative)
