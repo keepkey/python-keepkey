@@ -995,9 +995,9 @@ class TestEthereumClearSigning(common.KeepKeyTest):
                 resp = self.client.ethereum_send_tx_metadata(
                     signed_payload=blob, metadata_version=1,
                     key_id=TEST_KEY_ID)
-                self.assertEqual(
-                    resp.classification, CLASSIFICATION_VERIFIED,
-                    'flow %s must verify on device' % flow['key'])
+                # NB: common.KeepKeyTest overrides assertEqual with a
+                # 2-arg signature (no msg param); subTest names the flow.
+                self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
 
                 # Adversarial cross-check: any single tampered byte in the
                 # signed region must flip the SAME blob to MALFORMED.
