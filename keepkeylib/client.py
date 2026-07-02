@@ -690,6 +690,19 @@ class ProtocolMixin(object):
         )
         return self.call(msg)
 
+    @expect(proto.Success)
+    def load_clearsign_signer(self, key_id, pubkey, alias):
+        """Load a runtime clearsign signer (compressed pubkey + alias) into a
+        key slot. Triggers a mandatory on-device confirmation; RAM-only, the
+        signer is gone on reboot. Metadata verified by a loaded signer shows
+        a warning screen naming the alias before every clearsign page."""
+        msg = eth_proto.LoadClearsignSigner(
+            key_id=key_id,
+            pubkey=pubkey,
+            alias=alias,
+        )
+        return self.call(msg)
+
     @session
     def ethereum_sign_tx(self, n, nonce, gas_limit,  value, gas_price=None, max_fee_per_gas=None, max_priority_fee_per_gas=None, to=None, to_n=None, address_type=None, data=None, chain_id=None):
         from keepkeylib.tools import int_to_big_endian

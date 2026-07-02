@@ -325,13 +325,14 @@ def build_test_metadata(
     return sign_metadata(payload)
 
 
-# ── Test-signer ↔ firmware slot binding ───────────────────────────────
+# ── Test-signer ↔ key-slot binding ────────────────────────────────────
 # The only key the test suite can sign with is TEST_PRIVATE_KEY, derived via
-# SignIdentity index 0 (see _derive_insight_key(slot=0)). Its compressed pubkey
-# equals firmware METADATA_PUBKEYS[3] (the CI test slot, compiled only under
-# #if DEBUG_LINK). The "0" and the "3" are DIFFERENT namespaces — derivation
-# index vs firmware key_id array slot — and the mapping index0 -> slot3 is
-# intentional. Do NOT "fix" it by deriving at slot=3 or embedding key_id=0.
+# SignIdentity index 0 (see _derive_insight_key(slot=0)). Phase 1 firmware
+# has NO built-in keys: the suite loads this pubkey into key slot 3 through
+# LoadClearsignSigner (user-confirmed, RAM-only) before signing vectors.
+# The "0" and the "3" are DIFFERENT namespaces — derivation index vs key_id
+# slot — and the mapping index0 -> slot3 is intentional. Do NOT "fix" it by
+# deriving at slot=3 or embedding key_id=0.
 FIRMWARE_SLOT3_PUBKEY = bytes.fromhex(
     '02e3b3015c47ddcaabe4f8e872f1ed8f09ca145a8d81770d92213d56da31ab5107'
 )
@@ -349,10 +350,11 @@ def test_signer_compressed_pubkey(private_key: bytes = None) -> bytes:
 
 
 def assert_test_key_matches_slot3():
-    """Prove pubkey(TEST_PRIVATE_KEY) == firmware METADATA_PUBKEYS[3].
+    """Prove pubkey(TEST_PRIVATE_KEY) == FIRMWARE_SLOT3_PUBKEY (the key the
+    suite loads into slot 3 via LoadClearsignSigner).
 
     Guards the key_id=3 default: if this fails, every VERIFIED test vector would
-    be rejected as MALFORMED by ecdsa_verify_digest against the wrong slot.
+    be rejected as MALFORMED by ecdsa_verify_digest against the wrong key.
     """
     pub = test_signer_compressed_pubkey()
     if pub != FIRMWARE_SLOT3_PUBKEY:

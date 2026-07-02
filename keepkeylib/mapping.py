@@ -23,6 +23,10 @@ def build_map():
         msg_name = msg_type.replace('MessageType_', '')
         if msg_type.startswith('MessageType_Ethereum'):
             msg_class = getattr(eth_proto, msg_name)
+        elif msg_type == 'MessageType_LoadClearsignSigner':
+            # clearsign signer loading lives in messages-ethereum.proto
+            # without the Ethereum name prefix (chain-agnostic by design)
+            msg_class = getattr(eth_proto, msg_name)
         elif msg_type.startswith('MessageType_Eos'):
             msg_class = getattr(eos_proto, msg_name)
         elif msg_type.startswith('MessageType_Nano'):
