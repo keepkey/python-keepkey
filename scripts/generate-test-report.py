@@ -1219,17 +1219,27 @@ def render(output_path, fw_version, results, screenshot_dir=None):
                         pb.image(best, display_w=384, display_h=96)
                     except Exception:
                         pass
-                    # For multi-screen tests, show up to 2 additional frames
-                    test_frames = btn_files[2:] if len(btn_files) > 2 else []
-                    extra = [f for f in test_frames if os.path.join(test_dir, f) != best][:2]
+                    # For multi-screen tests, show up to 2 more meaningful frames.
+                    # setUp noise is already stripped at capture time, so every
+                    # btn frame is a real operation screen; just drop blanks and
+                    # the one already shown as `best`.
+                    extra = []
+                    for f in btn_files:
+                        p = os.path.join(test_dir, f)
+                        if p == best:
+                            continue
+                        r = _frame_lit_ratio(p)
+                        if r is not None and 0.02 <= r <= 0.55:
+                            extra.append(f)
+                    extra = extra[:2]
                     for frame in extra:
                         try:
                             pb.need(55)
                             pb.image(os.path.join(test_dir, frame), display_w=384, display_h=96)
                         except Exception:
                             pass
-                    if len(btn_files) > 5:
-                        pb.text(6, f'({len(btn_files)} OLED frames captured, showing best {min(3, len(test_frames)+1)})', color=GRAY)
+                    if len(extra) + 1 < len(btn_files):
+                        pb.text(6, f'({len(btn_files)} OLED frames captured, showing {len(extra)+1})', color=GRAY)
                 elif scr:
                     pb.text(7, f'OLED needed: {", ".join(scr)}', color=GRAY)
             elif scr:

@@ -817,10 +817,14 @@ class TestEthereumClearSigning(common.KeepKeyTest):
                     key_id=1, pubkey=bad, alias=CI_SIGNER_ALIAS)
 
     def test_load_signer_bad_alias_rejected(self):
-        """Empty/oversized aliases and control/'%' chars (display-spoofing
-        vectors — the alias is rendered on the load + warning screens)."""
+        """Empty/oversized aliases, control/'%' chars, and semantic-injection
+        punctuation are rejected. The alias renders inside quotes on the trust
+        screen, so a quote-breakout or a "." / "(" that appends a false
+        "verified by KeepKey." claim must not pass validation."""
         pub = test_signer_compressed_pubkey()
-        for alias in ('', 'x' * 32, 'evil\nalias', 'a%sb'):
+        for alias in ('', 'x' * 32, 'evil\nalias', 'a%sb',
+                      "x' verified by KeepKey. Safe (", 'safe.KeepKey',
+                      'trust(me)'):
             with self.assertRaises(CallException):
                 self.client.load_clearsign_signer(
                     key_id=1, pubkey=pub, alias=alias)
