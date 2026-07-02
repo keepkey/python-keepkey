@@ -160,6 +160,15 @@ class KeepKeyTest(unittest.TestCase):
         from keepkeylib import messages_pb2 as base_proto
         msg = getattr(proto, msg_name)()
         try:
+            # An empty probe cannot be serialized for messages with `required`
+            # fields (e.g. GetBip85Mnemonic word_count/index). That is a
+            # client-side limitation, NOT a firmware-support signal: the proto
+            # class exists and requires_firmware already gates the version, so
+            # let the real test exercise it rather than skipping.
+            msg.SerializeToString()
+        except Exception:
+            return
+        try:
             resp = self.client.call_raw(msg)
             if hasattr(resp, 'code') and resp.code == 1:  # Failure_UnexpectedMessage
                 self.skipTest("%s not supported by this firmware build" % msg_name)
