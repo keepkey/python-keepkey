@@ -12,6 +12,21 @@ Usage:
 import struct, zlib, os, sys, argparse
 from datetime import datetime
 
+# Make keepkeylib importable regardless of invocation cwd (pytest inserts it
+# automatically; this script is often run standalone as
+# `python3 ../scripts/generate-test-report.py` from tests/, or directly from
+# the repo root during local iteration).
+for _cand in (os.getcwd(), os.path.join(os.getcwd(), '..'),
+             os.path.dirname(os.path.dirname(os.path.abspath(__file__)))):
+    if os.path.isdir(os.path.join(_cand, 'keepkeylib')) and _cand not in sys.path:
+        sys.path.insert(0, _cand)
+del _cand
+
+try:
+    from keepkeylib.clearsign_catalog import CLEARSIGN_FLOWS
+except ImportError:
+    CLEARSIGN_FLOWS = None  # report still renders; V section just won't expand from the catalog
+
 # ---------------------------------------------------------------
 # PDF writer + page builder (stdlib only)
 # ---------------------------------------------------------------
@@ -298,8 +313,57 @@ def parse_junit(path):
 FULL_SEQUENCE_TESTS = {
     ('test_msg_ethereum_clear_signing', 'test_binding_happy_path_signs_and_recovers'),
     ('test_msg_ethereum_clear_signing', 'test_clearsign_erc20_approve_unlimited'),
-    ('test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v2_swap_eth_for_tokens'),
+    ('test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v2_eth_to_token'),
+    # The newest/highest-stakes tx shapes get the full ordered walkthrough too.
+    ('test_msg_ethereum_clear_signing', 'test_clearsign_eip7702_setcode_authorization'),
+    ('test_msg_ethereum_clear_signing', 'test_clearsign_erc4337_entrypoint_v0_7_handleops'),
+    ('test_msg_ethereum_clear_signing', 'test_clearsign_safe_exectransaction'),
+    ('test_msg_ethereum_clear_signing', 'test_clearsign_permit2_permit_transfer_from'),
 }
+
+def _v_catalog_tests(start_id=17):
+    """Generate one V-section test entry per CLEARSIGN_FLOWS flow (skipping
+    'aave-v3-supply', the flagship V9 walkthrough). THE catalog is the
+    single source of truth — growing it (keepkeylib/clearsign_catalog.py)
+    needs no changes here, unlike a hand-typed per-flow entry that would
+    silently go stale (as happened when the old hand-written V17-V23 test
+    names drifted from the dynamically-generated ones).
+
+    Every entry gets a NON-EMPTY screenshots hint: screenshot_filter() below
+    only includes tests whose hint list is non-empty in the Phase-1 capture
+    filter, so an empty list here would silently exclude a flow from ever
+    getting an OLED screenshot.
+    """
+    if not CLEARSIGN_FLOWS:
+        return []
+    out = []
+    i = start_id
+    for f in CLEARSIGN_FLOWS:
+        if f['key'] == 'aave-v3-supply':
+            continue
+        method = 'test_clearsign_' + f['key'].replace('-', '_').replace('.', '_')
+        shows = '; '.join('%s: %s' % (a['name'], a['value'].decode('ascii', 'replace')
+                                      if a['format'] == 4 else a['name'])
+                          for a in f['args'][:3])
+        # Prefer any TOKEN_AMOUNT/ADDRESS/STRING label as the screenshot hint
+        # so it reads like what the OLED will actually show.
+        hint_names = [a['name'] for a in f['args'][:2]] or [f['method']]
+        ctx = ('%s.%s (%s). %s AdvancedMode OFF; the bound metadata is the '
+              'only reason this contract data may sign. Real tx: to=0x%s..%s, '
+              'chainId %d. Decode: %s.' % (
+                  f['protocol'], f['method'], f['category'], f.get('why', ''),
+                  f['to'].hex()[:4], f['to'].hex()[-4:], f['chain_id'], shows))
+        out.append((
+            'V%d' % i, 'test_msg_ethereum_clear_signing', method,
+            '%s %s — clear-signed, zero hex' % (f['protocol'], f['method']),
+            ctx,
+            hint_names,
+        ))
+        i += 1
+    return out
+
+
+_V_CATALOG_TESTS = _v_catalog_tests(start_id=17)
 
 SECTIONS = [
     ('X', 'Device Specifications', '0.0.0',
@@ -905,51 +969,19 @@ SECTIONS = [
           'Empty, oversized, control-char and format-specifier aliases are rejected — the alias '
           'is rendered on the warning screen, so it cannot carry a display-spoofing payload.',
           []),
-         ('V17', 'test_msg_ethereum_clear_signing', 'test_clearsign_erc20_transfer_usdc',
-          'ERC-20 transfer — clear-signed, zero hex',
-          'Real USDC transfer(to, 1000000): decode shows token "USD Coin", full recipient '
-          'address, and "amount: 1 USDC" (6-decimal scaled). AdvancedMode OFF; the bound '
-          'metadata is the only reason the contract data may sign. No calldata hex shown.',
-          ['to (full address)', 'amount: 1 USDC']),
-         ('V18', 'test_msg_ethereum_clear_signing', 'test_clearsign_erc20_approve_usdc',
-          'ERC-20 approve — spender + typed amount',
-          'USDC approve(spender=Uniswap router, 1000000000): decode shows the spender address '
-          'and "amount: 1000 USDC". The user sees exactly who may withdraw and how much.',
-          ['spender', 'amount: 1000 USDC']),
-         ('V19', 'test_msg_ethereum_clear_signing', 'test_clearsign_erc20_approve_unlimited',
-          'Unlimited approve — the danger case, in words',
-          'approve(spender, 2^256-1). The single most drainer-abused action in EVM. Device '
-          'shows "amount: UNLIMITED USDC" — not 32 bytes of ff. Full ordered screens below.',
-          ['warning', 'Call: approve', 'Contract', 'spender', 'amount: UNLIMITED USDC']),
-         ('V20', 'test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v2_swap_eth_for_tokens',
-          'Uniswap V2 swap ETH->USDC — value + decode',
-          'swapExactETHForTokens sending 0.01 ETH: decode shows protocol "Uniswap V2", '
-          '"amountOutMin: 9.5 USDC", recipient; the final Transaction screen shows the real '
-          'ETH value leaving the wallet ("Send 0.01 ETH ... for gas?"). Full screens below.',
-          ['warning', 'protocol: Uniswap V2', 'amountOutMin: 9.5 USDC', 'to', 'Send 0.01 ETH']),
-         ('V21', 'test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v2_swap_tokens_for_eth',
-          'Uniswap V2 swap USDC->ETH',
-          'swapExactTokensForETH: "amountIn: 100 USDC", "amountOutMin: 0.003 ETH", recipient — '
-          'both legs of the swap in human units.',
-          ['amountIn: 100 USDC', 'amountOutMin: 0.003 ETH']),
-         ('V22', 'test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v3_exact_input_single',
-          'Uniswap V3 exactInputSingle',
-          'WETH->USDC single-hop: tokenIn/tokenOut addresses, "amountIn: 0.01 WETH", '
-          '"amountOutMin: 9.5 USDC".',
-          ['tokenIn', 'amountIn: 0.01 WETH']),
-         ('V23', 'test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v3_multicall',
-          'Uniswap V3 multicall — opaque calls, named protocol',
-          'multicall(deadline, bytes[]): the inner calls are opaque, but the attested decode '
-          'names the protocol and summarizes the calls in words — the user still never sees hex.',
-          ['protocol: Uniswap V3']),
-         ('V24', 'test_msg_ethereum_clear_signing', 'test_clearsign_batch_all_payloads',
+     ] + _V_CATALOG_TESTS + [
+         ('V%d' % (17 + len(_V_CATALOG_TESTS)),
+          'test_msg_ethereum_clear_signing', 'test_clearsign_batch_all_payloads',
           'Batch: sign + device-validate the whole catalog',
-          'Signs every CLEARSIGN_FLOWS payload in one batch and has the device validate each: '
-          'every blob returns VERIFIED, and the same blob with one tampered byte returns '
-          'MALFORMED. Together with the frozen offline reference vectors (RFC 6979 '
-          'deterministic — byte-identical blobs, sha256 snapshots in the test), this makes '
-          'python-keepkey the complete signer reference: produce these bytes and the device '
-          'accepts them; deviate by one byte and it refuses.',
+          'Signs every CLEARSIGN_FLOWS payload (%d real-world flows spanning DEX swaps, lending, '
+          'staking, approvals/permits, NFTs, governance, bridges, and account abstraction — '
+          'ERC-4337, EIP-7702, Safe multisig, Permit2, Uniswap V4) in one batch and has the '
+          'device validate each: every blob returns VERIFIED, and the same blob with one '
+          'tampered byte returns MALFORMED. Together with the frozen offline reference vectors '
+          '(RFC 6979 deterministic — byte-identical blobs, sha256 snapshots in the test), this '
+          'makes python-keepkey the complete signer reference: produce these bytes and the '
+          'device accepts them; deviate by one byte and it refuses.' % (
+              len(CLEARSIGN_FLOWS) if CLEARSIGN_FLOWS else 0),
           []),
      ]),
 

@@ -165,122 +165,44 @@ def aave_supply_calldata(amount, on_behalf=VITALIK, asset=DAI_ADDRESS,
 # This is the COMPLETE REFERENCE for building a clearsign signer: every
 # real-world flow, its exact transaction bytes, and the decoded who/what/why
 # the metadata must carry. Uses only the typed formats (ADDRESS / STRING /
-# TOKEN_AMOUNT) so the device never renders calldata hex. Consumed by:
-#   - the per-flow device tests (V17-V23: full confirm + sign + recover)
+# TOKEN_AMOUNT) so the device never renders calldata hex. THE catalog itself
+# lives in keepkeylib/clearsign_catalog.py — a single source of truth shared
+# with scripts/generate-test-report.py, so the PDF's V section is generated
+# FROM these flows rather than hand-duplicated (which drifts). Consumed by:
+#   - the per-flow device tests (full confirm + sign + recover)
 #   - test_clearsign_batch_all_payloads (device validates every blob)
 #   - TestClearsignReferenceVectors (offline: deterministic bytes, snapshots)
-#   - print_test_vectors() --vectors (hex dump for external implementations)
+#   - print_clearsign_flows() --flows (hex dump for external implementations)
 # All flows: chain 1, legacy gas, nonce/gas fixed => deterministic tx_hash;
 # with REFERENCE_TIMESTAMP + RFC 6979 signing the blobs are byte-reproducible.
 # ═══════════════════════════════════════════════════════════════════════
 
-REFERENCE_TIMESTAMP = 1700000000  # fixed for reproducible reference blobs
-FLOW_NONCE, FLOW_GAS_PRICE, FLOW_GAS_LIMIT = 0, 20000000000, 250000
-
-CLEARSIGN_FLOWS = [
-    {'key': 'aave-v3-supply', 'method': 'supply',
-     'to': AAVE_V3_POOL, 'value': 0,
-     'data': aave_supply_calldata(10500000000000000000),
-     'args': DEFAULT_ARGS,
-     'shows': 'protocol: Aave V3 / asset (DAI addr) / amount: 10.5 DAI / onBehalfOf'},
-    {'key': 'erc20-transfer', 'method': 'transfer',
-     'to': USDC, 'value': 0,
-     'data': bytes.fromhex('a9059cbb') + _addr_word(RECIPIENT_742) + _word(1000000),
-     'args': [
-         {'name': 'token', 'format': ARG_FORMAT_STRING, 'value': b'USD Coin'},
-         {'name': 'to', 'format': ARG_FORMAT_ADDRESS, 'value': RECIPIENT_742},
-         {'name': 'amount', 'format': ARG_FORMAT_TOKEN_AMOUNT,
-          'value': token_amount_value(1000000, 6, 'USDC')}],
-     'shows': 'token: USD Coin / to (full addr) / amount: 1 USDC'},
-    {'key': 'erc20-approve', 'method': 'approve',
-     'to': USDC, 'value': 0,
-     'data': bytes.fromhex('095ea7b3') + _addr_word(UNISWAP_V3_ROUTER2) + _word(1000000000),
-     'args': [
-         {'name': 'spender', 'format': ARG_FORMAT_ADDRESS, 'value': UNISWAP_V3_ROUTER2},
-         {'name': 'amount', 'format': ARG_FORMAT_TOKEN_AMOUNT,
-          'value': token_amount_value(1000000000, 6, 'USDC')}],
-     'shows': 'spender (full addr) / amount: 1000 USDC'},
-    {'key': 'erc20-approve-unlimited', 'method': 'approve',
-     'to': USDC, 'value': 0,
-     'data': bytes.fromhex('095ea7b3') + _addr_word(UNISWAP_V3_ROUTER2) + _word((2 ** 256) - 1),
-     'args': [
-         {'name': 'spender', 'format': ARG_FORMAT_ADDRESS, 'value': UNISWAP_V3_ROUTER2},
-         {'name': 'amount', 'format': ARG_FORMAT_TOKEN_AMOUNT,
-          'value': token_amount_value((2 ** 256) - 1, 6, 'USDC')}],
-     'shows': 'spender / amount: UNLIMITED USDC (never 32 bytes of ff)'},
-    {'key': 'uniswap-v2-eth-to-token', 'method': 'swapExactETHForTokens',
-     'to': UNISWAP_V2_ROUTER, 'value': 10000000000000000,  # 0.01 ETH in
-     'data': (bytes.fromhex('7ff36ab5') + _word(9500000) + _word(0x80)
-              + _addr_word(RECIPIENT_742) + _word(1700000000) + _word(2)
-              + _addr_word(WETH) + _addr_word(USDC)),
-     'args': [
-         {'name': 'protocol', 'format': ARG_FORMAT_STRING, 'value': b'Uniswap V2'},
-         {'name': 'amountOutMin', 'format': ARG_FORMAT_TOKEN_AMOUNT,
-          'value': token_amount_value(9500000, 6, 'USDC')},
-         {'name': 'to', 'format': ARG_FORMAT_ADDRESS, 'value': RECIPIENT_742}],
-     'shows': 'protocol: Uniswap V2 / amountOutMin: 9.5 USDC / to; tx screen shows Send 0.01 ETH'},
-    {'key': 'uniswap-v2-token-to-eth', 'method': 'swapExactTokensForETH',
-     'to': UNISWAP_V2_ROUTER, 'value': 0,
-     'data': (bytes.fromhex('18cbafe5') + _word(100000000) + _word(3000000000000000)
-              + _word(0xa0) + _addr_word(RECIPIENT_742) + _word(1700000000) + _word(2)
-              + _addr_word(USDC) + _addr_word(WETH)),
-     'args': [
-         {'name': 'protocol', 'format': ARG_FORMAT_STRING, 'value': b'Uniswap V2'},
-         {'name': 'amountIn', 'format': ARG_FORMAT_TOKEN_AMOUNT,
-          'value': token_amount_value(100000000, 6, 'USDC')},
-         {'name': 'amountOutMin', 'format': ARG_FORMAT_TOKEN_AMOUNT,
-          'value': token_amount_value(3000000000000000, 18, 'ETH')},
-         {'name': 'to', 'format': ARG_FORMAT_ADDRESS, 'value': RECIPIENT_742}],
-     'shows': 'amountIn: 100 USDC / amountOutMin: 0.003 ETH / to'},
-    {'key': 'uniswap-v3-exact-input', 'method': 'exactInputSingle',
-     'to': UNISWAP_V3_ROUTER, 'value': 0,
-     'data': (bytes.fromhex('414bf389') + _addr_word(WETH) + _addr_word(USDC)
-              + _word(3000) + _addr_word(RECIPIENT_742) + _word(1700000000)
-              + _word(10000000000000000) + _word(9500000) + _word(0)),
-     'args': [
-         {'name': 'protocol', 'format': ARG_FORMAT_STRING, 'value': b'Uniswap V3'},
-         {'name': 'tokenIn', 'format': ARG_FORMAT_ADDRESS, 'value': WETH},
-         {'name': 'tokenOut', 'format': ARG_FORMAT_ADDRESS, 'value': USDC},
-         {'name': 'amountIn', 'format': ARG_FORMAT_TOKEN_AMOUNT,
-          'value': token_amount_value(10000000000000000, 18, 'WETH')},
-         {'name': 'amountOutMin', 'format': ARG_FORMAT_TOKEN_AMOUNT,
-          'value': token_amount_value(9500000, 6, 'USDC')}],
-     'shows': 'tokenIn/tokenOut (full addrs) / amountIn: 0.01 WETH / amountOutMin: 9.5 USDC'},
-    {'key': 'uniswap-v3-multicall', 'method': 'multicall',
-     'to': UNISWAP_V3_ROUTER2, 'value': 0,
-     'data': (bytes.fromhex('5ae401dc') + _word(1700000000) + _word(0x40)
-              + _word(1) + _word(0x20) + _word(4)
-              + bytes.fromhex('12210e8a') + b'\x00' * 28),
-     'args': [
-         {'name': 'protocol', 'format': ARG_FORMAT_STRING, 'value': b'Uniswap V3'},
-         {'name': 'calls', 'format': ARG_FORMAT_STRING,
-          'value': b'1 inner call: refundETH'}],
-     'shows': 'protocol: Uniswap V3 / calls: 1 inner call: refundETH (words, not bytes)'},
-]
-
-CLEARSIGN_FLOWS_BY_KEY = {f['key']: f for f in CLEARSIGN_FLOWS}
+from keepkeylib.clearsign_catalog import (
+    CLEARSIGN_FLOWS, CLEARSIGN_FLOWS_BY_KEY, FLOW_NONCE, FLOW_GAS_PRICE,
+    FLOW_GAS_LIMIT, REFERENCE_TIMESTAMP,
+    flow_tx_hash as _catalog_flow_tx_hash,
+    flow_blob as _catalog_flow_blob,
+)
 
 
 def flow_tx_hash(flow, chain_id=1):
-    """Deterministic legacy sighash for a catalog flow (fixed nonce/gas)."""
-    return eth_sighash_legacy(FLOW_NONCE, FLOW_GAS_PRICE, FLOW_GAS_LIMIT,
-                              flow['to'], flow['value'], flow['data'], chain_id)
+    """Deterministic legacy sighash for a catalog flow (fixed nonce/gas).
+    Every catalog flow is chain_id=1; the param exists only so old call
+    sites don't need updating, and mismatches fail loudly rather than
+    silently signing the wrong chain."""
+    assert flow['chain_id'] == chain_id, (
+        'flow %s is chain_id=%d, not %d' % (flow['key'], flow['chain_id'], chain_id))
+    return _catalog_flow_tx_hash(flow)
 
 
 def flow_blob(flow, chain_id=1, timestamp=None):
-    """Per-tx-bound signed metadata blob for a catalog flow. Pass
-    timestamp=REFERENCE_TIMESTAMP for byte-reproducible reference vectors."""
-    payload = serialize_metadata(
-        chain_id=chain_id,
-        contract_address=flow['to'],
-        selector=flow['data'][:4],
-        tx_hash=flow_tx_hash(flow, chain_id),
-        method_name=flow['method'],
-        args=flow['args'],
-        key_id=TEST_KEY_ID,
-        timestamp=timestamp,
-    )
-    return sign_metadata(payload)
+    """Per-tx-bound signed metadata blob for a catalog flow, signed with
+    TEST_KEY_ID (the CI signer loaded via LoadClearsignSigner in setUp).
+    Pass timestamp=REFERENCE_TIMESTAMP for byte-reproducible reference
+    vectors."""
+    assert flow['chain_id'] == chain_id, (
+        'flow %s is chain_id=%d, not %d' % (flow['key'], flow['chain_id'], chain_id))
+    return _catalog_flow_blob(flow, key_id=TEST_KEY_ID, timestamp=timestamp)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -677,6 +599,49 @@ REFERENCE_BLOB_SNAPSHOTS = {
     'uniswap-v2-token-to-eth': ('d94e8842cde731f2dd77ea47a896618b1a317736744ac34f6cbdaf7367e794a7', 254),
     'uniswap-v3-exact-input': ('7186e5b902209bb68630a4ff360727df3696395c69782d1a94adc4ae58abfa59', 286),
     'uniswap-v3-multicall': ('e76f3d88be226a1cbd51923cf9753fed30bef1a8e830e5f5ea71a362dd7e43d9', 198),
+    'aave-v3-pool-borrow': ('224af25cac14759def6a6272ad5572c991bb46beae8ad253ee2e9d9764674f0a', 263),
+    'aave-v3-pool-repay': ('4cb1f4742731ba3c90a2c9a41e5dbe72ace0357d47726df6df1861ffd4b291b0', 262),
+    'aave-v3-pool-withdraw': ('584234a72fb32c63ba70aeda1e21def382df6fa85c6e6d88291f8f8530975ef6', 222),
+    'compound-v3-comet-supply': ('f7324ea680b02a9eb6b8274592195c048690081dd75ce77deaba69790155a045', 219),
+    'compound-v3-comet-withdraw': ('a1a9ec8cb33e4f21c8e746ef805f44747a7b42aff26c3687f14aac145316135c', 225),
+    'spark-protocol-supply': ('70e8a0f11ab1b8d12960442c2449b865860e93e2c6c9710473070774f38aba6f', 268),
+    'lido-steth-submit': ('c1d0efa2dfdac3e824156ed891d8ac405d86a69dd9241608d5bb43c75e8c01c7', 200),
+    'rocketpool-deposit-pool-deposit': ('31b67c47a72fc80dce6c54ff50d1eca0281e62ac34657892b00c3ef79ef1bf85', 193),
+    'etherfi-liquiditypool-deposit': ('4a85922bf92ef1b6e0d6c6fbcf720a5240c037161dab18222ec73da255a34ea5', 221),
+    'eigenlayer-strategymanager-deposit': ('2728fc859048bcc71288bfa04a6e3957638ebc8c841cea2d6bbfa802b3ebaf4d', 267),
+    'eigenlayer-strategymanager-deposit-steth': ('688c636044e4572c4a2d02b38eb6d30277fc43d8852c06f489cbe41db961eb31', 274),
+    'erc20-usdc-increase-allowance': ('e689183d751352f6f517bffe53028a1d497cf45c3e2c146ee470a9e21901df09', 208),
+    'erc20-usdc-decrease-allowance': ('c4997d82e03bd748dab00dfcec0c2f673a2458634efada134b1ae57689fe66b6', 213),
+    'eip2612-usdc-permit': ('06889bb26039122fd59f859196cc2d201c343c66bab3b6dba3bbc6860f4f7346', 288),
+    'permit2-approve': ('02c762e1ac3c9b3974a4f5d26a48e7766fe139ba6dd803505be3da24d2f0b1ad', 292),
+    'erc721-bayc-set-approval-for-all': ('6449489e8d0c6275d532ba40a99f4077a764a8687c10f2583f9a4dbe39da8ccb', 256),
+    'erc1155-opensea-storefront-set-approval-for-all': ('a9acc53ea1f1b88a2679495d2e4e5e5f0f089e8daf073699d1504b0d92b974d3', 255),
+    'usdt-approve': ('52a5aa020b2151ffb3694277026ea671c095fc7a59a4e37d29d2c9d3a5917302', 193),
+    'dai-permit': ('a625ee696af3add431c6be7f6e870875432b726db3e951445ae0899f93a2777b', 269),
+    'erc721-safe-transfer-from': ('57a50c128066e30a14ffbfe3ad6fbc913086d1678c6d6abcc9ab1aca48dde555', 231),
+    'safe-addownerwiththreshold': ('12979ff0d05396be10daf6016eee0fa4da73f5d44c64899bfb43d09d75075dc7', 257),
+    'hop-protocol-l1-bridge-sendtol2': ('2bf4be50ca05159780a8baf3dc73de7d88f4b9150a1331dfd4c4c6e5c11bb7d6', 250),
+    'wormhole-token-bridge-transfertokens': ('b903447283627ea9f7dc051652fa26713d715193e2577ddcee99ae3892c0757c', 274),
+    'compound-governor-bravo-castvote': ('869f2aaadb966cde633da10b9dd2fdc4419aa2c22d7bd5b0a98ef0a8777da8bd', 209),
+    'ens-public-resolver-setaddr': ('38983de76989898d1bc1d6d07f2dfcb93141ac78f263588d67e7829fa7ea5f75', 194),
+    'metamorpho-steakhouse-usdc-deposit': ('c965b8598311e92a1399503b9c69b52e6efe274de1b9a168a893c77bb7803a9e', 227),
+    'metamorpho-steakhouse-usdc-withdraw': ('fb0415338d2733b46b72157623f0a4e153cb2baf9bc70911fefa001d98e35049', 224),
+    'yearn-v2-yusdc-deposit': ('402cf60cf1b79d201e082ffb1c2c8ea4c26f375e2a2296fe258c820a52fc240a', 195),
+    'yearn-v3-aave-usdc-lender-deposit': ('4222df2284f1ff9bcd767d5c38961b1687d8d3685aa655c28bbbe7a92346e21c', 224),
+    'compound-iii-comet-usdc-supply': ('6419f4f524b6ce606aa822d15afed70b5dc56c92ebb62c691b07196fba3ef2bc', 220),
+    'weth-deposit': ('a9d5f44091a616e2c226b40433bcac99ecb2e03b0936241c814d4c844772a387', 193),
+    'weth-withdraw': ('6cfcda551f935439cb79b23c35625d5f6288be2f2fff420415018b012f78ef88', 164),
+    'erc20-transferfrom': ('2c5e697d6e0c50eb9c256969e00790b5d56163159fa0f352e65d6445fd27e60b', 257),
+    'uniswap-v3-exact-output-single': ('b86dc23deb60c3ef29328cf2567e2170ebb20fc2a6b937551e552aabda335a09', 322),
+    'curve-3pool-exchange': ('a90e07ecc65c5e40427811a7580095e6278997125bc42ed324bdcf7bac8f1cff', 238),
+    'erc1155-safe-transfer-from': ('4b4f46aa1f3be99c131103146120d3bcc72334758055292d5b792470a0240984', 267),
+    'erc1155-safe-batch-transfer-from': ('1d9b41bc88b2b635327f5aa5a748a5705b59e6b8a5d3c30f39df48b4793f20a3', 272),
+    'uniswap-v4-universal-router-swap': ('7e1584ce8615670ce54972fe6f538d806afa35803033bbe98e2ec75643f81dc1', 258),
+    'permit2-permit-transfer-from': ('c0fde596537a6bf1e53b98d3746638b4249a7a90d8196fe4a9f40f711729ec84', 276),
+    'across-spokepool-depositv3': ('ab185113f0b47ef5f6e1fab6a6839df8b71bf8d48796afee64a61ba8b336ac01', 311),
+    'safe-exectransaction': ('00a523f8e02d196db7213813edfbeee2a707679b026c6c6b6f8af88d35bf4889', 274),
+    'erc4337-entrypoint-v0.7-handleops': ('0b44fc0f98727877a1d6bd1346300d9fe4b537e48d901002ea241d01b79c52cd', 281),
+    'eip7702-setcode-authorization': ('0518442c7172b8c57fcbd09ded11b54e1d20076c4b5e79a7490c4ae9c2096a18', 299),
 }
 
 
@@ -947,42 +912,6 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         signer = recover_eth_signer(sig_r, sig_s, sig_v, tx_hash, chain_id)
         self.assertEqual(signer, self.client.ethereum_get_address(n))
 
-    # ── The real-world clear-sign payload suite ────────────────────────
-    # One test per CLEARSIGN_FLOWS entry (mirrors keepkey-sdk
-    # tests/evm-clearsign): every flow a user actually performs, each
-    # confirmed end-to-end with AdvancedMode OFF and ZERO calldata hex on
-    # the OLED — only who/what/why screens.
-
-    def test_clearsign_erc20_transfer_usdc(self):
-        """USDC transfer: to + "amount: 1 USDC" (6 decimals), no hex."""
-        self._clearsign_flow(CLEARSIGN_FLOWS_BY_KEY['erc20-transfer'])
-
-    def test_clearsign_erc20_approve_usdc(self):
-        """USDC approve: spender (Uniswap router) + "1000 USDC"."""
-        self._clearsign_flow(CLEARSIGN_FLOWS_BY_KEY['erc20-approve'])
-
-    def test_clearsign_erc20_approve_unlimited(self):
-        """Unlimited USDC approve: device MUST show "UNLIMITED USDC"."""
-        self._clearsign_flow(CLEARSIGN_FLOWS_BY_KEY['erc20-approve-unlimited'])
-
-    def test_clearsign_uniswap_v2_swap_eth_for_tokens(self):
-        """swapExactETHForTokens sending 0.01 ETH: the tx value is shown on
-        the final Transaction screen ("Send 0.01 ETH ... for gas?")."""
-        self._clearsign_flow(CLEARSIGN_FLOWS_BY_KEY['uniswap-v2-eth-to-token'])
-
-    def test_clearsign_uniswap_v2_swap_tokens_for_eth(self):
-        """swapExactTokensForETH: "100 USDC" in, min "0.003 ETH" out."""
-        self._clearsign_flow(CLEARSIGN_FLOWS_BY_KEY['uniswap-v2-token-to-eth'])
-
-    def test_clearsign_uniswap_v3_exact_input_single(self):
-        """Uniswap V3 exactInputSingle: WETH -> USDC, typed in/out amounts."""
-        self._clearsign_flow(CLEARSIGN_FLOWS_BY_KEY['uniswap-v3-exact-input'])
-
-    def test_clearsign_uniswap_v3_multicall(self):
-        """Uniswap V3 multicall: opaque inner calls, but the attested decode
-        names the protocol — still no raw hex shown to the user."""
-        self._clearsign_flow(CLEARSIGN_FLOWS_BY_KEY['uniswap-v3-multicall'])
-
     def test_clearsign_batch_all_payloads(self):
         """Sign the ENTIRE payload catalog in one batch and have the DEVICE
         validate every blob: each flow's metadata comes back VERIFIED, and a
@@ -1171,6 +1100,34 @@ class TestEthereumClearSigning(common.KeepKeyTest):
             self.client.load_clearsign_signer(
                 key_id=4, pubkey=test_signer_compressed_pubkey(),
                 alias=CI_SIGNER_ALIAS)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Dynamically generate one full-confirm device test per CLEARSIGN_FLOWS
+# entry (mirrors keepkey-sdk tests/evm-clearsign): every real-world flow a
+# user actually performs, each confirmed end-to-end with AdvancedMode OFF
+# and ZERO calldata hex on the OLED — only who/what/why screens. Avoids
+# hand-writing 50+ near-identical test methods; the catalog IS the test
+# list, so growing it (see keepkeylib/clearsign_catalog.py) needs no
+# changes here. 'aave-v3-supply' is excluded — it's the flagship full-
+# sequence walkthrough in test_binding_happy_path_signs_and_recovers above.
+# ═══════════════════════════════════════════════════════════════════════
+
+def _make_clearsign_flow_test(flow_key):
+    def test(self):
+        self._clearsign_flow(CLEARSIGN_FLOWS_BY_KEY[flow_key])
+    f = CLEARSIGN_FLOWS_BY_KEY[flow_key]
+    test.__doc__ = '%s.%s (%s): %s' % (f['protocol'], f['method'], f['category'], f.get('why', ''))
+    return test
+
+
+for _flow in CLEARSIGN_FLOWS:
+    if _flow['key'] == 'aave-v3-supply':
+        continue
+    setattr(TestEthereumClearSigning,
+           'test_clearsign_' + _flow['key'].replace('-', '_').replace('.', '_'),
+           _make_clearsign_flow_test(_flow['key']))
+del _flow
 
 
 # ═══════════════════════════════════════════════════════════════════════
