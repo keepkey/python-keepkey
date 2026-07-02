@@ -40,6 +40,9 @@ from keepkeylib.signed_metadata import (
 )
 from keepkeylib.tools import parse_path
 
+# Alias shown on the load confirm and on every per-tx warning screen.
+CI_SIGNER_ALIAS = 'CI Test'
+
 # ─── Test constants ────────────────────────────────────────────────────
 
 AAVE_V3_POOL = bytes.fromhex('7d2768de32b0b80b7a3454c06bdac94a69ddc7a9')
@@ -413,6 +416,7 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         super().setUp()
         self.requires_firmware("7.14.0")
         self.requires_message("EthereumTxMetadata")
+        self.requires_message("LoadClearsignSigner")
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 
@@ -530,6 +534,69 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         )
         self.assertIsNotNone(sig_r)
         self.assertIsNotNone(sig_s)
+
+
+    # ── LoadClearsignSigner — the phase-1 trust path ───────────────────
+
+    def test_load_required_before_verify(self):
+        """Fresh (wiped) device: a VERIFIED blob is MALFORMED until the signer
+        is loaded — proves there is no built-in trust path in phase 1."""
+        self.client.wipe_device()  # factory reset drops loaded signers
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        blob, _, _ = TestVectorCatalog.valid_aave_supply()
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=blob, metadata_version=1, key_id=TEST_KEY_ID)
+        self.assertEqual(resp.classification, CLASSIFICATION_MALFORMED)
+
+        self._load_ci_signer()
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=blob, metadata_version=1, key_id=TEST_KEY_ID)
+        self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
+
+    def test_load_signer_cancel_refuses(self):
+        """Pressing NO on the load confirm must refuse the signer."""
+        pub = test_signer_compressed_pubkey()
+        self.client.button = False
+        try:
+            with self.assertRaises(CallException):
+                self.client.load_clearsign_signer(
+                    key_id=1, pubkey=pub, alias=CI_SIGNER_ALIAS)
+        finally:
+            self.client.button = True
+
+        # Slot 1 must still be empty: a blob signed for slot 1 is MALFORMED.
+        payload = serialize_metadata(
+            chain_id=1, contract_address=AAVE_V3_POOL,
+            selector=AAVE_SUPPLY_SELECTOR, tx_hash=ZERO_TX_HASH,
+            method_name='supply', args=DEFAULT_ARGS, key_id=1)
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=sign_metadata(payload), metadata_version=1, key_id=1)
+        self.assertEqual(resp.classification, CLASSIFICATION_MALFORMED)
+
+    def test_load_signer_invalid_pubkey_rejected(self):
+        """Uncompressed / zero / truncated pubkeys refused without a confirm."""
+        for bad in (b'\x04' + b'\x00' * 32,   # uncompressed prefix
+                    b'\x00' * 33,               # zero key (empty-slot sentinel)
+                    test_signer_compressed_pubkey()[:32]):  # short
+            with self.assertRaises(CallException):
+                self.client.load_clearsign_signer(
+                    key_id=1, pubkey=bad, alias=CI_SIGNER_ALIAS)
+
+    def test_load_signer_bad_alias_rejected(self):
+        """Empty/oversized aliases and control/'%' chars (display-spoofing
+        vectors — the alias is rendered on the load + warning screens)."""
+        pub = test_signer_compressed_pubkey()
+        for alias in ('', 'x' * 32, 'evil\nalias', 'a%sb'):
+            with self.assertRaises(CallException):
+                self.client.load_clearsign_signer(
+                    key_id=1, pubkey=pub, alias=alias)
+
+    def test_load_signer_key_id_out_of_range_rejected(self):
+        with self.assertRaises(CallException):
+            self.client.load_clearsign_signer(
+                key_id=4, pubkey=test_signer_compressed_pubkey(),
+                alias=CI_SIGNER_ALIAS)
 
 
 # ═══════════════════════════════════════════════════════════════════════

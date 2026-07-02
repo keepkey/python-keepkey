@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-ethereum.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x17messages-ethereum.proto\x1a\x0btypes.proto\"=\n\x12\x45thereumGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\"7\n\x0f\x45thereumAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\x0c\x12\x13\n\x0b\x61\x64\x64ress_str\x18\x02 \x01(\t\"\x95\x03\n\x0e\x45thereumSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x11\n\tgas_price\x18\x03 \x01(\x0c\x12\x11\n\tgas_limit\x18\x04 \x01(\x0c\x12\n\n\x02to\x18\x05 \x01(\x0c\x12\r\n\x05value\x18\x06 \x01(\x0c\x12\x1a\n\x12\x64\x61ta_initial_chunk\x18\x07 \x01(\x0c\x12\x13\n\x0b\x64\x61ta_length\x18\x08 \x01(\r\x12\x14\n\x0cto_address_n\x18\t \x03(\r\x12(\n\x0c\x61\x64\x64ress_type\x18\n \x01(\x0e\x32\x12.OutputAddressType\x12\x10\n\x08\x63hain_id\x18\x0c \x01(\r\x12\x17\n\x0fmax_fee_per_gas\x18\r \x01(\x0c\x12 \n\x18max_priority_fee_per_gas\x18\x0e \x01(\x0c\x12\x13\n\x0btoken_value\x18\x64 \x01(\x0c\x12\x10\n\x08token_to\x18\x65 \x01(\x0c\x12\x16\n\x0etoken_shortcut\x18\x66 \x01(\t\x12\x0f\n\x07tx_type\x18g \x01(\r\x12\x0c\n\x04type\x18h \x01(\rJ\x04\x08\x0b\x10\x0c\"\x8c\x01\n\x11\x45thereumTxRequest\x12\x13\n\x0b\x64\x61ta_length\x18\x01 \x01(\r\x12\x13\n\x0bsignature_v\x18\x02 \x01(\r\x12\x13\n\x0bsignature_r\x18\x03 \x01(\x0c\x12\x13\n\x0bsignature_s\x18\x04 \x01(\x0c\x12\x0c\n\x04hash\x18\x05 \x01(\x0c\x12\x15\n\rsignature_der\x18\x06 \x01(\x0c\"#\n\rEthereumTxAck\x12\x12\n\ndata_chunk\x18\x01 \x01(\x0c\"V\n\x12\x45thereumTxMetadata\x12\x16\n\x0esigned_payload\x18\x01 \x01(\x0c\x12\x18\n\x10metadata_version\x18\x02 \x01(\r\x12\x0e\n\x06key_id\x18\x03 \x01(\r\"F\n\x13\x45thereumMetadataAck\x12\x16\n\x0e\x63lassification\x18\x01 \x02(\r\x12\x17\n\x0f\x64isplay_summary\x18\x02 \x01(\t\"9\n\x13\x45thereumSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\"L\n\x15\x45thereumVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\">\n\x18\x45thereumMessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"_\n\x15\x45thereumSignTypedHash\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1d\n\x15\x64omain_separator_hash\x18\x02 \x02(\x0c\x12\x14\n\x0cmessage_hash\x18\x03 \x01(\x0c\"\x8b\x01\n\x1a\x45thereumTypedDataSignature\x12\x11\n\tsignature\x18\x01 \x02(\x0c\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x02(\t\x12\x1d\n\x15\x64omain_separator_hash\x18\x03 \x01(\x0c\x12\x14\n\x0chas_msg_hash\x18\x04 \x02(\x08\x12\x14\n\x0cmessage_hash\x18\x05 \x01(\x0c\"\x85\x01\n\x16\x45thereum712TypesValues\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x13\n\x0b\x65ip712types\x18\x02 \x02(\t\x12\x17\n\x0f\x65ip712primetype\x18\x03 \x02(\t\x12\x12\n\neip712data\x18\x04 \x02(\t\x12\x16\n\x0e\x65ip712typevals\x18\x05 \x02(\rB4\n\x1a\x63om.keepkey.deviceprotocolB\x16KeepKeyMessageEthereum')
+  serialized_pb=_b('\n\x17messages-ethereum.proto\x1a\x0btypes.proto\"=\n\x12\x45thereumGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\"7\n\x0f\x45thereumAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\x0c\x12\x13\n\x0b\x61\x64\x64ress_str\x18\x02 \x01(\t\"\x95\x03\n\x0e\x45thereumSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x11\n\tgas_price\x18\x03 \x01(\x0c\x12\x11\n\tgas_limit\x18\x04 \x01(\x0c\x12\n\n\x02to\x18\x05 \x01(\x0c\x12\r\n\x05value\x18\x06 \x01(\x0c\x12\x1a\n\x12\x64\x61ta_initial_chunk\x18\x07 \x01(\x0c\x12\x13\n\x0b\x64\x61ta_length\x18\x08 \x01(\r\x12\x14\n\x0cto_address_n\x18\t \x03(\r\x12(\n\x0c\x61\x64\x64ress_type\x18\n \x01(\x0e\x32\x12.OutputAddressType\x12\x10\n\x08\x63hain_id\x18\x0c \x01(\r\x12\x17\n\x0fmax_fee_per_gas\x18\r \x01(\x0c\x12 \n\x18max_priority_fee_per_gas\x18\x0e \x01(\x0c\x12\x13\n\x0btoken_value\x18\x64 \x01(\x0c\x12\x10\n\x08token_to\x18\x65 \x01(\x0c\x12\x16\n\x0etoken_shortcut\x18\x66 \x01(\t\x12\x0f\n\x07tx_type\x18g \x01(\r\x12\x0c\n\x04type\x18h \x01(\rJ\x04\x08\x0b\x10\x0c\"\x8c\x01\n\x11\x45thereumTxRequest\x12\x13\n\x0b\x64\x61ta_length\x18\x01 \x01(\r\x12\x13\n\x0bsignature_v\x18\x02 \x01(\r\x12\x13\n\x0bsignature_r\x18\x03 \x01(\x0c\x12\x13\n\x0bsignature_s\x18\x04 \x01(\x0c\x12\x0c\n\x04hash\x18\x05 \x01(\x0c\x12\x15\n\rsignature_der\x18\x06 \x01(\x0c\"#\n\rEthereumTxAck\x12\x12\n\ndata_chunk\x18\x01 \x01(\x0c\"V\n\x12\x45thereumTxMetadata\x12\x16\n\x0esigned_payload\x18\x01 \x01(\x0c\x12\x18\n\x10metadata_version\x18\x02 \x01(\r\x12\x0e\n\x06key_id\x18\x03 \x01(\r\"F\n\x13\x45thereumMetadataAck\x12\x16\n\x0e\x63lassification\x18\x01 \x02(\r\x12\x17\n\x0f\x64isplay_summary\x18\x02 \x01(\t\"D\n\x13LoadClearsignSigner\x12\x0e\n\x06key_id\x18\x01 \x01(\r\x12\x0e\n\x06pubkey\x18\x02 \x01(\x0c\x12\r\n\x05\x61lias\x18\x03 \x01(\t\"9\n\x13\x45thereumSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\"L\n\x15\x45thereumVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\">\n\x18\x45thereumMessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"_\n\x15\x45thereumSignTypedHash\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1d\n\x15\x64omain_separator_hash\x18\x02 \x02(\x0c\x12\x14\n\x0cmessage_hash\x18\x03 \x01(\x0c\"\x8b\x01\n\x1a\x45thereumTypedDataSignature\x12\x11\n\tsignature\x18\x01 \x02(\x0c\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x02(\t\x12\x1d\n\x15\x64omain_separator_hash\x18\x03 \x01(\x0c\x12\x14\n\x0chas_msg_hash\x18\x04 \x02(\x08\x12\x14\n\x0cmessage_hash\x18\x05 \x01(\x0c\"\x85\x01\n\x16\x45thereum712TypesValues\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x13\n\x0b\x65ip712types\x18\x02 \x02(\t\x12\x17\n\x0f\x65ip712primetype\x18\x03 \x02(\t\x12\x12\n\neip712data\x18\x04 \x02(\t\x12\x16\n\x0e\x65ip712typevals\x18\x05 \x02(\rB4\n\x1a\x63om.keepkey.deviceprotocolB\x16KeepKeyMessageEthereum')
   ,
   dependencies=[types__pb2.DESCRIPTOR,])
 
@@ -433,6 +433,51 @@ _ETHEREUMMETADATAACK = _descriptor.Descriptor(
 )
 
 
+_LOADCLEARSIGNSIGNER = _descriptor.Descriptor(
+  name='LoadClearsignSigner',
+  full_name='LoadClearsignSigner',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key_id', full_name='LoadClearsignSigner.key_id', index=0,
+      number=1, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='pubkey', full_name='LoadClearsignSigner.pubkey', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='alias', full_name='LoadClearsignSigner.alias', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=908,
+  serialized_end=976,
+)
+
+
 _ETHEREUMSIGNMESSAGE = _descriptor.Descriptor(
   name='EthereumSignMessage',
   full_name='EthereumSignMessage',
@@ -466,8 +511,8 @@ _ETHEREUMSIGNMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=908,
-  serialized_end=965,
+  serialized_start=978,
+  serialized_end=1035,
 )
 
 
@@ -511,8 +556,8 @@ _ETHEREUMVERIFYMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=967,
-  serialized_end=1043,
+  serialized_start=1037,
+  serialized_end=1113,
 )
 
 
@@ -549,8 +594,8 @@ _ETHEREUMMESSAGESIGNATURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1045,
-  serialized_end=1107,
+  serialized_start=1115,
+  serialized_end=1177,
 )
 
 
@@ -594,8 +639,8 @@ _ETHEREUMSIGNTYPEDHASH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1109,
-  serialized_end=1204,
+  serialized_start=1179,
+  serialized_end=1274,
 )
 
 
@@ -653,8 +698,8 @@ _ETHEREUMTYPEDDATASIGNATURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1207,
-  serialized_end=1346,
+  serialized_start=1277,
+  serialized_end=1416,
 )
 
 
@@ -712,8 +757,8 @@ _ETHEREUM712TYPESVALUES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1349,
-  serialized_end=1482,
+  serialized_start=1419,
+  serialized_end=1552,
 )
 
 _ETHEREUMSIGNTX.fields_by_name['address_type'].enum_type = types__pb2._OUTPUTADDRESSTYPE
@@ -724,6 +769,7 @@ DESCRIPTOR.message_types_by_name['EthereumTxRequest'] = _ETHEREUMTXREQUEST
 DESCRIPTOR.message_types_by_name['EthereumTxAck'] = _ETHEREUMTXACK
 DESCRIPTOR.message_types_by_name['EthereumTxMetadata'] = _ETHEREUMTXMETADATA
 DESCRIPTOR.message_types_by_name['EthereumMetadataAck'] = _ETHEREUMMETADATAACK
+DESCRIPTOR.message_types_by_name['LoadClearsignSigner'] = _LOADCLEARSIGNSIGNER
 DESCRIPTOR.message_types_by_name['EthereumSignMessage'] = _ETHEREUMSIGNMESSAGE
 DESCRIPTOR.message_types_by_name['EthereumVerifyMessage'] = _ETHEREUMVERIFYMESSAGE
 DESCRIPTOR.message_types_by_name['EthereumMessageSignature'] = _ETHEREUMMESSAGESIGNATURE
@@ -780,6 +826,13 @@ EthereumMetadataAck = _reflection.GeneratedProtocolMessageType('EthereumMetadata
   # @@protoc_insertion_point(class_scope:EthereumMetadataAck)
   ))
 _sym_db.RegisterMessage(EthereumMetadataAck)
+
+LoadClearsignSigner = _reflection.GeneratedProtocolMessageType('LoadClearsignSigner', (_message.Message,), dict(
+  DESCRIPTOR = _LOADCLEARSIGNSIGNER,
+  __module__ = 'messages_ethereum_pb2'
+  # @@protoc_insertion_point(class_scope:LoadClearsignSigner)
+  ))
+_sym_db.RegisterMessage(LoadClearsignSigner)
 
 EthereumSignMessage = _reflection.GeneratedProtocolMessageType('EthereumSignMessage', (_message.Message,), dict(
   DESCRIPTOR = _ETHEREUMSIGNMESSAGE,
