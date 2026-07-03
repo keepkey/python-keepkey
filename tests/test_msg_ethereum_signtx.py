@@ -100,7 +100,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
         OLED shows 'Blind signing disabled' then Failure.
         """
-        self.requires_firmware("7.15.1")
+        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 0)
@@ -124,7 +124,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
         OLED shows 'BLIND SIGNATURE' before signing.
         """
-        self.requires_firmware("7.15.1")
+        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)

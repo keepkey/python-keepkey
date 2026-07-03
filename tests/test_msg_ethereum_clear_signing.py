@@ -643,7 +643,7 @@ REFERENCE_BLOB_SNAPSHOTS = {
     'permit2-permit-transfer-from': ('c0fde596537a6bf1e53b98d3746638b4249a7a90d8196fe4a9f40f711729ec84', 276),
     'across-spokepool-depositv3': ('ab185113f0b47ef5f6e1fab6a6839df8b71bf8d48796afee64a61ba8b336ac01', 311),
     'safe-exectransaction': ('00a523f8e02d196db7213813edfbeee2a707679b026c6c6b6f8af88d35bf4889', 274),
-    'erc4337-entrypoint-v0.7-handleops': ('0b44fc0f98727877a1d6bd1346300d9fe4b537e48d901002ea241d01b79c52cd', 281),
+    'erc4337-entrypoint-v0.7-handleops': ('29ac50a7c18a4e145d058c75dc9cb6232e875af79006766be0baf5cb674ba04f', 289),
     'eip7702-setcode-authorization': ('0518442c7172b8c57fcbd09ded11b54e1d20076c4b5e79a7490c4ae9c2096a18', 299),
 }
 
@@ -1274,6 +1274,66 @@ class TestClearSignV2Device(common.KeepKeyTest):
         signer = recover_eth_signer(sig_r, sig_s, sig_v, tx_hash, chain_id)
         self.assertEqual(signer, self.client.ethereum_get_address(n))
 
+    def test_v2_calldata_length_mismatch_falls_back_to_blind_sign_gate(self):
+        """The headline v2 security property: a blob's schema says 2 words,
+        but the calldata actually being signed carries 3. decode_v2_args'
+        structural completeness check (total calldata bytes must equal
+        exactly 4 + 32*num_args) fails, matches_tx returns false, and the tx
+        falls through to the ordinary blind-sign path — with AdvancedMode
+        OFF that is a hard reject, never a clear-signed-but-wrong display."""
+        self.client.apply_policy("AdvancedMode", 0)
+        self._drop_setup_screenshots()
+        n = parse_path(DEVICE_PATH)
+        chain_id, nonce, gas_price, gas_limit, value = 1, 3, 20000000000, 250000, 0
+        args = [
+            {'format': ARG_FORMAT_ADDRESS, 'address': VITALIK},
+            {'format': ARG_FORMAT_TOKEN_AMOUNT, 'amount': 1500000},
+        ]
+        # calldata carries one EXTRA 32-byte word beyond the 2-arg schema.
+        data = schema_calldata(ERC20_TRANSFER_SELECTOR, args) + (b'\x00' * 32)
+        _, blob = _v2_transfer_blob()
+
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=blob, metadata_version=1, key_id=TEST_KEY_ID)
+        self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
+
+        with self.assertRaises(CallException) as ctx:
+            self.client.ethereum_sign_tx(
+                n=n, nonce=nonce, gas_price=gas_price, gas_limit=gas_limit,
+                to=USDC_ADDRESS, value=value, data=data, chain_id=chain_id)
+        self.assertIn("Blind signing disabled", str(ctx.exception))
+
+    def test_v2_unsupported_arg_format_returns_malformed(self):
+        """v2 supports only fixed single-word ADDRESS/AMOUNT/TOKEN_AMOUNT arg
+        formats (decode_v2_args has no dynamic-type support, by design). The
+        Python serializer refuses to BUILD a STRING-format v2 blob (see the
+        offline test_rejects_dynamic_format), but a malicious or buggy host
+        could still hand-craft the raw bytes — the device's own parser must
+        independently reject an unsupported v2 arg format as MALFORMED at
+        blob-load time, before any calldata is even seen."""
+        self._drop_setup_screenshots()
+        body = bytearray()
+        body.append(METADATA_VERSION_SCHEMA)
+        body.extend((1).to_bytes(4, 'big'))                  # chain_id
+        body.extend(USDC_ADDRESS)
+        body.extend(ERC20_TRANSFER_SELECTOR)
+        name = b'transfer'
+        body.extend(len(name).to_bytes(2, 'big'))
+        body.extend(name)
+        body.append(1)                                        # num_args
+        arg_name = b'label'
+        body.append(len(arg_name))
+        body.extend(arg_name)
+        body.append(ARG_FORMAT_STRING)                         # unsupported in v2
+        body.append(CLASSIFICATION_VERIFIED)
+        body.extend((0).to_bytes(4, 'big'))                    # timestamp
+        body.append(TEST_KEY_ID)
+        blob = sign_metadata(bytes(body))
+
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=blob, metadata_version=1, key_id=TEST_KEY_ID)
+        self.assertEqual(resp.classification, CLASSIFICATION_MALFORMED)
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # Dynamically generate one full-confirm device test per CLEARSIGN_FLOWS
@@ -1320,12 +1380,13 @@ def print_clearsign_flows():
     for flow in CLEARSIGN_FLOWS:
         print()
         print('[%s] %s' % (flow['key'], flow['method']))
-        print('  shows      : %s' % flow['shows'])
+        shows = ', '.join('%s=%r' % (a['name'], a.get('value')) for a in flow['args'])
+        print('  shows      : %s' % shows)
         print('  to         : 0x%s' % flow['to'].hex())
         print('  value      : %d' % flow['value'])
         print('  calldata   : 0x%s' % flow['data'].hex())
         print('  tx_hash    : 0x%s' % flow_tx_hash(flow).hex())
-        print('  blob       : %s' % flow_blob(flow, timestamp=REFERENCE_TIMESTAMP).hex())
+        print('  blob       : %s' % flow_blob(flow, TEST_KEY_ID, timestamp=REFERENCE_TIMESTAMP).hex())
 
 
 def print_test_vectors():

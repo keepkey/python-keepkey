@@ -727,8 +727,12 @@ SECTIONS = [
 
     ('E', 'Ethereum', '7.0.0',
      'Ethereum covers native ETH transfers, ERC-20 tokens, EIP-1559 gas, personal message signing '
-     '(EIP-191), and contract interactions. The device displays checksummed addresses (EIP-55), '
-     'values in ETH with 18-decimal precision, and gas parameters.',
+     '(EIP-191), and contract interactions. The device displays checksummed addresses (EIP-55) and '
+     'gas parameters. Amount UNIT rule: values below 1 gwei (1e9 wei) show as raw "Wei" (there is '
+     'no smaller human unit to scale to); values at or above 1 gwei show 18-decimal-scaled ETH (or '
+     'the chain-native ticker on other EVM chains). Some tests below use small conformance-vector '
+     'amounts (e.g. 10 wei) for deterministic-signature pinning — their OLED frames legitimately '
+     'show raw "Wei", not a display bug.',
      [
          'ETH TRANSFER: Show "Send X ETH to 0x..." -> show gas -> confirm -> sign with secp256k1',
          'ERC-20: Decode transfer(to,amount) from contract data -> show token name + amount',
@@ -791,6 +795,48 @@ SECTIONS = [
           '0x swap ETH to ERC-20', 'DEX aggregator swap via 0x protocol.', []),
          ('E15', 'test_msg_ethereum_cfunc', 'test_sign_execTx',
           'Contract function call', 'Generic contract call signing.', []),
+         ('E16', 'test_sign_typed_data', 'test_ethereum_sign_typed_data_hash',
+          'EIP-712 typed-data hash signing (legacy, no on-device display)',
+          'KNOWN GAP, disclosed rather than hidden: EIP-712 (the standard behind wallet permits, '
+          'OpenSea listings, and DAO votes — a daily-driver format) is only supported at the '
+          'domain-separator-hash + message-hash level. The device signs two host-computed 32-byte '
+          'hashes; it does NOT parse or display the typed-data domain or message fields, so this '
+          'path shows the user no readable WHO/WHAT — it is effectively a blind hash-sign, not a '
+          'clear-sign. Full structured EIP-712 display is a firmware feature, not yet built.',
+          []),
+         ('E17', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_approve_liquidity_ETH',
+          'Uniswap V2 add-liquidity approve (pending)',
+          'PENDING, disclosed: known emulator limitation — an approve to an unknown (non-registry) '
+          'token contract cannot complete against the kkemu emulator (matches the sibling '
+          'add/remove-liquidity skips below); the device-firmware path is not in question, only '
+          'CI emulator coverage. Real-device testing is unaffected.',
+          []),
+         ('E18', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_add_liquidity_ETH',
+          'Uniswap V2 add liquidity ETH+token (pending)',
+          'PENDING, disclosed: same emulator limitation as E17 — a daily-driver LP-deposit flow '
+          'with no PDF proof on this build; tracked for real-device verification.',
+          []),
+         ('E19', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_remove_liquidity_ETH',
+          'Uniswap V2 remove liquidity ETH+token (pending)',
+          'PENDING, disclosed: same emulator limitation as E17.',
+          []),
+         ('E20', 'test_msg_ethereum_thorchain_deposit', 'test_deposit_legacy_selector',
+          'THORChain router deposit() (legacy selector)',
+          'Cross-chain swap via the THORChain router contract — a daily-driver EVM<->THORChain '
+          'swap path, natively decoded (asset/amount/memo) without clear-sign metadata.',
+          []),
+         ('E21', 'test_msg_ethereum_thorchain_deposit', 'test_deposit_with_expiry_selector',
+          'THORChain router depositWithExpiry()',
+          'Newer router selector variant with an expiry field; same native decode path.',
+          []),
+         ('E22', 'test_msg_ethereum_thorchain_deposit',
+          'test_deposit_with_expiry_non_thor_address_blind_sign_blocked',
+          'THORChain router call to a non-pinned address is blind-sign gated',
+          'WHY it can be trusted: the router CONTRACT ADDRESS is pinned; a call shaped like a '
+          'THORChain deposit but sent to an unpinned address is refused native decoding and falls '
+          'through to the ordinary blind-sign gate instead of being silently native-decoded — the '
+          'fix for the router-spoofing / blind-sign-bypass class of attack.',
+          ['Blind sign disabled (Blocked)']),
      ]),
 
     ('R', 'Ripple (XRP)', '7.0.0',
@@ -920,7 +966,7 @@ SECTIONS = [
        'cause fund loss or invalid transactions on the block-lattice.',
        [])]),
 
-    # ===== 7.15.1 NEW FEATURES =====
+    # ===== 7.15.0 NEW FEATURES =====
     ('V', 'EVM Clear-Signing', '7.15.0',
      'The purpose of clear-signing: instead of blind-signing an opaque hash, the device screen '
      'answers WHO / WHAT / WHY before the user approves. WHO = the validated contract address '
@@ -963,6 +1009,24 @@ SECTIONS = [
           'Signature verification math', 'Unit test for the metadata blob signature algorithm.', []),
          ('V7', 'test_msg_ethereum_clear_signing', 'test_tampered_blob_fails_verification',
           'Tampered blob fails', 'Any byte change in the blob invalidates the signature.', []),
+         ('V7a', 'test_msg_ethereum_clear_signing', 'test_empty_payload_returns_malformed',
+          'Empty metadata payload rejected', 'A zero-length blob classifies MALFORMED, never VERIFIED.', []),
+         ('V7b', 'test_msg_ethereum_clear_signing', 'test_truncated_payload_returns_malformed',
+          'Truncated metadata payload rejected',
+          'A blob cut short of the minimum structural size classifies MALFORMED.', []),
+         ('V7c', 'test_msg_ethereum_clear_signing', 'test_extra_trailing_bytes_returns_malformed',
+          'Trailing garbage bytes rejected',
+          'A blob with extra bytes appended past its declared structure classifies MALFORMED — '
+          'the parser cannot be tricked by appended data.', []),
+         ('V7d', 'test_msg_ethereum_clear_signing', 'test_wrong_version_returns_malformed',
+          'Unknown version byte rejected', 'A blob with a version byte the firmware does not '
+          'recognize classifies MALFORMED rather than being guessed-parsed.', []),
+         ('V7e', 'test_msg_ethereum_clear_signing', 'test_zero_signature_returns_malformed',
+          'All-zero signature rejected', 'A blob with a zeroed signature field classifies '
+          'MALFORMED — an attacker cannot skip signing by leaving the field blank.', []),
+         ('V7f', 'test_msg_ethereum_clear_signing', 'test_empty_key_slot_returns_malformed',
+          'Metadata against an empty key slot rejected',
+          'A blob referencing a signer slot with no key loaded classifies MALFORMED.', []),
          ('V8', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_allowed',
           'Blind sign permitted (AdvancedMode ON)',
           'Contract data with AdvancedMode enabled. Device allows signing. '
@@ -1013,6 +1077,37 @@ SECTIONS = [
           'Signer alias sanitized',
           'Empty, oversized, control-char and format-specifier aliases are rejected — the alias '
           'is rendered on the warning screen, so it cannot carry a display-spoofing payload.',
+          []),
+
+         # ── ethereum signing-path guards (the blind-sign policy negative
+         # half + the EIP-1559 type/fee/chain_id regression suite) ──
+         ('VG1', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_blocked',
+          'Blind sign refused (AdvancedMode OFF)',
+          'Unknown contract data with AdvancedMode disabled is hard-rejected before any confirm '
+          'screen — the negative half of the V8 policy pair.',
+          ['Blind signing disabled (Failure)']),
+         ('VG2', 'test_msg_ethereum_signing_guards', 'test_eip1559_requires_chain_id',
+          'EIP-1559 requires chain_id',
+          'A type-2 tx with no chain_id would hash a garbage pre-image and recover the wrong '
+          'signer; the device rejects it outright instead of signing an unbroadcastable tx.',
+          []),
+         ('VG3', 'test_msg_ethereum_signing_guards', 'test_eip1559_no_priority_fee_signs',
+          'EIP-1559 zero priority fee signs correctly',
+          'Regression test for the non-canonical-RLP wrong-signer bug: a type-2 tx with zero/'
+          'absent priority fee must still hash and sign to the correct device address.',
+          []),
+         ('VG4', 'test_msg_ethereum_signing_guards', 'test_type2_without_max_fee_rejected',
+          'Type-2 tx without max_fee_per_gas rejected', '', []),
+         ('VG5', 'test_msg_ethereum_signing_guards', 'test_legacy_with_max_fee_rejected',
+          'Legacy tx with max_fee_per_gas rejected',
+          'Mixing legacy gas_price semantics with EIP-1559 fee fields is refused rather than '
+          'silently mis-hashed.',
+          []),
+         ('VG6', 'test_msg_ethereum_signing_guards',
+          'test_contract_handler_streamed_calldata_signs_full_data',
+          'Streamed calldata signs the full payload',
+          'A contract-clear-sign handler must not confirm only the first chunk while signing '
+          'unshown streamed bytes after it.',
           []),
      ] + _V_CATALOG_TESTS + [
          ('V%d' % (17 + len(_V_CATALOG_TESTS)),
@@ -1073,6 +1168,21 @@ SECTIONS = [
           'with no tx_hash. The offline format tests above pin the wire format '
           'the device decodes.',
           ['Clearsign warning', 'v2 decoded transfer to/amount', 'Sign transaction']),
+         ('VS6', 'test_msg_ethereum_clear_signing',
+          'test_v2_calldata_length_mismatch_falls_back_to_blind_sign_gate',
+          'v2 decode-mismatch falls back to blind-sign (fail-closed)',
+          'THE headline v2 security property: schema says 2 words, calldata carries 3. '
+          'decode_v2_args\' structural completeness check fails, so the device does NOT '
+          'clear-sign a decode that would not match what it is about to sign — it falls '
+          'through to the ordinary blind-sign gate, and AdvancedMode OFF hard-rejects it.',
+          ['Blind signing disabled (Failure)']),
+         ('VS7', 'test_msg_ethereum_clear_signing',
+          'test_v2_unsupported_arg_format_returns_malformed',
+          'v2 unsupported arg format rejected at blob load',
+          'A hand-crafted v2 blob using an unsupported dynamic format (STRING) — the kind the '
+          'Python serializer itself refuses to build — is independently rejected by the '
+          'device\'s own parser as MALFORMED, before any calldata is even considered.',
+          []),
      ]),
 
     ('G', 'Hive', '7.15.0',
