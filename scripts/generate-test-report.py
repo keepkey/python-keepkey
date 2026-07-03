@@ -87,7 +87,7 @@ class PDF:
             y, sz, txt = item[0], item[1], item[2]
             style = item[3] if len(item) > 3 else False
             color = item[4] if len(item) > 4 else None
-            txt = txt.replace('\\','\\\\').replace('(','\\(').replace(')','\\)')
+            txt = _ascii(txt).replace('\\','\\\\').replace('(','\\(').replace(')','\\)')
             if color:
                 ops.append(f'{color[0]} {color[1]} {color[2]} rg')
             if style == 'ding':
@@ -153,6 +153,20 @@ GRAY = (0.5, 0.5, 0.5)
 CHECK = '\x34'
 CROSS = '\x38'
 
+# Map non-Latin-1 Unicode punctuation to ASCII so it survives the PDF content
+# stream (encoded latin-1); em-dashes etc. were rendering as '?'.
+_ASCII_MAP = {
+    '—': '-', '–': '-', '→': '->', '←': '<-',
+    '’': "'", '‘': "'", '“': '"', '”': '"',
+    '…': '...', '•': '*', '₿': 'BTC', '≤': '<=',
+    '≥': '>=', '±': '+/-',
+}
+def _ascii(s):
+    for k, v in _ASCII_MAP.items():
+        if k in s:
+            s = s.replace(k, v)
+    return s
+
 class PB:
     def __init__(self, pdf):
         self.pdf = pdf; self.lines = []; self.y = 755
@@ -189,10 +203,18 @@ class PB:
         self._flush()
 
 def _lookup(results, mod, meth):
-    """Look up test result by module::method (precise), then bare method (fallback)."""
-    return results.get(f'{mod}::{meth}') or results.get(meth) or ''
+    """Look up a test result by module::method. Every SECTIONS module is a
+    test_msg_* module, so parse_junit always emits a 'mod::meth' key -- there is
+    no bare-method fallback (it let a cross-module method-name collision render a
+    never-run test as PASS, defeating the --validate-junit release gate)."""
+    return results.get(f'{mod}::{meth}', '')
 
-def ver_t(s): return tuple(int(x) for x in s.replace('v','').split('.')[:3])
+def ver_t(s):
+    # Defensive: tolerate pre-release tags (7.15.0-rc3), 'v' prefixes and short
+    # versions ('7.15' -> (7,15,0)) so report/filter/validate never crash.
+    s = str(s).split('-')[0].replace('v', '')
+    parts = (s.split('.') + ['0', '0', '0'])[:3]
+    return tuple(int(''.join(ch for ch in p if ch.isdigit()) or '0') for p in parts)
 def ver_ge(a, b): return ver_t(a) >= ver_t(b)
 def _w(text, n=95):
     words, lines, cur = text.split(), [], ''
@@ -201,24 +223,6 @@ def _w(text, n=95):
         else: cur = f'{cur} {w}' if cur else w
     if cur: lines.append(cur)
     return lines
-
-def _is_setup_frame(path):
-    """Check if a screenshot is a setUp noise frame (IMPORT RECOVERY, WIPE, or blank/logo)."""
-    try:
-        pixels, w, h = _read_png_pixels(path)
-        # Count non-zero pixels -- blank/logo frames have very few or very specific patterns
-        lit = sum(1 for b in pixels if b > 128)
-        total = w * h
-        # Very blank (< 5% lit) = idle/logo screen
-        if lit < total * 0.05:
-            return True
-        # Check for "IMPORT RECOVERY" text by looking at pixel density in top-left region
-        # setUp always shows this screen -- it's ~20% lit with specific pattern
-        # Real test screens vary widely, so we check the raw bytes for known patterns
-        # Simple heuristic: if first 2 btn frames match, skip them (setUp wipe + load)
-        return False
-    except:
-        return False
 
 def _frame_lit_ratio(path):
     """Fraction of lit pixels in an OLED PNG, or None if unreadable."""
@@ -247,19 +251,27 @@ def _pick_best_frame(test_dir, btn_files):
     if not btn_files:
         return None
     scored = []
+    readable = []
     for f in btn_files:
         r = _frame_lit_ratio(os.path.join(test_dir, f))
         if r is None:
             continue
+        readable.append(f)
         # Blank/near-blank (idle, lock) or near-full (logo/inverted) = noise.
         if r < 0.02 or r > 0.55:
             continue
         scored.append((r, f))
-    if not scored:
-        return None
-    # Most content-rich meaningful frame.
-    scored.sort()
-    return os.path.join(test_dir, scored[-1][1])
+    if scored:
+        # Most content-rich meaningful frame.
+        scored.sort()
+        return os.path.join(test_dir, scored[-1][1])
+    # Nothing landed in the meaningful density band, but we DID capture a
+    # readable frame (e.g. a dense QR / address screen brighter than the band,
+    # or a single-frame test). Show it rather than a bogus "OLED needed"
+    # placeholder when a real screenshot exists.
+    if readable:
+        return os.path.join(test_dir, readable[-1])
+    return None
 
 def detect_fw():
     try:
@@ -409,13 +421,27 @@ SECTIONS = [
          '- Input: single capacitive button (confirm/reject)',
          '- USB: micro-B, HID + WebUSB transports, HID fallback',
          '- Storage: BIP-39 seed encrypted in isolated flash region',
-         '- Curves: secp256k1, ed25519, NIST P-256, Pallas (Zcash)',
+         '- Curves: secp256k1, ed25519, NIST P-256 (Pallas/Zcash only on KK_ZCASH_PRIVACY=ON builds)',
          '',
          'SECURITY MODEL:',
          '- All private key operations happen on-device, keys never leave',
          '- Every transaction output displayed on OLED for user verification',
          '- PIN grid randomized on each prompt (position-based, not digit-based)',
          '- BIP-39 passphrase creates hidden wallets (plausible deniability)',
+         '',
+         'FIRMWARE VARIANTS (7.15, PR #282):',
+         '- Full multi-chain (default): all coin families; firmware_variant = model name',
+         '- Bitcoin-only (KK_BITCOIN_ONLY): only Bitcoin + Testnet; all altcoin and',
+         '  shielded-Zcash handlers stripped; firmware_variant = KeepKeyBTC (EmulatorBTC',
+         '  on the emulator). Clients gate multi-chain-only tests on this string.',
+         '- Zcash shielded (KK_ZCASH_PRIVACY): adds the Orchard/Pallas engine; default OFF',
+         '  pending external audit. Mutually exclusive with KK_BITCOIN_ONLY.',
+         '',
+         'SEED LOCK (7.15, PR #282):',
+         '- A seed created under bitcoin-only firmware is stamped in a reserved storage-',
+         '  version band. Multi-chain firmware refuses to load it and requires an explicit',
+         '  wipe (wipe-to-exit); the seed is never exposed to stripped-out code. Old',
+         '  multi-chain firmware treats the band as unknown and resets.',
      ], []),
 
     ('C', 'Core - Device Lifecycle', '7.0.0',
@@ -696,11 +722,7 @@ SECTIONS = [
           'Sign Dash transaction', 'Dash special transaction types (InstantSend-compatible).', []),
          ('B27', 'test_msg_signtx_grs', 'test_one_one_fee',
           'Sign Groestlcoin tx', 'GRS uses Groestl hash instead of SHA-256d for tx hashing.', []),
-         ('B28', 'test_msg_signtx_zcash', 'test_transparent_one_one',
-          'Sign Zcash transparent tx',
-          'Zcash transparent transactions use Overwinter/Sapling serialization format with '
-          'version group IDs and expiry height.',
-          ['Zcash tx confirm']),
+         # Zcash transparent signing moved to its own section Y (Zcash Transparent).
      ]),
 
     ('E', 'Ethereum', '7.0.0',
@@ -1099,7 +1121,7 @@ SECTIONS = [
 
     ('T', 'TRON', '7.14.0',
      'NEW: TRON with secp256k1 signing, base58 addresses. Blind-sign via raw_data. '
-     'Structured reconstruct-then-sign and TRC-20 clear-signing deferred to 7.15+.',
+     'Structured reconstruct-then-sign and TRC-20 clear-signing deferred to a future release.',
      [
          'ADDRESS: m/44\'/195\'/0\'/0/0 -> full 34-char base58 TRON address',
          'BLIND-SIGN: Raw protobuf data -> hash + sign',
@@ -1122,7 +1144,7 @@ SECTIONS = [
     ('N', 'TON', '7.14.0',
      'NEW: TON v4r2 wallet contracts. Ed25519 signing with structured field display. '
      'Blind-sign for raw transactions. Memo/comment support. '
-     'Full clear-sign with cell tree reconstruction deferred to 7.15+.',
+     'Full clear-sign with cell tree reconstruction deferred to a future release.',
      [
          'ADDRESS: m/44\'/607\'/0\' -> full 48-char base64url TON address',
          'STRUCTURED: Amount + address + memo shown as display context -> sign',
@@ -1147,14 +1169,48 @@ SECTIONS = [
           'Missing fields rejected', 'Incomplete data refused.', []),
      ]),
 
-    ('Z', 'Zcash Orchard', '7.14.0',
-     'NEW: Shielded transactions via PCZT streaming. Orchard hides sender, recipient, and amount '
-     'using ZK proofs. Raw seed access (ZIP-32 Orchard derivation uses BIP-39 seed + Pallas curve). '
-     'Full Viewing Key (FVK) export for watch-only wallets, unified-address display with an '
-     'on-device seed-fingerprint attestation (ZIP-32 §6.1). NOTE: pure shielded Orchard action '
-     'signing (Z5-Z7) is deferred past 7.15 — legacy sighash needs header/orchard digests not yet '
-     'in firmware; those tests skip with that reason and do not block release. Transparent->Orchard '
-     'shielding, FVK export, address display and fingerprint binding are all live.',
+    ('Y', 'Zcash Transparent', '7.0.0',
+     'Transparent t-address Zcash (send/receive) over the generic Bitcoin UTXO signing path with '
+     'Overwinter/Sapling-v4 branch handling. This is the Zcash functionality that ships ENABLED on '
+     'the default 7.15.0 build -- t1.../t3... addresses sign like Bitcoin (SECP256K1) with a '
+     'FeeOverThreshold guard. No shielded/Orchard engine is involved; contrast with section Z '
+     '(shielded), which is withheld behind KK_ZCASH_PRIVACY.',
+     [
+         'INPUT: TxInputType over the Zcash coin (t-address, SECP256K1)',
+         'METADATA: version_group_id + branch_id for the target upgrade',
+         'CONFIRM: amount + destination on the OLED, then sign each input',
+         'FEE GUARD: an implausibly high fee triggers a confirmation prompt',
+     ],
+     [
+         ('Y1', 'test_msg_signtx_zcash', 'test_transparent_one_one',
+          'Transparent 1-in 1-out',
+          'Sign a standard transparent Zcash spend; the device shows the amount and destination '
+          't-address before producing a signature over the overwinter sighash.',
+          ['Zcash send confirm']),
+         ('Y2', 'test_msg_signtx_zcash', 'test_transparent_one_one_fee_too_high',
+          'High-fee guard',
+          'An implausibly high fee triggers the FeeOverThreshold confirmation before signing.',
+          []),
+         ('Y3', 'test_msg_signtx_zcash', 'test_shieldedIn_one_one_fee_1',
+          'Transparent spend (fee scenario 1)',
+          'Despite the legacy method name, this signs a transparent input/output over the same '
+          'overwinter path (no Orchard).',
+          []),
+         ('Y4', 'test_msg_signtx_zcash', 'test_shieldedIn_one_one_fee_2',
+          'Transparent spend (fee scenario 2)',
+          'Second transparent fee scenario over the overwinter path.',
+          []),
+     ]),
+
+    ('Z', 'Zcash Shielded (Orchard)', '7.14.0',
+     'Shielded Orchard (PCZT streaming, Full Viewing Key export, unified-address display with an '
+     'on-device ZIP-32 Sec 6.1 seed-fingerprint attestation) is WITHHELD on the default 7.15.0 build. '
+     'It is compile-gated behind the KK_ZCASH_PRIVACY build flag, which is DEFAULT-OFF pending an '
+     'external audit of the Orchard/Pallas engine. On this build the firmware does not register the '
+     'Zcash* shielded messages, so every test in this section SKIPS BY DESIGN (the requires_message '
+     'probe returns Failure_UnexpectedMessage) -- this is a deliberate policy hold, NOT missing or '
+     'broken support. To exercise these, build the KK_ZCASH_PRIVACY=ON variant. Transparent t-address '
+     'Zcash IS live and shipping -- see section Y (Zcash Transparent).',
      [
          'FVK: Derive ak, nk, rivk components via ZIP-32 Orchard path',
          'ADDRESS: Device derives its own unified address + shows it; optional seed-fingerprint pin',
@@ -1261,36 +1317,54 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
     # Separate specs section (no tests) from test sections
     specs = [s for s in active if not s[5]]
-    # Sections with results first, pending sections at bottom.
-    # Within each group: existing chains first (proven), then new features.
-    has_results = [s for s in active if s[5] and any(_lookup(results, t[1], t[2]) for t in s[5])]
-    no_results = [s for s in active if s[5] and not any(_lookup(results, t[1], t[2]) for t in s[5])]
-    test_sections = has_results + no_results
+
+    # Classify each section by its strongest per-test outcome so the report
+    # distinguishes "ran and passed/failed" from "skipped by design (build-flag
+    # or policy gated, e.g. KK_ZCASH_PRIVACY-off shielded Zcash)" from "no result
+    # at all". A design-skip is NOT missing firmware support.
+    def _section_state(s):
+        st = [_lookup(results, t[1], t[2]) for t in s[5]]
+        if any(x in ('pass', 'fail', 'error') for x in st):
+            return 'tested'
+        if any(x == 'skip' for x in st):
+            return 'withheld'   # only skips -> intentionally gated on this build
+        return 'pending'        # nothing ran -> feature not present
+    tested   = [s for s in active if s[5] and _section_state(s) == 'tested']
+    withheld = [s for s in active if s[5] and _section_state(s) == 'withheld']
+    pending  = [s for s in active if s[5] and _section_state(s) == 'pending']
+    test_sections = tested + withheld + pending
     total = sum(len(s[5]) for s in test_sections)
-    passed = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) == 'pass')
-    failed = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) in ('fail','error'))
-    skipped = total - passed - failed
+    passed  = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) == 'pass')
+    failed  = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) in ('fail','error'))
+    skipped = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) == 'skip')
+    missing = total - passed - failed - skipped
 
     # Title
     pb.text(20, 'KeepKey Firmware Test Report', bold=True)
     pb.gap(2)
-    if passed == total and total > 0:
-        pb.text(11, f'Firmware {fw_version}  |  {ts}  |  ALL {total} TESTS PASSED', bold=True, color=GREEN)
-    elif failed > 0:
+    if failed > 0:
         pb.text(11, f'Firmware {fw_version}  |  {ts}  |  {failed} FAILED of {total} tests', bold=True, color=RED)
+    elif missing == 0 and total > 0:
+        # Everything that exists ran green; remaining are deliberate design-skips.
+        extra = f', {skipped} skipped (withheld)' if skipped else ''
+        pb.text(11, f'Firmware {fw_version}  |  {ts}  |  {passed}/{total} PASSED{extra}', bold=True, color=GREEN)
     else:
-        pb.text(10, f'Firmware {fw_version}  |  {ts}  |  {total} tests: {passed} passed, {skipped} pending')
+        parts = [f'{passed} passed']
+        if skipped: parts.append(f'{skipped} skipped')
+        if missing: parts.append(f'{missing} pending')
+        pb.text(10, f'Firmware {fw_version}  |  {ts}  |  {total} tests: {", ".join(parts)}')
     pb.gap(6)
     pb.text(12, 'Sections', bold=True)
-    _shown_tested = _shown_pending = False
+    _hdr_withheld = _hdr_pending = False
     for letter, title, mf, _, _, tests in test_sections:
-        has_any = any(_lookup(results, t[1], t[2]) for t in tests)
+        state = _section_state((letter, title, mf, None, None, tests))
         is_new = ver_t(mf) > (7, 10, 0)
-        if has_any and not _shown_tested:
-            _shown_tested = True
-        elif not has_any and not _shown_pending:
-            pb.text(9, f'  --- Pending (no firmware support yet) ---', bold=True, color=GRAY)
-            _shown_pending = True
+        if state == 'withheld' and not _hdr_withheld:
+            pb.text(9, '  --- Withheld on this build (build-flag gated; skipped by design) ---', bold=True, color=GRAY)
+            _hdr_withheld = True
+        elif state == 'pending' and not _hdr_pending:
+            pb.text(9, '  --- Pending (no firmware support yet) ---', bold=True, color=GRAY)
+            _hdr_pending = True
         tag = ' [NEW]' if is_new else ''
         p = sum(1 for t in tests if _lookup(results, t[1], t[2]) == 'pass')
         if p == len(tests) and len(tests) > 0:
@@ -1401,7 +1475,8 @@ def render(output_path, fw_version, results, screenshot_dir=None):
 
     pb.finish()
     pdf.write(output_path)
-    print(f'{output_path}: fw={fw_version}, {len(active)} sections, {total} tests ({passed} passed, {failed} failed, {skipped} pending)')
+    print(f'{output_path}: fw={fw_version}, {len(active)} sections, {total} tests '
+          f'({passed} passed, {failed} failed, {skipped} skipped, {missing} pending)')
 
 def screenshot_filter(fw_version):
     """Return pytest -k expression for tests with non-empty screenshot expectations.
