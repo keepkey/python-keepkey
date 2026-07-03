@@ -1028,6 +1028,51 @@ SECTIONS = [
           'device accepts them; deviate by one byte and it refuses.' % (
               len(CLEARSIGN_FLOWS) if CLEARSIGN_FLOWS else 0),
           []),
+
+         # ── v2 static schema (no online signer) ──────────────────────
+         # v2 attests only the decode SCHEMA (no tx_hash, no arg values); the
+         # DEVICE decodes the argument values from the calldata it signs. This
+         # removes the per-tx online signer: the catalog is signed once, offline.
+         # Offline format tests run every cycle; the on-device decode test is
+         # gated to the release that ships v2 (METADATA_VERSION_SCHEMA).
+         ('VS1', 'test_msg_ethereum_clear_signing', 'test_layout_has_no_tx_hash',
+          'v2 schema blob carries no tx_hash / no values',
+          'The v2 (static schema) blob attests only how to decode a curated '
+          '(chainId, contract, selector): method + per-arg name/format (+ static '
+          'decimals/symbol). It has NO committed tx_hash and NO argument values — '
+          'so it can be signed ONCE, offline, and served from a CDN with no hot '
+          'key. The device decodes the values itself from the calldata it signs.',
+          []),
+         ('VS2', 'test_msg_ethereum_clear_signing',
+          'test_token_arg_carries_static_decimals_symbol_not_value',
+          'v2 token arg = static decimals/symbol, value decoded on-device',
+          'A TOKEN_AMOUNT arg encodes the token\'s static decimals + symbol (a '
+          'property of the contract), but NOT the amount — the amount is decoded '
+          'from the calldata word on-device, then rendered "1.5 USDC".',
+          []),
+         ('VS3', 'test_msg_ethereum_clear_signing', 'test_frozen_body_snapshot',
+          'v2 wire format frozen vs firmware parser',
+          'The canonical v2 body\'s length + sha256 are frozen, so the '
+          'serializer can never drift from firmware\'s parse_v2_args() undetected '
+          '— the same byte-parity discipline the v1 reference vectors use.',
+          []),
+         ('VS4', 'test_msg_ethereum_clear_signing', 'test_rejects_dynamic_format',
+          'v2 scope: fixed-word types only',
+          'v2 decodes fixed single ABI words (ADDRESS / AMOUNT / TOKEN_AMOUNT) — '
+          'approve/transfer/transferFrom and fixed-arg calls. Dynamic types '
+          '(string/bytes/arrays) are rejected by the serializer and fall to the '
+          'blind-sign path on-device; a bounded dynamic decoder is future work.',
+          []),
+         ('VS5', 'test_msg_ethereum_clear_signing',
+          'test_v2_transfer_decodes_signs_and_recovers',
+          'v2 on-device: decode from calldata, sign, recover',
+          'END-TO-END with AdvancedMode OFF: a v2 transfer() schema blob + a real '
+          'transfer(to, amount) tx. The device decodes to/amount from the calldata '
+          'and clear-signs; the signature recovers to this device\'s signer over '
+          'the tx digest — so the who/what/why shown was bound to the exact tx, '
+          'with no tx_hash. The offline format tests above pin the wire format '
+          'the device decodes.',
+          ['Clearsign warning', 'v2 decoded transfer to/amount', 'Sign transaction']),
      ]),
 
     ('G', 'Hive', '7.15.0',
