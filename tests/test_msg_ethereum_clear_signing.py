@@ -643,7 +643,7 @@ REFERENCE_BLOB_SNAPSHOTS = {
     'permit2-permit-transfer-from': ('c0fde596537a6bf1e53b98d3746638b4249a7a90d8196fe4a9f40f711729ec84', 276),
     'across-spokepool-depositv3': ('ab185113f0b47ef5f6e1fab6a6839df8b71bf8d48796afee64a61ba8b336ac01', 311),
     'safe-exectransaction': ('00a523f8e02d196db7213813edfbeee2a707679b026c6c6b6f8af88d35bf4889', 274),
-    'erc4337-entrypoint-v0.7-handleops': ('29ac50a7c18a4e145d058c75dc9cb6232e875af79006766be0baf5cb674ba04f', 289),
+    'erc4337-entrypoint-v0.7-handleops': ('218c253b00780eeeb4f47b343feba7fafe2ecf3441f32afbd13e555cd56db6d2', 276),
     'eip7702-setcode-authorization': ('0518442c7172b8c57fcbd09ded11b54e1d20076c4b5e79a7490c4ae9c2096a18', 299),
 }
 

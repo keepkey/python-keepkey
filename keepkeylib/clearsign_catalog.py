@@ -954,7 +954,7 @@ _register(
         [{'name': 'sender', 'format': ARG_FORMAT_ADDRESS, 'value': addr('0x9406Cc6185a346906296840746125a0E44976454')},
          {'name': 'nonce', 'format': ARG_FORMAT_STRING, 'value': b'UserOperation nonce: 12'},
          {'name': 'beneficiary', 'format': ARG_FORMAT_ADDRESS, 'value': addr('0x' + '43' * 20)},
-         {'name': 'innerCall', 'format': ARG_FORMAT_STRING, 'value': b'empty in this representative UserOp'}],
+         {'name': 'innerCall', 'format': ARG_FORMAT_STRING, 'value': b'empty (representative)'}],
         why='A bundler-submitted meta-tx: the EntryPoint singleton validates and executes a batch of '
             'smart-account operations. KNOWN GAP, disclosed: this representative UserOp carries an '
             'EMPTY inner callData (the array-of-dynamic-tuples nesting is beyond the current static '
