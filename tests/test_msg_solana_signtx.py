@@ -625,9 +625,11 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     # Versioned transaction test
     # ================================================================
 
-    def test_solana_sign_versioned_v0_opaque(self):
-        """Versioned v0 transaction (first byte 0x80) — should require AdvancedMode
-        for blind/opaque signing since firmware cannot parse address lookup tables."""
+    def test_solana_sign_versioned_v0_static_verified(self):
+        """Versioned v0 transaction whose instructions only touch static
+        accounts (no address lookup table references) is exactly as
+        verifiable as a legacy message — it clear-signs without requiring
+        AdvancedMode."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
@@ -672,7 +674,66 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
 
         raw_tx = bytes(tx)
 
-        # Without AdvancedMode, versioned tx should be rejected
+        self.client.apply_policy('AdvancedMode', False)
+        resp = self.client.call(messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            raw_tx=raw_tx,
+        ))
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+
+    def test_solana_sign_versioned_v0_opaque(self):
+        """Versioned v0 transaction whose instruction reaches into an address
+        lookup table (an account index at or beyond the static account
+        count) cannot be verified on-device — requires AdvancedMode for
+        blind/opaque signing."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        from_pubkey = self._get_from_pubkey()
+
+        system_program = self.SYSTEM_PROGRAM
+        blockhash = b'\xBB' * 32
+        lookup_table = b'\x33' * 32
+
+        tx = bytearray()
+        tx.append(0x80)  # version prefix: v0
+
+        # Header
+        tx.append(1)    # num_required_sigs
+        tx.append(0)    # num_readonly_signed
+        tx.append(1)    # num_readonly_unsigned
+
+        # 2 static accounts — the transfer destination is resolved via the
+        # address lookup table below, not listed here.
+        tx.append(2)
+        tx.extend(from_pubkey)
+        tx.extend(system_program)
+
+        # Recent blockhash
+        tx.extend(blockhash)
+
+        # 1 instruction referencing account index 2 — beyond the 2 static
+        # accounts, so it resolves via the address lookup table.
+        tx.append(1)
+        tx.append(1)    # program_id index (system_program)
+        tx.append(2)    # 2 account indices
+        tx.append(0)    # from (static)
+        tx.append(2)    # to (external — loaded from the ALT)
+        instr_data = struct.pack('<I', 2) + struct.pack('<Q', 1000000000)
+        tx.append(len(instr_data))
+        tx.extend(instr_data)
+
+        # Address table lookups: 1 entry, 1 writable index
+        tx.append(1)
+        tx.extend(lookup_table)
+        tx.append(1)    # writable_count
+        tx.append(0)    # writable index 0 (into the ALT)
+        tx.append(0)    # readonly_count
+
+        raw_tx = bytes(tx)
+
+        # Without AdvancedMode, an ALT-referencing versioned tx should be rejected
         self.client.apply_policy('AdvancedMode', False)
         with pytest.raises(CallException):
             self.client.call(messages.SolanaSignTx(
