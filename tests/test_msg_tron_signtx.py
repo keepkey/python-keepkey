@@ -79,7 +79,11 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         self.assertFalse(all(b == 0 for b in resp.signature))
 
     def test_tron_sign_transfer_legacy_raw_data(self):
-        """Test legacy blind-sign with raw_data field."""
+        """Test legacy blind-sign with raw_data field.
+
+        This raw_data is a hand-rolled blob, not a real TransferContract, so
+        the raw_data clear-sign parser can't decode it — it falls to the
+        opaque blind-sign path, which requires AdvancedMode."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
@@ -94,7 +98,9 @@ class TestMsgTronSignTx(common.KeepKeyTest):
             address_n=parse_path("m/44'/195'/0'/0/0"),
             raw_data=raw_data,
         )
+        self.client.apply_policy('AdvancedMode', True)
         resp = self.client.call(msg)
+        self.client.apply_policy('AdvancedMode', False)
 
         # Should have a 65-byte signature
         self.assertEqual(len(resp.signature), 65)
@@ -196,6 +202,8 @@ class TestMsgTronSignTx(common.KeepKeyTest):
             address_n=parse_path("m/44'/195'/0'/0/0"),
             raw_data=raw_data,
         )
+        # Not a decodable TransferContract — opaque blind-sign, needs AdvancedMode.
+        self.client.apply_policy('AdvancedMode', True)
         resp1 = self.client.call(msg1)
 
         msg2 = tron_messages.TronSignTx(
@@ -203,6 +211,7 @@ class TestMsgTronSignTx(common.KeepKeyTest):
             raw_data=raw_data,
         )
         resp2 = self.client.call(msg2)
+        self.client.apply_policy('AdvancedMode', False)
 
         self.assertEqual(len(resp1.signature), 65)
         self.assertEqual(len(resp2.signature), 65)
@@ -225,6 +234,8 @@ class TestMsgTronSignTx(common.KeepKeyTest):
             address_n=parse_path("m/44'/195'/0'/0/0"),
             raw_data=raw_data,
         )
+        # Not a decodable TransferContract — opaque blind-sign, needs AdvancedMode.
+        self.client.apply_policy('AdvancedMode', True)
         resp_acct0 = self.client.call(msg_acct0)
 
         msg_acct1 = tron_messages.TronSignTx(
@@ -232,6 +243,7 @@ class TestMsgTronSignTx(common.KeepKeyTest):
             raw_data=raw_data,
         )
         resp_acct1 = self.client.call(msg_acct1)
+        self.client.apply_policy('AdvancedMode', False)
 
         self.assertEqual(len(resp_acct0.signature), 65)
         self.assertEqual(len(resp_acct1.signature), 65)

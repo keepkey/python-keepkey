@@ -174,7 +174,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
         BIP-39 wordlist must return Failure immediately.
         Requires firmware 7.15.1+ (per-word validation).
         """
-        self.requires_firmware("7.15.1")
+        self.requires_firmware("7.15.0")
         ret = self.client.call_raw(proto.RecoveryDevice(word_count=12,
                                    passphrase_protection=False,
                                    pin_protection=False,

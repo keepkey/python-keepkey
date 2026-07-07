@@ -27,7 +27,7 @@ class TestMsgEthereumSigningGuards(common.KeepKeyTest):
         """type=2 with no chain_id: Stage 1 counts chain_id as 1 byte but
         hash_rlp_number(0) hashes nothing -> over-declared list header ->
         wrong/garbage signer. The device must reject rather than sign it."""
-        self.requires_firmware("7.15.1")
+        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
@@ -49,7 +49,7 @@ class TestMsgEthereumSigningGuards(common.KeepKeyTest):
         absent it must encode as the empty integer (0x80). Stage 1 always
         counts it, so Stage 2 must always hash it -- the device must still
         produce a valid signature (not desync the list header)."""
-        self.requires_firmware("7.15.1")
+        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -69,7 +69,7 @@ class TestMsgEthereumSigningGuards(common.KeepKeyTest):
         """Typed prefix (0x02) is chosen from msg.type but the fee fields from
         has_max_fee_per_gas. A type=2 tx carrying only gas_price would sign a
         malformed (legacy-fee-in-1559-envelope) field list -> reject."""
-        self.requires_firmware("7.15.1")
+        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
@@ -88,7 +88,7 @@ class TestMsgEthereumSigningGuards(common.KeepKeyTest):
     def test_legacy_with_max_fee_rejected(self):
         """A legacy tx (type omitted) carrying max_fee_per_gas would hash two
         fee fields into a legacy structure -> reject the mismatch."""
-        self.requires_firmware("7.15.1")
+        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
@@ -117,7 +117,7 @@ class TestMsgEthereumSigningGuards(common.KeepKeyTest):
         the screen-level assertion (no 'Sablier' clear-sign summary appears for
         streamed calldata) is verified on-device / on the emulator via
         DebugLink layout."""
-        self.requires_firmware("7.15.1")
+        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)

@@ -87,7 +87,7 @@ class PDF:
             y, sz, txt = item[0], item[1], item[2]
             style = item[3] if len(item) > 3 else False
             color = item[4] if len(item) > 4 else None
-            txt = txt.replace('\\','\\\\').replace('(','\\(').replace(')','\\)')
+            txt = _ascii(txt).replace('\\','\\\\').replace('(','\\(').replace(')','\\)')
             if color:
                 ops.append(f'{color[0]} {color[1]} {color[2]} rg')
             if style == 'ding':
@@ -153,6 +153,20 @@ GRAY = (0.5, 0.5, 0.5)
 CHECK = '\x34'
 CROSS = '\x38'
 
+# Map non-Latin-1 Unicode punctuation to ASCII so it survives the PDF content
+# stream (encoded latin-1); em-dashes etc. were rendering as '?'.
+_ASCII_MAP = {
+    '—': '-', '–': '-', '→': '->', '←': '<-',
+    '’': "'", '‘': "'", '“': '"', '”': '"',
+    '…': '...', '•': '*', '₿': 'BTC', '≤': '<=',
+    '≥': '>=', '±': '+/-',
+}
+def _ascii(s):
+    for k, v in _ASCII_MAP.items():
+        if k in s:
+            s = s.replace(k, v)
+    return s
+
 class PB:
     def __init__(self, pdf):
         self.pdf = pdf; self.lines = []; self.y = 755
@@ -189,10 +203,18 @@ class PB:
         self._flush()
 
 def _lookup(results, mod, meth):
-    """Look up test result by module::method (precise), then bare method (fallback)."""
-    return results.get(f'{mod}::{meth}') or results.get(meth) or ''
+    """Look up a test result by module::method. Every SECTIONS module is a
+    test_msg_* module, so parse_junit always emits a 'mod::meth' key -- there is
+    no bare-method fallback (it let a cross-module method-name collision render a
+    never-run test as PASS, defeating the --validate-junit release gate)."""
+    return results.get(f'{mod}::{meth}', '')
 
-def ver_t(s): return tuple(int(x) for x in s.replace('v','').split('.')[:3])
+def ver_t(s):
+    # Defensive: tolerate pre-release tags (7.15.0-rc3), 'v' prefixes and short
+    # versions ('7.15' -> (7,15,0)) so report/filter/validate never crash.
+    s = str(s).split('-')[0].replace('v', '')
+    parts = (s.split('.') + ['0', '0', '0'])[:3]
+    return tuple(int(''.join(ch for ch in p if ch.isdigit()) or '0') for p in parts)
 def ver_ge(a, b): return ver_t(a) >= ver_t(b)
 def _w(text, n=95):
     words, lines, cur = text.split(), [], ''
@@ -201,24 +223,6 @@ def _w(text, n=95):
         else: cur = f'{cur} {w}' if cur else w
     if cur: lines.append(cur)
     return lines
-
-def _is_setup_frame(path):
-    """Check if a screenshot is a setUp noise frame (IMPORT RECOVERY, WIPE, or blank/logo)."""
-    try:
-        pixels, w, h = _read_png_pixels(path)
-        # Count non-zero pixels -- blank/logo frames have very few or very specific patterns
-        lit = sum(1 for b in pixels if b > 128)
-        total = w * h
-        # Very blank (< 5% lit) = idle/logo screen
-        if lit < total * 0.05:
-            return True
-        # Check for "IMPORT RECOVERY" text by looking at pixel density in top-left region
-        # setUp always shows this screen -- it's ~20% lit with specific pattern
-        # Real test screens vary widely, so we check the raw bytes for known patterns
-        # Simple heuristic: if first 2 btn frames match, skip them (setUp wipe + load)
-        return False
-    except:
-        return False
 
 def _frame_lit_ratio(path):
     """Fraction of lit pixels in an OLED PNG, or None if unreadable."""
@@ -247,19 +251,27 @@ def _pick_best_frame(test_dir, btn_files):
     if not btn_files:
         return None
     scored = []
+    readable = []
     for f in btn_files:
         r = _frame_lit_ratio(os.path.join(test_dir, f))
         if r is None:
             continue
+        readable.append(f)
         # Blank/near-blank (idle, lock) or near-full (logo/inverted) = noise.
         if r < 0.02 or r > 0.55:
             continue
         scored.append((r, f))
-    if not scored:
-        return None
-    # Most content-rich meaningful frame.
-    scored.sort()
-    return os.path.join(test_dir, scored[-1][1])
+    if scored:
+        # Most content-rich meaningful frame.
+        scored.sort()
+        return os.path.join(test_dir, scored[-1][1])
+    # Nothing landed in the meaningful density band, but we DID capture a
+    # readable frame (e.g. a dense QR / address screen brighter than the band,
+    # or a single-frame test). Show it rather than a bogus "OLED needed"
+    # placeholder when a real screenshot exists.
+    if readable:
+        return os.path.join(test_dir, readable[-1])
+    return None
 
 def detect_fw():
     try:
@@ -409,13 +421,27 @@ SECTIONS = [
          '- Input: single capacitive button (confirm/reject)',
          '- USB: micro-B, HID + WebUSB transports, HID fallback',
          '- Storage: BIP-39 seed encrypted in isolated flash region',
-         '- Curves: secp256k1, ed25519, NIST P-256, Pallas (Zcash)',
+         '- Curves: secp256k1, ed25519, NIST P-256 (Pallas/Zcash only on KK_ZCASH_PRIVACY=ON builds)',
          '',
          'SECURITY MODEL:',
          '- All private key operations happen on-device, keys never leave',
          '- Every transaction output displayed on OLED for user verification',
          '- PIN grid randomized on each prompt (position-based, not digit-based)',
          '- BIP-39 passphrase creates hidden wallets (plausible deniability)',
+         '',
+         'FIRMWARE VARIANTS (7.15, PR #282):',
+         '- Full multi-chain (default): all coin families; firmware_variant = model name',
+         '- Bitcoin-only (KK_BITCOIN_ONLY): only Bitcoin + Testnet; all altcoin and',
+         '  shielded-Zcash handlers stripped; firmware_variant = KeepKeyBTC (EmulatorBTC',
+         '  on the emulator). Clients gate multi-chain-only tests on this string.',
+         '- Zcash shielded (KK_ZCASH_PRIVACY): adds the Orchard/Pallas engine; default OFF',
+         '  pending external audit. Mutually exclusive with KK_BITCOIN_ONLY.',
+         '',
+         'SEED LOCK (7.15, PR #282):',
+         '- A seed created under bitcoin-only firmware is stamped in a reserved storage-',
+         '  version band. Multi-chain firmware refuses to load it and requires an explicit',
+         '  wipe (wipe-to-exit); the seed is never exposed to stripped-out code. Old',
+         '  multi-chain firmware treats the band as unknown and resets.',
      ], []),
 
     ('C', 'Core - Device Lifecycle', '7.0.0',
@@ -696,17 +722,17 @@ SECTIONS = [
           'Sign Dash transaction', 'Dash special transaction types (InstantSend-compatible).', []),
          ('B27', 'test_msg_signtx_grs', 'test_one_one_fee',
           'Sign Groestlcoin tx', 'GRS uses Groestl hash instead of SHA-256d for tx hashing.', []),
-         ('B28', 'test_msg_signtx_zcash', 'test_transparent_one_one',
-          'Sign Zcash transparent tx',
-          'Zcash transparent transactions use Overwinter/Sapling serialization format with '
-          'version group IDs and expiry height.',
-          ['Zcash tx confirm']),
+         # Zcash transparent signing moved to its own section Y (Zcash Transparent).
      ]),
 
     ('E', 'Ethereum', '7.0.0',
      'Ethereum covers native ETH transfers, ERC-20 tokens, EIP-1559 gas, personal message signing '
-     '(EIP-191), and contract interactions. The device displays checksummed addresses (EIP-55), '
-     'values in ETH with 18-decimal precision, and gas parameters.',
+     '(EIP-191), and contract interactions. The device displays checksummed addresses (EIP-55) and '
+     'gas parameters. Amount UNIT rule: values below 1 gwei (1e9 wei) show as raw "Wei" (there is '
+     'no smaller human unit to scale to); values at or above 1 gwei show 18-decimal-scaled ETH (or '
+     'the chain-native ticker on other EVM chains). Some tests below use small conformance-vector '
+     'amounts (e.g. 10 wei) for deterministic-signature pinning — their OLED frames legitimately '
+     'show raw "Wei", not a display bug.',
      [
          'ETH TRANSFER: Show "Send X ETH to 0x..." -> show gas -> confirm -> sign with secp256k1',
          'ERC-20: Decode transfer(to,amount) from contract data -> show token name + amount',
@@ -769,6 +795,48 @@ SECTIONS = [
           '0x swap ETH to ERC-20', 'DEX aggregator swap via 0x protocol.', []),
          ('E15', 'test_msg_ethereum_cfunc', 'test_sign_execTx',
           'Contract function call', 'Generic contract call signing.', []),
+         ('E16', 'test_sign_typed_data', 'test_ethereum_sign_typed_data_hash',
+          'EIP-712 typed-data hash signing (legacy, no on-device display)',
+          'KNOWN GAP, disclosed rather than hidden: EIP-712 (the standard behind wallet permits, '
+          'OpenSea listings, and DAO votes — a daily-driver format) is only supported at the '
+          'domain-separator-hash + message-hash level. The device signs two host-computed 32-byte '
+          'hashes; it does NOT parse or display the typed-data domain or message fields, so this '
+          'path shows the user no readable WHO/WHAT — it is effectively a blind hash-sign, not a '
+          'clear-sign. Full structured EIP-712 display is a firmware feature, not yet built.',
+          []),
+         ('E17', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_approve_liquidity_ETH',
+          'Uniswap V2 add-liquidity approve (pending)',
+          'PENDING, disclosed: known emulator limitation — an approve to an unknown (non-registry) '
+          'token contract cannot complete against the kkemu emulator (matches the sibling '
+          'add/remove-liquidity skips below); the device-firmware path is not in question, only '
+          'CI emulator coverage. Real-device testing is unaffected.',
+          []),
+         ('E18', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_add_liquidity_ETH',
+          'Uniswap V2 add liquidity ETH+token (pending)',
+          'PENDING, disclosed: same emulator limitation as E17 — a daily-driver LP-deposit flow '
+          'with no PDF proof on this build; tracked for real-device verification.',
+          []),
+         ('E19', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_remove_liquidity_ETH',
+          'Uniswap V2 remove liquidity ETH+token (pending)',
+          'PENDING, disclosed: same emulator limitation as E17.',
+          []),
+         ('E20', 'test_msg_ethereum_thorchain_deposit', 'test_deposit_legacy_selector',
+          'THORChain router deposit() (legacy selector)',
+          'Cross-chain swap via the THORChain router contract — a daily-driver EVM<->THORChain '
+          'swap path, natively decoded (asset/amount/memo) without clear-sign metadata.',
+          []),
+         ('E21', 'test_msg_ethereum_thorchain_deposit', 'test_deposit_with_expiry_selector',
+          'THORChain router depositWithExpiry()',
+          'Newer router selector variant with an expiry field; same native decode path.',
+          []),
+         ('E22', 'test_msg_ethereum_thorchain_deposit',
+          'test_deposit_with_expiry_non_thor_address_blind_sign_blocked',
+          'THORChain router call to a non-pinned address is blind-sign gated',
+          'WHY it can be trusted: the router CONTRACT ADDRESS is pinned; a call shaped like a '
+          'THORChain deposit but sent to an unpinned address is refused native decoding and falls '
+          'through to the ordinary blind-sign gate instead of being silently native-decoded — the '
+          'fix for the router-spoofing / blind-sign-bypass class of attack.',
+          ['Blind sign disabled (Blocked)']),
      ]),
 
     ('R', 'Ripple (XRP)', '7.0.0',
@@ -898,7 +966,7 @@ SECTIONS = [
        'cause fund loss or invalid transactions on the block-lattice.',
        [])]),
 
-    # ===== 7.15.1 NEW FEATURES =====
+    # ===== 7.15.0 NEW FEATURES =====
     ('V', 'EVM Clear-Signing', '7.15.0',
      'The purpose of clear-signing: instead of blind-signing an opaque hash, the device screen '
      'answers WHO / WHAT / WHY before the user approves. WHO = the validated contract address '
@@ -941,6 +1009,24 @@ SECTIONS = [
           'Signature verification math', 'Unit test for the metadata blob signature algorithm.', []),
          ('V7', 'test_msg_ethereum_clear_signing', 'test_tampered_blob_fails_verification',
           'Tampered blob fails', 'Any byte change in the blob invalidates the signature.', []),
+         ('V7a', 'test_msg_ethereum_clear_signing', 'test_empty_payload_returns_malformed',
+          'Empty metadata payload rejected', 'A zero-length blob classifies MALFORMED, never VERIFIED.', []),
+         ('V7b', 'test_msg_ethereum_clear_signing', 'test_truncated_payload_returns_malformed',
+          'Truncated metadata payload rejected',
+          'A blob cut short of the minimum structural size classifies MALFORMED.', []),
+         ('V7c', 'test_msg_ethereum_clear_signing', 'test_extra_trailing_bytes_returns_malformed',
+          'Trailing garbage bytes rejected',
+          'A blob with extra bytes appended past its declared structure classifies MALFORMED — '
+          'the parser cannot be tricked by appended data.', []),
+         ('V7d', 'test_msg_ethereum_clear_signing', 'test_wrong_version_returns_malformed',
+          'Unknown version byte rejected', 'A blob with a version byte the firmware does not '
+          'recognize classifies MALFORMED rather than being guessed-parsed.', []),
+         ('V7e', 'test_msg_ethereum_clear_signing', 'test_zero_signature_returns_malformed',
+          'All-zero signature rejected', 'A blob with a zeroed signature field classifies '
+          'MALFORMED — an attacker cannot skip signing by leaving the field blank.', []),
+         ('V7f', 'test_msg_ethereum_clear_signing', 'test_empty_key_slot_returns_malformed',
+          'Metadata against an empty key slot rejected',
+          'A blob referencing a signer slot with no key loaded classifies MALFORMED.', []),
          ('V8', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_allowed',
           'Blind sign permitted (AdvancedMode ON)',
           'Contract data with AdvancedMode enabled. Device allows signing. '
@@ -992,6 +1078,37 @@ SECTIONS = [
           'Empty, oversized, control-char and format-specifier aliases are rejected — the alias '
           'is rendered on the warning screen, so it cannot carry a display-spoofing payload.',
           []),
+
+         # ── ethereum signing-path guards (the blind-sign policy negative
+         # half + the EIP-1559 type/fee/chain_id regression suite) ──
+         ('VG1', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_blocked',
+          'Blind sign refused (AdvancedMode OFF)',
+          'Unknown contract data with AdvancedMode disabled is hard-rejected before any confirm '
+          'screen — the negative half of the V8 policy pair.',
+          ['Blind signing disabled (Failure)']),
+         ('VG2', 'test_msg_ethereum_signing_guards', 'test_eip1559_requires_chain_id',
+          'EIP-1559 requires chain_id',
+          'A type-2 tx with no chain_id would hash a garbage pre-image and recover the wrong '
+          'signer; the device rejects it outright instead of signing an unbroadcastable tx.',
+          []),
+         ('VG3', 'test_msg_ethereum_signing_guards', 'test_eip1559_no_priority_fee_signs',
+          'EIP-1559 zero priority fee signs correctly',
+          'Regression test for the non-canonical-RLP wrong-signer bug: a type-2 tx with zero/'
+          'absent priority fee must still hash and sign to the correct device address.',
+          []),
+         ('VG4', 'test_msg_ethereum_signing_guards', 'test_type2_without_max_fee_rejected',
+          'Type-2 tx without max_fee_per_gas rejected', '', []),
+         ('VG5', 'test_msg_ethereum_signing_guards', 'test_legacy_with_max_fee_rejected',
+          'Legacy tx with max_fee_per_gas rejected',
+          'Mixing legacy gas_price semantics with EIP-1559 fee fields is refused rather than '
+          'silently mis-hashed.',
+          []),
+         ('VG6', 'test_msg_ethereum_signing_guards',
+          'test_contract_handler_streamed_calldata_signs_full_data',
+          'Streamed calldata signs the full payload',
+          'A contract-clear-sign handler must not confirm only the first chunk while signing '
+          'unshown streamed bytes after it.',
+          []),
      ] + _V_CATALOG_TESTS + [
          ('V%d' % (17 + len(_V_CATALOG_TESTS)),
           'test_msg_ethereum_clear_signing', 'test_clearsign_batch_all_payloads',
@@ -1005,6 +1122,66 @@ SECTIONS = [
           'makes python-keepkey the complete signer reference: produce these bytes and the '
           'device accepts them; deviate by one byte and it refuses.' % (
               len(CLEARSIGN_FLOWS) if CLEARSIGN_FLOWS else 0),
+          []),
+
+         # ── v2 static schema (no online signer) ──────────────────────
+         # v2 attests only the decode SCHEMA (no tx_hash, no arg values); the
+         # DEVICE decodes the argument values from the calldata it signs. This
+         # removes the per-tx online signer: the catalog is signed once, offline.
+         # Offline format tests run every cycle; the on-device decode test is
+         # gated to the release that ships v2 (METADATA_VERSION_SCHEMA).
+         ('VS1', 'test_msg_ethereum_clear_signing', 'test_layout_has_no_tx_hash',
+          'v2 schema blob carries no tx_hash / no values',
+          'The v2 (static schema) blob attests only how to decode a curated '
+          '(chainId, contract, selector): method + per-arg name/format (+ static '
+          'decimals/symbol). It has NO committed tx_hash and NO argument values — '
+          'so it can be signed ONCE, offline, and served from a CDN with no hot '
+          'key. The device decodes the values itself from the calldata it signs.',
+          []),
+         ('VS2', 'test_msg_ethereum_clear_signing',
+          'test_token_arg_carries_static_decimals_symbol_not_value',
+          'v2 token arg = static decimals/symbol, value decoded on-device',
+          'A TOKEN_AMOUNT arg encodes the token\'s static decimals + symbol (a '
+          'property of the contract), but NOT the amount — the amount is decoded '
+          'from the calldata word on-device, then rendered "1.5 USDC".',
+          []),
+         ('VS3', 'test_msg_ethereum_clear_signing', 'test_frozen_body_snapshot',
+          'v2 wire format frozen vs firmware parser',
+          'The canonical v2 body\'s length + sha256 are frozen, so the '
+          'serializer can never drift from firmware\'s parse_v2_args() undetected '
+          '— the same byte-parity discipline the v1 reference vectors use.',
+          []),
+         ('VS4', 'test_msg_ethereum_clear_signing', 'test_rejects_dynamic_format',
+          'v2 scope: fixed-word types only',
+          'v2 decodes fixed single ABI words (ADDRESS / AMOUNT / TOKEN_AMOUNT) — '
+          'approve/transfer/transferFrom and fixed-arg calls. Dynamic types '
+          '(string/bytes/arrays) are rejected by the serializer and fall to the '
+          'blind-sign path on-device; a bounded dynamic decoder is future work.',
+          []),
+         ('VS5', 'test_msg_ethereum_clear_signing',
+          'test_v2_transfer_decodes_signs_and_recovers',
+          'v2 on-device: decode from calldata, sign, recover',
+          'END-TO-END with AdvancedMode OFF: a v2 transfer() schema blob + a real '
+          'transfer(to, amount) tx. The device decodes to/amount from the calldata '
+          'and clear-signs; the signature recovers to this device\'s signer over '
+          'the tx digest — so the who/what/why shown was bound to the exact tx, '
+          'with no tx_hash. The offline format tests above pin the wire format '
+          'the device decodes.',
+          ['Clearsign warning', 'v2 decoded transfer to/amount', 'Sign transaction']),
+         ('VS6', 'test_msg_ethereum_clear_signing',
+          'test_v2_calldata_length_mismatch_falls_back_to_blind_sign_gate',
+          'v2 decode-mismatch falls back to blind-sign (fail-closed)',
+          'THE headline v2 security property: schema says 2 words, calldata carries 3. '
+          'decode_v2_args\' structural completeness check fails, so the device does NOT '
+          'clear-sign a decode that would not match what it is about to sign — it falls '
+          'through to the ordinary blind-sign gate, and AdvancedMode OFF hard-rejects it.',
+          ['Blind signing disabled (Failure)']),
+         ('VS7', 'test_msg_ethereum_clear_signing',
+          'test_v2_unsupported_arg_format_returns_malformed',
+          'v2 unsupported arg format rejected at blob load',
+          'A hand-crafted v2 blob using an unsupported dynamic format (STRING) — the kind the '
+          'Python serializer itself refuses to build — is independently rejected by the '
+          'device\'s own parser as MALFORMED, before any calldata is even considered.',
           []),
      ]),
 
@@ -1099,7 +1276,7 @@ SECTIONS = [
 
     ('T', 'TRON', '7.14.0',
      'NEW: TRON with secp256k1 signing, base58 addresses. Blind-sign via raw_data. '
-     'Structured reconstruct-then-sign and TRC-20 clear-signing deferred to 7.15+.',
+     'Structured reconstruct-then-sign and TRC-20 clear-signing deferred to a future release.',
      [
          'ADDRESS: m/44\'/195\'/0\'/0/0 -> full 34-char base58 TRON address',
          'BLIND-SIGN: Raw protobuf data -> hash + sign',
@@ -1122,7 +1299,7 @@ SECTIONS = [
     ('N', 'TON', '7.14.0',
      'NEW: TON v4r2 wallet contracts. Ed25519 signing with structured field display. '
      'Blind-sign for raw transactions. Memo/comment support. '
-     'Full clear-sign with cell tree reconstruction deferred to 7.15+.',
+     'Full clear-sign with cell tree reconstruction deferred to a future release.',
      [
          'ADDRESS: m/44\'/607\'/0\' -> full 48-char base64url TON address',
          'STRUCTURED: Amount + address + memo shown as display context -> sign',
@@ -1147,14 +1324,48 @@ SECTIONS = [
           'Missing fields rejected', 'Incomplete data refused.', []),
      ]),
 
-    ('Z', 'Zcash Orchard', '7.14.0',
-     'NEW: Shielded transactions via PCZT streaming. Orchard hides sender, recipient, and amount '
-     'using ZK proofs. Raw seed access (ZIP-32 Orchard derivation uses BIP-39 seed + Pallas curve). '
-     'Full Viewing Key (FVK) export for watch-only wallets, unified-address display with an '
-     'on-device seed-fingerprint attestation (ZIP-32 §6.1). NOTE: pure shielded Orchard action '
-     'signing (Z5-Z7) is deferred past 7.15 — legacy sighash needs header/orchard digests not yet '
-     'in firmware; those tests skip with that reason and do not block release. Transparent->Orchard '
-     'shielding, FVK export, address display and fingerprint binding are all live.',
+    ('Y', 'Zcash Transparent', '7.0.0',
+     'Transparent t-address Zcash (send/receive) over the generic Bitcoin UTXO signing path with '
+     'Overwinter/Sapling-v4 branch handling. This is the Zcash functionality that ships ENABLED on '
+     'the default 7.15.0 build -- t1.../t3... addresses sign like Bitcoin (SECP256K1) with a '
+     'FeeOverThreshold guard. No shielded/Orchard engine is involved; contrast with section Z '
+     '(shielded), which is withheld behind KK_ZCASH_PRIVACY.',
+     [
+         'INPUT: TxInputType over the Zcash coin (t-address, SECP256K1)',
+         'METADATA: version_group_id + branch_id for the target upgrade',
+         'CONFIRM: amount + destination on the OLED, then sign each input',
+         'FEE GUARD: an implausibly high fee triggers a confirmation prompt',
+     ],
+     [
+         ('Y1', 'test_msg_signtx_zcash', 'test_transparent_one_one',
+          'Transparent 1-in 1-out',
+          'Sign a standard transparent Zcash spend; the device shows the amount and destination '
+          't-address before producing a signature over the overwinter sighash.',
+          ['Zcash send confirm']),
+         ('Y2', 'test_msg_signtx_zcash', 'test_transparent_one_one_fee_too_high',
+          'High-fee guard',
+          'An implausibly high fee triggers the FeeOverThreshold confirmation before signing.',
+          []),
+         ('Y3', 'test_msg_signtx_zcash', 'test_shieldedIn_one_one_fee_1',
+          'Transparent spend (fee scenario 1)',
+          'Despite the legacy method name, this signs a transparent input/output over the same '
+          'overwinter path (no Orchard).',
+          []),
+         ('Y4', 'test_msg_signtx_zcash', 'test_shieldedIn_one_one_fee_2',
+          'Transparent spend (fee scenario 2)',
+          'Second transparent fee scenario over the overwinter path.',
+          []),
+     ]),
+
+    ('Z', 'Zcash Shielded (Orchard)', '7.14.0',
+     'Shielded Orchard (PCZT streaming, Full Viewing Key export, unified-address display with an '
+     'on-device ZIP-32 Sec 6.1 seed-fingerprint attestation) is WITHHELD on the default 7.15.0 build. '
+     'It is compile-gated behind the KK_ZCASH_PRIVACY build flag, which is DEFAULT-OFF pending an '
+     'external audit of the Orchard/Pallas engine. On this build the firmware does not register the '
+     'Zcash* shielded messages, so every test in this section SKIPS BY DESIGN (the requires_message '
+     'probe returns Failure_UnexpectedMessage) -- this is a deliberate policy hold, NOT missing or '
+     'broken support. To exercise these, build the KK_ZCASH_PRIVACY=ON variant. Transparent t-address '
+     'Zcash IS live and shipping -- see section Y (Zcash Transparent).',
      [
          'FVK: Derive ak, nk, rivk components via ZIP-32 Orchard path',
          'ADDRESS: Device derives its own unified address + shows it; optional seed-fingerprint pin',
@@ -1261,36 +1472,54 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
     # Separate specs section (no tests) from test sections
     specs = [s for s in active if not s[5]]
-    # Sections with results first, pending sections at bottom.
-    # Within each group: existing chains first (proven), then new features.
-    has_results = [s for s in active if s[5] and any(_lookup(results, t[1], t[2]) for t in s[5])]
-    no_results = [s for s in active if s[5] and not any(_lookup(results, t[1], t[2]) for t in s[5])]
-    test_sections = has_results + no_results
+
+    # Classify each section by its strongest per-test outcome so the report
+    # distinguishes "ran and passed/failed" from "skipped by design (build-flag
+    # or policy gated, e.g. KK_ZCASH_PRIVACY-off shielded Zcash)" from "no result
+    # at all". A design-skip is NOT missing firmware support.
+    def _section_state(s):
+        st = [_lookup(results, t[1], t[2]) for t in s[5]]
+        if any(x in ('pass', 'fail', 'error') for x in st):
+            return 'tested'
+        if any(x == 'skip' for x in st):
+            return 'withheld'   # only skips -> intentionally gated on this build
+        return 'pending'        # nothing ran -> feature not present
+    tested   = [s for s in active if s[5] and _section_state(s) == 'tested']
+    withheld = [s for s in active if s[5] and _section_state(s) == 'withheld']
+    pending  = [s for s in active if s[5] and _section_state(s) == 'pending']
+    test_sections = tested + withheld + pending
     total = sum(len(s[5]) for s in test_sections)
-    passed = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) == 'pass')
-    failed = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) in ('fail','error'))
-    skipped = total - passed - failed
+    passed  = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) == 'pass')
+    failed  = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) in ('fail','error'))
+    skipped = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) == 'skip')
+    missing = total - passed - failed - skipped
 
     # Title
     pb.text(20, 'KeepKey Firmware Test Report', bold=True)
     pb.gap(2)
-    if passed == total and total > 0:
-        pb.text(11, f'Firmware {fw_version}  |  {ts}  |  ALL {total} TESTS PASSED', bold=True, color=GREEN)
-    elif failed > 0:
+    if failed > 0:
         pb.text(11, f'Firmware {fw_version}  |  {ts}  |  {failed} FAILED of {total} tests', bold=True, color=RED)
+    elif missing == 0 and total > 0:
+        # Everything that exists ran green; remaining are deliberate design-skips.
+        extra = f', {skipped} skipped (withheld)' if skipped else ''
+        pb.text(11, f'Firmware {fw_version}  |  {ts}  |  {passed}/{total} PASSED{extra}', bold=True, color=GREEN)
     else:
-        pb.text(10, f'Firmware {fw_version}  |  {ts}  |  {total} tests: {passed} passed, {skipped} pending')
+        parts = [f'{passed} passed']
+        if skipped: parts.append(f'{skipped} skipped')
+        if missing: parts.append(f'{missing} pending')
+        pb.text(10, f'Firmware {fw_version}  |  {ts}  |  {total} tests: {", ".join(parts)}')
     pb.gap(6)
     pb.text(12, 'Sections', bold=True)
-    _shown_tested = _shown_pending = False
+    _hdr_withheld = _hdr_pending = False
     for letter, title, mf, _, _, tests in test_sections:
-        has_any = any(_lookup(results, t[1], t[2]) for t in tests)
+        state = _section_state((letter, title, mf, None, None, tests))
         is_new = ver_t(mf) > (7, 10, 0)
-        if has_any and not _shown_tested:
-            _shown_tested = True
-        elif not has_any and not _shown_pending:
-            pb.text(9, f'  --- Pending (no firmware support yet) ---', bold=True, color=GRAY)
-            _shown_pending = True
+        if state == 'withheld' and not _hdr_withheld:
+            pb.text(9, '  --- Withheld on this build (build-flag gated; skipped by design) ---', bold=True, color=GRAY)
+            _hdr_withheld = True
+        elif state == 'pending' and not _hdr_pending:
+            pb.text(9, '  --- Pending (no firmware support yet) ---', bold=True, color=GRAY)
+            _hdr_pending = True
         tag = ' [NEW]' if is_new else ''
         p = sum(1 for t in tests if _lookup(results, t[1], t[2]) == 'pass')
         if p == len(tests) and len(tests) > 0:
@@ -1401,7 +1630,8 @@ def render(output_path, fw_version, results, screenshot_dir=None):
 
     pb.finish()
     pdf.write(output_path)
-    print(f'{output_path}: fw={fw_version}, {len(active)} sections, {total} tests ({passed} passed, {failed} failed, {skipped} pending)')
+    print(f'{output_path}: fw={fw_version}, {len(active)} sections, {total} tests '
+          f'({passed} passed, {failed} failed, {skipped} skipped, {missing} pending)')
 
 def screenshot_filter(fw_version):
     """Return pytest -k expression for tests with non-empty screenshot expectations.

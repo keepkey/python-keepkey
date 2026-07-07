@@ -36,6 +36,8 @@ except ImportError:
 
 from keepkeylib.signed_metadata import (
     serialize_metadata,
+    serialize_schema_metadata,
+    schema_calldata,
     sign_metadata,
     build_test_metadata,
     token_amount_value,
@@ -45,6 +47,7 @@ from keepkeylib.signed_metadata import (
     ARG_FORMAT_BYTES,
     ARG_FORMAT_STRING,
     ARG_FORMAT_TOKEN_AMOUNT,
+    METADATA_VERSION_SCHEMA,
     CLASSIFICATION_VERIFIED,
     CLASSIFICATION_OPAQUE,
     CLASSIFICATION_MALFORMED,
@@ -640,7 +643,7 @@ REFERENCE_BLOB_SNAPSHOTS = {
     'permit2-permit-transfer-from': ('c0fde596537a6bf1e53b98d3746638b4249a7a90d8196fe4a9f40f711729ec84', 276),
     'across-spokepool-depositv3': ('ab185113f0b47ef5f6e1fab6a6839df8b71bf8d48796afee64a61ba8b336ac01', 311),
     'safe-exectransaction': ('00a523f8e02d196db7213813edfbeee2a707679b026c6c6b6f8af88d35bf4889', 274),
-    'erc4337-entrypoint-v0.7-handleops': ('0b44fc0f98727877a1d6bd1346300d9fe4b537e48d901002ea241d01b79c52cd', 281),
+    'erc4337-entrypoint-v0.7-handleops': ('218c253b00780eeeb4f47b343feba7fafe2ecf3441f32afbd13e555cd56db6d2', 276),
     'eip7702-setcode-authorization': ('0518442c7172b8c57fcbd09ded11b54e1d20076c4b5e79a7490c4ae9c2096a18', 299),
 }
 
@@ -694,6 +697,121 @@ class TestClearsignReferenceVectors(unittest.TestCase):
                      ARG_FORMAT_TOKEN_AMOUNT),
                     '%s arg %s uses a hex-rendering format' %
                     (flow['key'], arg['name']))
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# v2 static-schema blobs (offline) — no device required
+#
+# v2 attests only the decode SCHEMA (no tx_hash, no arg values); the device
+# decodes the argument values from the calldata it signs. These offline tests
+# pin the wire format serialize_schema_metadata() emits so it can never drift
+# from firmware's parse_v2_args() / decode_v2_args() undetected.
+# ═══════════════════════════════════════════════════════════════════════
+
+# transfer(to, amount) on USDC — the canonical v2 fixture. amount is a token
+# amount (6 decimals, "USDC"); the value is NOT in the blob, it is decoded from
+# the calldata word by the device.
+USDC_ADDRESS = bytes.fromhex('a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48')
+ERC20_TRANSFER_SELECTOR = bytes.fromhex('a9059cbb')
+V2_SCHEMA_ARGS = [
+    {'name': 'to', 'format': ARG_FORMAT_ADDRESS},
+    {'name': 'amount', 'format': ARG_FORMAT_TOKEN_AMOUNT,
+     'decimals': 6, 'symbol': 'USDC'},
+]
+
+
+def _v2_transfer_blob():
+    body = serialize_schema_metadata(
+        chain_id=1, contract_address=USDC_ADDRESS,
+        selector=ERC20_TRANSFER_SELECTOR, method_name='transfer',
+        args=V2_SCHEMA_ARGS, timestamp=0, key_id=TEST_KEY_ID)
+    return body, sign_metadata(body)
+
+
+class TestClearSignV2SchemaOffline(unittest.TestCase):
+    """Offline byte-format tests for the v2 static-schema serializer."""
+
+    def test_version_byte_is_schema(self):
+        body, _ = _v2_transfer_blob()
+        self.assertEqual(body[0], METADATA_VERSION_SCHEMA)
+
+    def test_layout_has_no_tx_hash(self):
+        """v2 body = version(1)+chain(4)+contract(20)+selector(4)+method... —
+        the selector sits at offset 25, immediately after the contract, with NO
+        32-byte tx_hash in between (that is the whole point of v2)."""
+        body, _ = _v2_transfer_blob()
+        self.assertEqual(body[1:5], b'\x00\x00\x00\x01')            # chain_id
+        self.assertEqual(body[5:25], USDC_ADDRESS)                  # contract
+        self.assertEqual(body[25:29], ERC20_TRANSFER_SELECTOR)     # selector @25
+        # method_len(2) + 'transfer'(8) then num_args
+        self.assertEqual(body[29:31], b'\x00\x08')
+        self.assertEqual(body[31:39], b'transfer')
+        self.assertEqual(body[39], len(V2_SCHEMA_ARGS))
+
+    def test_token_arg_carries_static_decimals_symbol_not_value(self):
+        """The token arg encodes name + format + decimals + symbol, and NO
+        value — decimals/symbol are static (a property of the contract), the
+        amount is decoded on-device from the calldata."""
+        body, _ = _v2_transfer_blob()
+        # after num_args @39: arg0 'to' = len(1)+'to'(2)+format(1) = 4 bytes
+        p = 40
+        self.assertEqual(body[p], 2)                    # name_len 'to'
+        self.assertEqual(body[p + 1:p + 3], b'to')
+        self.assertEqual(body[p + 3], ARG_FORMAT_ADDRESS)
+        p += 4
+        # arg1 'amount' = len(1)+'amount'(6)+format(1)+decimals(1)+symlen(1)+'USDC'(4)
+        self.assertEqual(body[p], 6)
+        self.assertEqual(body[p + 1:p + 7], b'amount')
+        self.assertEqual(body[p + 7], ARG_FORMAT_TOKEN_AMOUNT)
+        self.assertEqual(body[p + 8], 6)                # decimals
+        self.assertEqual(body[p + 9], 4)                # symbol_len
+        self.assertEqual(body[p + 10:p + 14], b'USDC')
+
+    def test_signed_blob_is_body_plus_65(self):
+        body, blob = _v2_transfer_blob()
+        self.assertEqual(len(blob), len(body) + 65)
+
+    def test_frozen_body_snapshot(self):
+        """Freeze the canonical v2 UNSIGNED body's length + sha256. The body is
+        key-independent (no signature) and deterministic (timestamp=0), so this
+        is a pure wire-format drift gate: it trips iff serialize_schema_metadata()
+        changes the bytes, which must stay in lockstep with firmware's
+        parse_v2_args(). (The signature is exercised separately.)"""
+        body, _ = _v2_transfer_blob()
+        got = (len(body), hashlib.sha256(body).hexdigest())
+        self.assertEqual(got, V2_BODY_SNAPSHOT,
+                         'v2 body drift: only update V2_BODY_SNAPSHOT if the wire '
+                         'format intentionally changed (and firmware too)')
+
+    def test_calldata_matches_schema_shape(self):
+        """schema_calldata() builds selector + one 32-byte word per arg, so the
+        device decodes exactly num_args words (the structural binding)."""
+        cd = schema_calldata(ERC20_TRANSFER_SELECTOR, [
+            {'format': ARG_FORMAT_ADDRESS, 'address': VITALIK},
+            {'format': ARG_FORMAT_TOKEN_AMOUNT, 'amount': 1500000},
+        ])
+        self.assertEqual(len(cd), 4 + 32 * 2)
+        self.assertEqual(cd[:4], ERC20_TRANSFER_SELECTOR)
+        self.assertEqual(cd[4:16], b'\x00' * 12)     # address left-padding
+        self.assertEqual(cd[16:36], VITALIK)
+        self.assertEqual(int.from_bytes(cd[36:68], 'big'), 1500000)
+
+    def test_rejects_dynamic_format(self):
+        """v2 only encodes fixed single-word types; STRING/BYTES are rejected by
+        the serializer (they have no fixed on-chain word)."""
+        with self.assertRaises(AssertionError):
+            serialize_schema_metadata(
+                chain_id=1, contract_address=USDC_ADDRESS,
+                selector=ERC20_TRANSFER_SELECTOR, method_name='x',
+                args=[{'name': 'label', 'format': ARG_FORMAT_STRING}])
+
+
+# Frozen len + sha256 of the canonical v2 UNSIGNED transfer body (timestamp=0,
+# key-independent). Regenerate ONLY on an intentional wire-format change:
+#   python3 -c "from tests.test_msg_ethereum_clear_signing import _v2_transfer_blob; \
+#     import hashlib; b,_=_v2_transfer_blob(); print(len(b), hashlib.sha256(b).hexdigest())"
+V2_BODY_SNAPSHOT = (
+    64, '01a24001460f8a69684f3d2a10f75b14e7449d8912a3833f7f8758e8fccadc05')
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -1102,6 +1220,121 @@ class TestEthereumClearSigning(common.KeepKeyTest):
                 alias=CI_SIGNER_ALIAS)
 
 
+class TestClearSignV2Device(common.KeepKeyTest):
+    """Device integration for v2 (static schema) blobs.
+
+    A v2 blob attests only the decode schema; the device decodes the argument
+    values from the calldata it signs. This exercises the full round-trip: load
+    signer -> send v2 metadata -> sign a matching transfer() tx -> the signature
+    recovers to this device's signer over the tx digest (so the who/what/why
+    shown was bound to the exact tx, with no committed tx_hash).
+
+    v2 (METADATA_VERSION_SCHEMA) lands in the in-progress 7.15.0 line, so this
+    runs against the develop firmware alongside the v1 clear-sign device tests.
+    """
+
+    V2_FIRMWARE = "7.15.0"
+
+    def setUp(self):
+        super().setUp()
+        self.requires_firmware(self.V2_FIRMWARE)
+        self.requires_message("EthereumTxMetadata")
+        self.requires_message("LoadClearsignSigner")
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.load_clearsign_signer(
+            key_id=TEST_KEY_ID, pubkey=test_signer_compressed_pubkey(),
+            alias=CI_SIGNER_ALIAS)
+        self._drop_setup_screenshots()
+
+    def test_v2_transfer_decodes_signs_and_recovers(self):
+        self.client.apply_policy("AdvancedMode", 0)
+        self._drop_setup_screenshots()
+        n = parse_path(DEVICE_PATH)
+        chain_id, nonce, gas_price, gas_limit, value = 1, 3, 20000000000, 250000, 0
+        # transfer(to=VITALIK, amount=1.5 USDC) — the device decodes both from
+        # the calldata using the v2 schema (address word + token-amount word).
+        args = [
+            {'format': ARG_FORMAT_ADDRESS, 'address': VITALIK},
+            {'format': ARG_FORMAT_TOKEN_AMOUNT, 'amount': 1500000},
+        ]
+        data = schema_calldata(ERC20_TRANSFER_SELECTOR, args)
+        _, blob = _v2_transfer_blob()
+
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=blob, metadata_version=1, key_id=TEST_KEY_ID)
+        self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
+
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=n, nonce=nonce, gas_price=gas_price, gas_limit=gas_limit,
+            to=USDC_ADDRESS, value=value, data=data, chain_id=chain_id)
+        self.assertIsNotNone(sig_r)
+        self.assertIsNotNone(sig_s)
+        tx_hash = eth_sighash_legacy(nonce, gas_price, gas_limit, USDC_ADDRESS,
+                                     value, data, chain_id)
+        signer = recover_eth_signer(sig_r, sig_s, sig_v, tx_hash, chain_id)
+        self.assertEqual(signer, self.client.ethereum_get_address(n))
+
+    def test_v2_calldata_length_mismatch_falls_back_to_blind_sign_gate(self):
+        """The headline v2 security property: a blob's schema says 2 words,
+        but the calldata actually being signed carries 3. decode_v2_args'
+        structural completeness check (total calldata bytes must equal
+        exactly 4 + 32*num_args) fails, matches_tx returns false, and the tx
+        falls through to the ordinary blind-sign path — with AdvancedMode
+        OFF that is a hard reject, never a clear-signed-but-wrong display."""
+        self.client.apply_policy("AdvancedMode", 0)
+        self._drop_setup_screenshots()
+        n = parse_path(DEVICE_PATH)
+        chain_id, nonce, gas_price, gas_limit, value = 1, 3, 20000000000, 250000, 0
+        args = [
+            {'format': ARG_FORMAT_ADDRESS, 'address': VITALIK},
+            {'format': ARG_FORMAT_TOKEN_AMOUNT, 'amount': 1500000},
+        ]
+        # calldata carries one EXTRA 32-byte word beyond the 2-arg schema.
+        data = schema_calldata(ERC20_TRANSFER_SELECTOR, args) + (b'\x00' * 32)
+        _, blob = _v2_transfer_blob()
+
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=blob, metadata_version=1, key_id=TEST_KEY_ID)
+        self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
+
+        with self.assertRaises(CallException) as ctx:
+            self.client.ethereum_sign_tx(
+                n=n, nonce=nonce, gas_price=gas_price, gas_limit=gas_limit,
+                to=USDC_ADDRESS, value=value, data=data, chain_id=chain_id)
+        self.assertIn("Blind signing disabled", str(ctx.exception))
+
+    def test_v2_unsupported_arg_format_returns_malformed(self):
+        """v2 supports only fixed single-word ADDRESS/AMOUNT/TOKEN_AMOUNT arg
+        formats (decode_v2_args has no dynamic-type support, by design). The
+        Python serializer refuses to BUILD a STRING-format v2 blob (see the
+        offline test_rejects_dynamic_format), but a malicious or buggy host
+        could still hand-craft the raw bytes — the device's own parser must
+        independently reject an unsupported v2 arg format as MALFORMED at
+        blob-load time, before any calldata is even seen."""
+        self._drop_setup_screenshots()
+        body = bytearray()
+        body.append(METADATA_VERSION_SCHEMA)
+        body.extend((1).to_bytes(4, 'big'))                  # chain_id
+        body.extend(USDC_ADDRESS)
+        body.extend(ERC20_TRANSFER_SELECTOR)
+        name = b'transfer'
+        body.extend(len(name).to_bytes(2, 'big'))
+        body.extend(name)
+        body.append(1)                                        # num_args
+        arg_name = b'label'
+        body.append(len(arg_name))
+        body.extend(arg_name)
+        body.append(ARG_FORMAT_STRING)                         # unsupported in v2
+        body.append(CLASSIFICATION_VERIFIED)
+        body.extend((0).to_bytes(4, 'big'))                    # timestamp
+        body.append(TEST_KEY_ID)
+        blob = sign_metadata(bytes(body))
+
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=blob, metadata_version=1, key_id=TEST_KEY_ID)
+        self.assertEqual(resp.classification, CLASSIFICATION_MALFORMED)
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # Dynamically generate one full-confirm device test per CLEARSIGN_FLOWS
 # entry (mirrors keepkey-sdk tests/evm-clearsign): every real-world flow a
@@ -1147,12 +1380,13 @@ def print_clearsign_flows():
     for flow in CLEARSIGN_FLOWS:
         print()
         print('[%s] %s' % (flow['key'], flow['method']))
-        print('  shows      : %s' % flow['shows'])
+        shows = ', '.join('%s=%r' % (a['name'], a.get('value')) for a in flow['args'])
+        print('  shows      : %s' % shows)
         print('  to         : 0x%s' % flow['to'].hex())
         print('  value      : %d' % flow['value'])
         print('  calldata   : 0x%s' % flow['data'].hex())
         print('  tx_hash    : 0x%s' % flow_tx_hash(flow).hex())
-        print('  blob       : %s' % flow_blob(flow, timestamp=REFERENCE_TIMESTAMP).hex())
+        print('  blob       : %s' % flow_blob(flow, TEST_KEY_ID, timestamp=REFERENCE_TIMESTAMP).hex())
 
 
 def print_test_vectors():

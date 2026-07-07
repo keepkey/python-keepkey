@@ -246,6 +246,111 @@ def serialize_metadata(
     return bytes(buf)
 
 
+# ── v2: static schema (no tx_hash, no values; device decodes calldata) ──
+#
+# METADATA_VERSION_SCHEMA blobs attest only HOW to decode a curated
+# (chainId, contract, selector): the method label and, per argument, a name +
+# display format (+ static decimals/symbol for token amounts). They carry NO
+# tx_hash and NO argument values — the device decodes the values from the exact
+# calldata it is about to sign. Signed once, OFFLINE; no per-tx signer.
+#
+# Firmware format (parse_v2_args in lib/firmware/signed_metadata.c):
+#   version(1)=0x02 + chain_id(4 BE) + contract(20) + selector(4) +
+#   method_len(2 BE) + method + num_args(1) +
+#   [per arg: name_len(1) + name + display_format(1) +
+#             (if TOKEN_AMOUNT: decimals(1) + symbol_len(1) + symbol)] +
+#   classification(1) + timestamp(4 BE) + key_id(1) + signature(64) + recovery(1)
+#
+# Supported display formats (fixed single ABI word at offset 4 + 32*i):
+#   ARG_FORMAT_ADDRESS, ARG_FORMAT_AMOUNT, ARG_FORMAT_TOKEN_AMOUNT.
+METADATA_VERSION_SCHEMA = 2
+
+
+def serialize_schema_metadata(
+    chain_id: int,
+    contract_address: bytes,
+    selector: bytes,
+    method_name: str,
+    args: list,
+    classification: int = CLASSIFICATION_VERIFIED,
+    timestamp: int = None,
+    key_id: int = 3,
+) -> bytes:
+    """Serialize a v2 (static schema) metadata payload (unsigned).
+
+    Args mirror serialize_metadata(), minus tx_hash. Each entry of `args` is a
+    dict: {name, format, [decimals, symbol]} — NO 'value' (the device decodes it
+    from the calldata). `decimals`/`symbol` are required for TOKEN_AMOUNT and
+    ignored otherwise. Call sign_metadata() on the result.
+    """
+    if timestamp is None:
+        timestamp = int(time.time())
+
+    assert len(contract_address) == 20
+    assert len(selector) == 4
+    assert len(method_name.encode('utf-8')) <= 64
+    assert len(args) <= 8
+
+    buf = bytearray()
+    buf.append(METADATA_VERSION_SCHEMA)
+    buf.extend(struct.pack('>I', chain_id))
+    buf.extend(contract_address)
+    buf.extend(selector)
+
+    name_bytes = method_name.encode('utf-8')
+    buf.extend(struct.pack('>H', len(name_bytes)))
+    buf.extend(name_bytes)
+
+    buf.append(len(args))
+    for arg in args:
+        arg_name = arg['name'].encode('utf-8')
+        assert len(arg_name) <= 32
+        buf.append(len(arg_name))
+        buf.extend(arg_name)
+
+        fmt = arg['format']
+        assert fmt in (ARG_FORMAT_ADDRESS, ARG_FORMAT_AMOUNT,
+                       ARG_FORMAT_TOKEN_AMOUNT), \
+            'v2 supports only fixed-word ADDRESS/AMOUNT/TOKEN_AMOUNT'
+        buf.append(fmt)
+        if fmt == ARG_FORMAT_TOKEN_AMOUNT:
+            sym = arg['symbol'].encode('ascii')
+            assert 0 < len(sym) <= 10 and sym.isalnum()
+            assert 0 <= arg['decimals'] <= 36
+            buf.append(arg['decimals'])
+            buf.append(len(sym))
+            buf.extend(sym)
+
+    buf.append(classification)
+    buf.extend(struct.pack('>I', timestamp))
+    buf.append(key_id)
+
+    return bytes(buf)
+
+
+def schema_calldata(selector: bytes, args: list) -> bytes:
+    """ABI-encode the calldata a v2 schema decodes: selector + one 32-byte head
+    word per arg. ADDRESS -> left-zero-padded 20-byte address; AMOUNT /
+    TOKEN_AMOUNT -> big-endian uint256. Used to build a tx whose calldata the
+    device will decode against a serialize_schema_metadata() blob.
+
+    Each arg dict needs 'format' plus a concrete value: 'address' (20 bytes) for
+    ADDRESS, or 'amount' (int) for AMOUNT/TOKEN_AMOUNT.
+    """
+    data = bytearray(selector)
+    for arg in args:
+        fmt = arg['format']
+        if fmt == ARG_FORMAT_ADDRESS:
+            addr = arg['address']
+            assert len(addr) == 20
+            data.extend(b'\x00' * 12 + addr)
+        elif fmt in (ARG_FORMAT_AMOUNT, ARG_FORMAT_TOKEN_AMOUNT):
+            data.extend(int(arg['amount']).to_bytes(32, 'big'))
+        else:
+            raise AssertionError('unsupported v2 arg format %r' % fmt)
+    return bytes(data)
+
+
 def sign_metadata(payload: bytes, private_key: bytes = None) -> bytes:
     """Sign the canonical binary payload and return the complete signed blob.
 
