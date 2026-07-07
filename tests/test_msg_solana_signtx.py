@@ -630,6 +630,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         accounts (no address lookup table references) is exactly as
         verifiable as a legacy message — it clear-signs without requiring
         AdvancedMode."""
+        self.requires_firmware("7.15.0")  # Solana versioned (v0) parsing landed in 7.15
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
@@ -687,6 +688,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         lookup table (an account index at or beyond the static account
         count) cannot be verified on-device — requires AdvancedMode for
         blind/opaque signing."""
+        self.requires_firmware("7.15.0")  # Solana versioned (v0) parsing landed in 7.15
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
