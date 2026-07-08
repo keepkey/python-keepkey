@@ -78,7 +78,7 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
             gas_price=0x5FB9ACA00,
             gas_limit=0x186A0,
             value=0x00,
-            to=unhexlify('d89dce570de35a6f42d3bca7dba50a6d89bfc2a2'),  # Maya router (firmware-pinned)
+            to=unhexlify('e3985e6b61b814f7cdb188766562ba71b446b46d'),  # Maya router v4 (firmware-pinned)
             address_type=0,
             chain_id=1,
             data=unhexlify('1fece7b4' +
@@ -128,7 +128,7 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
             gas_price=0x5FB9ACA00,
             gas_limit=0x186A0,
             value=0x00,
-            to=unhexlify('d89dce570de35a6f42d3bca7dba50a6d89bfc2a2'),  # Maya router (firmware-pinned)
+            to=unhexlify('e3985e6b61b814f7cdb188766562ba71b446b46d'),  # Maya router v4 (firmware-pinned)
             address_type=0,
             chain_id=1,
             data=unhexlify('1fece7b4' +
