@@ -303,5 +303,83 @@ class TestMsgHive(common.KeepKeyTest):
         r.assert_end()
 
 
+    def _transfer_kwargs(self, **overrides):
+        """Baseline valid HiveSignTx args; override per negative case."""
+        kw = dict(
+            address_n=hive_path(ROLE_ACTIVE),
+            chain_id=HIVE_CHAIN_ID,
+            ref_block_num=12345,
+            ref_block_prefix=67890,
+            expiration=1700000000,
+            sender="kktester",
+            recipient="kkrecipient",
+            amount=1000,
+            decimals=3,
+            asset_symbol="HIVE",
+            memo="kktest",
+        )
+        kw.update(overrides)
+        return kw
+
+    def _assert_sign_tx_fails(self, message_fragment, **overrides):
+        from keepkeylib.client import CallException
+        with self.assertRaises(CallException) as ctx:
+            hive.sign_tx(self.client, **self._transfer_kwargs(**overrides))
+        self.assertIn(message_fragment, str(ctx.exception))
+
+    def test_hive_sign_transfer_rejects_foreign_path(self):
+        """A path outside SLIP-0048 (e.g. BIP-44 BTC) must be rejected before
+        signing — a compromised host cannot obtain a Hive signature with a
+        key from another coin's derivation tree."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignTx")
+        self.setup_mnemonic_nopin_nopassphrase()
+        self._assert_sign_tx_fails(
+            "Invalid Hive SLIP-0048 path",
+            address_n=parse_path("m/44'/0'/0'/0/0"),
+        )
+
+    def test_hive_sign_transfer_rejects_wrong_network(self):
+        """Wrong SLIP-0048 network index (registry 3054' instead of the
+        de-facto 13') must be rejected — keys must be Ledger-compatible."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignTx")
+        self.setup_mnemonic_nopin_nopassphrase()
+        h = 0x80000000
+        self._assert_sign_tx_fails(
+            "Invalid Hive SLIP-0048 path",
+            address_n=[h + 48, h + 3054, h + ROLE_ACTIVE, h, h],
+        )
+
+    def test_hive_sign_transfer_rejects_wrong_role(self):
+        """Role index outside {owner, active, memo, posting} must be rejected."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignTx")
+        self.setup_mnemonic_nopin_nopassphrase()
+        h = 0x80000000
+        self._assert_sign_tx_fails(
+            "Invalid Hive SLIP-0048 path",
+            address_n=[h + 48, h + 13, h + 2, h, h],  # role 2' is unassigned
+        )
+
+    def test_hive_sign_transfer_rejects_long_memo(self):
+        """Memo over the 440-byte serialization limit must fail with a
+        specific error, not a generic signing failure."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignTx")
+        self.setup_mnemonic_nopin_nopassphrase()
+        self._assert_sign_tx_fails("memo too long", memo="x" * 441)
+
+    def test_hive_sign_transfer_max_memo_ok(self):
+        """A memo of exactly 440 bytes still signs (boundary check)."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignTx")
+        self.setup_mnemonic_nopin_nopassphrase()
+        active = hive.get_public_key(self.client, hive_path(ROLE_ACTIVE), show_display=False)
+        resp = hive.sign_tx(self.client, **self._transfer_kwargs(memo="x" * 440))
+        self.assertEqual(len(resp.signature), 65)
+        self.assertEqual(recover_compressed(resp.serialized_tx, resp.signature), active.raw_public_key)
+
+
 if __name__ == "__main__":
     unittest.main()
