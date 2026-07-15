@@ -351,16 +351,53 @@ class TestMsgHive(common.KeepKeyTest):
             address_n=[h + 48, h + 3054, h + ROLE_ACTIVE, h, h],
         )
 
-    def test_hive_sign_transfer_rejects_wrong_role(self):
-        """Role index outside {owner, active, memo, posting} must be rejected."""
+    def test_hive_sign_transfer_rejects_non_active_roles(self):
+        """Transfers must sign with the active key ONLY. Post-HF28 hived no
+        longer accepts higher-role substitution, so an owner/memo/posting
+        signature would be rejected at broadcast — and the cold owner key
+        must never be spent on a transfer. Unassigned roles reject too."""
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignTx")
         self.setup_mnemonic_nopin_nopassphrase()
-        h = 0x80000000
-        self._assert_sign_tx_fails(
-            "Invalid Hive SLIP-0048 path",
-            address_n=[h + 48, h + 13, h + 2, h, h],  # role 2' is unassigned
+        for role in (ROLE_OWNER, ROLE_MEMO, ROLE_POSTING, 2):  # 2' unassigned
+            self._assert_sign_tx_fails(
+                "Invalid Hive SLIP-0048 path",
+                address_n=hive_path(role),
+            )
+
+    def test_hive_sign_account_ops_reject_non_owner_roles(self):
+        """account_create/account_update must sign with the owner key ONLY —
+        the sponsor's attestation check recovers to the device OWNER key, and
+        account_update replaces the owner authority itself."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignAccountCreate")
+        self.requires_message("HiveSignAccountUpdate")
+        self.requires_message("HiveGetPublicKeys")
+        self.setup_mnemonic_nopin_nopassphrase()
+        from keepkeylib.client import CallException
+        keys = hive.get_public_keys(self.client, account_index=0, show_display=False)
+        tx_kw = dict(
+            chain_id=HIVE_CHAIN_ID,
+            ref_block_num=12345,
+            ref_block_prefix=67890,
+            expiration=1700000000,
         )
+        with self.assertRaises(CallException) as ctx:
+            hive.sign_account_create(
+                self.client, address_n=hive_path(ROLE_ACTIVE),
+                creator="kksponsor", new_account_name="kktestacct",
+                fee_amount=3000, owner_key=keys.owner_key,
+                active_key=keys.active_key, posting_key=keys.posting_key,
+                memo_key=keys.memo_key, **tx_kw)
+        self.assertIn("Invalid Hive SLIP-0048 path", str(ctx.exception))
+        with self.assertRaises(CallException) as ctx:
+            hive.sign_account_update(
+                self.client, address_n=hive_path(ROLE_ACTIVE),
+                account="kktestacct", new_owner_key=keys.owner_key,
+                new_active_key=keys.active_key,
+                new_posting_key=keys.posting_key,
+                new_memo_key=keys.memo_key, **tx_kw)
+        self.assertIn("Invalid Hive SLIP-0048 path", str(ctx.exception))
 
     def test_hive_sign_transfer_rejects_long_memo(self):
         """Memo over the 440-byte serialization limit must fail with a
