@@ -114,6 +114,9 @@ _hive_wire_ids = {
     1607: ('HiveSignedAccountCreate', hive_proto),
     1608: ('HiveSignAccountUpdate',   hive_proto),
     1609: ('HiveSignedAccountUpdate', hive_proto),
+    # 1610-1613 reserved: NEAR
+    1614: ('HiveSignMessage',         hive_proto),
+    1615: ('HiveSignedMessage',       hive_proto),
 }
 for wire_id, (msg_name, mod) in _hive_wire_ids.items():
     msg_class = getattr(mod, msg_name, None)

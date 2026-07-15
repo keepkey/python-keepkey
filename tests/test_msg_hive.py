@@ -418,5 +418,129 @@ class TestMsgHive(common.KeepKeyTest):
         self.assertEqual(recover_compressed(resp.serialized_tx, resp.signature), active.raw_public_key)
 
 
+    # ── Message signing (Keychain signBuffer contract) ────────────────────
+
+    def _recover_message_signer(self, message, sig65):
+        """Recover the compressed signer pubkey from a HiveSignedMessage.
+
+        The signBuffer contract: digest = SHA256(message bytes) ONLY — no
+        chain_id prepend (unlike transactions), no message prefix. This
+        recovery is exactly what a Hive dApp does to verify a login.
+        """
+        self.assertEqual(len(sig65), 65, "Hive signature must be 65 bytes")
+        recid = sig65[0] - 31
+        self.assertTrue(0 <= recid <= 3, "unexpected recovery header byte %d" % sig65[0])
+        digest = hashlib.sha256(message).digest()
+        candidates = VerifyingKey.from_public_key_recovery_with_digest(
+            sig65[1:], digest, SECP256k1, hashfunc=hashlib.sha256,
+            sigdecode=sigdecode_string
+        )
+        return candidates[recid].to_string("compressed")
+
+    def test_hive_sign_message_posting(self):
+        """dApp login: a posting-key signBuffer signature recovers to the
+        posting key — both against the response public_key and against an
+        independently derived HiveGetPublicKey for the same path."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignMessage")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        challenge = b'{"login":"skatehive","ts":1700000000,"nonce":"abc123"}'
+        posting = hive.get_public_key(self.client, hive_path(ROLE_POSTING), show_display=False)
+        resp = hive.sign_message(self.client, hive_path(ROLE_POSTING), challenge)
+
+        self.assertEqual(len(resp.signature), 65)
+        self.assertEqual(len(resp.public_key), 33)
+        self.assertEqual(resp.public_key, posting.raw_public_key)
+        self.assertEqual(self._recover_message_signer(challenge, resp.signature),
+                         posting.raw_public_key)
+
+    def test_hive_sign_message_all_roles(self):
+        """All four SLIP-0048 roles may sign a message (Keychain lets dApps
+        request Posting, Active, or Memo); each signature recovers to that
+        role's key and to no other role's."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignMessage")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        message = b"kk role check"
+        seen = set()
+        for role in (ROLE_OWNER, ROLE_ACTIVE, ROLE_MEMO, ROLE_POSTING):
+            expected = hive.get_public_key(self.client, hive_path(role), show_display=False)
+            resp = hive.sign_message(self.client, hive_path(role), message)
+            self.assertEqual(resp.public_key, expected.raw_public_key)
+            self.assertEqual(self._recover_message_signer(message, resp.signature),
+                             expected.raw_public_key)
+            seen.add(resp.public_key)
+        self.assertEqual(len(seen), 4, "role keys must be distinct")
+
+    def test_hive_sign_message_nonprintable_bytes(self):
+        """Raw (non-printable) buffers sign too — Keychain accepts serialized
+        Buffer payloads, shown on-device as a hex preview."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignMessage")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        message = bytes(range(0, 48))  # starts 0x00... — nothing like the chain id
+        posting = hive.get_public_key(self.client, hive_path(ROLE_POSTING), show_display=False)
+        resp = hive.sign_message(self.client, hive_path(ROLE_POSTING), message)
+        self.assertEqual(self._recover_message_signer(message, resp.signature),
+                         posting.raw_public_key)
+
+    def test_hive_sign_message_max_length_ok(self):
+        """A message of exactly 1024 bytes (the proto cap) still signs."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignMessage")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        message = b"x" * 1024
+        posting = hive.get_public_key(self.client, hive_path(ROLE_POSTING), show_display=False)
+        resp = hive.sign_message(self.client, hive_path(ROLE_POSTING), message)
+        self.assertEqual(self._recover_message_signer(message, resp.signature),
+                         posting.raw_public_key)
+
+    def test_hive_sign_message_rejects_oversize(self):
+        """1025 bytes must fail (nanopb max_size cap — the proto and handler
+        agree on 1024)."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignMessage")
+        self.setup_mnemonic_nopin_nopassphrase()
+        from keepkeylib.client import CallException
+        with self.assertRaises(CallException):
+            hive.sign_message(self.client, hive_path(ROLE_POSTING), b"x" * 1025)
+
+    def test_hive_sign_message_rejects_bad_paths(self):
+        """Foreign trees, wrong network index, and unassigned roles must all
+        be rejected — same fence as the transaction handlers."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignMessage")
+        self.setup_mnemonic_nopin_nopassphrase()
+        from keepkeylib.client import CallException
+        h = 0x80000000
+        bad_paths = [
+            parse_path("m/44'/0'/0'/0/0"),          # BIP-44 BTC
+            [h + 48, h + 3054, h + ROLE_POSTING, h, h],  # registry 3054', not 13'
+            hive_path(2),                             # unassigned role 2'
+            [h + 48, h + 13, h + ROLE_POSTING, h],    # short path
+        ]
+        for path in bad_paths:
+            with self.assertRaises(CallException) as ctx:
+                hive.sign_message(self.client, path, b"login challenge")
+            self.assertIn("Invalid Hive SLIP-0048 path", str(ctx.exception))
+
+    def test_hive_sign_message_rejects_chain_id_prefix(self):
+        """A 'message' that begins with the mainnet chain id would hash to a
+        broadcastable TRANSACTION digest (tx digest = SHA256(chain_id || tx)).
+        The firmware must refuse the collision."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignMessage")
+        self.setup_mnemonic_nopin_nopassphrase()
+        from keepkeylib.client import CallException
+        disguised_tx = HIVE_CHAIN_ID + b"\x39\x30" + b"\x00" * 40
+        with self.assertRaises(CallException) as ctx:
+            hive.sign_message(self.client, hive_path(ROLE_ACTIVE), disguised_tx)
+        self.assertIn("chain ID", str(ctx.exception))
+
+
 if __name__ == "__main__":
     unittest.main()

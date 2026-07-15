@@ -32,6 +32,14 @@ def sign_tx(client, address_n, chain_id, ref_block_num, ref_block_prefix,
     }))
 
 
+def sign_message(client, address_n, message):
+    """Keychain signBuffer contract: sig over SHA256(raw message bytes) only —
+    no chain_id prepend, no message prefix."""
+    if isinstance(message, str):
+        message = message.encode('utf-8')
+    return client.call(proto.HiveSignMessage(address_n=address_n, message=message))
+
+
 def sign_account_create(client, address_n, chain_id, ref_block_num, ref_block_prefix,
                         expiration, creator, new_account_name, fee_amount=3000,
                         owner_key='', active_key='', posting_key='', memo_key=''):
