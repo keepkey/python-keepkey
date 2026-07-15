@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-hive.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x13messages-hive.proto\"I\n\x10HiveGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12\x0c\n\x04role\x18\x03 \x01(\r\";\n\rHivePublicKey\x12\x12\n\npublic_key\x18\x01 \x01(\t\x12\x16\n\x0eraw_public_key\x18\x02 \x01(\x0c\"C\n\x11HiveGetPublicKeys\x12\x18\n\raccount_index\x18\x01 \x01(\r:\x01\x30\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\"^\n\x0eHivePublicKeys\x12\x11\n\towner_key\x18\x01 \x01(\t\x12\x12\n\nactive_key\x18\x02 \x01(\t\x12\x10\n\x08memo_key\x18\x03 \x01(\t\x12\x13\n\x0bposting_key\x18\x04 \x01(\t\"\xd6\x01\n\nHiveSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\x0c\x12\x15\n\rref_block_num\x18\x03 \x01(\r\x12\x18\n\x10ref_block_prefix\x18\x04 \x01(\r\x12\x12\n\nexpiration\x18\x05 \x01(\r\x12\x0c\n\x04\x66rom\x18\x06 \x01(\t\x12\n\n\x02to\x18\x07 \x01(\t\x12\x0e\n\x06\x61mount\x18\x08 \x01(\x04\x12\x10\n\x08\x64\x65\x63imals\x18\t \x01(\r\x12\x14\n\x0c\x61sset_symbol\x18\n \x01(\t\x12\x0c\n\x04memo\x18\x0b \x01(\t\"8\n\x0cHiveSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x02 \x01(\x0c\"\x8e\x02\n\x15HiveSignAccountCreate\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\x0c\x12\x15\n\rref_block_num\x18\x03 \x01(\r\x12\x18\n\x10ref_block_prefix\x18\x04 \x01(\r\x12\x12\n\nexpiration\x18\x05 \x01(\r\x12\x0f\n\x07\x63reator\x18\x06 \x01(\t\x12\x18\n\x10new_account_name\x18\x07 \x01(\t\x12\x11\n\towner_key\x18\x08 \x01(\t\x12\x12\n\nactive_key\x18\t \x01(\t\x12\x13\n\x0bposting_key\x18\n \x01(\t\x12\x10\n\x08memo_key\x18\x0b \x01(\t\x12\x12\n\nfee_amount\x18\x0c \x01(\x04\"C\n\x17HiveSignedAccountCreate\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x02 \x01(\x0c\"\xf0\x01\n\x15HiveSignAccountUpdate\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\x0c\x12\x15\n\rref_block_num\x18\x03 \x01(\r\x12\x18\n\x10ref_block_prefix\x18\x04 \x01(\r\x12\x12\n\nexpiration\x18\x05 \x01(\r\x12\x0f\n\x07\x61\x63\x63ount\x18\x06 \x01(\t\x12\x15\n\rnew_owner_key\x18\x07 \x01(\t\x12\x16\n\x0enew_active_key\x18\x08 \x01(\t\x12\x17\n\x0fnew_posting_key\x18\t \x01(\t\x12\x14\n\x0cnew_memo_key\x18\n \x01(\t\"C\n\x17HiveSignedAccountUpdate\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x02 \x01(\x0c\"5\n\x0fHiveSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x01(\x0c\":\n\x11HiveSignedMessage\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x12\n\npublic_key\x18\x02 \x01(\x0c\x42\x39\n#com.shapeshift.keepkey.lib.protobufB\x12KeepKeyMessageHive')
+  serialized_pb=_b('\n\x13messages-hive.proto\"I\n\x10HiveGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12\x0c\n\x04role\x18\x03 \x01(\r\";\n\rHivePublicKey\x12\x12\n\npublic_key\x18\x01 \x01(\t\x12\x16\n\x0eraw_public_key\x18\x02 \x01(\x0c\"C\n\x11HiveGetPublicKeys\x12\x18\n\raccount_index\x18\x01 \x01(\r:\x01\x30\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\"^\n\x0eHivePublicKeys\x12\x11\n\towner_key\x18\x01 \x01(\t\x12\x12\n\nactive_key\x18\x02 \x01(\t\x12\x10\n\x08memo_key\x18\x03 \x01(\t\x12\x13\n\x0bposting_key\x18\x04 \x01(\t\"\xd6\x01\n\nHiveSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\x0c\x12\x15\n\rref_block_num\x18\x03 \x01(\r\x12\x18\n\x10ref_block_prefix\x18\x04 \x01(\r\x12\x12\n\nexpiration\x18\x05 \x01(\r\x12\x0c\n\x04\x66rom\x18\x06 \x01(\t\x12\n\n\x02to\x18\x07 \x01(\t\x12\x0e\n\x06\x61mount\x18\x08 \x01(\x04\x12\x10\n\x08\x64\x65\x63imals\x18\t \x01(\r\x12\x14\n\x0c\x61sset_symbol\x18\n \x01(\t\x12\x0c\n\x04memo\x18\x0b \x01(\t\"8\n\x0cHiveSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x02 \x01(\x0c\"\x8e\x02\n\x15HiveSignAccountCreate\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\x0c\x12\x15\n\rref_block_num\x18\x03 \x01(\r\x12\x18\n\x10ref_block_prefix\x18\x04 \x01(\r\x12\x12\n\nexpiration\x18\x05 \x01(\r\x12\x0f\n\x07\x63reator\x18\x06 \x01(\t\x12\x18\n\x10new_account_name\x18\x07 \x01(\t\x12\x11\n\towner_key\x18\x08 \x01(\t\x12\x12\n\nactive_key\x18\t \x01(\t\x12\x13\n\x0bposting_key\x18\n \x01(\t\x12\x10\n\x08memo_key\x18\x0b \x01(\t\x12\x12\n\nfee_amount\x18\x0c \x01(\x04\"C\n\x17HiveSignedAccountCreate\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x02 \x01(\x0c\"\xf0\x01\n\x15HiveSignAccountUpdate\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\x0c\x12\x15\n\rref_block_num\x18\x03 \x01(\r\x12\x18\n\x10ref_block_prefix\x18\x04 \x01(\r\x12\x12\n\nexpiration\x18\x05 \x01(\r\x12\x0f\n\x07\x61\x63\x63ount\x18\x06 \x01(\t\x12\x15\n\rnew_owner_key\x18\x07 \x01(\t\x12\x16\n\x0enew_active_key\x18\x08 \x01(\t\x12\x17\n\x0fnew_posting_key\x18\t \x01(\t\x12\x14\n\x0cnew_memo_key\x18\n \x01(\t\"C\n\x17HiveSignedAccountUpdate\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x02 \x01(\x0c\"5\n\x0fHiveSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x01(\x0c\":\n\x11HiveSignedMessage\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x12\n\npublic_key\x18\x02 \x01(\x0c\"P\n\x12HiveSignOperations\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x10\n\x08\x63hain_id\x18\x02 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x03 \x01(\x0c\")\n\x14HiveSignedOperations\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x42\x39\n#com.shapeshift.keepkey.lib.protobufB\x12KeepKeyMessageHive')
 )
 
 
@@ -690,6 +690,82 @@ _HIVESIGNEDMESSAGE = _descriptor.Descriptor(
   serialized_end=1366,
 )
 
+
+_HIVESIGNOPERATIONS = _descriptor.Descriptor(
+  name='HiveSignOperations',
+  full_name='HiveSignOperations',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address_n', full_name='HiveSignOperations.address_n', index=0,
+      number=1, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='chain_id', full_name='HiveSignOperations.chain_id', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='serialized_tx', full_name='HiveSignOperations.serialized_tx', index=2,
+      number=3, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1368,
+  serialized_end=1448,
+)
+
+
+_HIVESIGNEDOPERATIONS = _descriptor.Descriptor(
+  name='HiveSignedOperations',
+  full_name='HiveSignedOperations',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='signature', full_name='HiveSignedOperations.signature', index=0,
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1450,
+  serialized_end=1491,
+)
+
 DESCRIPTOR.message_types_by_name['HiveGetPublicKey'] = _HIVEGETPUBLICKEY
 DESCRIPTOR.message_types_by_name['HivePublicKey'] = _HIVEPUBLICKEY
 DESCRIPTOR.message_types_by_name['HiveGetPublicKeys'] = _HIVEGETPUBLICKEYS
@@ -702,6 +778,8 @@ DESCRIPTOR.message_types_by_name['HiveSignAccountUpdate'] = _HIVESIGNACCOUNTUPDA
 DESCRIPTOR.message_types_by_name['HiveSignedAccountUpdate'] = _HIVESIGNEDACCOUNTUPDATE
 DESCRIPTOR.message_types_by_name['HiveSignMessage'] = _HIVESIGNMESSAGE
 DESCRIPTOR.message_types_by_name['HiveSignedMessage'] = _HIVESIGNEDMESSAGE
+DESCRIPTOR.message_types_by_name['HiveSignOperations'] = _HIVESIGNOPERATIONS
+DESCRIPTOR.message_types_by_name['HiveSignedOperations'] = _HIVESIGNEDOPERATIONS
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 HiveGetPublicKey = _reflection.GeneratedProtocolMessageType('HiveGetPublicKey', (_message.Message,), dict(
@@ -787,6 +865,20 @@ HiveSignedMessage = _reflection.GeneratedProtocolMessageType('HiveSignedMessage'
   # @@protoc_insertion_point(class_scope:HiveSignedMessage)
   ))
 _sym_db.RegisterMessage(HiveSignedMessage)
+
+HiveSignOperations = _reflection.GeneratedProtocolMessageType('HiveSignOperations', (_message.Message,), dict(
+  DESCRIPTOR = _HIVESIGNOPERATIONS,
+  __module__ = 'messages_hive_pb2'
+  # @@protoc_insertion_point(class_scope:HiveSignOperations)
+  ))
+_sym_db.RegisterMessage(HiveSignOperations)
+
+HiveSignedOperations = _reflection.GeneratedProtocolMessageType('HiveSignedOperations', (_message.Message,), dict(
+  DESCRIPTOR = _HIVESIGNEDOPERATIONS,
+  __module__ = 'messages_hive_pb2'
+  # @@protoc_insertion_point(class_scope:HiveSignedOperations)
+  ))
+_sym_db.RegisterMessage(HiveSignedOperations)
 
 
 DESCRIPTOR.has_options = True

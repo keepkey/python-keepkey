@@ -30,6 +30,7 @@ independent cryptographic check).
 """
 
 import hashlib
+import struct
 import unittest
 
 import common
@@ -46,9 +47,12 @@ HIVE_CHAIN_ID = bytes.fromhex("beeab0de" + "00" * 28)
 # SLIP-0048 roles (hardened offsets within the role component).
 ROLE_OWNER, ROLE_ACTIVE, ROLE_MEMO, ROLE_POSTING = 0, 1, 3, 4
 
+HIVE_OP_VOTE = 0
+HIVE_OP_COMMENT = 1
 HIVE_OP_TRANSFER = 2
 HIVE_OP_ACCOUNT_CREATE = 9
 HIVE_OP_ACCOUNT_UPDATE = 10
+HIVE_OP_CUSTOM_JSON = 18
 
 
 def hive_path(role, account_index=0):
@@ -73,6 +77,54 @@ def recover_compressed(serialized_tx, sig65):
         sig65[1:], digest, SECP256k1, hashfunc=hashlib.sha256, sigdecode=sigdecode_string
     )
     return candidates[recid].to_string("compressed")
+
+
+# ── Independent Graphene serializer for HiveSignOperations tests ──────────
+# dhive-equivalent byte building, written here so firmware parser bugs can't
+# cancel out against firmware serializer bugs.
+
+def _varint(n):
+    out = b""
+    while True:
+        b_ = n & 0x7F
+        n >>= 7
+        if n:
+            out += bytes([b_ | 0x80])
+        else:
+            return out + bytes([b_])
+
+
+def _string(s):
+    if isinstance(s, str):
+        s = s.encode("utf-8")
+    return _varint(len(s)) + s
+
+
+def _ops_tx(op_blobs, ref_num=12345, ref_prefix=67890, expiration=1700000000,
+            ext=b"\x00", opcount=None):
+    """header + varint op count + ops + extensions (default: empty)."""
+    head = struct.pack("<HII", ref_num, ref_prefix, expiration)
+    n = opcount if opcount is not None else len(op_blobs)
+    return head + _varint(n) + b"".join(op_blobs) + ext
+
+
+def _op_vote(voter, author, permlink, weight):
+    return (_varint(HIVE_OP_VOTE) + _string(voter) + _string(author) +
+            _string(permlink) + struct.pack("<h", weight))
+
+
+def _op_comment(parent_author, parent_permlink, author, permlink, title,
+                body, json_metadata):
+    return (_varint(HIVE_OP_COMMENT) + _string(parent_author) +
+            _string(parent_permlink) + _string(author) + _string(permlink) +
+            _string(title) + _string(body) + _string(json_metadata))
+
+
+def _op_custom_json(required_auths, required_posting_auths, id_, json_):
+    out = _varint(18)  # custom_json
+    out += _varint(len(required_auths)) + b"".join(_string(a) for a in required_auths)
+    out += _varint(len(required_posting_auths)) + b"".join(_string(a) for a in required_posting_auths)
+    return out + _string(id_) + _string(json_)
 
 
 class _Reader:
@@ -543,6 +595,164 @@ class TestMsgHive(common.KeepKeyTest):
             with self.assertRaises(CallException) as ctx:
                 hive.sign_message(self.client, path, b"login challenge")
             self.assertIn("Invalid Hive SLIP-0048 path", str(ctx.exception))
+
+    # ── Operations signing (HiveSignOperations — parsed generic ops) ──────
+    # The test builds transactions byte-exactly with its OWN serializer
+    # (below, module level) — never firmware-emitted bytes — so a parser bug
+    # and a serializer bug cannot cancel out.
+
+    def _recover_ops_signer(self, tx, sig65):
+        """digest = SHA256(chain_id || serialized_tx), same as transfers."""
+        self.assertEqual(len(sig65), 65)
+        recid = sig65[0] - 31
+        self.assertTrue(0 <= recid <= 3, "unexpected recovery header byte %d" % sig65[0])
+        digest = hashlib.sha256(HIVE_CHAIN_ID + tx).digest()
+        candidates = VerifyingKey.from_public_key_recovery_with_digest(
+            sig65[1:], digest, SECP256k1, hashfunc=hashlib.sha256,
+            sigdecode=sigdecode_string
+        )
+        return candidates[recid].to_string("compressed")
+
+    def test_hive_sign_ops_vote(self):
+        """A vote tx signs with the posting key and recovers to it."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        tx = _ops_tx([_op_vote("kkvoter", "someauthor", "cool-post-permlink", 10000)])
+        posting = hive.get_public_key(self.client, hive_path(ROLE_POSTING), show_display=False)
+        resp = hive.sign_operations(self.client, hive_path(ROLE_POSTING), tx, chain_id=HIVE_CHAIN_ID)
+        self.assertEqual(self._recover_ops_signer(tx, resp.signature), posting.raw_public_key)
+
+    def test_hive_sign_ops_downvote_and_default_chain_id(self):
+        """Negative weight (downvote) signs; omitted chain_id defaults to
+        mainnet in firmware — recovery against the mainnet id proves it."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        tx = _ops_tx([_op_vote("kkvoter", "spammer", "bad-post", -10000)])
+        posting = hive.get_public_key(self.client, hive_path(ROLE_POSTING), show_display=False)
+        resp = hive.sign_operations(self.client, hive_path(ROLE_POSTING), tx)  # no chain_id
+        self.assertEqual(self._recover_ops_signer(tx, resp.signature), posting.raw_public_key)
+
+    def test_hive_sign_ops_comment(self):
+        """A top-level post (empty parent_author) with a unicode body signs —
+        the body routes through the non-ASCII display fallback."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        body = "skate clip of the day — hardflip".encode("utf-8")
+        tx = _ops_tx([_op_comment("", "hive-173115", "kkauthor",
+                                  "my-first-post", "My first post", body, "{}")])
+        posting = hive.get_public_key(self.client, hive_path(ROLE_POSTING), show_display=False)
+        resp = hive.sign_operations(self.client, hive_path(ROLE_POSTING), tx, chain_id=HIVE_CHAIN_ID)
+        self.assertEqual(self._recover_ops_signer(tx, resp.signature), posting.raw_public_key)
+
+    def test_hive_sign_ops_custom_json_posting(self):
+        """custom_json with posting auths (Hive Engine style) signs with the
+        posting key."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        tx = _ops_tx([_op_custom_json([], ["kkplayer"], "ssc-mainnet-hive",
+                                      '{"contractName":"tokens","contractAction":"transfer"}')])
+        posting = hive.get_public_key(self.client, hive_path(ROLE_POSTING), show_display=False)
+        resp = hive.sign_operations(self.client, hive_path(ROLE_POSTING), tx, chain_id=HIVE_CHAIN_ID)
+        self.assertEqual(self._recover_ops_signer(tx, resp.signature), posting.raw_public_key)
+
+    def test_hive_sign_ops_custom_json_active(self):
+        """custom_json with required_auths (active tier) must sign with the
+        ACTIVE key — and does."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        tx = _ops_tx([_op_custom_json(["kkadmin"], [], "witness-ops", '{"op":"x"}')])
+        active = hive.get_public_key(self.client, hive_path(ROLE_ACTIVE), show_display=False)
+        resp = hive.sign_operations(self.client, hive_path(ROLE_ACTIVE), tx, chain_id=HIVE_CHAIN_ID)
+        self.assertEqual(self._recover_ops_signer(tx, resp.signature), active.raw_public_key)
+
+    def _assert_ops_fails(self, fragment, tx, path=None):
+        from keepkeylib.client import CallException
+        with self.assertRaises(CallException) as ctx:
+            hive.sign_operations(self.client, path or hive_path(ROLE_POSTING),
+                                 tx, chain_id=HIVE_CHAIN_ID)
+        if fragment:
+            self.assertIn(fragment, str(ctx.exception))
+
+    def test_hive_sign_ops_rejects_excluded_and_unknown_ops(self):
+        """Op types 2/9/10 are PERMANENTLY excluded (dedicated messages keep
+        their stronger invariants); unknown types reject too. The parser
+        refuses on the op-type byte, so the bodies never matter."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+        for op_type in (2, 9, 10):
+            self._assert_ops_fails("dedicated message",
+                                   _ops_tx([_varint(op_type)]))
+        self._assert_ops_fails("unsupported operation",
+                               _ops_tx([_varint(3)]))  # comment_options
+
+    def test_hive_sign_ops_rejects_malformed_structure(self):
+        """Zero ops, >4 ops, nonzero extensions, trailing bytes, overlong
+        varint, out-of-range weight — each refused with a specific error."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        vote = _op_vote("kkvoter", "author", "permlink", 100)
+        self._assert_ops_fails("op count", _ops_tx([], opcount=0))
+        self._assert_ops_fails("op count", _ops_tx([vote] * 5))
+        self._assert_ops_fails("extensions must be empty",
+                               _ops_tx([vote], ext=b"\x01"))
+        self._assert_ops_fails("trailing bytes", _ops_tx([vote]) + b"\x00")
+        # op_count as an overlong 6-byte varint encoding of 1
+        head = struct.pack("<HII", 12345, 67890, 1700000000)
+        self._assert_ops_fails("malformed op count",
+                               head + b"\x81\x80\x80\x80\x80\x00" + vote + b"\x00")
+        self._assert_ops_fails("weight out of range",
+                               _ops_tx([_op_vote("kkvoter", "author", "permlink", 10001)]))
+
+    def test_hive_sign_ops_role_fences(self):
+        """Posting-tier tx on the active/memo/owner path rejects; active-tier
+        custom_json on the posting path rejects; mixed-tier tx and
+        both-auths custom_json reject as malformed."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        vote_tx = _ops_tx([_op_vote("kkvoter", "author", "permlink", 100)])
+        for role in (ROLE_ACTIVE, ROLE_MEMO, ROLE_OWNER):
+            self._assert_ops_fails("needs posting", vote_tx, path=hive_path(role))
+
+        active_cj = _ops_tx([_op_custom_json(["kkadmin"], [], "witness-ops", '{"a":1}')])
+        self._assert_ops_fails("needs active", active_cj, path=hive_path(ROLE_POSTING))
+
+        mixed = _ops_tx([
+            _op_vote("kkvoter", "author", "permlink", 100),
+            _op_custom_json(["kkadmin"], [], "witness-ops", '{"a":1}'),
+        ])
+        self._assert_ops_fails("mixed posting/active", mixed, path=hive_path(ROLE_ACTIVE))
+
+        both_auths = _ops_tx([_op_custom_json(["kkadmin"], ["kkplayer"], "x-id", '{"a":1}')])
+        self._assert_ops_fails("mixed active+posting auths", both_auths,
+                               path=hive_path(ROLE_ACTIVE))
+
+    def test_hive_sign_ops_rejects_oversize(self):
+        """A tx over the 2048-byte proto cap fails at decode."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+        big_body = b"x" * 2000
+        tx = _ops_tx([_op_comment("", "cat", "kkauthor", "perm", "", big_body, "")])
+        self.assertTrue(len(tx) > 2048)
+        from keepkeylib.client import CallException
+        with self.assertRaises(CallException):
+            hive.sign_operations(self.client, hive_path(ROLE_POSTING), tx,
+                                 chain_id=HIVE_CHAIN_ID)
 
     def test_hive_sign_message_rejects_chain_id_prefix(self):
         """A 'message' that begins with the mainnet chain id would hash to a

@@ -40,6 +40,16 @@ def sign_message(client, address_n, message):
     return client.call(proto.HiveSignMessage(address_n=address_n, message=message))
 
 
+def sign_operations(client, address_n, serialized_tx, chain_id=None):
+    """Sign a host-serialized Graphene transaction (HiveSignOperations).
+    Firmware parses the bytes and clear-signs the phase-1 op table
+    (vote, comment, custom_json); digest = SHA256(chain_id || tx)."""
+    kwargs = dict(address_n=address_n, serialized_tx=serialized_tx)
+    if chain_id is not None:
+        kwargs['chain_id'] = chain_id
+    return client.call(proto.HiveSignOperations(**kwargs))
+
+
 def sign_account_create(client, address_n, chain_id, ref_block_num, ref_block_prefix,
                         expiration, creator, new_account_name, fee_amount=3000,
                         owner_key='', active_key='', posting_key='', memo_key=''):
