@@ -457,23 +457,23 @@ class TestMsgHive(common.KeepKeyTest):
                          posting.raw_public_key)
 
     def test_hive_sign_message_all_roles(self):
-        """All four SLIP-0048 roles may sign a message (Keychain lets dApps
-        request Posting, Active, or Memo); each signature recovers to that
-        role's key and to no other role's."""
+        """The three Keychain-exposed roles (Posting/Active/Memo) may sign;
+        each signature recovers to that role's key and to no other's.
+        owner' is rejected — see test_hive_sign_message_rejects_bad_paths."""
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignMessage")
         self.setup_mnemonic_nopin_nopassphrase()
 
         message = b"kk role check"
         seen = set()
-        for role in (ROLE_OWNER, ROLE_ACTIVE, ROLE_MEMO, ROLE_POSTING):
+        for role in (ROLE_ACTIVE, ROLE_MEMO, ROLE_POSTING):
             expected = hive.get_public_key(self.client, hive_path(role), show_display=False)
             resp = hive.sign_message(self.client, hive_path(role), message)
             self.assertEqual(resp.public_key, expected.raw_public_key)
             self.assertEqual(self._recover_message_signer(message, resp.signature),
                              expected.raw_public_key)
             seen.add(resp.public_key)
-        self.assertEqual(len(seen), 4)  # role keys must be distinct
+        self.assertEqual(len(seen), 3)  # role keys must be distinct
 
     def test_hive_sign_message_nonprintable_bytes(self):
         """Raw (non-printable) buffers sign too — Keychain accepts serialized
@@ -483,6 +483,20 @@ class TestMsgHive(common.KeepKeyTest):
         self.setup_mnemonic_nopin_nopassphrase()
 
         message = bytes(range(0, 48))  # starts 0x00... — nothing like the chain id
+        posting = hive.get_public_key(self.client, hive_path(ROLE_POSTING), show_display=False)
+        resp = hive.sign_message(self.client, hive_path(ROLE_POSTING), message)
+        self.assertEqual(self._recover_message_signer(message, resp.signature),
+                         posting.raw_public_key)
+
+    def test_hive_sign_message_long_printable_ok(self):
+        """Printable text over the 128-byte display budget still signs — it
+        routes through the hex-preview confirm (never silently truncated
+        text), and the signature covers every byte."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignMessage")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        message = (b"benign preamble. " * 20)[:300]  # printable, > 128 bytes
         posting = hive.get_public_key(self.client, hive_path(ROLE_POSTING), show_display=False)
         resp = hive.sign_message(self.client, hive_path(ROLE_POSTING), message)
         self.assertEqual(self._recover_message_signer(message, resp.signature),
@@ -522,6 +536,7 @@ class TestMsgHive(common.KeepKeyTest):
             parse_path("m/44'/0'/0'/0/0"),          # BIP-44 BTC
             [h + 48, h + 3054, h + ROLE_POSTING, h, h],  # registry 3054', not 13'
             hive_path(2),                             # unassigned role 2'
+            hive_path(ROLE_OWNER),                    # owner' not a Keychain signBuffer role
             [h + 48, h + 13, h + ROLE_POSTING, h],    # short path
         ]
         for path in bad_paths:
