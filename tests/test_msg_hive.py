@@ -427,7 +427,8 @@ class TestMsgHive(common.KeepKeyTest):
         chain_id prepend (unlike transactions), no message prefix. This
         recovery is exactly what a Hive dApp does to verify a login.
         """
-        self.assertEqual(len(sig65), 65, "Hive signature must be 65 bytes")
+        # NB: common.KeepKeyTest overrides assertEqual without the msg param.
+        self.assertEqual(len(sig65), 65)
         recid = sig65[0] - 31
         self.assertTrue(0 <= recid <= 3, "unexpected recovery header byte %d" % sig65[0])
         digest = hashlib.sha256(message).digest()
@@ -472,7 +473,7 @@ class TestMsgHive(common.KeepKeyTest):
             self.assertEqual(self._recover_message_signer(message, resp.signature),
                              expected.raw_public_key)
             seen.add(resp.public_key)
-        self.assertEqual(len(seen), 4, "role keys must be distinct")
+        self.assertEqual(len(seen), 4)  # role keys must be distinct
 
     def test_hive_sign_message_nonprintable_bytes(self):
         """Raw (non-printable) buffers sign too — Keychain accepts serialized
