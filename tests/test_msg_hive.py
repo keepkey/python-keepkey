@@ -746,7 +746,7 @@ class TestMsgHive(common.KeepKeyTest):
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignOperations")
         self.setup_mnemonic_nopin_nopassphrase()
-        big_body = b"x" * 2000
+        big_body = b"x" * 2100
         tx = _ops_tx([_op_comment("", "cat", "kkauthor", "perm", "", big_body, "")])
         self.assertTrue(len(tx) > 2048)
         from keepkeylib.client import CallException
