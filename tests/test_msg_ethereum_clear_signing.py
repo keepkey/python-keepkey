@@ -27,6 +27,8 @@ import unittest
 import hashlib
 import struct
 
+from keepkeylib import messages_ethereum_pb2 as messages_eth
+
 try:
     import common
 except ImportError:
@@ -1427,6 +1429,111 @@ def print_test_vectors():
         print(f'   Hex: {blob.hex()}')
 
     print('\n' + '═' * 72)
+
+
+
+def _decode_icon_rle(data, width, height):
+    """Reference decoder for LoadClearsignSigner.icon, traced from the decoder
+    of record: keepkey-firmware lib/board/draw.c draw_bitmap_mono_rle().
+
+    The icon is NOT a packed 1bpp bitmap (a packed 64x64 needs 512 bytes and the
+    wire cap is 384). It is run-length encoded with byte-valued pixels:
+      n = int8(data[i++]);  n > 0 -> RUN: emit the single next value byte n times
+                            n < 0 -> LITERAL: emit the next (-n) value bytes once each
+                            n == 0 -> invalid
+    Pixels fill row-major until exactly width*height are emitted.
+    """
+    seq = nonseq = i = 0
+    out = []
+    for _ in range(height):
+        for _ in range(width):
+            if i >= len(data):
+                raise ValueError("overrun reading RLE count")
+            if seq == 0 and nonseq == 0:
+                n = data[i]
+                n = n - 256 if n > 127 else n
+                i += 1
+                if n == 0:
+                    raise ValueError("n == 0 is invalid")
+                if n < 0:
+                    nonseq, seq = -n, 0
+                else:
+                    seq = n
+            if i >= len(data):
+                raise ValueError("overrun reading RLE value")
+            out.append(data[i])
+            if seq > 0:
+                seq -= 1
+                if seq == 0:
+                    i += 1
+            else:
+                i += 1
+                nonseq -= 1
+    return out
+
+
+class TestClearsignSignerIcon(unittest.TestCase):
+    """Offline coverage for the LoadClearsignSigner identity-icon wire contract.
+
+    Regression guard for the review finding that the proto documented a packed
+    1bpp row-major bitmap while firmware fed the bytes to an RLE decoder — a
+    client following the old doc rendered a garbled/absent logo on a TRUST screen.
+    """
+
+    ICON_MAX = 384  # METADATA_ICON_MAX / CLEARSIGN_ICON_MAX / proto max_size
+
+    def test_packed_1bpp_cannot_fit_the_cap(self):
+        # Why the format must be RLE: the firmware accepts icon_width/height up
+        # to 64, but a packed 1bpp 64x64 needs 512 bytes > the 384-byte cap.
+        self.assertGreater((64 * 64) // 8, self.ICON_MAX)
+
+    def test_golden_vector_matches_the_documented_decode(self):
+        # The golden vector published in messages-ethereum.proto.
+        self.assertEqual(
+            _decode_icon_rle(bytes([0x03, 0xFF, 0xFF, 0x00]), 2, 2),
+            [0xFF, 0xFF, 0xFF, 0x00],
+        )
+
+    def test_run_and_literal_packets(self):
+        self.assertEqual(_decode_icon_rle(bytes([0x04, 0xAB]), 4, 1),
+                         [0xAB] * 4)                                  # RUN
+        self.assertEqual(_decode_icon_rle(bytes([0xFD, 0x01, 0x02, 0x03]), 3, 1),
+                         [0x01, 0x02, 0x03])                          # LITERAL (-3)
+
+    def test_zero_count_is_invalid(self):
+        with self.assertRaises(ValueError):
+            _decode_icon_rle(bytes([0x00, 0xFF]), 1, 1)
+
+    def test_truncated_stream_is_rejected(self):
+        with self.assertRaises(ValueError):
+            _decode_icon_rle(bytes([0x08, 0xFF]), 4, 4)  # claims 8, only 2 bytes
+
+    def test_message_exposes_icon_dimensions_and_persist(self):
+        # Regression guard: the generated bindings previously carried only
+        # key_id/pubkey/alias, so constructing with icon raised ValueError.
+        icon = bytes([0x03, 0xFF, 0xFF, 0x00])
+        msg = messages_eth.LoadClearsignSigner(
+            key_id=3, pubkey=b'\x02' * 33, alias="Pioneer",
+            icon=icon, icon_width=2, icon_height=2, persist=True,
+        )
+        parsed = messages_eth.LoadClearsignSigner()
+        parsed.ParseFromString(msg.SerializeToString())
+        self.assertEqual(parsed.icon, icon)
+        self.assertEqual(parsed.icon_width, 2)
+        self.assertEqual(parsed.icon_height, 2)
+        self.assertTrue(parsed.persist)
+        self.assertEqual(_decode_icon_rle(parsed.icon, parsed.icon_width,
+                                          parsed.icon_height),
+                         [0xFF, 0xFF, 0xFF, 0x00])
+
+    def test_text_only_identity_omits_icon_fields(self):
+        msg = messages_eth.LoadClearsignSigner(
+            key_id=3, pubkey=b'\x02' * 33, alias="Pioneer")
+        parsed = messages_eth.LoadClearsignSigner()
+        parsed.ParseFromString(msg.SerializeToString())
+        self.assertFalse(parsed.HasField('icon'))
+        self.assertFalse(parsed.HasField('icon_width'))
+        self.assertFalse(parsed.HasField('icon_height'))
 
 
 if __name__ == '__main__':

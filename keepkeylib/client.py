@@ -711,16 +711,39 @@ class ProtocolMixin(object):
         return self.call(msg)
 
     @expect(proto.Success)
-    def load_clearsign_signer(self, key_id, pubkey, alias):
+    def load_clearsign_signer(self, key_id, pubkey, alias, icon=None,
+                              icon_width=None, icon_height=None, persist=None):
         """Load a runtime clearsign signer (compressed pubkey + alias) into a
-        key slot. Triggers a mandatory on-device confirmation; RAM-only, the
-        signer is gone on reboot. Metadata verified by a loaded signer shows
-        a warning screen naming the alias before every clearsign page."""
+        key slot. Triggers a mandatory on-device confirmation. Metadata verified
+        by a loaded signer shows a warning screen naming the alias before every
+        clearsign page.
+
+        icon (optional, <= 384 bytes) is an identity logo shown on the trust
+        screen. It is RUN-LENGTH ENCODED with byte-valued pixels -- NOT a packed
+        1bpp bitmap (a packed 64x64 would need 512 bytes and cannot fit the cap).
+        Read n = int8(data[i++]): n > 0 emits the single following value byte n
+        times; n < 0 emits the next (-n) value bytes once each; n == 0 is
+        invalid. Pixels fill row-major until icon_width*icon_height are emitted.
+        See LoadClearsignSigner.icon in messages-ethereum.proto for the grammar
+        and a golden vector; the decoder of record is draw_bitmap_mono_rle() in
+        keepkey-firmware lib/board/draw.c. icon_width/icon_height are required
+        with icon and must each be 1..64; omit all three for a text-only identity.
+
+        persist=True also writes the identity to flash so it survives reboot;
+        the default is RAM-only (gone on reboot)."""
         msg = eth_proto.LoadClearsignSigner(
             key_id=key_id,
             pubkey=pubkey,
             alias=alias,
         )
+        if icon is not None:
+            msg.icon = icon
+        if icon_width is not None:
+            msg.icon_width = icon_width
+        if icon_height is not None:
+            msg.icon_height = icon_height
+        if persist is not None:
+            msg.persist = persist
         return self.call(msg)
 
     @session

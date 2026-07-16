@@ -7,6 +7,7 @@ from binascii import hexlify, unhexlify
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.tools import parse_path
+from keepkeylib.signed_metadata import eth_sighash_legacy, keccak256
 
 DEFAULT_BIP32_PATH = "m/44h/931h/0h/0/0"
 
@@ -22,6 +23,31 @@ def make_send(from_address, to_address, amount):
             'to_address': to_address,
         }
     }
+
+def recover_eth_signer(sig_v, sig_r, sig_s, chain_id, nonce, gas_price,
+                       gas_limit, to, value, data):
+    """Recover the 20-byte signer address from an EIP-155 signature.
+
+    Verifies the signature is over the EXACT tx the test intended (nonce, gas,
+    to, value, calldata, chain_id) AND was produced by the expected key --
+    unlike a bare `len(r) == 32` structural check, which a wrong digest, wrong
+    calldata or wrong key would still satisfy.
+    """
+    import ecdsa
+    from ecdsa.util import sigdecode_string
+
+    digest = eth_sighash_legacy(nonce, gas_price, gas_limit, to, value, data,
+                                chain_id)
+    # EIP-155: v = recid + chain_id*2 + 35
+    recid = sig_v - (chain_id * 2 + 35)
+    assert recid in (0, 1), "v=%d is not a valid EIP-155 recid for chain_id=%d" % (sig_v, chain_id)
+
+    vks = ecdsa.VerifyingKey.from_public_key_recovery_with_digest(
+        sig_r + sig_s, digest, curve=ecdsa.SECP256k1, sigdecode=sigdecode_string)
+    vk = vks[recid]
+    pub = vk.to_string()                     # 64-byte uncompressed X||Y
+    return keccak256(pub)[-20:]
+
 
 class TestMsgMayaChainSignTx(common.KeepKeyTest):
 
@@ -72,16 +98,10 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
         self.requires_firmware("7.1.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
-        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
-            n=[2147483692,2147483708,2147483648,0,0],
-            nonce=0x0,
-            gas_price=0x5FB9ACA00,
-            gas_limit=0x186A0,
-            value=0x00,
-            to=unhexlify('e3985e6b61b814f7cdb188766562ba71b446b46d'),  # Maya router v4 (firmware-pinned)
-            address_type=0,
-            chain_id=1,
-            data=unhexlify('1fece7b4' +
+        address_n = [2147483692,2147483708,2147483648,0,0]
+        nonce, gas_price, gas_limit, value = 0x0, 0x5FB9ACA00, 0x186A0, 0x00
+        to = unhexlify('e3985e6b61b814f7cdb188766562ba71b446b46d')  # Maya router v4 (firmware-pinned)
+        data = unhexlify('1fece7b4' +
             '000000000000000000000000345b297ec83add7ff74d2f7933651bffa037d956' +    # asgard vault address
             '0000000000000000000000000000000000000000000000000000000000000000' +    # asset ETH
             '000000000000000000000000000000000000000000000065945acd2b867ef000' +    # amount
@@ -90,13 +110,25 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
             # SWAP:BTC.BTC:0x41e5560054824ea6b0732e656e3ad64e20e94e45:420
             '535741503a4254432e4254433a30783431653535363030353438323465613662' +    # mayachain transaction memo
             '30373332653635366533616436346532306539346534353a3432300000000000')
-        )   
-        # `to` updated to the firmware-pinned Maya router; exact r/s change
-        # with it, so assert structure here and regenerate exact vectors
-        # on-device.
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=address_n, nonce=nonce, gas_price=gas_price, gas_limit=gas_limit,
+            value=value, to=to, address_type=0, chain_id=1, data=data)
+        # Verify the signature is over the EXACT tx above and by THIS device's
+        # key, rather than merely checking r/s lengths (which a wrong digest,
+        # wrong calldata or wrong key would also pass). Recovery keeps the test
+        # correct across router changes without re-freezing r/s vectors.
         self.assertIn(sig_v, [37, 38])  # EIP-155 chain_id=1
         self.assertEqual(len(sig_r), 32)
         self.assertEqual(len(sig_s), 32)
+        signer = recover_eth_signer(sig_v, sig_r, sig_s, chain_id=1, nonce=nonce,
+                                    gas_price=gas_price, gas_limit=gas_limit,
+                                    to=to, value=value, data=data)
+        expected = self.client.ethereum_get_address(address_n)
+        if isinstance(expected, str):
+            expected = unhexlify(expected[2:] if expected.startswith('0x') else expected)
+        self.assertEqual(signer, expected,
+                         "signature does not recover to the device's own signer "
+                         "for this path -- wrong digest, calldata, or key")
 
 
     def test_sign_btc_add_liquidity(self):
@@ -122,16 +154,10 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
         self.requires_firmware("7.9.1")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
-        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
-                        n=[2147483692,2147483708,2147483648,0,0],
-            nonce=0x0,
-            gas_price=0x5FB9ACA00,
-            gas_limit=0x186A0,
-            value=0x00,
-            to=unhexlify('e3985e6b61b814f7cdb188766562ba71b446b46d'),  # Maya router v4 (firmware-pinned)
-            address_type=0,
-            chain_id=1,
-            data=unhexlify('1fece7b4' +
+        address_n = [2147483692,2147483708,2147483648,0,0]
+        nonce, gas_price, gas_limit, value = 0x0, 0x5FB9ACA00, 0x186A0, 0x00
+        to = unhexlify('e3985e6b61b814f7cdb188766562ba71b446b46d')  # Maya router v4 (firmware-pinned)
+        data = unhexlify('1fece7b4' +
             '0000000000000000000000000000000000000000000000000000000000000000' +
             '0000000000000000000000000000000000000000000000000000000000000000' +
             '0000000000000000000000000000000000000000000000000000000000000000' +
@@ -140,14 +166,25 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
             # ADD:ETH.ETH:0xc5b2608927ea95ed43f842f553e3a27b09c050e8:420
             '4144443a4554482e4554483a3078633562323630383932376561393565643433' +
             '663834326635353365336132376230396330353065383a343230000000000000')
-
-        )
-        # `to` updated to the firmware-pinned Maya router; exact r/s change
-        # with it, so assert structure here and regenerate exact vectors
-        # on-device.
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=address_n, nonce=nonce, gas_price=gas_price, gas_limit=gas_limit,
+            value=value, to=to, address_type=0, chain_id=1, data=data)
+        # Verify the signature is over the EXACT tx above and by THIS device's
+        # key, rather than merely checking r/s lengths (which a wrong digest,
+        # wrong calldata or wrong key would also pass). Recovery keeps the test
+        # correct across router changes without re-freezing r/s vectors.
         self.assertIn(sig_v, [37, 38])  # EIP-155 chain_id=1
         self.assertEqual(len(sig_r), 32)
         self.assertEqual(len(sig_s), 32)
+        signer = recover_eth_signer(sig_v, sig_r, sig_s, chain_id=1, nonce=nonce,
+                                    gas_price=gas_price, gas_limit=gas_limit,
+                                    to=to, value=value, data=data)
+        expected = self.client.ethereum_get_address(address_n)
+        if isinstance(expected, str):
+            expected = unhexlify(expected[2:] if expected.startswith('0x') else expected)
+        self.assertEqual(signer, expected,
+                         "signature does not recover to the device's own signer "
+                         "for this path -- wrong digest, calldata, or key")
 
     @unittest.skip("TODO: capture expected signatures from emulator")
     def test_mayachain_remove_liquidity(self):
