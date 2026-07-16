@@ -1477,6 +1477,14 @@ def _decode_icon_rle(data, width, height):
             else:
                 i += 1
                 nonseq -= 1
+    # Exactness, mirroring firmware's draw_bitmap_mono_rle_valid(): a run that
+    # straddles the end of the image, or packets trailing past the last pixel,
+    # are NOT well-formed. The drawing path fills the canvas and stops, so it
+    # cannot catch these -- the validator must.
+    if seq != 0 or nonseq != 0:
+        raise ValueError("run straddles the end of the image")
+    if i != len(data):
+        raise ValueError("trailing packets after the final pixel")
     return out
 
 
@@ -1533,6 +1541,17 @@ class TestClearsignSignerIcon(unittest.TestCase):
     def test_zero_count_is_invalid(self):
         with self.assertRaises(ValueError):
             _decode_icon_rle(bytes([0x00, 0xFF]), 1, 1)
+
+    def test_straddling_run_is_rejected(self):
+        # 05 FF for a 2x2: RUN of 5 into a 4-pixel image. The draw path would
+        # fill 4 and report success; the stream is not well-formed.
+        with self.assertRaises(ValueError):
+            _decode_icon_rle(bytes([0x05, 0xFF]), 2, 2)
+
+    def test_trailing_packets_are_rejected(self):
+        # Exactly fills 2x2, then carries an unread packet.
+        with self.assertRaises(ValueError):
+            _decode_icon_rle(bytes([0x04, 0xFF, 0x01, 0xAA]), 2, 2)
 
     def test_truncated_stream_is_rejected(self):
         with self.assertRaises(ValueError):
