@@ -1438,9 +1438,13 @@ def _decode_icon_rle(data, width, height):
 
     The icon is NOT a packed 1bpp bitmap (a packed 64x64 needs 512 bytes and the
     wire cap is 384). It is run-length encoded with byte-valued pixels:
-      n = int8(data[i++]);  n > 0 -> RUN: emit the single next value byte n times
-                            n < 0 -> LITERAL: emit the next (-n) value bytes once each
-                            n == 0 -> invalid
+      n = int8(data[i++]);  n in [1,127]    -> RUN: emit the next value byte n times
+                            n in [-127,-1]  -> LITERAL: emit the next (-n) bytes once each
+                            n == 0          -> invalid
+                            n == -128 (0x80)-> invalid: firmware's counter is int8_t
+                                               and cannot represent 128, so the packet
+                                               is undecodable (it previously asserted /
+                                               ran with a negative counter under NDEBUG)
     Pixels fill row-major until exactly width*height are emitted.
     """
     seq = nonseq = i = 0
@@ -1455,6 +1459,10 @@ def _decode_icon_rle(data, width, height):
                 i += 1
                 if n == 0:
                     raise ValueError("n == 0 is invalid")
+                if n == -128:
+                    # Mirror firmware: -(-128) overflows int8_t. Accepting 128
+                    # here would mask a decoder incompatibility.
+                    raise ValueError("n == -128 (0x80) is invalid: undecodable")
                 if n < 0:
                     nonseq, seq = -n, 0
                 else:
@@ -1499,6 +1507,28 @@ class TestClearsignSignerIcon(unittest.TestCase):
                          [0xAB] * 4)                                  # RUN
         self.assertEqual(_decode_icon_rle(bytes([0xFD, 0x01, 0x02, 0x03]), 3, 1),
                          [0x01, 0x02, 0x03])                          # LITERAL (-3)
+
+    def test_literal_of_128_is_invalid(self):
+        # 0x80 => n = -128. Spec-valid under the original doc, but firmware's
+        # int8_t counter cannot represent 128: it asserted (debug) or decoded
+        # with a negative counter (NDEBUG). Both proto and firmware now reject.
+        with self.assertRaises(ValueError):
+            _decode_icon_rle(bytes([0x80]) + bytes([0xAA] * 128), 128, 1)
+
+    def test_literal_of_127_is_the_valid_boundary(self):
+        data = bytes([0x81]) + bytes(range(127))
+        self.assertEqual(_decode_icon_rle(data, 127, 1), list(range(127)))
+
+    def test_run_of_127_is_the_valid_boundary(self):
+        self.assertEqual(_decode_icon_rle(bytes([0x7F, 0x5A]), 127, 1),
+                         [0x5A] * 127)
+
+    def test_icon_width_cap_is_the_text_column_not_the_height(self):
+        # icon_width <= 40 (LEFT_MARGIN_WITH_ICON), NOT 64: text begins at x=40
+        # and the icon is drawn after it, so a wider icon would overwrite the
+        # alias/fingerprint/"NOT verified by KeepKey" warning.
+        LEFT_MARGIN_WITH_ICON = 40
+        self.assertLess(LEFT_MARGIN_WITH_ICON, 64)
 
     def test_zero_count_is_invalid(self):
         with self.assertRaises(ValueError):
