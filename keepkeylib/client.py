@@ -713,24 +713,42 @@ class ProtocolMixin(object):
     @expect(proto.Success)
     def load_clearsign_signer(self, key_id, pubkey, alias, icon=None,
                               icon_width=None, icon_height=None, persist=None):
-        """Load a runtime clearsign signer (compressed pubkey + alias) into a
-        key slot. Triggers a mandatory on-device confirmation. Metadata verified
-        by a loaded signer shows a warning screen naming the alias before every
+        """Load a clearsign signer (compressed pubkey + alias) into a key slot.
+        Triggers a mandatory on-device confirmation. Metadata verified by a
+        loaded signer shows a warning screen naming the alias before every
         clearsign page.
 
         icon (optional, <= 384 bytes) is an identity logo shown on the trust
-        screen. It is RUN-LENGTH ENCODED with byte-valued pixels -- NOT a packed
-        1bpp bitmap (a packed 64x64 would need 512 bytes and cannot fit the cap).
-        Read n = int8(data[i++]): n > 0 emits the single following value byte n
-        times; n < 0 emits the next (-n) value bytes once each; n == 0 is
-        invalid. Pixels fill row-major until icon_width*icon_height are emitted.
-        See LoadClearsignSigner.icon in messages-ethereum.proto for the grammar
-        and a golden vector; the decoder of record is draw_bitmap_mono_rle() in
-        keepkey-firmware lib/board/draw.c. icon_width/icon_height are required
-        with icon and must each be 1..64; omit all three for a text-only identity.
+        screen. It is RUN-LENGTH ENCODED with byte-valued pixels, NOT a packed
+        bitmap: draw_bitmap_mono_rle() in keepkey-firmware lib/board/draw.c is
+        the decoder of record, and it is what every bundled image already uses.
 
-        persist=True also writes the identity to flash so it survives reboot;
-        the default is RAM-only (gone on reboot)."""
+        Grammar -- read n = int8(data[i++]):
+          n in [1, 127]    RUN     : one value byte follows; emit it n times.
+          n in [-127, -1]  LITERAL : (-n) value bytes follow; emit each once.
+          n == 0                   : invalid.
+          n == -128 (0x80)         : INVALID -- the device's run counter is
+                                     int8_t and cannot represent 128. Split a
+                                     128-byte literal into two packets.
+        The stream must decode EXACTLY: no run may straddle the end of the
+        image, exactly icon_width*icon_height pixels are emitted (row-major),
+        and the whole input must be consumed -- trailing packets are rejected.
+        The device validates this before showing or storing the icon. See
+        LoadClearsignSigner.icon in messages-ethereum.proto for the grammar and
+        a golden vector.
+
+        icon_width and icon_height are required with icon.
+          icon_width  : 1..40  -- the confirm screen's icon column
+                        (LEFT_MARGIN_WITH_ICON). Text begins at x=40 and the
+                        icon is drawn after it, so a wider icon would paint over
+                        the alias, fingerprint and the "NOT verified by KeepKey"
+                        warning. Capped, not clipped.
+          icon_height : 1..64  -- the icon column is 64px tall.
+        Omit all three for a text-only identity.
+
+        persist=True also writes the identity to flash, so it survives reboot
+        and is reloaded automatically. The default is RAM-only (gone on
+        reboot)."""
         msg = eth_proto.LoadClearsignSigner(
             key_id=key_id,
             pubkey=pubkey,

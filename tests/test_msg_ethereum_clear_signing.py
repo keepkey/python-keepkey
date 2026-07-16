@@ -1496,12 +1496,24 @@ class TestClearsignSignerIcon(unittest.TestCase):
     client following the old doc rendered a garbled/absent logo on a TRUST screen.
     """
 
-    ICON_MAX = 384  # METADATA_ICON_MAX / CLEARSIGN_ICON_MAX / proto max_size
+    ICON_MAX = 384   # METADATA_ICON_MAX / CLEARSIGN_ICON_MAX / proto max_size
+    MAX_WIDTH = 40   # LEFT_MARGIN_WITH_ICON -- the confirm screen's icon column
+    MAX_HEIGHT = 64  # the icon column's height
 
-    def test_packed_1bpp_cannot_fit_the_cap(self):
-        # Why the format must be RLE: the firmware accepts icon_width/height up
-        # to 64, but a packed 1bpp 64x64 needs 512 bytes > the 384-byte cap.
-        self.assertGreater((64 * 64) // 8, self.ICON_MAX)
+    def test_geometry_caps_are_asymmetric(self):
+        # width is capped at the 40px text column, NOT at the 64px height: text
+        # begins at x=40 and the icon is drawn after it, so a wider icon paints
+        # over the alias/fingerprint/"NOT verified by KeepKey" warning.
+        self.assertLess(self.MAX_WIDTH, self.MAX_HEIGHT)
+
+    def test_rle_is_the_format_of_record_not_a_size_workaround(self):
+        # Deliberately NOT justified by "packed wouldn't fit": at the legal max
+        # geometry a packed 1bpp icon is 40*64/8 = 320 bytes and WOULD fit the
+        # 384-byte cap. RLE is the format because draw_bitmap_mono_rle() is the
+        # decoder of record (shared with every bundled image) -- so the encoder
+        # contract is RLE regardless of what packed would cost.
+        self.assertLessEqual((self.MAX_WIDTH * self.MAX_HEIGHT) // 8,
+                             self.ICON_MAX)
 
     def test_golden_vector_matches_the_documented_decode(self):
         # The golden vector published in messages-ethereum.proto.
@@ -1530,13 +1542,6 @@ class TestClearsignSignerIcon(unittest.TestCase):
     def test_run_of_127_is_the_valid_boundary(self):
         self.assertEqual(_decode_icon_rle(bytes([0x7F, 0x5A]), 127, 1),
                          [0x5A] * 127)
-
-    def test_icon_width_cap_is_the_text_column_not_the_height(self):
-        # icon_width <= 40 (LEFT_MARGIN_WITH_ICON), NOT 64: text begins at x=40
-        # and the icon is drawn after it, so a wider icon would overwrite the
-        # alias/fingerprint/"NOT verified by KeepKey" warning.
-        LEFT_MARGIN_WITH_ICON = 40
-        self.assertLess(LEFT_MARGIN_WITH_ICON, 64)
 
     def test_zero_count_is_invalid(self):
         with self.assertRaises(ValueError):

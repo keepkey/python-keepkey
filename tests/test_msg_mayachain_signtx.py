@@ -24,29 +24,24 @@ def make_send(from_address, to_address, amount):
         }
     }
 
-def recover_eth_signer(sig_v, sig_r, sig_s, chain_id, nonce, gas_price,
-                       gas_limit, to, value, data):
-    """Recover the 20-byte signer address from an EIP-155 signature.
+def recover_eth_signer(sig_r, sig_s, sig_v, digest, chain_id):
+    """Recover the 20-byte Ethereum signer from a legacy (EIP-155) signature.
 
-    Verifies the signature is over the EXACT tx the test intended (nonce, gas,
-    to, value, calldata, chain_id) AND was produced by the expected key --
-    unlike a bare `len(r) == 32` structural check, which a wrong digest, wrong
-    calldata or wrong key would still satisfy.
+    Mirrors the helper proven in test_msg_ethereum_clear_signing.py. Verifying
+    recovery — rather than asserting r/s lengths — means a wrong digest, wrong
+    calldata or wrong key fails the test, and it stays correct across router
+    changes without re-freezing vectors.
     """
-    import ecdsa
-    from ecdsa.util import sigdecode_string
-
-    digest = eth_sighash_legacy(nonce, gas_price, gas_limit, to, value, data,
-                                chain_id)
-    # EIP-155: v = recid + chain_id*2 + 35
-    recid = sig_v - (chain_id * 2 + 35)
-    assert recid in (0, 1), "v=%d is not a valid EIP-155 recid for chain_id=%d" % (sig_v, chain_id)
-
-    vks = ecdsa.VerifyingKey.from_public_key_recovery_with_digest(
-        sig_r + sig_s, digest, curve=ecdsa.SECP256k1, sigdecode=sigdecode_string)
-    vk = vks[recid]
-    pub = vk.to_string()                     # 64-byte uncompressed X||Y
-    return keccak256(pub)[-20:]
+    from ecdsa import VerifyingKey, SECP256k1, util
+    if chain_id:
+        rec = sig_v - (35 + 2 * chain_id)
+    else:
+        rec = sig_v - 27
+    keys = VerifyingKey.from_public_key_recovery_with_digest(
+        sig_r + sig_s, digest, SECP256k1, hashfunc=None,
+        sigdecode=util.sigdecode_string,
+    )
+    return keccak256(keys[rec].to_string())[-20:]
 
 
 class TestMsgMayaChainSignTx(common.KeepKeyTest):
@@ -120,15 +115,12 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
         self.assertIn(sig_v, [37, 38])  # EIP-155 chain_id=1
         self.assertEqual(len(sig_r), 32)
         self.assertEqual(len(sig_s), 32)
-        signer = recover_eth_signer(sig_v, sig_r, sig_s, chain_id=1, nonce=nonce,
-                                    gas_price=gas_price, gas_limit=gas_limit,
-                                    to=to, value=value, data=data)
-        expected = self.client.ethereum_get_address(address_n)
-        if isinstance(expected, str):
-            expected = unhexlify(expected[2:] if expected.startswith('0x') else expected)
-        self.assertEqual(signer, expected,
-                         "signature does not recover to the device's own signer "
-                         "for this path -- wrong digest, calldata, or key")
+        digest = eth_sighash_legacy(nonce, gas_price, gas_limit, to, value,
+                                    data, 1)
+        signer = recover_eth_signer(sig_r, sig_s, sig_v, digest, 1)
+        # ethereum_get_address returns the raw 20 bytes. NB: KeepKeyTest's
+        # assertEqual override takes no msg argument.
+        self.assertEqual(signer, self.client.ethereum_get_address(address_n))
 
 
     def test_sign_btc_add_liquidity(self):
@@ -176,15 +168,12 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
         self.assertIn(sig_v, [37, 38])  # EIP-155 chain_id=1
         self.assertEqual(len(sig_r), 32)
         self.assertEqual(len(sig_s), 32)
-        signer = recover_eth_signer(sig_v, sig_r, sig_s, chain_id=1, nonce=nonce,
-                                    gas_price=gas_price, gas_limit=gas_limit,
-                                    to=to, value=value, data=data)
-        expected = self.client.ethereum_get_address(address_n)
-        if isinstance(expected, str):
-            expected = unhexlify(expected[2:] if expected.startswith('0x') else expected)
-        self.assertEqual(signer, expected,
-                         "signature does not recover to the device's own signer "
-                         "for this path -- wrong digest, calldata, or key")
+        digest = eth_sighash_legacy(nonce, gas_price, gas_limit, to, value,
+                                    data, 1)
+        signer = recover_eth_signer(sig_r, sig_s, sig_v, digest, 1)
+        # ethereum_get_address returns the raw 20 bytes. NB: KeepKeyTest's
+        # assertEqual override takes no msg argument.
+        self.assertEqual(signer, self.client.ethereum_get_address(address_n))
 
     @unittest.skip("TODO: capture expected signatures from emulator")
     def test_mayachain_remove_liquidity(self):
