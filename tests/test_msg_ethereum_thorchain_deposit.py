@@ -27,7 +27,7 @@ def _build_deposit_calldata(memo):
     """Build deposit(address,address,uint256,string) calldata (legacy selector)."""
     selector    = bytes.fromhex("1fece7b4")
     vault       = bytes(12) + bytes.fromhex(THOR_ROUTER)
-    asset       = bytes(12) + bytes.fromhex(ETH_NATIVE)
+    asset       = bytes(32)  # address(0): the only native-ETH form the routers accept
     amount      = (500000000000000000).to_bytes(32, "big")     # 0.5 ETH
     memo_offset = (4 * 32).to_bytes(32, "big")                 # offset = 128
     memo_bytes  = memo.encode("ascii")
@@ -41,7 +41,7 @@ def _build_deposit_with_expiry_calldata(memo, expiry=9999999999):
     """Build depositWithExpiry(address,address,uint256,string,uint256) calldata."""
     selector    = bytes.fromhex("44bc937b")
     vault       = bytes(12) + bytes.fromhex(THOR_ROUTER)
-    asset       = bytes(12) + bytes.fromhex(ETH_NATIVE)
+    asset       = bytes(32)  # address(0): the only native-ETH form the routers accept
     amount      = (500000000000000000).to_bytes(32, "big")     # 0.5 ETH
     memo_offset = (5 * 32).to_bytes(32, "big")                 # offset = 160 (after expiry)
     expiry_b    = expiry.to_bytes(32, "big")

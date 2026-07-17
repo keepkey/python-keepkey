@@ -263,31 +263,51 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     # ================================================================
 
     def test_solana_sign_token_transfer(self):
-        """SPL Token transfer — OLED shows 'Send [amount] tokens to [address]'."""
+        """Unchecked SPL Transfer has no signed mint (the token being moved is
+        not provable), so it now requires AdvancedMode (blind-sign); only the
+        TransferChecked variant clear-signs."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
+        from keepkeylib.client import CallException
         from_pubkey = self._get_from_pubkey()
         to_account = b'\x33' * 32  # destination token account
-        owner = from_pubkey  # token owner = signer
         # SPL Token Transfer instruction: opcode=3 (u8) + amount (LE u64)
         instr_data = bytes([3]) + struct.pack('<Q', 50000000)  # 50M tokens
         raw_tx = self._build_tx(from_pubkey, [to_account], self.TOKEN_PROGRAM, instr_data)
-        resp = self.client.call(messages.SolanaSignTx(
-            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
+        tx = messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx)
+
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException):
+            self.client.call(tx)
+
+        self.client.apply_policy('AdvancedMode', True)
+        resp = self.client.call(tx)
         self.assertEqual(len(resp.signature), 64)
+        self.client.apply_policy('AdvancedMode', False)
 
     def test_solana_sign_token_approve(self):
-        """SPL Token approve — OLED shows 'Approve [amount] tokens to [delegate]'."""
+        """Unchecked SPL Approve hides the delegated token's mint, so it now
+        requires AdvancedMode (blind-sign)."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
+        from keepkeylib.client import CallException
         from_pubkey = self._get_from_pubkey()
         delegate = b'\x44' * 32
         # SPL Token Approve: opcode=4 (u8) + amount (LE u64)
         instr_data = bytes([4]) + struct.pack('<Q', 100000000)
         raw_tx = self._build_tx(from_pubkey, [delegate], self.TOKEN_PROGRAM, instr_data)
-        resp = self.client.call(messages.SolanaSignTx(
-            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
+        tx = messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx)
+
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException):
+            self.client.call(tx)
+
+        self.client.apply_policy('AdvancedMode', True)
+        resp = self.client.call(tx)
         self.assertEqual(len(resp.signature), 64)
+        self.client.apply_policy('AdvancedMode', False)
 
     def test_solana_sign_stake_delegate(self):
         """Stake delegate — OLED shows 'Delegate stake?'."""
@@ -542,9 +562,12 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     # ================================================================
 
     def test_solana_sign_token_transfer_with_metadata(self):
-        """SPL Token transfer with SolanaTokenInfo for OLED display of symbol + decimals."""
+        """Host SolanaTokenInfo does NOT make an unchecked transfer clear-signable:
+        the mint is not signed, so the metadata is unauthenticated and the tx
+        still requires AdvancedMode. (TransferChecked binds the mint on-chain.)"""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
+        from keepkeylib.client import CallException
 
         from_pubkey = self._get_from_pubkey()
         to_account = b'\x33' * 32  # destination token account
@@ -567,13 +590,20 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
             decimals=6,
         )
 
-        resp = self.client.call(messages.SolanaSignTx(
+        tx = messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"),
             raw_tx=raw_tx,
             token_info=[token_info],
-        ))
+        )
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException):
+            self.client.call(tx)
+
+        self.client.apply_policy('AdvancedMode', True)
+        resp = self.client.call(tx)
         self.assertEqual(len(resp.signature), 64)
         self.assertFalse(all(b == 0 for b in resp.signature))
+        self.client.apply_policy('AdvancedMode', False)
 
     # ================================================================
     # Path edge-case tests
