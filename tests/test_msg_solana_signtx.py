@@ -309,6 +309,62 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.assertEqual(len(resp.signature), 64)
         self.client.apply_policy('AdvancedMode', False)
 
+    def test_solana_sign_create_account_requires_advanced_mode(self):
+        """SystemProgram CreateAccount assigns the new account's owner program
+        and space (not shown on-screen), so it is gated behind AdvancedMode."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        from keepkeylib.client import CallException
+        from_pubkey = self._get_from_pubkey()
+        new_account = b'\x55' * 32
+        instr_data = struct.pack('<I', 0) + struct.pack('<Q', 1000000)  # create + lamports
+        raw_tx = self._build_tx(from_pubkey, [new_account], self.SYSTEM_PROGRAM, instr_data)
+        tx = messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx)
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException):
+            self.client.call(tx)
+        self.client.apply_policy('AdvancedMode', True)
+        resp = self.client.call(tx)
+        self.assertEqual(len(resp.signature), 64)
+        self.client.apply_policy('AdvancedMode', False)
+
+    def test_solana_sign_set_authority_requires_advanced_mode(self):
+        """SPL SetAuthority hands over control of a mint/account; the target and
+        the 'clear authority' (None) case are not fully disclosed, so it is
+        gated behind AdvancedMode."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        from keepkeylib.client import CallException
+        from_pubkey = self._get_from_pubkey()
+        authority = b'\x66' * 32
+        instr_data = bytes([6, 2])  # SetAuthority, authority_type=AccountOwner
+        raw_tx = self._build_tx(from_pubkey, [authority], self.TOKEN_PROGRAM, instr_data)
+        tx = messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx)
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException):
+            self.client.call(tx)
+        self.client.apply_policy('AdvancedMode', True)
+        resp = self.client.call(tx)
+        self.assertEqual(len(resp.signature), 64)
+        self.client.apply_policy('AdvancedMode', False)
+
+    def test_solana_sign_stake_authorize_clearsigns(self):
+        """StakeAuthorize clear-signs, showing the role (staker/withdrawer) and
+        the new authority."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        from_pubkey = self._get_from_pubkey()
+        current_auth = b'\x77' * 32
+        new_auth = b'\x88' * 32
+        # Authorize (type=1 LE u32) + new authority(32) + StakeAuthorize role (0=staker)
+        instr_data = struct.pack('<I', 1) + new_auth + struct.pack('<I', 0)
+        raw_tx = self._build_tx(from_pubkey, [current_auth], self.STAKE_PROGRAM, instr_data)
+        resp = self.client.call(messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
+        self.assertEqual(len(resp.signature), 64)
+
     def test_solana_sign_stake_delegate(self):
         """Stake delegate — OLED shows 'Delegate stake?'."""
         self.requires_fullFeature()
