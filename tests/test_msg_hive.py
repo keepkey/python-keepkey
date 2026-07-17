@@ -528,17 +528,21 @@ class TestMsgHive(common.KeepKeyTest):
         self.assertEqual(len(seen), 3)  # role keys must be distinct
 
     def test_hive_sign_message_nonprintable_bytes(self):
-        """Raw (non-printable) buffers sign too — Keychain accepts serialized
-        Buffer payloads, shown on-device as a hex preview."""
+        """Non-printable buffers are REFUSED. A Hive transaction digest is
+        SHA256(chain_id || serialized_tx) over binary bytes, so a binary
+        "message" equal to C || tx would hash to a valid transaction signature
+        on any fork chain C. Restricting signable messages to printable ASCII
+        keeps them in a domain disjoint from every transaction preimage, closing
+        that cross-chain message->transaction signature oracle."""
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignMessage")
         self.setup_mnemonic_nopin_nopassphrase()
 
-        message = bytes(range(0, 48))  # starts 0x00... — nothing like the chain id
-        posting = hive.get_public_key(self.client, hive_path(ROLE_POSTING), show_display=False)
-        resp = hive.sign_message(self.client, hive_path(ROLE_POSTING), message)
-        self.assertEqual(self._recover_message_signer(message, resp.signature),
-                         posting.raw_public_key)
+        from keepkeylib.client import CallException
+        message = bytes(range(0, 48))  # non-printable bytes
+        with self.assertRaises(CallException) as ctx:
+            hive.sign_message(self.client, hive_path(ROLE_POSTING), message)
+        self.assertIn("printable", str(ctx.exception))
 
     def test_hive_sign_message_long_printable_ok(self):
         """Printable text over the 128-byte display budget still signs — it
