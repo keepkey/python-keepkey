@@ -661,6 +661,124 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.assertFalse(all(b == 0 for b in resp.signature))
         self.client.apply_policy('AdvancedMode', False)
 
+    def test_solana_sign_token_transfer_checked(self):
+        """TransferChecked (op 12) CLEAR-SIGNS with AdvancedMode OFF: the mint
+        is part of the signed instruction bytes, so the device shows it on its
+        own dedicated OLED screen ("Token mint <base58>") before the amount —
+        the authenticated token identity cannot be pushed off-view by a
+        host-controlled symbol. The (unattested) host token_info symbol is
+        shown next to the amount, and decimals come from the signed
+        instruction, never from the host."""
+        self.requires_firmware("7.15.0")
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        from_pubkey = self._get_from_pubkey()
+        to_account = b'\x33' * 32   # destination token account
+        authority = b'\x44' * 32    # transfer authority
+
+        # USDC mint (EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v)
+        usdc_mint = bytes([
+            0xc6, 0xfa, 0x7a, 0xf3, 0xbe, 0xdb, 0xad, 0x3a,
+            0x3d, 0x65, 0xf3, 0x6a, 0xab, 0xc9, 0x74, 0x31,
+            0xb1, 0xbb, 0xe4, 0xc2, 0xd2, 0xf6, 0xe0, 0xe4,
+            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x20, 0x23, 0x34,
+        ])
+
+        # TransferChecked: opcode=12 (u8) + amount (LE u64) + decimals (u8);
+        # accounts [source, mint, destination, authority]
+        instr_data = bytes([12]) + struct.pack('<Q', 1500000) + bytes([6])
+        raw_tx = self._build_tx(from_pubkey, [usdc_mint, to_account, authority],
+                                self.TOKEN_PROGRAM, instr_data)
+
+        token_info = messages.SolanaTokenInfo(
+            mint=usdc_mint,
+            symbol="USDC",
+            decimals=6,
+        )
+
+        self.client.apply_policy('AdvancedMode', False)
+        resp = self.client.call(messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            raw_tx=raw_tx,
+            token_info=[token_info],
+        ))
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+
+    def test_solana_sign_token_transfer_checked_attested_symbol(self):
+        """Signed token definition: the token_info carries a secp256k1
+        attestation over (mint, decimals, symbol) by a signer the user loaded
+        via LoadClearsignSigner — the same chain-agnostic trust anchor EVM
+        clear-sign metadata uses. The device verifies it and shows an extra
+        'Token "USDC" signed by <alias> <fingerprint>' screen; decimals must
+        also match the signed instruction bytes or the symbol is not trusted.
+        Clear-signs with AdvancedMode OFF."""
+        self.requires_firmware("7.15.0")
+        self.requires_fullFeature()
+        self.requires_message("LoadClearsignSigner")
+        self.setup_mnemonic_allallall()
+        import hashlib
+        from ecdsa import SigningKey, SECP256k1
+        from ecdsa.util import sigencode_string
+        from keepkeylib.signed_metadata import (
+            TEST_PRIVATE_KEY, test_signer_compressed_pubkey,
+            assert_test_key_matches_slot3)
+
+        # Load the CI signer into slot 3 through the production trust path
+        # (device confirm auto-acked by debuglink) — phase 1 has no built-ins.
+        assert_test_key_matches_slot3()
+        self.client.load_clearsign_signer(
+            key_id=3,
+            pubkey=test_signer_compressed_pubkey(),
+            alias="CI Test",
+        )
+
+        from_pubkey = self._get_from_pubkey()
+        to_account = b'\x33' * 32
+        authority = b'\x44' * 32
+        usdc_mint = bytes([
+            0xc6, 0xfa, 0x7a, 0xf3, 0xbe, 0xdb, 0xad, 0x3a,
+            0x3d, 0x65, 0xf3, 0x6a, 0xab, 0xc9, 0x74, 0x31,
+            0xb1, 0xbb, 0xe4, 0xc2, 0xd2, 0xf6, 0xe0, 0xe4,
+            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x20, 0x23, 0x34,
+        ])
+        decimals = 6
+        symbol = "USDC"
+
+        # TransferChecked with decimals matching the attested value.
+        instr_data = bytes([12]) + struct.pack('<Q', 1500000) + bytes([decimals])
+        raw_tx = self._build_tx(from_pubkey, [usdc_mint, to_account, authority],
+                                self.TOKEN_PROGRAM, instr_data)
+
+        # Attestation preimage exactly as solana_token_info_trusted() builds it:
+        # "KeepKeySolanaTokenDef/1" || mint(32) || decimals(le32) || symbol.
+        preimage = (b"KeepKeySolanaTokenDef/1" + usdc_mint +
+                    struct.pack('<I', decimals) + symbol.encode('ascii'))
+        digest = hashlib.sha256(preimage).digest()
+        sk = SigningKey.from_string(TEST_PRIVATE_KEY, curve=SECP256k1)
+        # RFC 6979 deterministic; 64-byte compact r||s, what
+        # signed_metadata_verify_attestation feeds ecdsa_verify_digest.
+        sig64 = sk.sign_digest_deterministic(
+            digest, hashfunc=hashlib.sha256, sigencode=sigencode_string)
+
+        token_info = messages.SolanaTokenInfo(
+            mint=usdc_mint,
+            symbol=symbol,
+            decimals=decimals,
+            signature=sig64,
+            signer_key_id=3,
+        )
+
+        self.client.apply_policy('AdvancedMode', False)
+        resp = self.client.call(messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            raw_tx=raw_tx,
+            token_info=[token_info],
+        ))
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+
     # ================================================================
     # Path edge-case tests
     # ================================================================

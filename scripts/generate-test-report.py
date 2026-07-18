@@ -235,42 +235,98 @@ def _frame_lit_ratio(path):
         return None
 
 
+def _frame_hash(path):
+    """Content hash of an OLED PNG with the top-right animation region masked
+    (the scroll arrow renders in a per-capture animation state, defeating
+    exact-byte comparison of otherwise identical screens). None if unreadable.
+    """
+    try:
+        import hashlib
+        pixels, w, h = _read_png_pixels(path)
+        if not w or not h:
+            return None
+        px = bytearray(pixels)
+        for y in range(min(16, h)):
+            row = y * w
+            for x in range(max(0, w - 64), w):
+                px[row + x] = 0
+        return hashlib.md5(bytes(px)).hexdigest()
+    except Exception:
+        return None
+
+
+# hash -> number of distinct test dirs the frame appears in. 1 = the frame is
+# unique to its test (its own content); large = generic device chrome shared
+# across unrelated tests (load-device prompt, policy toggles, lock screens).
+_FRAME_DIR_COUNTS = {}
+# Hashes appearing in >= 3 distinct dirs — used to keep chrome out of the
+# "extra frames" strip when a test has real content frames of its own.
+_GENERIC_FRAME_HASHES = set()
+
+def _build_frame_census(screenshot_dir):
+    """Populate the cross-test frame census from every per-test capture dir."""
+    _FRAME_DIR_COUNTS.clear()
+    _GENERIC_FRAME_HASHES.clear()
+    if not screenshot_dir or not os.path.isdir(screenshot_dir):
+        return
+    dirs_per_hash = {}
+    for mod in sorted(os.listdir(screenshot_dir)):
+        mod_dir = os.path.join(screenshot_dir, mod)
+        if not os.path.isdir(mod_dir):
+            continue
+        for meth in sorted(os.listdir(mod_dir)):
+            test_dir = os.path.join(mod_dir, meth)
+            if not os.path.isdir(test_dir):
+                continue
+            for f in os.listdir(test_dir):
+                if not f.startswith('btn'):
+                    continue
+                h = _frame_hash(os.path.join(test_dir, f))
+                if h:
+                    dirs_per_hash.setdefault(h, set()).add(test_dir)
+    _FRAME_DIR_COUNTS.update((h, len(d)) for h, d in dirs_per_hash.items())
+    _GENERIC_FRAME_HASHES.update(
+        h for h, dirs in dirs_per_hash.items() if len(dirs) >= 3)
+
+
 def _pick_best_frame(test_dir, btn_files):
     """Pick the best screenshot for a test.
 
     setUp noise (wipe/load frames) is removed at capture time for the signing
     tests (see reset_screenshots / setup_mnemonic_*), so the frames here are
-    the test's own operation confirms. We still drop blank/near-blank and
-    full-screen frames defensively, then prefer the most content-rich frame
-    (the address/amount/parameter screen carries more lit pixels than a plain
-    "Sign this transaction?" prompt). Returns None if nothing meaningful.
+    the test's own operation confirms. Defensive layers on top:
+    - blank/near-blank frames (idle, lock glyph) are NEVER shown — a reject
+      that fires before any confirm UI gets no image, not a blank one;
+    - rank by how test-SPECIFIC a frame is (fewest other test dirs showing the
+      byte-identical screen), so shared chrome (the load-device prompt, policy
+      toggles) loses to the test's own screens, yet still renders when it IS
+      the content (gate tests whose every frame is shared chrome);
+    - density breaks ties (the address/amount screen carries more lit pixels
+      than a bare "Sign?" prompt); dense out-of-band frames (QR screens) are
+      a last resort behind in-band ones.
 
-    ponytail: density heuristic, no OCR — a text-heavy idle screen could still
-    pass; capture-time reset is the real guard, this is the safety net.
+    ponytail: specificity census + density, no OCR — capture-time reset is the
+    real guard, this is the safety net.
     """
     if not btn_files:
         return None
-    scored = []
-    readable = []
+    inband, dense = [], []
     for f in btn_files:
-        r = _frame_lit_ratio(os.path.join(test_dir, f))
-        if r is None:
+        p = os.path.join(test_dir, f)
+        r = _frame_lit_ratio(p)
+        if r is None or r < 0.02:
+            continue  # unreadable or blank/lock — never show
+        if r > 0.55:
+            dense.append((r, f))  # QR/near-full: last resort, real content
             continue
-        readable.append(f)
-        # Blank/near-blank (idle, lock) or near-full (logo/inverted) = noise.
-        if r < 0.02 or r > 0.55:
-            continue
-        scored.append((r, f))
-    if scored:
-        # Most content-rich meaningful frame.
-        scored.sort()
-        return os.path.join(test_dir, scored[-1][1])
-    # Nothing landed in the meaningful density band, but we DID capture a
-    # readable frame (e.g. a dense QR / address screen brighter than the band,
-    # or a single-frame test). Show it rather than a bogus "OLED needed"
-    # placeholder when a real screenshot exists.
-    if readable:
-        return os.path.join(test_dir, readable[-1])
+        h = _frame_hash(p)
+        inband.append((_FRAME_DIR_COUNTS.get(h, 1), -r, f))
+    if inband:
+        inband.sort()
+        return os.path.join(test_dir, inband[0][2])
+    if dense:
+        dense.sort()
+        return os.path.join(test_dir, dense[-1][1])
     return None
 
 def detect_fw():
@@ -331,6 +387,11 @@ FULL_SEQUENCE_TESTS = {
     ('test_msg_ethereum_clear_signing', 'test_clearsign_erc4337_entrypoint_v0_7_handleops'),
     ('test_msg_ethereum_clear_signing', 'test_clearsign_safe_exectransaction'),
     ('test_msg_ethereum_clear_signing', 'test_clearsign_permit2_permit_transfer_from'),
+    # Native THOR/MAYA memo hardening: the raw memo pager (MEMO 1/N .. N/N,
+    # complete memo bytes, sole memo gate) IS the security story — show every
+    # page for every memo variant, not a single best frame.
+    ('test_msg_thorchain_signtx', 'test_thorchain_sign_tx'),
+    ('test_msg_mayachain_signtx', 'test_mayachain_sign_tx_memos'),
 }
 
 def _v_catalog_tests(start_id=17):
@@ -823,12 +884,16 @@ SECTIONS = [
          ('E20', 'test_msg_ethereum_thorchain_deposit', 'test_deposit_legacy_selector',
           'THORChain router deposit() (legacy selector)',
           'Cross-chain swap via the THORChain router contract — a daily-driver EVM<->THORChain '
-          'swap path, natively decoded (asset/amount/memo) without clear-sign metadata.',
-          []),
+          'swap path, natively decoded (asset/amount/memo) without clear-sign metadata. The '
+          'native amount shown is the signed msg.value (the ABI amount word is a router-ignored '
+          'hint and is never displayed as the send amount).',
+          ['Deposit amount (msg.value)', 'Full memo']),
          ('E21', 'test_msg_ethereum_thorchain_deposit', 'test_deposit_with_expiry_selector',
           'THORChain router depositWithExpiry()',
-          'Newer router selector variant with an expiry field; same native decode path.',
-          []),
+          'Newer router selector variant with an expiry field; same native decode path. The ABI '
+          'memo length word is read from the calldata (not assumed 64 bytes) and the padded memo '
+          'must end exactly at the calldata end.',
+          ['Deposit amount (msg.value)', 'Full memo']),
          ('E22', 'test_msg_ethereum_thorchain_deposit',
           'test_deposit_with_expiry_non_thor_address_blind_sign_blocked',
           'THORChain router call to a non-pinned address is blind-sign gated',
@@ -897,11 +962,18 @@ SECTIONS = [
          ('H1', 'test_msg_thorchain_getaddress', 'test_thorchain_get_address',
           'Derive THORChain address', 'Bech32 thor1... address.', []),
          ('H2', 'test_msg_thorchain_signtx', 'test_thorchain_sign_tx',
-          'Sign THORChain tx', 'Native RUNE transfer with memo.', ['Memo display']),
+          'Sign THORChain tx — raw memo paged in full (7 memo variants)',
+          'Native RUNE transfer. The COMPLETE raw memo is paged on the OLED (MEMO 1/N..N/N, '
+          '72-char pages) as the sole memo gate — no structured summary can hide trailing '
+          'content, and a reject on any page aborts signing. The frames below show every page '
+          'for each routed memo shape (SWAP/s/=/ADD/a/+ and bare-pool).',
+          ['Memo pages 1/N..N/N', 'Send + asset', 'Sign confirm']),
          ('H3', 'test_msg_thorchain_signtx', 'test_sign_btc_eth_swap',
           'Sign BTC->ETH swap', 'Cross-chain swap via THORChain memo routing.', ['Swap memo']),
          ('H4', 'test_msg_2thorchain_signtx', 'test_thorchain_sign_tx_deposit',
-          'Sign THORChain deposit', 'LP deposit transaction.', []),
+          'Sign THORChain deposit', 'LP deposit transaction (MsgDeposit): asset, amount and the '
+          'full memo are displayed from the exact bytes being signed.',
+          ['Deposit asset + memo']),
      ]),
 
     ('M', 'Maya Protocol', '7.0.0',
@@ -919,9 +991,29 @@ SECTIONS = [
          ('M1', 'test_msg_mayachain_getaddress', 'test_mayachain_get_address',
           'Derive Maya address', 'Bech32 maya1... address.', []),
          ('M2', 'test_msg_mayachain_signtx', 'test_sign_btc_eth_swap',
-          'Sign BTC-ETH swap via Maya', 'Cross-chain swap via Maya memo routing.', []),
+          'Sign BTC-ETH swap via Maya', 'Cross-chain swap via Maya memo routing (BTC OP_RETURN '
+          'side).', []),
          ('M3', 'test_msg_mayachain_signtx', 'test_sign_eth_add_liquidity',
-          'Sign swap via Maya', 'Cross-chain swap via Maya memo routing.', []),
+          'Add liquidity via Maya router (EVM side)',
+          'depositWithExpiry() to the firmware-pinned Maya router; the signature is recovered '
+          'to the device signer over the exact calldata.', []),
+         ('M4', 'test_msg_mayachain_signtx', 'test_mayachain_sign_tx',
+          'Sign native CACAO MsgSend — raw memo paged',
+          'Native CACAO transfer. Signature verified host-side against the amino sign-doc '
+          'digest (account/chain/fee/memo/amount/addresses all bound) and the known device '
+          'pubkey — no frozen vectors to go stale. The complete raw memo is paged on the OLED '
+          '(thorchain_confirm_full_memo is the sole memo gate for native MAYA too).',
+          ['CACAO send confirm', 'Memo page', 'Sign confirm']),
+         ('M5', 'test_msg_mayachain_signtx', 'test_mayachain_sign_tx_memos',
+          'Native memo variants — every routed shape paged in full',
+          'Each memo shape MAYA routes on (SWAP/s/=/ADD/a/+ and bare-pool) signs, each '
+          'signature is bound to its exact memo bytes via the sign-doc digest, and every page '
+          'of every memo is displayed (frames below, in order).',
+          ['Memo pages 1/N..N/N per variant']),
+         ('M6', 'test_msg_mayachain_signtx', 'test_mayachain_remove_liquidity',
+          'Native WITHDRAW memo',
+          'WITHDRAW:pool:basis-points memo paged in full; signature digest-verified.',
+          ['WITHDRAW memo page']),
      ]),
 
     # Binance Chain (BNB) - REMOVED: chain deprecated, beacon chain shut down 2024.
@@ -1188,13 +1280,21 @@ SECTIONS = [
     ('G', 'Hive', '7.15.0',
      'NEW: Hive (Graphene) support with SLIP-0048 role derivation. Four role keys per account '
      '(owner, active, posting, memo), each an STM-prefixed secp256k1 key. Signs Graphene '
-     'transactions — transfer, and the account-create / account-update authority operations '
-     'Pioneer uses to onboard sponsored accounts. Every signature recovers to the role key that '
-     'the transaction was signed under, and each serialized field is bound at its byte position.',
+     'transactions — transfer, the account-create / account-update authority operations '
+     'Pioneer uses to onboard sponsored accounts, Keychain signBuffer message signing (dApp '
+     'login), and parsed generic operations (vote, comment, custom_json). Every signature '
+     'recovers to the role key it was signed under, each serialized field is bound at its byte '
+     'position, and every user-controlled string is paged IN FULL on the OLED (72-char ASCII '
+     'pages; non-ASCII shown as complete hex). Message signing is restricted to printable '
+     'ASCII: a Hive transaction digest is SHA256(chain_id || binary tx), so the printable-only '
+     'whitelist makes signable messages provably disjoint from every transaction preimage on '
+     'ANY fork chain — closing the message->transaction signature-oracle class.',
      [
          'KEYS: SLIP-0048 m/48\'/13\'/role\'/0\'/account\' -> STM-prefixed pubkey per role',
-         'SIGN TX: Graphene serialize -> per-op confirm (amount + recipient) -> ECDSA sign',
+         'SIGN TX: Graphene serialize -> per-op confirm (amount + recipient + full memo pages) -> ECDSA sign',
          'ACCOUNT CREATE: attest 4 role authorities + new-account name -> owner-key signature',
+         'SIGN MESSAGE: printable ASCII only -> role named + full message paged -> SHA256(msg) signed',
+         'SIGN OPS: device re-parses the Graphene bytes; unrecognized ops are refused (no blind-sign)',
      ],
      [
          ('G1', 'test_msg_hive', 'test_hive_get_public_key_active',
@@ -1224,6 +1324,121 @@ SECTIONS = [
           'account_update (op 10) signs and recovers to the owner key; the replacement '
           'authorities are bound to their slots so updating the wrong authority fails.',
           ['Account-update confirm']),
+         ('G6', 'test_msg_hive', 'test_hive_sign_transfer_max_memo_ok',
+          'Max-length memo paged in full (boundary)',
+          'A memo of exactly 440 bytes (the serialization limit) still signs, and the OLED '
+          'pages the COMPLETE memo (MEMO 1/7..7/7) — nothing is truncated behind a '
+          'benign-looking prefix.',
+          ['Memo pages 1/7..7/7']),
+         ('G7', 'test_msg_hive', 'test_hive_sign_transfer_rejects_long_memo',
+          'Over-limit memo rejected',
+          'A 441-byte memo fails with a specific "memo too long" error before any signing. '
+          'Rejection happens before any confirm UI, so there is no OLED frame — the proof is '
+          'the specific device error.',
+          []),
+         ('G8', 'test_msg_hive', 'test_hive_sign_transfer_rejects_foreign_path',
+          'Foreign derivation paths rejected',
+          'BIP-44 trees, wrong registry, unassigned roles and short paths are all refused for '
+          'transaction signing — the SLIP-0048 fence.',
+          []),
+         ('G9', 'test_msg_hive', 'test_hive_sign_transfer_rejects_wrong_network',
+          'Wrong network index rejected',
+          'A path whose network index is not Hive (13\') must not sign.',
+          []),
+         ('G10', 'test_msg_hive', 'test_hive_sign_transfer_rejects_non_active_roles',
+          'Transfer requires the active role',
+          'Transfers signed under owner/posting/memo paths are refused; only active\' moves '
+          'funds.',
+          []),
+         ('G11', 'test_msg_hive', 'test_hive_sign_message_posting',
+          'Sign Hive message (dApp login)',
+          'Keychain signBuffer contract: signature over SHA256(raw message bytes) with the '
+          'posting key. The device names the signing role and pages the full message text. The '
+          'signature recovers to the posting key — exactly what a Hive dApp verifies for login.',
+          ['Signing-role screen', 'Message text']),
+         ('G12', 'test_msg_hive', 'test_hive_sign_message_all_roles',
+          'Message signing across roles',
+          'Posting, active and memo roles may sign (owner\' is refused); each signature '
+          'recovers to that role\'s distinct key.',
+          ['Role + message screens']),
+         ('G13', 'test_msg_hive', 'test_hive_sign_message_long_printable_ok',
+          'Long message paged in full',
+          'Printable text over the display budget routes through 72-char pages — never '
+          'silently truncated — and the signature covers every byte.',
+          ['Message pages']),
+         ('G14', 'test_msg_hive', 'test_hive_sign_message_max_length_ok',
+          'Max-length (1024 B) message',
+          'A message of exactly 1024 bytes (the proto cap) pages and signs.',
+          ['1024-byte message paged']),
+         ('G15', 'test_msg_hive', 'test_hive_sign_message_nonprintable_bytes',
+          'SECURITY: binary messages refused (oracle fix)',
+          'A binary "message" equal to chain_id || serialized_tx would hash to a valid '
+          'TRANSACTION signature on any fork chain — an active-key fund-theft oracle. The '
+          'printable-ASCII whitelist refuses every binary buffer, making signable messages '
+          'provably disjoint from all transaction preimages. Rejection is pre-UI (no frame); '
+          'the proof is the "printable" device error.',
+          []),
+         ('G16', 'test_msg_hive', 'test_hive_sign_message_rejects_chain_id_prefix',
+          'Chain-id-prefixed message refused',
+          'Belt-and-suspenders subset of G15: a message starting with the Hive mainnet chain '
+          'id is refused outright.',
+          []),
+         ('G17', 'test_msg_hive', 'test_hive_sign_message_rejects_oversize',
+          'Oversize message refused',
+          '1025 bytes must fail — the proto cap and the handler agree on 1024.',
+          []),
+         ('G18', 'test_msg_hive', 'test_hive_sign_message_rejects_bad_paths',
+          'Message signing path fence',
+          'Foreign trees, wrong network, unassigned roles, owner\' and short paths are all '
+          'refused — the same SLIP-0048 fence as transactions.',
+          []),
+         ('G19', 'test_msg_hive', 'test_hive_sign_ops_vote',
+          'Parsed vote operation',
+          'The device re-parses the Graphene bytes and displays voter, author, permlink and '
+          'weight from the exact bytes being signed — a host serializer bug can only produce a '
+          'rejection, never a silent wrong-sign.',
+          ['Vote op screens']),
+         ('G20', 'test_msg_hive', 'test_hive_sign_ops_comment',
+          'Parsed comment operation',
+          'Comment title and body are user-controlled strings — both paged in full (72-char '
+          'ASCII pages / complete hex for non-ASCII).',
+          ['Comment fields paged']),
+         ('G21', 'test_msg_hive', 'test_hive_sign_ops_custom_json_active',
+          'Parsed custom_json (active)',
+          'custom_json id and payload paged in full under the active role.',
+          ['custom_json paged']),
+         ('G22', 'test_msg_hive', 'test_hive_sign_ops_custom_json_posting',
+          'Parsed custom_json (posting)',
+          'Same shape under the posting role (the common dApp path).',
+          []),
+         ('G23', 'test_msg_hive', 'test_hive_sign_ops_downvote_and_default_chain_id',
+          'Downvote + default chain id',
+          'Negative weights display correctly and the default chain id binds the mainnet '
+          'digest.',
+          []),
+         ('G24', 'test_msg_hive', 'test_hive_sign_ops_role_fences',
+          'Ops role fences',
+          'vote/comment sign under posting\'; custom_json under its declared auth; memo\' and '
+          'owner\' never sign operations.',
+          []),
+         ('G25', 'test_msg_hive', 'test_hive_sign_ops_rejects_excluded_and_unknown_ops',
+          'Unknown/excluded ops refused (no blind-sign)',
+          'transfer-shaped and unrecognized operations inside SignOperations are refused — '
+          'there is no blind-sign fallback for Graphene bytes the device cannot display.',
+          []),
+         ('G26', 'test_msg_hive', 'test_hive_sign_ops_rejects_malformed_structure',
+          'Malformed Graphene structure refused',
+          'Truncated fields, wrong op counts and trailing bytes are all parse failures, not '
+          'sign-what-you-can.',
+          []),
+         ('G27', 'test_msg_hive', 'test_hive_sign_ops_rejects_oversize',
+          'Oversize operations refused',
+          'Payloads beyond the proto cap are refused before parsing.',
+          []),
+         ('G28', 'test_msg_hive', 'test_hive_sign_account_ops_reject_non_owner_roles',
+          'Account authority ops require owner',
+          'account_create / account_update sign only under the owner role.',
+          []),
      ]),
 
     ('S', 'Solana', '7.14.0',
@@ -1253,9 +1468,11 @@ SECTIONS = [
          ('S7', 'test_msg_solana_signtx', 'test_solana_sign_deterministic',
           'Deterministic signing', 'Same tx always produces same signature.', []),
          ('S8', 'test_msg_solana_signtx', 'test_solana_sign_token_transfer',
-          'SPL Token transfer',
-          'Send SPL tokens to destination. OLED shows token amount and recipient address.',
-          ['Token amount + address']),
+          'Unchecked SPL Transfer requires AdvancedMode',
+          'Unchecked Transfer (op 3) carries NO signed mint — the device cannot prove which '
+          'token is moving, so it is forced through the AdvancedMode blind-sign gate (matching '
+          'Trezor and Ledger, which both reject it). Only TransferChecked clear-signs.',
+          ['Blind-sign gate']),
          ('S9', 'test_msg_solana_signtx', 'test_solana_sign_stake_delegate',
           'Stake delegate',
           'Delegate SOL to a validator for staking rewards. OLED shows delegate confirmation.',
@@ -1269,9 +1486,79 @@ SECTIONS = [
           'Set priority fee for transaction. OLED shows compute unit price.',
           ['Unit price']),
          ('S12', 'test_msg_solana_signtx', 'test_solana_sign_token_transfer_with_metadata',
-          'SPL Token with metadata',
-          'Token transfer with SolanaTokenInfo (mint, symbol, decimals). OLED shows human-readable token name.',
-          ['Token name + amount']),
+          'Host metadata does NOT bypass the unchecked-transfer gate',
+          'An unchecked Transfer accompanied by host SolanaTokenInfo still requires '
+          'AdvancedMode: the mint is not part of the signed instruction, so the metadata is '
+          'unauthenticated and must not make the tx look clear-signable.',
+          ['Blind-sign gate']),
+         ('S13', 'test_msg_solana_signtx', 'test_solana_sign_token_transfer_checked',
+          'TransferChecked clear-signs with the mint on its own screen',
+          'TransferChecked (op 12) binds the mint in the signed instruction bytes. The device '
+          'shows "Token mint <full base58>" on a DEDICATED screen before the amount — the '
+          'authenticated token identity cannot be pushed off-view by a host-controlled symbol '
+          '— and decimals come from the signed instruction, never from the host. AdvancedMode '
+          'stays OFF.',
+          ['Token mint screen', 'Amount + symbol']),
+         ('S14', 'test_msg_solana_signtx',
+          'test_solana_sign_token_transfer_checked_attested_symbol',
+          'Signed token definition: symbol attested by a loaded signer',
+          'The token_info carries a secp256k1 attestation over (mint, decimals, symbol) by a '
+          'signer loaded via LoadClearsignSigner — the same chain-agnostic trust anchor as EVM '
+          'clear-sign metadata (KeepKey\'s open equivalent of Trezor\'s CoSi-signed token '
+          'definitions). The device verifies it, requires the attested decimals to equal the '
+          'signed instruction\'s, and adds a \'Token "USDC" signed by <alias> <fingerprint>\' '
+          'screen. An invalid attestation rejects the symbol outright (never falls back to the '
+          'claim).',
+          ['Load signer consent', 'Token mint screen', 'Signed-by alias + fingerprint']),
+         ('S15', 'test_msg_solana_signtx', 'test_solana_sign_token_approve',
+          'Unchecked SPL Approve requires AdvancedMode',
+          'Approve (op 4) hides the delegated token\'s mint — same gate as unchecked Transfer.',
+          ['Blind-sign gate']),
+         ('S16', 'test_msg_solana_signtx',
+          'test_solana_sign_create_account_requires_advanced_mode',
+          'CreateAccount requires AdvancedMode',
+          'CreateAccount assigns the new account\'s owner program and space, which the screen '
+          'does not fully disclose — gated rather than partially clear-signed.',
+          ['Blind-sign gate']),
+         ('S17', 'test_msg_solana_signtx',
+          'test_solana_sign_set_authority_requires_advanced_mode',
+          'SetAuthority requires AdvancedMode',
+          'SetAuthority hands over control of a mint/account (including the undistinguishable '
+          '"clear authority" case) — an account-takeover vector, gated.',
+          ['Blind-sign gate']),
+         ('S18', 'test_msg_solana_signtx', 'test_solana_sign_stake_authorize_clearsigns',
+          'StakeAuthorize clear-signs role + new authority',
+          'Shows the stake account, the role being reassigned (staker/withdrawer) and the full '
+          'new authority address.',
+          ['Role + new authority']),
+         ('S19', 'test_msg_solana_signtx', 'test_solana_sign_stake_withdraw',
+          'Stake withdraw shows the destination',
+          'The withdrawal destination account is displayed in full — a host cannot silently '
+          'redirect withdrawn SOL.',
+          ['Withdraw + destination']),
+         ('S20', 'test_msg_solana_signtx', 'test_solana_sign_stake_deactivate',
+          'Stake deactivate shows the stake account',
+          'The acted-on stake account is named on-screen.',
+          ['Stake account']),
+         ('S21', 'test_msg_solana_signtx', 'test_solana_sign_multi_instruction_2x_transfer',
+          'Multi-instruction: each instruction confirmed',
+          'Two transfers in one tx produce INSTR 1/2 and INSTR 2/2 screens — nothing rides '
+          'along unconfirmed.',
+          ['INSTR 1/2 + 2/2']),
+         ('S22', 'test_msg_solana_signtx',
+          'test_solana_sign_multi_instruction_transfer_and_memo',
+          'Transfer + memo both shown',
+          'A transfer with an attached memo instruction confirms both.',
+          ['Transfer + memo screens']),
+         ('S23', 'test_msg_solana_signtx', 'test_solana_sign_versioned_v0_static_verified',
+          'Versioned (v0) tx with static keys clear-signs',
+          'A v0-format tx whose accounts are all static parses and clear-signs like legacy.',
+          ['v0 instruction screens']),
+         ('S24', 'test_msg_solana_signtx', 'test_solana_sign_versioned_v0_opaque',
+          'v0 with address-table lookups requires AdvancedMode',
+          'Lookup-table accounts cannot be resolved on-device, so the tx routes to the '
+          'blind-sign gate.',
+          []),
      ]),
 
     ('T', 'TRON', '7.14.0',
@@ -1468,6 +1755,7 @@ SECTIONS = [
 # ---------------------------------------------------------------
 def render(output_path, fw_version, results, screenshot_dir=None):
     pdf = PDF(); pb = PB(pdf)
+    _build_frame_census(screenshot_dir)
     ts = datetime.now().strftime('%Y-%m-%d %H:%M')
     active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
     # Separate specs section (no tests) from test sections
@@ -1592,17 +1880,36 @@ def render(output_path, fw_version, results, screenshot_dir=None):
                     except Exception:
                         pass
                     # For multi-screen tests, show up to 2 more meaningful frames.
-                    # setUp noise is already stripped at capture time, so every
-                    # btn frame is a real operation screen; just drop blanks and
-                    # the one already shown as `best`.
+                    # setUp noise is already stripped at capture time; drop
+                    # blanks, generic cross-test chrome, and the `best` frame.
                     extra = []
                     for f in btn_files:
                         p = os.path.join(test_dir, f)
                         if p == best:
                             continue
                         r = _frame_lit_ratio(p)
-                        if r is not None and 0.02 <= r <= 0.55:
+                        if (r is not None and 0.02 <= r <= 0.55 and
+                                _frame_hash(p) not in _GENERIC_FRAME_HASHES):
                             extra.append(f)
+                    if not extra:
+                        # Every other frame is cross-test-shared. Outcome frames
+                        # that FOLLOW the best one (a blocked-gate screen after
+                        # the send preamble) are still this test's story — show
+                        # moderately-shared ones; frames in 8+ dirs are pure
+                        # chrome (policy toggles), and anything before `best`
+                        # is setup noise.
+                        seen_best = False
+                        for f in btn_files:
+                            p = os.path.join(test_dir, f)
+                            if p == best:
+                                seen_best = True
+                                continue
+                            if not seen_best:
+                                continue
+                            r = _frame_lit_ratio(p)
+                            if (r is not None and 0.02 <= r <= 0.55 and
+                                    _FRAME_DIR_COUNTS.get(_frame_hash(p), 1) < 8):
+                                extra.append(f)
                     extra = extra[:2]
                     for frame in extra:
                         try:
