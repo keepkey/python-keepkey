@@ -266,6 +266,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         """Unchecked SPL Transfer has no signed mint (the token being moved is
         not provable), so it now requires AdvancedMode (blind-sign); only the
         TransferChecked variant clear-signs."""
+        self.requires_firmware("7.15.0")  # unchecked-SPL AdvancedMode gating landed in 7.15
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from keepkeylib.client import CallException
@@ -289,6 +290,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     def test_solana_sign_token_approve(self):
         """Unchecked SPL Approve hides the delegated token's mint, so it now
         requires AdvancedMode (blind-sign)."""
+        self.requires_firmware("7.15.0")  # unchecked-SPL AdvancedMode gating landed in 7.15
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from keepkeylib.client import CallException
@@ -312,6 +314,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     def test_solana_sign_create_account_requires_advanced_mode(self):
         """SystemProgram CreateAccount assigns the new account's owner program
         and space (not shown on-screen), so it is gated behind AdvancedMode."""
+        self.requires_firmware("7.15.0")  # unchecked-SPL AdvancedMode gating landed in 7.15
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from keepkeylib.client import CallException
@@ -333,6 +336,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         """SPL SetAuthority hands over control of a mint/account; the target and
         the 'clear authority' (None) case are not fully disclosed, so it is
         gated behind AdvancedMode."""
+        self.requires_firmware("7.15.0")  # unchecked-SPL AdvancedMode gating landed in 7.15
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from keepkeylib.client import CallException
@@ -621,6 +625,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         """Host SolanaTokenInfo does NOT make an unchecked transfer clear-signable:
         the mint is not signed, so the metadata is unauthenticated and the tx
         still requires AdvancedMode. (TransferChecked binds the mint on-chain.)"""
+        self.requires_firmware("7.15.0")  # unchecked-SPL AdvancedMode gating landed in 7.15
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from keepkeylib.client import CallException
