@@ -902,6 +902,23 @@ SECTIONS = [
           'through to the ordinary blind-sign gate instead of being silently native-decoded — the '
           'fix for the router-spoofing / blind-sign-bypass class of attack.',
           ['Blind sign disabled (Blocked)']),
+         ('E23', 'test_msg_ethereum_thorchain_deposit',
+          'test_deposit_with_expiry_avalanche_router',
+          'THORChain deposit on Avalanche clear-signs (per-chain router pin)',
+          'THORChain deploys its router at a DIFFERENT address on every EVM chain, so the pin is '
+          '(chain_id, address) together. Before the chain scope, only mainnet deposits ever '
+          'matched and an AVAX->ETH swap fell into the blind-sign gate. The Avalanche C-Chain '
+          'router (00dc61..f1d4) is verified live against THORChain /inbound_addresses; the '
+          'native amount screen shows msg.value with the CHAIN\'s ticker (AVAX), and the '
+          'signature is ECDSA-recovered against the host-built pre-image over chainId 43114.',
+          ['Thorchain router screen', 'AVAX amount', 'Full memo']),
+         ('E24', 'test_msg_ethereum_thorchain_deposit',
+          'test_deposit_unpinned_chain_blind_sign_blocked',
+          'Deposit on an unpinned chain is blind-sign gated',
+          'The mainnet router ADDRESS on a chain with no pinned router (BSC) must not inherit '
+          'the deposit UX — the same address on another chain may hold unrelated attacker code. '
+          'Falls to the AdvancedMode gate; rejection is pre-UI (no frame).',
+          []),
      ]),
 
     ('R', 'Ripple (XRP)', '7.0.0',

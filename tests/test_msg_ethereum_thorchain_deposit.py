@@ -20,6 +20,7 @@ from keepkeylib.tools import parse_path
 
 
 THOR_ROUTER = "d37bbe5744d730a1d98d8dc97c42f0ca46ad7146"  # ETH THORChain router
+THOR_ROUTER_AVAX = "00dc6100103bc402d490aee3f9a5560cbd91f1d4"  # Avalanche C-Chain router
 ETH_NATIVE  = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"  # sentinel for native ETH
 
 
@@ -134,6 +135,75 @@ class TestMsgEthereumThorchainDeposit(common.KeepKeyTest):
                 to=binascii.unhexlify("1234567890123456789012345678901234567890"),
                 value=0,
                 chain_id=1,
+                data=data,
+            )
+
+    def test_deposit_with_expiry_avalanche_router(self):
+        """A THORChain deposit on Avalanche clear-signs — the router pin is
+        (chain_id, address), not Ethereum-mainnet-only.
+
+        Before the per-chain pin, thor_isThorchainTx only ever matched the
+        mainnet router, so an AVAX->ETH swap fell into the AdvancedMode
+        blind-sign gate and the device returned a bare ActionCancelled. The
+        signature is ECDSA-recovered against the host-built EIP-155 pre-image,
+        so a wrong digest, chain id, or key fails — not just a shape check.
+        The native amount screen shows msg.value with the CHAIN's ticker
+        (AVAX), never the mainnet pseudo-token's ETH label.
+        """
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        self.setup_mnemonic_allallall()
+
+        from keepkeylib.signed_metadata import eth_sighash_legacy, keccak256
+
+        memo = "=:ETH.ETH:0xabcdef1234567890abcdef1234567890abcdef12:0:t:0"
+        data = _build_deposit_with_expiry_calldata(memo)
+
+        n = parse_path("m/44'/60'/0'/0/0")
+        nonce, gas_price, gas_limit = 4, 50000000000, 300000
+        to = binascii.unhexlify(THOR_ROUTER_AVAX)
+        value = 500000000000000000  # 0.5 AVAX (native = msg.value)
+        chain_id = 43114
+
+        # AdvancedMode intentionally OFF — the deposit must clear-sign.
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=n, nonce=nonce, gas_price=gas_price, gas_limit=gas_limit,
+            to=to, value=value, chain_id=chain_id, data=data,
+        )
+        self.assertIn(sig_v, [2 * chain_id + 35, 2 * chain_id + 36])
+        digest = eth_sighash_legacy(nonce, gas_price, gas_limit, to, value,
+                                    data, chain_id)
+        from ecdsa import VerifyingKey, SECP256k1, util
+        rec = sig_v - (35 + 2 * chain_id)
+        keys = VerifyingKey.from_public_key_recovery_with_digest(
+            sig_r + sig_s, digest, SECP256k1, hashfunc=None,
+            sigdecode=util.sigdecode_string,
+        )
+        signer = keccak256(keys[rec].to_string())[-20:]
+        self.assertEqual(signer, self.client.ethereum_get_address(n))
+
+    def test_deposit_unpinned_chain_blind_sign_blocked(self):
+        """A deposit-shaped tx on a chain with NO pinned router must fall to
+        the blind-sign gate — a router address borrowed onto an unpinned chain
+        (where it may hold attacker code) cannot inherit the deposit UX."""
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        self.setup_mnemonic_allallall()
+
+        from keepkeylib.client import CallException
+
+        memo = "=:ETH.ETH:0xabcdef1234567890abcdef1234567890abcdef12:0:t:0"
+        data = _build_deposit_with_expiry_calldata(memo)
+
+        with self.assertRaises((CallException, Exception)):
+            self.client.ethereum_sign_tx(
+                n=parse_path("m/44'/60'/0'/0/0"),
+                nonce=5,
+                gas_price=50000000000,
+                gas_limit=300000,
+                to=binascii.unhexlify(THOR_ROUTER),  # real mainnet router addr
+                value=0,
+                chain_id=56,  # BSC: no pinned router
                 data=data,
             )
 
