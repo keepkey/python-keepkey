@@ -1,7 +1,7 @@
 [submodule "device-protocol"]
 path = device-protocol
-url = https://github.com/BitHighlander/device-protocol.git
-branch = master
+url = https://github.com/keepkey/device-protocol.git
+branch = up/release-protocol
 [submodule "keepkeylib/eth/ethereum-lists"]
 path = keepkeylib/eth/ethereum-lists
 url = https://github.com/keepkey/ethereum-lists.git
