@@ -1003,10 +1003,27 @@ class ProtocolMixin(object):
                 # COSMOS denom, so a native OSMO send was impossible — dropped
                 # the denom instead of forwarding it, and assigned an int to
                 # OsmosisMsgSend.amount, which is a string field and would have
-                # raised even for uatom. No denom whitelist belongs here at all:
-                # the firmware decides how to render each one (uosmo scaled to
-                # OSMO, anything else shown as raw base units).
+                # raised even for uatom.
+                #
+                # The denom IS now forwarded (the firmware needs it to decide
+                # whether to scale), but MsgSend is still fenced to uosmo, and
+                # not for the reason the old whitelist implied:
+                # osmosis_signTxUpdateMsgSend takes only (amount, to_address)
+                # and HARDCODES "denom":"uosmo" into the amino JSON it hashes,
+                # while fsm_msgOsmosisMsgAck renders whatever denom arrives.
+                # Forwarding a different one therefore DISPLAYS one asset and
+                # SIGNS another — e.g. a large amount of some worthless ibc/...
+                # token on screen, a large amount of OSMO in the signature.
+                # osmosis_signTxUpdateMsgDelegate already takes a denom, so
+                # MsgSend is the outlier. Lift this fence only once the
+                # firmware serializer accepts a denom.
                 coin = msg['value']['amount'][0]
+                if coin['denom'] != 'uosmo':
+                    raise CallException(
+                        "Osmosis.MsgSend",
+                        "Only uosmo is signable: the firmware MsgSend serializer "
+                        "hardcodes uosmo in the sighash, so any other denom would "
+                        "be displayed but not signed (got %s)" % coin['denom'])
                 resp = self.call(osmosis_proto.OsmosisMsgAck(
                     send=osmosis_proto.OsmosisMsgSend(
                         from_address=msg['value']['from_address'],

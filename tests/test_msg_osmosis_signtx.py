@@ -14,7 +14,16 @@ ROUNDED on the very screen the user approves:
 
 The signature was over the correct amount either way — the lie was only on
 the screen, which is the half a hardware wallet exists to get right. It now
-formats with bn_format_uint64 (integer math, exact at any magnitude).
+formats with bn_format_uint64 in integer math.
+
+KNOWN LIMIT, do not overstate this: osmosis_formatAmount converts with an
+unchecked strtoull(), so it is exact only for a CANONICAL decimal uint64.
+strtoull saturates past UINT64_MAX and also accepts leading whitespace, a
+sign, and 0x — so "18446744073709551616" or "-1" display as
+18446744073.709551615 OSMO while the original string is what gets hashed.
+That is the same display/signature divergence in a different disguise and
+needs a firmware-side canonical-range check; these tests deliberately do not
+claim otherwise.
 
 These tests are paired with SECTIONS entries carrying screenshot hints, so
 the rendered frame is captured as evidence. A test asserting only "it signed"
@@ -112,17 +121,29 @@ class TestMsgOsmosisSignTx(common.KeepKeyTest):
         sig = self._sign(500)
         self.assertEqual(len(sig.signature), 64)
 
-    def test_osmosis_send_unknown_denom_shown_raw(self):
-        """Only uosmo is scaled. The device does not know an arbitrary denom's
-        precision, so it shows the base-unit integer verbatim rather than
-        guessing a decimal point — guessing is how a 1000x display error
-        happens."""
+    def test_osmosis_send_non_uosmo_denom_is_refused(self):
+        """A non-uosmo MsgSend must not reach the device at all.
+
+        osmosis_signTxUpdateMsgSend takes only (amount, to_address) and
+        hardcodes "denom":"uosmo" into the amino JSON it hashes, while
+        fsm_msgOsmosisMsgAck renders whatever denom arrived. Sending uatom
+        therefore DISPLAYS "1500000 uatom" and SIGNS 1500000 uosmo — the
+        display/signature divergence a hardware wallet exists to prevent, and
+        exploitable in the large: a big number of some worthless ibc/... token
+        on screen, a big number of OSMO in the signature.
+
+        This asserts the fence, NOT that arbitrary denoms work. When the
+        firmware serializer takes a denom, replace this with the real check:
+        otherwise-identical uosmo and uatom transactions must produce
+        DIFFERENT signatures.
+        """
         self.requires_fullFeature()
         self.requires_firmware("7.15.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
-        sig = self._sign(1500000, denom='uatom')
-        self.assertEqual(len(sig.signature), 64)
+        with self.assertRaises(Exception) as ctx:
+            self._sign(1500000, denom='uatom')
+        self.assertIn('uosmo', str(ctx.exception))
 
     def test_osmosis_amount_is_committed_to_the_signature(self):
         """Guards the pairing between what is shown and what is signed: two

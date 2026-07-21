@@ -992,11 +992,14 @@ SECTIONS = [
           '500 uosmo is 0.000500 OSMO — no integer part and six decimals; it must not collapse '
           'to 0 or lose the trailing digits.',
           ['Sub-unit amount']),
-         ('P4', 'test_msg_osmosis_signtx', 'test_osmosis_send_unknown_denom_shown_raw',
-          'Unknown denom shown as base units',
-          'Only uosmo is scaled. For any other denom the device shows the integer verbatim '
-          'rather than guessing a precision — guessing is how a 1000x display error happens.',
-          ['Raw denom amount']),
+         ('P4', 'test_msg_osmosis_signtx', 'test_osmosis_send_non_uosmo_denom_is_refused',
+          'Non-uosmo MsgSend is refused, not displayed',
+          'osmosis_signTxUpdateMsgSend hardcodes "denom":"uosmo" into the amino JSON it '
+          'hashes while the confirm screen renders whatever denom arrived, so any other denom '
+          'would display one asset and sign another. Refused client-side until the firmware '
+          'serializer accepts a denom.',
+          # Refusal happens before the device is reached — no frame to capture.
+          []),
          ('P5', 'test_msg_osmosis_signtx', 'test_osmosis_amount_is_committed_to_the_signature',
           'Displayed amount is in the digest',
           'Two sends differing only in amount produce different signatures, so the confirm '
@@ -1553,9 +1556,15 @@ SECTIONS = [
           'user published earlier and is not reviewing on this screen.',
           ['Payout options screens']),
          ('G36', 'test_msg_hive', 'test_hive_sign_ops_comment_options_beneficiary_rules',
-          'Beneficiary rules enforced on-device',
-          'At most one extension, 1-8 strictly-ascending unique accounts, each weight and the '
-          'total within 10000 bp. Unsorted, duplicate and >100% lists are all refused.',
+          'Beneficiary ordering, uniqueness and total enforced on-device',
+          # Scoped to exactly what the mapped test asserts. It covers three
+          # rejections — unsorted, duplicate, and weights summing over 100%.
+          # The extension-count cap, the 1-8 count bound and per-beneficiary
+          # weight range are enforced by the parser but are NOT exercised here,
+          # so the entry must not claim them.
+          'Beneficiaries must be strictly ascending by account (which also makes them unique) '
+          'and their weights must sum to no more than 10000 bp. Unsorted, duplicate and '
+          'over-100% lists are each refused.',
           # Rejection-only: every case here is _assert_ops_fails, so the device
           # refuses before drawing anything and the capture would be three
           # frames of the idle home screen — a report entry that LOOKS like
