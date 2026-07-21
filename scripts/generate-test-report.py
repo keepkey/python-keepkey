@@ -962,6 +962,53 @@ SECTIONS = [
           'Sign Cosmos with memo', 'Memo field displayed for exchange deposit tags.', []),
      ]),
 
+    ('P', 'Osmosis', '7.15.0',
+     'Osmosis is the Cosmos-ecosystem DEX, signed with the same amino encoding as Cosmos Hub and '
+     'derived from the same coin type (118). 7.15.0 CHANGED how every Osmosis amount is drawn: the '
+     'confirm screens formatted with atof() + "%.6f", and a float carries only ~7 significant '
+     'decimal digits, so a large transfer was displayed ROUNDED on the screen the user approves '
+     '(123456789.123456 OSMO rendered as 123456792.000000). The signature was always over the '
+     'correct amount — the error was confined to the display, which is the half a hardware wallet '
+     'exists to get right. Amounts now format through bn_format_uint64 in integer math, exact at '
+     'any magnitude, and the same change removed the newlib floating-point engine from the build.',
+     [
+         'SEND: recipient + OSMO amount rendered from integer base units, never a float',
+         'PRECISION: 15-significant-digit amounts display exactly, not rounded to 7',
+         'UNKNOWN DENOM: shown as raw base units — the device does not guess a decimal point',
+     ],
+     [
+         ('P1', 'test_msg_osmosis_signtx', 'test_osmosis_sign_tx',
+          'Sign Osmosis send',
+          'Baseline MsgSend: recipient and a whole-OSMO amount on the confirm screen.',
+          ['OSMO send']),
+         ('P2', 'test_msg_osmosis_signtx', 'test_osmosis_send_amount_beyond_float_precision',
+          'Amount beyond float precision displays exactly',
+          'The regression this section exists for: 123456789123456 uosmo needs 15 significant '
+          'digits. The old float path drew 123456792.000000 OSMO over a transaction moving '
+          '123456789.123456 OSMO. The captured frame is the evidence.',
+          ['Exact large amount']),
+         ('P3', 'test_msg_osmosis_signtx', 'test_osmosis_send_subunit_amount',
+          'Sub-unit amount keeps its tail',
+          '500 uosmo is 0.000500 OSMO — no integer part and six decimals; it must not collapse '
+          'to 0 or lose the trailing digits.',
+          ['Sub-unit amount']),
+         ('P4', 'test_msg_osmosis_signtx', 'test_osmosis_send_unknown_denom_shown_raw',
+          'Unknown denom shown as base units',
+          'Only uosmo is scaled. For any other denom the device shows the integer verbatim '
+          'rather than guessing a precision — guessing is how a 1000x display error happens.',
+          ['Raw denom amount']),
+         ('P5', 'test_msg_osmosis_signtx', 'test_osmosis_amount_is_committed_to_the_signature',
+          'Displayed amount is in the digest',
+          'Two sends differing only in amount produce different signatures, so the confirm '
+          'screen is bound to what is signed rather than decorative.',
+          []),
+         ('P6', 'test_msg_osmosis_signtx', 'test_osmosis_signing_is_deterministic',
+          'Deterministic nonces (RFC6979)',
+          'Identical input yields an identical signature; a mismatch is a key-recovery risk, '
+          'not a cosmetic one.',
+          []),
+     ]),
+
     ('H', 'THORChain', '7.0.0',
      'THORChain is a decentralized cross-chain liquidity protocol. Native RUNE transactions use amino '
      'encoding with thor1... bech32 addresses. The memo field is the critical security element - it '
