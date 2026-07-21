@@ -57,9 +57,11 @@ class TestMsgOsmosisSignTx(common.KeepKeyTest):
         include send message in transaction". Deriving it keeps the fixture
         honest and makes these self-sends.
         """
+        # osmosis_get_address is decorated @field('address'), so it already
+        # returns the string rather than the OsmosisAddress message.
         return self.client.osmosis_get_address(
             address_n=parse_path(DEFAULT_BIP32_PATH)
-        ).address
+        )
 
     def _sign(self, amount, denom='uosmo'):
         addr = self._address()
