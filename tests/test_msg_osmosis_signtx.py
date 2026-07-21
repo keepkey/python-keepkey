@@ -34,8 +34,6 @@ from keepkeylib.tools import parse_path
 # Osmosis uses the Cosmos coin type (118), not one of its own.
 DEFAULT_BIP32_PATH = "m/44h/118h/0h/0/0"
 
-ADDR = "osmo15cenya0tr7nm3tz2wn3h3zwkht2rxrq7q7h3dj"
-
 
 def make_send(from_address, to_address, amount, denom='uosmo'):
     return {
@@ -50,14 +48,28 @@ def make_send(from_address, to_address, amount, denom='uosmo'):
 
 class TestMsgOsmosisSignTx(common.KeepKeyTest):
 
+    def _address(self):
+        """Ask the device for its own osmo1 address.
+
+        Deliberately NOT a hardcoded constant: the firmware bech32-decodes
+        to_address and refuses a bad checksum, so a literal invented by
+        swapping a cosmos1 prefix for osmo1 fails with the opaque "Failed to
+        include send message in transaction". Deriving it keeps the fixture
+        honest and makes these self-sends.
+        """
+        return self.client.osmosis_get_address(
+            address_n=parse_path(DEFAULT_BIP32_PATH)
+        ).address
+
     def _sign(self, amount, denom='uosmo'):
+        addr = self._address()
         return self.client.osmosis_sign_tx(
             address_n=parse_path(DEFAULT_BIP32_PATH),
             account_number=16359,
             chain_id="osmosis-1",
             fee=800,
             gas=290000,
-            msgs=[make_send(ADDR, ADDR, amount, denom)],
+            msgs=[make_send(addr, addr, amount, denom)],
             memo="",
             sequence=17,
         )
