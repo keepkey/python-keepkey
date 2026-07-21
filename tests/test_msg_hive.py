@@ -127,21 +127,36 @@ def _op_custom_json(required_auths, required_posting_auths, id_, json_):
     return out + _string(id_) + _string(json_)
 
 
+# The 2020 rebrand renamed the tokens but not their on-chain serialization:
+# hived still writes "STEEM" and "SBD" (confirmed against
+# condenser_api.get_transaction_hex). Call sites below pass the display names
+# because that is what a reader expects; this is the one place that knows the
+# wire spelling.
+_WIRE_SYMBOL = {"HIVE": "STEEM", "HBD": "SBD"}
+
+
 def _asset(amount, symbol):
-    """int64 LE amount + uint8 precision + 7-byte NUL-padded symbol.
+    """int64 LE amount + uint8 precision + 7-byte NUL-padded WIRE symbol.
 
     Precision is pinned per symbol exactly as firmware's cur_asset requires;
     passing the wrong one is what the negative tests below exercise.
     """
     precision = 6 if symbol == "VESTS" else 3
+    wire = _WIRE_SYMBOL.get(symbol, symbol)
     return (struct.pack("<q", amount) + bytes([precision]) +
-            symbol.encode("ascii").ljust(7, b"\x00"))
+            wire.encode("ascii").ljust(7, b"\x00"))
 
 
 def _asset_raw(amount, precision, symbol):
-    """Asset with a caller-chosen precision, for malformed-input tests."""
+    """Asset with a caller-chosen precision, for malformed-input tests.
+
+    Still maps to the wire symbol: these tests target the precision and amount
+    checks, and leaving the display spelling here would trip the symbol check
+    first, so they would pass while testing nothing.
+    """
+    wire = _WIRE_SYMBOL.get(symbol, symbol)
     return (struct.pack("<q", amount) + bytes([precision]) +
-            symbol.encode("ascii").ljust(7, b"\x00"))
+            wire.encode("ascii").ljust(7, b"\x00"))
 
 
 def _op_transfer_to_vesting(from_, to, amount):
