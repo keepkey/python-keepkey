@@ -127,6 +127,104 @@ def _op_custom_json(required_auths, required_posting_auths, id_, json_):
     return out + _string(id_) + _string(json_)
 
 
+# The 2020 rebrand renamed the tokens but not their on-chain serialization:
+# hived still writes "STEEM" and "SBD" (confirmed against
+# condenser_api.get_transaction_hex). Call sites below pass the display names
+# because that is what a reader expects; this is the one place that knows the
+# wire spelling.
+_WIRE_SYMBOL = {"HIVE": "STEEM", "HBD": "SBD"}
+
+
+def _asset(amount, symbol):
+    """int64 LE amount + uint8 precision + 7-byte NUL-padded WIRE symbol.
+
+    Precision is pinned per symbol exactly as firmware's cur_asset requires;
+    passing the wrong one is what the negative tests below exercise.
+    """
+    precision = 6 if symbol == "VESTS" else 3
+    wire = _WIRE_SYMBOL.get(symbol, symbol)
+    return (struct.pack("<q", amount) + bytes([precision]) +
+            wire.encode("ascii").ljust(7, b"\x00"))
+
+
+def _asset_raw(amount, precision, symbol):
+    """Asset with a caller-chosen precision, for malformed-input tests.
+
+    Still maps to the wire symbol: these tests target the precision and amount
+    checks, and leaving the display spelling here would trip the symbol check
+    first, so they would pass while testing nothing.
+    """
+    wire = _WIRE_SYMBOL.get(symbol, symbol)
+    return (struct.pack("<q", amount) + bytes([precision]) +
+            wire.encode("ascii").ljust(7, b"\x00"))
+
+
+def _op_transfer_to_vesting(from_, to, amount):
+    return (_varint(3) + _string(from_) + _string(to) + _asset(amount, "HIVE"))
+
+
+def _op_withdraw_vesting(account, vesting_shares):
+    return _varint(4) + _string(account) + _asset(vesting_shares, "VESTS")
+
+
+def _op_limit_order_create(owner, orderid, sell, sell_sym, recv, recv_sym,
+                           fill_or_kill, expiration):
+    return (_varint(5) + _string(owner) + struct.pack("<I", orderid) +
+            _asset(sell, sell_sym) + _asset(recv, recv_sym) +
+            bytes([1 if fill_or_kill else 0]) + struct.pack("<I", expiration))
+
+
+def _op_limit_order_cancel(owner, orderid):
+    return _varint(6) + _string(owner) + struct.pack("<I", orderid)
+
+
+def _op_convert(owner, requestid, amount):
+    return (_varint(8) + _string(owner) + struct.pack("<I", requestid) +
+            _asset(amount, "HBD"))
+
+
+def _op_comment_options(author, permlink, max_payout, percent_hbd,
+                        allow_votes=True, allow_curation=True,
+                        beneficiaries=None):
+    out = (_varint(19) + _string(author) + _string(permlink) +
+           _asset(max_payout, "HBD") + struct.pack("<H", percent_hbd) +
+           bytes([1 if allow_votes else 0, 1 if allow_curation else 0]))
+    if not beneficiaries:
+        return out + _varint(0)
+    out += _varint(1) + _varint(0) + _varint(len(beneficiaries))
+    for account, weight in beneficiaries:
+        out += _string(account) + struct.pack("<H", weight)
+    return out
+
+
+def _op_transfer_to_savings(from_, to, amount, symbol, memo=""):
+    return (_varint(32) + _string(from_) + _string(to) +
+            _asset(amount, symbol) + _string(memo))
+
+
+def _op_transfer_from_savings(from_, request_id, to, amount, symbol, memo=""):
+    return (_varint(33) + _string(from_) + struct.pack("<I", request_id) +
+            _string(to) + _asset(amount, symbol) + _string(memo))
+
+
+def _op_claim_reward_balance(account, hive_amt, hbd_amt, vests_amt):
+    return (_varint(39) + _string(account) + _asset(hive_amt, "HIVE") +
+            _asset(hbd_amt, "HBD") + _asset(vests_amt, "VESTS"))
+
+
+def _op_delegate_vesting_shares(delegator, delegatee, vesting_shares):
+    return (_varint(40) + _string(delegator) + _string(delegatee) +
+            _asset(vesting_shares, "VESTS"))
+
+
+def _op_account_update2(account, json_metadata, posting_json_metadata,
+                        authority_present=False):
+    return (_varint(43) + _string(account) +
+            bytes([1 if authority_present else 0, 0, 0, 0]) +
+            _string(json_metadata) + _string(posting_json_metadata) +
+            _varint(0))
+
+
 class _Reader:
     """Cursor over the device-emitted Graphene bytes. Matches firmware
     serialization exactly (see hive.c append_* helpers)."""
@@ -697,8 +795,12 @@ class TestMsgHive(common.KeepKeyTest):
         for op_type in (2, 9, 10):
             self._assert_ops_fails("dedicated message",
                                    _ops_tx([_varint(op_type)]))
+        # 49 = recurrent_transfer: a real Hive op deliberately kept out of the
+        # table. (This previously used op 3, mislabelled "comment_options";
+        # op 3 is transfer_to_vesting and is now clear-signed, so it no longer
+        # exercises the unknown-op path.)
         self._assert_ops_fails("unsupported operation",
-                               _ops_tx([_varint(3)]))  # comment_options
+                               _ops_tx([_varint(49)]))
 
     def test_hive_sign_ops_rejects_malformed_structure(self):
         """Zero ops, >4 ops, nonzero extensions, trailing bytes, overlong
@@ -715,9 +817,9 @@ class TestMsgHive(common.KeepKeyTest):
         self._assert_ops_fails("trailing bytes", _ops_tx([vote]) + b"\x00")
         # op_count as an overlong 6-byte varint encoding of 1
         head = struct.pack("<HII", 12345, 67890, 1700000000)
-        self._assert_ops_fails("malformed op count",
+        self._assert_ops_fails("malformed operation",
                                head + b"\x81\x80\x80\x80\x80\x00" + vote + b"\x00")
-        self._assert_ops_fails("weight out of range",
+        self._assert_ops_fails("value out of range",
                                _ops_tx([_op_vote("kkvoter", "author", "permlink", 10001)]))
 
     def test_hive_sign_ops_role_fences(self):
@@ -742,7 +844,7 @@ class TestMsgHive(common.KeepKeyTest):
         self._assert_ops_fails("mixed posting/active", mixed, path=hive_path(ROLE_ACTIVE))
 
         both_auths = _ops_tx([_op_custom_json(["kkadmin"], ["kkplayer"], "x-id", '{"a":1}')])
-        self._assert_ops_fails("mixed active+posting auths", both_auths,
+        self._assert_ops_fails("mixed posting/active", both_auths,
                                path=hive_path(ROLE_ACTIVE))
 
     def test_hive_sign_ops_rejects_oversize(self):
@@ -757,6 +859,205 @@ class TestMsgHive(common.KeepKeyTest):
         with self.assertRaises(CallException):
             hive.sign_operations(self.client, hive_path(ROLE_POSTING), tx,
                                  chain_id=HIVE_CHAIN_ID)
+
+    # ── Phase-3 op table ─────────────────────────────────────────────────
+    # Every tx below is built by THIS file's serializer, never by firmware, so
+    # a parser bug and a serializer bug cannot cancel out.
+
+    def _ops_signs_with(self, tx, role):
+        """Sign tx with `role` and assert the signature recovers to that key."""
+        key = hive.get_public_key(self.client, hive_path(role), show_display=False)
+        resp = hive.sign_operations(self.client, hive_path(role), tx,
+                                    chain_id=HIVE_CHAIN_ID)
+        self.assertEqual(self._recover_ops_signer(tx, resp.signature),
+                         key.raw_public_key)
+
+    def test_hive_sign_ops_limit_order_create(self):
+        """The op that motivated phase 3: a HIVE->HBD internal-market swap.
+        Active tier, since it moves funds."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        tx = _ops_tx([_op_limit_order_create("kktrader", 42, 1500, "HIVE",
+                                             400, "HBD", True, 1700003600)])
+        self._ops_signs_with(tx, ROLE_ACTIVE)
+
+    def test_hive_sign_ops_limit_order_cancel(self):
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        self._ops_signs_with(_ops_tx([_op_limit_order_cancel("kktrader", 42)]),
+                             ROLE_ACTIVE)
+
+    def test_hive_sign_ops_active_tier_value_ops(self):
+        """The active-tier ops that move or lock value all sign with active."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        for op in (
+            _op_transfer_to_vesting("kkuser", "kkuser", 1000),
+            _op_convert("kkuser", 7, 2500),
+            _op_transfer_to_savings("kkuser", "kkfriend", 1500, "HBD", "rent"),
+            _op_transfer_from_savings("kkuser", 7, "kkfriend", 1500, "HIVE"),
+            _op_delegate_vesting_shares("kkuser", "kkfriend", 1000000),
+            _op_withdraw_vesting("kkuser", 5000000),
+        ):
+            self._ops_signs_with(_ops_tx([op]), ROLE_ACTIVE)
+
+    def test_hive_sign_ops_posting_tier_ops(self):
+        """claim_reward_balance is posting tier — claiming is not spending."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        tx = _ops_tx([_op_claim_reward_balance("kkuser", 1234, 5678, 90123456)])
+        self._ops_signs_with(tx, ROLE_POSTING)
+
+    def test_hive_sign_ops_zero_amount_semantics(self):
+        """Zero means something for these two and nothing for the rest, so the
+        parser must not apply one blanket rule."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        # 0 VESTS withdraw_vesting cancels an in-progress power-down.
+        self._ops_signs_with(_ops_tx([_op_withdraw_vesting("kkuser", 0)]),
+                             ROLE_ACTIVE)
+        # 0 VESTS delegation removes an existing delegation.
+        self._ops_signs_with(
+            _ops_tx([_op_delegate_vesting_shares("kkuser", "kkfriend", 0)]),
+            ROLE_ACTIVE)
+        # A zero power-up, by contrast, does nothing and is refused.
+        self._assert_ops_fails("amount must be greater than zero",
+                               _ops_tx([_op_transfer_to_vesting("kkuser", "kkuser", 0)]),
+                               path=hive_path(ROLE_ACTIVE))
+        # Nothing to claim.
+        self._assert_ops_fails("no effect",
+                               _ops_tx([_op_claim_reward_balance("kkuser", 0, 0, 0)]))
+
+    def test_hive_sign_ops_asset_symbol_and_precision_pinned(self):
+        """A swapped symbol hides a ~2000x value difference behind an
+        identical-looking number; a wrong precision moves the decimal point
+        relative to what the chain applies. Both must be refused."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+        active = hive_path(ROLE_ACTIVE)
+
+        # transfer_to_vesting is HIVE-only.
+        wrong_symbol = (_varint(3) + _string("kkuser") + _string("kkuser") +
+                        _asset(1000, "HBD"))
+        self._assert_ops_fails("malformed operation", _ops_tx([wrong_symbol]),
+                               path=active)
+        # Right symbol, wrong precision.
+        wrong_precision = (_varint(3) + _string("kkuser") + _string("kkuser") +
+                           _asset_raw(1000, 6, "HIVE"))
+        self._assert_ops_fails("malformed operation", _ops_tx([wrong_precision]),
+                               path=active)
+        # Negative int64 would render as an enormous positive amount.
+        negative = (_varint(3) + _string("kkuser") + _string("kkuser") +
+                    _asset_raw(-1000, 3, "HIVE"))
+        self._assert_ops_fails("malformed operation", _ops_tx([negative]),
+                               path=active)
+        # An order priced VESTS-for-HBD is not a market that exists.
+        vests_order = (_varint(5) + _string("kktrader") + struct.pack("<I", 1) +
+                       _asset(100, "VESTS") + _asset(100, "HBD") +
+                       bytes([0]) + struct.pack("<I", 1))
+        self._assert_ops_fails("malformed operation", _ops_tx([vests_order]),
+                               path=active)
+        # Same symbol on both sides of an order is a no-op trade that still fills.
+        same_symbol = _op_limit_order_create("kktrader", 1, 100, "HIVE",
+                                             100, "HIVE", False, 1)
+        self._assert_ops_fails("symbols must differ", _ops_tx([same_symbol]),
+                               path=active)
+
+    def test_hive_sign_ops_comment_options_binds_to_its_comment(self):
+        """comment_options redirects a post's payout. Detached from its
+        comment it could retarget a post published earlier that the user is
+        not reviewing on screen, so firmware requires it to follow one with a
+        matching author and permlink."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        comment = _op_comment("", "hive-100", "kkauthor", "my-post",
+                              "Title", b"Body", "{}")
+        options = _op_comment_options("kkauthor", "my-post", 1000000, 10000)
+
+        # Standing alone: refused.
+        self._assert_ops_fails("must follow its comment", _ops_tx([options]))
+        # Following a comment for a DIFFERENT post: refused.
+        other = _op_comment_options("kkauthor", "other-post", 1000000, 10000)
+        self._assert_ops_fails("must follow its comment",
+                               _ops_tx([comment, other]))
+        # Correctly paired, with beneficiaries: signs on the posting key.
+        paired = _ops_tx([comment, _op_comment_options(
+            "kkauthor", "my-post", 1000000, 10000,
+            beneficiaries=[("aaron", 1000), ("zoe", 500)])])
+        self._ops_signs_with(paired, ROLE_POSTING)
+
+    def test_hive_sign_ops_comment_options_beneficiary_rules(self):
+        """hived requires strictly ascending, unique beneficiaries summing to
+        <= 100%; signing anything else only wastes a device confirmation."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        comment = _op_comment("", "hive-100", "kkauthor", "my-post",
+                              "Title", b"Body", "{}")
+        for bens in ([("zoe", 500), ("aaron", 1000)],      # unsorted
+                     [("aaron", 500), ("aaron", 500)],     # duplicate
+                     [("aaron", 6000), ("zoe", 5000)]):    # > 100%
+            tx = _ops_tx([comment, _op_comment_options(
+                "kkauthor", "my-post", 1000000, 10000, beneficiaries=bens)])
+            self._assert_ops_fails("beneficiaries", tx)
+
+    def test_hive_sign_ops_account_update2_rejects_authority_change(self):
+        """account_update2 can rotate account keys. Only the profile-metadata
+        form is in the table — the same device-derived-keys invariant that
+        keeps ops 9/10 out, applied field-level."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        self._assert_ops_fails(
+            "authority changes",
+            _ops_tx([_op_account_update2("kkuser", '{"profile":{}}', "",
+                                         authority_present=True)]),
+            path=hive_path(ROLE_ACTIVE))
+
+        # json_metadata is an active-key field...
+        self._ops_signs_with(
+            _ops_tx([_op_account_update2("kkuser", '{"profile":{}}', "")]),
+            ROLE_ACTIVE)
+        # ...while a posting-metadata-only profile edit stays posting tier.
+        self._ops_signs_with(
+            _ops_tx([_op_account_update2("kkuser", "", '{"profile":{}}')]),
+            ROLE_POSTING)
+
+    def test_hive_sign_ops_truncated_bodies_rejected(self):
+        """The signature covers the whole buffer, so a short read would mean
+        signing bytes the device never displayed. Every truncation must be
+        refused rather than partially parsed."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveSignOperations")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        for op in (_op_limit_order_create("kktrader", 1, 100, "HIVE", 50,
+                                          "HBD", False, 9),
+                   _op_claim_reward_balance("kkuser", 1, 1, 1),
+                   _op_transfer_from_savings("kkuser", 7, "kkfriend", 1500,
+                                             "HBD", "memo")):
+            # One byte short is the boundary case; a deeper cut exercises the
+            # length-prefixed string readers.
+            for cut in (1, 5):
+                if cut >= len(op):
+                    continue
+                self._assert_ops_fails(None, _ops_tx([op[:-cut]]),
+                                       path=hive_path(ROLE_ACTIVE))
 
     def test_hive_sign_message_rejects_chain_id_prefix(self):
         """A 'message' that begins with the mainnet chain id would hash to a
