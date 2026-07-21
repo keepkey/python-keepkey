@@ -999,15 +999,20 @@ class ProtocolMixin(object):
                 if len(msg['value']['amount']) != 1:
                     raise CallException("Osmosis.MsgSend", "Multiple amounts per msg not supported")
 
-                denom = msg['value']['amount'][0]['denom']
-                if denom != 'uatom':
-                    raise CallException("Osmosis.MsgSend", "Unsupported denomination: " + denom)
-
+                # This branch had never executed. It whitelisted 'uatom' — the
+                # COSMOS denom, so a native OSMO send was impossible — dropped
+                # the denom instead of forwarding it, and assigned an int to
+                # OsmosisMsgSend.amount, which is a string field and would have
+                # raised even for uatom. No denom whitelist belongs here at all:
+                # the firmware decides how to render each one (uosmo scaled to
+                # OSMO, anything else shown as raw base units).
+                coin = msg['value']['amount'][0]
                 resp = self.call(osmosis_proto.OsmosisMsgAck(
                     send=osmosis_proto.OsmosisMsgSend(
                         from_address=msg['value']['from_address'],
                         to_address=msg['value']['to_address'],
-                        amount=int(msg['value']['amount'][0]['amount']),
+                        denom=coin['denom'],
+                        amount=str(coin['amount']),
                         address_type=types.SPEND,
                     )
                 ))
