@@ -1508,9 +1508,13 @@ SECTIONS = [
          ('G36', 'test_msg_hive', 'test_hive_sign_ops_comment_options_beneficiary_rules',
           'Beneficiary rules enforced on-device',
           'At most one extension, 1-8 strictly-ascending unique accounts, each weight and the '
-          'total within 10000 bp. Each beneficiary is confirmed individually rather than '
-          'summarised as a count.',
-          ['Per-beneficiary screens']),
+          'total within 10000 bp. Unsorted, duplicate and >100% lists are all refused.',
+          # Rejection-only: every case here is _assert_ops_fails, so the device
+          # refuses before drawing anything and the capture would be three
+          # frames of the idle home screen — a report entry that LOOKS like
+          # visual proof and is not. The per-beneficiary confirm screens are
+          # captured by G35, which actually signs a two-beneficiary payout.
+          []),
          ('G37', 'test_msg_hive', 'test_hive_sign_ops_account_update2_rejects_authority_change',
           'account_update2 cannot rotate keys',
           'Only the profile-metadata form is in the table. Any owner/active/posting/memo_key '
