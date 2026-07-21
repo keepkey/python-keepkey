@@ -1456,6 +1456,71 @@ SECTIONS = [
           'Account authority ops require owner',
           'account_create / account_update sign only under the owner role.',
           []),
+         # ── Phase 2/3 op table (fw #315) ────────────────────────────────
+         # These ran green in the full suite from the day they landed, but had
+         # no SECTIONS entry, so screenshot_filter() never selected them and
+         # eleven newly clear-signed ops shipped with zero OLED proof. A
+         # correct signature over bytes the user was shown something else for
+         # is the exact failure the clear-sign table exists to prevent, so
+         # every op that renders a confirm screen gets a non-empty hint.
+         ('G29', 'test_msg_hive', 'test_hive_sign_ops_limit_order_create',
+          'Internal market: limit_order_create',
+          'The op that motivated phase 3 — a HIVE->HBD market swap. Both sides of the order '
+          'are shown with their symbols pinned (a swapped symbol hides a ~2000x value '
+          'difference behind an identical-looking number), and order id / fill-or-kill / '
+          'expiry get their own screen so they cannot be crowded off the first.',
+          ['Sell and receive amounts', 'Order terms screen']),
+         ('G30', 'test_msg_hive', 'test_hive_sign_ops_limit_order_cancel',
+          'Internal market: limit_order_cancel',
+          'Cancelling names the order id and the owner. No recipient row is forged — the op '
+          'acts on the signer\'s own book entry.',
+          ['Cancel order screen']),
+         ('G31', 'test_msg_hive', 'test_hive_sign_ops_active_tier_value_ops',
+          'Active-tier value ops',
+          'transfer_to_vesting, convert, transfer_to/from_savings, delegate_vesting_shares '
+          'and withdraw_vesting all move or lock value, so all six sign only under active. '
+          'Each renders its own amount + counterparty.',
+          ['Power up', 'Convert', 'Savings deposit/withdraw', 'Delegation', 'Power down']),
+         ('G32', 'test_msg_hive', 'test_hive_sign_ops_posting_tier_ops',
+          'claim_reward_balance is posting tier',
+          'Claiming is not spending, so it signs under posting. Three reward assets across '
+          'two screens (the OLED body fits three rows; a fourth would be signed but never '
+          'shown).',
+          ['Claim rewards screens']),
+         ('G33', 'test_msg_hive', 'test_hive_sign_ops_zero_amount_semantics',
+          'Zero means something for two ops, nothing for the rest',
+          '0 VESTS stops a power-down and removes a delegation — both legitimate, so zero is '
+          'NOT rejected there and the screen must say which action it is. Everywhere else a '
+          'zero amount is a no-op and refused.',
+          ['Stop power down', 'Remove delegation']),
+         ('G34', 'test_msg_hive', 'test_hive_sign_ops_asset_symbol_and_precision_pinned',
+          'Asset symbol pinned to its protocol precision',
+          'HIVE/HBD are 3-decimal, VESTS is 6. The parser refuses any other pairing: a wrong '
+          'precision moves the decimal point on the confirmation screen relative to what the '
+          'chain applies.',
+          []),
+         ('G35', 'test_msg_hive', 'test_hive_sign_ops_comment_options_binds_to_its_comment',
+          'comment_options binds to its own comment',
+          'Payout redirection is only accepted immediately after a comment op with the same '
+          'author and permlink. Standing alone it could attach beneficiaries to a post the '
+          'user published earlier and is not reviewing on this screen.',
+          ['Payout options screens']),
+         ('G36', 'test_msg_hive', 'test_hive_sign_ops_comment_options_beneficiary_rules',
+          'Beneficiary rules enforced on-device',
+          'At most one extension, 1-8 strictly-ascending unique accounts, each weight and the '
+          'total within 10000 bp. Each beneficiary is confirmed individually rather than '
+          'summarised as a count.',
+          ['Per-beneficiary screens']),
+         ('G37', 'test_msg_hive', 'test_hive_sign_ops_account_update2_rejects_authority_change',
+          'account_update2 cannot rotate keys',
+          'Only the profile-metadata form is in the table. Any owner/active/posting/memo_key '
+          'field present is a hard reject — the op-9/10 device-derived-keys invariant applied '
+          'field-level.',
+          []),
+         ('G38', 'test_msg_hive', 'test_hive_sign_ops_truncated_bodies_rejected',
+          'Truncated op bodies refused',
+          'A body cut short mid-field is a parse failure, not sign-what-you-can.',
+          []),
      ]),
 
     ('S', 'Solana', '7.14.0',
