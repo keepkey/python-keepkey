@@ -32,26 +32,39 @@ class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
         self.requires_fullFeature()
         self.requires_firmware("7.4.0")
         self.setup_mnemonic_allallall()
-        f = open('sign_typed_data.json')
-        txtests = json.load(f)
-        f.close()
+        with open('sign_typed_data.json') as f:
+            txtests = json.load(f)
 
-        for test in txtests['tests']:
-            print("test: ", json.dumps(test['name']))
-            if test['parameters']['message_hash'] != None:
-                retval = self.client.ethereum_sign_typed_data_hash(
-                    n = tools.parse_path(test['parameters']['path']),
-                    ds_hash = binascii.unhexlify(test['parameters']['domain_separator_hash'][2:]),
-                    m_hash = binascii.unhexlify(test['parameters']['message_hash'][2:])
-                    )
-            else:
-                retval = self.client.ethereum_sign_typed_data_hash(
-                    n = tools.parse_path(test['parameters']['path']),
-                    ds_hash = binascii.unhexlify(test['parameters']['domain_separator_hash'][2:]),
-                    )
+        def sign(test):
+            parameters = test['parameters']
+            kwargs = {
+                'n': tools.parse_path(parameters['path']),
+                'ds_hash': binascii.unhexlify(
+                    parameters['domain_separator_hash'][2:]),
+            }
+            if parameters['message_hash'] is not None:
+                kwargs['m_hash'] = binascii.unhexlify(
+                    parameters['message_hash'][2:])
+            return self.client.ethereum_sign_typed_data_hash(**kwargs)
 
-            self.assertEqual(retval.address, test['result']['address'])
-            self.assertEqual(binascii.hexlify(retval.signature), test['result']['sig'][2:])
+        # This endpoint receives only precomputed hashes. It must fail closed
+        # unless the user explicitly opts in to blind signing.
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException) as ctx:
+            sign(txtests['tests'][0])
+        self.assertIn('disabled by policy', str(ctx.exception))
+
+        self.client.apply_policy('AdvancedMode', True)
+        try:
+            for test in txtests['tests']:
+                print("test: ", json.dumps(test['name']))
+                retval = sign(test)
+                self.assertEqual(retval.address, test['result']['address'])
+                self.assertEqual(
+                    binascii.hexlify(retval.signature),
+                    test['result']['sig'][2:])
+        finally:
+            self.client.apply_policy('AdvancedMode', False)
 
 if __name__ == '__main__':
     unittest.main()
