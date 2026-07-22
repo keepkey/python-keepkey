@@ -60,6 +60,7 @@ import struct as _struct
 import zlib as _zlib
 
 SCREENSHOT = os.environ.get('KEEPKEY_SCREENSHOT', '') == '1'
+SCREENSHOT_SETTLE_SECONDS = 0.5
 
 
 def _write_png(path, width, height, pixels):
@@ -525,6 +526,12 @@ class DebugLinkMixin(object):
     def callback_ButtonRequest(self, msg):
         if self.verbose:
             log("ButtonRequest code: " + get_buttonrequest_value(msg.code))
+
+        # The firmware emits ButtonRequest immediately before drawing the
+        # confirmation. Allow the emulator's render transition to settle so
+        # regression evidence cannot capture a partially drawn OLED.
+        if SCREENSHOT:
+            time.sleep(SCREENSHOT_SETTLE_SECONDS)
 
         # Capture OLED screenshot BEFORE pressing button (confirmation screen)
         self._capture_oled()
@@ -1005,25 +1012,16 @@ class ProtocolMixin(object):
                 # OsmosisMsgSend.amount, which is a string field and would have
                 # raised even for uatom.
                 #
-                # The denom IS now forwarded (the firmware needs it to decide
-                # whether to scale), but MsgSend is still fenced to uosmo, and
-                # not for the reason the old whitelist implied:
-                # osmosis_signTxUpdateMsgSend takes only (amount, to_address)
-                # and HARDCODES "denom":"uosmo" into the amino JSON it hashes,
-                # while fsm_msgOsmosisMsgAck renders whatever denom arrives.
-                # Forwarding a different one therefore DISPLAYS one asset and
-                # SIGNS another — e.g. a large amount of some worthless ibc/...
-                # token on screen, a large amount of OSMO in the signature.
-                # osmosis_signTxUpdateMsgDelegate already takes a denom, so
-                # MsgSend is the outlier. Lift this fence only once the
-                # firmware serializer accepts a denom.
+                # The legacy Amino MsgSend serializer is uosmo-only. Firmware
+                # now enforces the same rule on direct OsmosisMsgAck traffic;
+                # retain the host check as early feedback, never as the trust
+                # boundary.
                 coin = msg['value']['amount'][0]
                 if coin['denom'] != 'uosmo':
                     raise CallException(
                         "Osmosis.MsgSend",
-                        "Only uosmo is signable: the firmware MsgSend serializer "
-                        "hardcodes uosmo in the sighash, so any other denom would "
-                        "be displayed but not signed (got %s)" % coin['denom'])
+                        "Only uosmo is signable by Osmosis MsgSend (got %s)" %
+                        coin['denom'])
                 resp = self.call(osmosis_proto.OsmosisMsgAck(
                     send=osmosis_proto.OsmosisMsgSend(
                         from_address=msg['value']['from_address'],

@@ -392,6 +392,7 @@ FULL_SEQUENCE_TESTS = {
     # page for every memo variant, not a single best frame.
     ('test_msg_thorchain_signtx', 'test_thorchain_sign_tx'),
     ('test_msg_mayachain_signtx', 'test_mayachain_sign_tx_memos'),
+    ('test_msg_osmosis_signtx', 'test_osmosis_swap_max_fields_are_fully_paged'),
 }
 
 def _v_catalog_tests(start_id=17):
@@ -969,8 +970,9 @@ SECTIONS = [
      'decimal digits, so a large transfer was displayed ROUNDED on the screen the user approves '
      '(123456789.123456 OSMO rendered as 123456792.000000). The signature was always over the '
      'correct amount — the error was confined to the display, which is the half a hardware wallet '
-     'exists to get right. Amounts now format through bn_format_uint64 in integer math, exact at '
-     'any magnitude, and the same change removed the newlib floating-point engine from the build.',
+     'exists to get right. Amounts now use bounded decimal-string formatting; native uosmo is '
+     'canonical uint64, unknown denominations remain exact base-unit strings, and every long '
+     'signed asset is renderer-paged before signing.',
      [
          'SEND: recipient + OSMO amount rendered from integer base units, never a float',
          'PRECISION: 15-significant-digit amounts display exactly, not rounded to 7',
@@ -993,19 +995,28 @@ SECTIONS = [
           'to 0 or lose the trailing digits.',
           ['Sub-unit amount']),
          ('P4', 'test_msg_osmosis_signtx', 'test_osmosis_send_non_uosmo_denom_is_refused',
-          'Non-uosmo MsgSend is refused, not displayed',
-          'osmosis_signTxUpdateMsgSend hardcodes "denom":"uosmo" into the amino JSON it '
-          'hashes while the confirm screen renders whatever denom arrived, so any other denom '
-          'would display one asset and sign another. Refused client-side until the firmware '
-          'serializer accepts a denom.',
-          # Refusal happens before the device is reached — no frame to capture.
+          'Direct-wire non-uosmo MsgSend is refused',
+          'The test bypasses the Python MsgSend fence and sends OsmosisMsgAck directly. Firmware '
+          'rejects uatom before review or hashing, so the hardcoded uosmo serializer cannot be '
+          'reached under a different displayed asset.',
           []),
-         ('P5', 'test_msg_osmosis_signtx', 'test_osmosis_amount_is_committed_to_the_signature',
+         ('P5', 'test_msg_osmosis_signtx', 'test_osmosis_send_rejects_noncanonical_wire_amounts',
+          'Noncanonical and overflowing uosmo are refused',
+          'Raw-wire 01, -1, leading-space and UINT64 overflow values are rejected before any '
+          'display/signature divergence can occur.',
+          []),
+         ('P6', 'test_msg_osmosis_signtx', 'test_osmosis_swap_max_fields_are_fully_paged',
+          'Maximum Swap fields are fully paged',
+          'Two maximum-size 68-character IBC denominations plus 32-digit amounts force the '
+          'exact OLED renderer across separate bounded screens. The full ordered input and minimum-output '
+          'sequence is captured before the signature is returned.',
+          ['Swap Input', 'Minimum Output']),
+         ('P7', 'test_msg_osmosis_signtx', 'test_osmosis_amount_is_committed_to_the_signature',
           'Displayed amount is in the digest',
           'Two sends differing only in amount produce different signatures, so the confirm '
           'screen is bound to what is signed rather than decorative.',
           []),
-         ('P6', 'test_msg_osmosis_signtx', 'test_osmosis_signing_is_deterministic',
+         ('P8', 'test_msg_osmosis_signtx', 'test_osmosis_signing_is_deterministic',
           'Deterministic nonces (RFC6979)',
           'Identical input yields an identical signature; a mismatch is a key-recovery risk, '
           'not a cosmetic one.',
