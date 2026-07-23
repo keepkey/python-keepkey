@@ -132,23 +132,37 @@ class TestMsgOsmosisSignTx(common.KeepKeyTest):
         sig = self._sign(500)
         self.assertEqual(len(sig.signature), 64)
 
-    def test_osmosis_send_non_uosmo_denom_is_refused(self):
-        """A raw OsmosisMsgAck cannot bypass the firmware's uosmo fence."""
+    def test_osmosis_send_denom_is_committed_to_the_signature(self):
+        """A raw MsgSend signs the reviewed canonical denomination.
+
+        Two otherwise-identical sends must produce different signatures when
+        only the denomination changes. This catches both the old hardcoded
+        ``uosmo`` serializer and any future display/signing mismatch.
+        """
         self.requires_fullFeature()
         self.requires_firmware("7.15.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
-        addr = self._start_raw_signing()
-        with self.assertRaises(CallException) as ctx:
-            self.client.call(osmosis_proto.OsmosisMsgAck(
+        def sign_denom(denom):
+            addr = self._start_raw_signing()
+            response = self.client.call(osmosis_proto.OsmosisMsgAck(
                 send=osmosis_proto.OsmosisMsgSend(
                     from_address=addr,
                     to_address=addr,
-                    denom='uatom',
+                    denom=denom,
                     amount='1500000',
                 )
             ))
-        self.assertIn('Only uosmo', str(ctx.exception))
+            self.assertIsInstance(response, osmosis_proto.OsmosisSignedTx)
+            self.assertEqual(len(response.signature), 64)
+            return response
+
+        native = sign_denom('uosmo')
+        non_native = sign_denom('uatom')
+        self.assertNotEqual(hexlify(native.signature),
+                            hexlify(non_native.signature))
+        self.assertEqual(hexlify(native.public_key),
+                         hexlify(non_native.public_key))
 
     def test_osmosis_send_rejects_noncanonical_wire_amounts(self):
         """Wire callers cannot exploit strtoull spellings or saturation."""
