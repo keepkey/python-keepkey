@@ -23,6 +23,7 @@ key_id=3. NEVER use this key in production.
 The device wallet (mnemonic12 from common.py) signs the actual transactions.
 """
 
+import os
 import unittest
 import hashlib
 import struct
@@ -61,7 +62,7 @@ from keepkeylib.signed_metadata import (
     test_signer_compressed_pubkey,
 )
 from keepkeylib.tools import parse_path
-from keepkeylib.client import CallException
+from keepkeylib.client import CallException, ProtocolMixin
 
 # The metadata CI slot. Must match: embedded payload key_id, protocol
 # EthereumTxMetadata.key_id, and the slot LoadClearsignSigner loaded the
@@ -1193,6 +1194,25 @@ class TestEthereumClearSigning(common.KeepKeyTest):
             signed_payload=sign_metadata(payload), metadata_version=1, key_id=1)
         self.assertEqual(resp.classification, CLASSIFICATION_MALFORMED)
 
+    @unittest.skipUnless(
+        os.getenv('KK_EXPECT_PERSIST_REJECTED') == '1',
+        'requires the exact RC18 firmware security boundary')
+    def test_persistent_signer_rejected_without_session_mutation(self):
+        """RC18 firmware fails closed on persist=true without slot mutation."""
+        pub = test_signer_compressed_pubkey()
+
+        with self.assertRaises(CallException):
+            self.client.call(messages_eth.LoadClearsignSigner(
+                key_id=1, pubkey=pub, alias=CI_SIGNER_ALIAS, persist=True))
+
+        payload = serialize_metadata(
+            chain_id=1, contract_address=AAVE_V3_POOL,
+            selector=AAVE_SUPPLY_SELECTOR, tx_hash=ZERO_TX_HASH,
+            method_name='supply', args=DEFAULT_ARGS, key_id=1)
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=sign_metadata(payload), metadata_version=1, key_id=1)
+        self.assertEqual(resp.classification, CLASSIFICATION_MALFORMED)
+
     def test_load_signer_invalid_pubkey_rejected(self):
         """Uncompressed / zero / truncated pubkeys refused without a confirm."""
         for bad in (b'\x04' + b'\x00' * 32,   # uncompressed prefix
@@ -1564,7 +1584,9 @@ class TestClearsignSignerIcon(unittest.TestCase):
 
     def test_message_exposes_icon_dimensions_and_persist(self):
         # Regression guard: the generated bindings previously carried only
-        # key_id/pubkey/alias, so constructing with icon raised ValueError.
+        # key_id/pubkey/alias, so constructing with icon raised ValueError. The
+        # persist bit still round-trips for wire compatibility even though RC18
+        # firmware and the high-level client reject true.
         icon = bytes([0x03, 0xFF, 0xFF, 0x00])
         msg = messages_eth.LoadClearsignSigner(
             key_id=3, pubkey=b'\x02' * 33, alias="Pioneer",
@@ -1579,6 +1601,12 @@ class TestClearsignSignerIcon(unittest.TestCase):
         self.assertEqual(_decode_icon_rle(parsed.icon, parsed.icon_width,
                                           parsed.icon_height),
                          [0xFF, 0xFF, 0xFF, 0x00])
+
+    def test_high_level_client_rejects_persist_true(self):
+        client = object.__new__(ProtocolMixin)
+        with self.assertRaisesRegex(ValueError, 'authenticated storage'):
+            client.load_clearsign_signer(
+                key_id=1, pubkey=b'\x02' * 33, alias='Pioneer', persist=True)
 
     def test_text_only_identity_omits_icon_fields(self):
         msg = messages_eth.LoadClearsignSigner(

@@ -753,9 +753,14 @@ class ProtocolMixin(object):
           icon_height : 1..64  -- the icon column is 64px tall.
         Omit all three for a text-only identity.
 
-        persist=True also writes the identity to flash, so it survives reboot
-        and is reloaded automatically. The default is RAM-only (gone on
-        reboot)."""
+        Signers are session-only and are cleared on reboot. ``persist`` remains
+        in the wire format for compatibility, but firmware 7.15 rejects true
+        until authenticated persistent storage is available."""
+        if persist:
+            raise ValueError(
+                "Persistent clearsign signers are disabled until authenticated "
+                "storage is available"
+            )
         msg = eth_proto.LoadClearsignSigner(
             key_id=key_id,
             pubkey=pubkey,
