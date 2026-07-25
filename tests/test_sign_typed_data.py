@@ -30,7 +30,7 @@ class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
   
     def test_ethereum_sign_typed_data_hash(self):
         self.requires_fullFeature()
-        self.requires_firmware("7.4.0")
+        self.requires_firmware("7.15.0")
         self.setup_mnemonic_allallall()
         with open('sign_typed_data.json') as f:
             txtests = json.load(f)
