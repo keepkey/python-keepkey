@@ -127,7 +127,9 @@ class TestMsgZcashSeedFingerprint(common.KeepKeyTest):
         with pytest.raises(CallException):
             self.client.zcash_sign_pczt(
                 address_n=[H + 32, H + 133, H + 0],
-                actions=[{}],  # placeholder — won't be reached past the fp check
+                actions=[{"is_spend": False}],
+                # Explicit dummy action passes the helper's contract preflight;
+                # the bad fingerprint is still rejected by the initial device call.
                 account=0,
                 total_amount=100000,
                 fee=10000,
