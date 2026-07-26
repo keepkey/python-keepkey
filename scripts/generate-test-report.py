@@ -483,7 +483,7 @@ SECTIONS = [
          '- Input: single capacitive button (confirm/reject)',
          '- USB: micro-B, HID + WebUSB transports, HID fallback',
          '- Storage: BIP-39 seed encrypted in isolated flash region',
-         '- Curves: secp256k1, ed25519, NIST P-256 (Pallas/Zcash only on KK_ZCASH_PRIVACY=ON builds)',
+         '- Curves: secp256k1, ed25519, NIST P-256; regular firmware also includes Pallas/Orchard',
          '',
          'SECURITY MODEL:',
          '- All private key operations happen on-device, keys never leave',
@@ -492,12 +492,13 @@ SECTIONS = [
          '- BIP-39 passphrase creates hidden wallets (plausible deniability)',
          '',
          'FIRMWARE VARIANTS (7.15, PR #282):',
-         '- Full multi-chain (default): all coin families; firmware_variant = model name',
+         '- Full multi-chain (default): all coin families including Zcash Orchard privacy;',
+         '  firmware_variant = model name.',
          '- Bitcoin-only (KK_BITCOIN_ONLY): only Bitcoin + Testnet; all altcoin and',
          '  shielded-Zcash handlers stripped; firmware_variant = KeepKeyBTC (EmulatorBTC',
          '  on the emulator). Clients gate multi-chain-only tests on this string.',
-         '- Zcash shielded (KK_ZCASH_PRIVACY): adds the Orchard/Pallas engine; default OFF',
-         '  pending external audit. Mutually exclusive with KK_BITCOIN_ONLY.',
+         '- There is no separate Zcash artifact: KK_ZCASH_PRIVACY is ON for the regular',
+         '  product and OFF only for KK_BITCOIN_ONLY.',
          '',
          'SEED LOCK (7.15, PR #282):',
          '- A seed created under bitcoin-only firmware is stamped in a reserved storage-',
@@ -994,11 +995,11 @@ SECTIONS = [
           '500 uosmo is 0.000500 OSMO — no integer part and six decimals; it must not collapse '
           'to 0 or lose the trailing digits.',
           ['Sub-unit amount']),
-         ('P4', 'test_msg_osmosis_signtx', 'test_osmosis_send_non_uosmo_denom_is_refused',
-          'Direct-wire non-uosmo MsgSend is refused',
-          'The test bypasses the Python MsgSend fence and sends OsmosisMsgAck directly. Firmware '
-          'rejects uatom before review or hashing, so the hardcoded uosmo serializer cannot be '
-          'reached under a different displayed asset.',
+         ('P4', 'test_msg_osmosis_signtx', 'test_osmosis_send_denom_is_committed_to_the_signature',
+          'Direct-wire denomination is committed',
+          'Two otherwise-identical raw MsgSend requests using uosmo and uatom produce different '
+          'signatures, proving the reviewed denomination is part of the signed payload rather '
+          'than a hardcoded display-only label.',
           []),
          ('P5', 'test_msg_osmosis_signtx', 'test_osmosis_send_rejects_noncanonical_wire_amounts',
           'Noncanonical and overflowing uosmo are refused',
@@ -1767,9 +1768,9 @@ SECTIONS = [
     ('Y', 'Zcash Transparent', '7.0.0',
      'Transparent t-address Zcash (send/receive) over the generic Bitcoin UTXO signing path with '
      'Overwinter/Sapling-v4 branch handling. This is the Zcash functionality that ships ENABLED on '
-     'the default 7.15.0 build -- t1.../t3... addresses sign like Bitcoin (SECP256K1) with a '
+     'the regular 7.15.0 build -- t1.../t3... addresses sign like Bitcoin (SECP256K1) with a '
      'FeeOverThreshold guard. No shielded/Orchard engine is involved; contrast with section Z '
-     '(shielded), which is withheld behind KK_ZCASH_PRIVACY.',
+     '(shielded), which also ships in the regular product and is stripped from bitcoin-only.',
      [
          'INPUT: TxInputType over the Zcash coin (t-address, SECP256K1)',
          'METADATA: version_group_id + branch_id for the target upgrade',
@@ -1799,13 +1800,11 @@ SECTIONS = [
 
     ('Z', 'Zcash Shielded (Orchard)', '7.14.0',
      'Shielded Orchard (PCZT streaming, Full Viewing Key export, unified-address display with an '
-     'on-device ZIP-32 Sec 6.1 seed-fingerprint attestation) is WITHHELD on the default 7.15.0 build. '
-     'It is compile-gated behind the KK_ZCASH_PRIVACY build flag, which is DEFAULT-OFF pending an '
-     'external audit of the Orchard/Pallas engine. On this build the firmware does not register the '
-     'Zcash* shielded messages, so every test in this section SKIPS BY DESIGN (the requires_message '
-     'probe returns Failure_UnexpectedMessage) -- this is a deliberate policy hold, NOT missing or '
-     'broken support. To exercise these, build the KK_ZCASH_PRIVACY=ON variant. Transparent t-address '
-     'Zcash IS live and shipping -- see section Y (Zcash Transparent).',
+     'on-device ZIP-32 Sec 6.1 seed-fingerprint attestation) ships in the regular 7.15.0 product. '
+     'KK_ZCASH_PRIVACY is enabled for the regular build and disabled only for bitcoin-only. This '
+     'report covers device FVK/address behavior and the Python PCZT streaming contract. Mainnet '
+     'proof construction and the physical shield, deshield, and Orchard-to-Orchard matrix are '
+     'recorded separately in the RC18 release evidence.',
      [
          'FVK: Derive ak, nk, rivk components via ZIP-32 Orchard path',
          'ADDRESS: Device derives its own unified address + shows it; optional seed-fingerprint pin',
@@ -1821,59 +1820,91 @@ SECTIONS = [
           'FVK deterministic', 'Same account always produces same FVK.', []),
          ('Z4', 'test_msg_zcash_orchard', 'test_fvk_different_accounts',
           'FVK different accounts', 'Different accounts produce different FVKs.', []),
-         ('Z5', 'test_msg_zcash_sign_pczt', 'test_single_action_legacy_sighash',
-          'Sign single Orchard action', 'One shielded action, device shows amount + fee.', ['Shielded confirm']),
-         ('Z6', 'test_msg_zcash_sign_pczt', 'test_multi_action_legacy_sighash',
-          'Sign multiple actions', 'Multiple Orchard actions in one transaction.', []),
-         ('Z7', 'test_msg_zcash_sign_pczt', 'test_signatures_are_64_bytes',
-          'Signature format', 'Orchard signatures must be exactly 64 bytes (RedPallas).', []),
-         ('Z8', 'test_msg_zcash_sign_pczt', 'test_transparent_shielding_single_input',
-          'Transparent to shielded', 'Transparent BTC-like input shielded into Orchard pool.', ['Shielding confirm']),
-         ('Z9', 'test_msg_zcash_sign_pczt', 'test_transparent_shielding_multiple_inputs',
-          'Multi-input shielding', 'Multiple transparent inputs shielded in one tx.', []),
-         ('Z10', 'test_msg_zcash_display_address', 'test_zcash_display_address_basic',
+         ('Z5', 'test_msg_zcash_orchard', 'test_fvk_abandon_mnemonic',
+          'FVK abandon-mnemonic vector',
+          'FVK derivation matches the Orchard reference vector for the standard abandon mnemonic.',
+          []),
+         ('Z6', 'test_msg_zcash_display_address', 'test_zcash_display_address_basic',
           'Display unified address',
           'Device derives its OWN Orchard unified address (u1...) from the ZIP-32 path, shows it '
           'on the OLED for confirmation, and returns it with the device seed fingerprint. The host '
           'does not supply the address — this defends against a compromised host showing a fake UA.',
           ['Unified address (u1...)']),
-         ('Z11', 'test_msg_zcash_display_address', 'test_zcash_display_address_bad_path_rejected',
+         ('Z7', 'test_msg_zcash_display_address', 'test_zcash_display_address_bad_path_rejected',
           'Reject malformed address path',
           'A path that is neither m/32\'/133\'/account\' nor an explicit account is rejected with a '
           'SyntaxError, so no wrong-account address is ever derived silently.',
           []),
-         ('Z12', 'test_msg_zcash_seed_fingerprint', 'test_get_orchard_fvk_returns_seed_fingerprint',
+         ('Z8', 'test_msg_zcash_seed_fingerprint', 'test_get_orchard_fvk_returns_seed_fingerprint',
           'FVK carries seed fingerprint',
           'ZcashGetOrchardFVK returns a 32-byte ZIP-32 §6.1 seed fingerprint alongside the FVK.',
           []),
-         ('Z13', 'test_msg_zcash_seed_fingerprint', 'test_fingerprint_stable_across_accounts',
+         ('Z9', 'test_msg_zcash_seed_fingerprint', 'test_fingerprint_stable_across_accounts',
           'Fingerprint bound to seed not account',
           'The seed fingerprint is identical across account indices — it identifies the device seed.',
           []),
-         ('Z14', 'test_msg_zcash_seed_fingerprint', 'test_display_address_helper_accepts_matching_fingerprint',
+         ('Z10', 'test_msg_zcash_seed_fingerprint', 'test_display_address_helper_accepts_matching_fingerprint',
           'Address display accepts matching fingerprint',
           'When the host supplies expected_seed_fingerprint and it matches, the device derives and '
           'displays the address and echoes the fingerprint.',
           ['Unified address (u1...)']),
-         ('Z15', 'test_msg_zcash_seed_fingerprint', 'test_display_address_helper_rejects_wrong_fingerprint',
+         ('Z11', 'test_msg_zcash_seed_fingerprint', 'test_display_address_helper_rejects_wrong_fingerprint',
           'Address display rejects wrong fingerprint',
           'A mismatched expected_seed_fingerprint is rejected before any derivation — the host '
           'cannot get an attestation from the wrong device.',
           []),
-         ('Z16', 'test_msg_zcash_seed_fingerprint', 'test_display_address_helper_backward_compat',
+         ('Z12', 'test_msg_zcash_seed_fingerprint', 'test_display_address_helper_backward_compat',
           'Address display without fingerprint',
           'Omitting expected_seed_fingerprint still works; the device populates the fingerprint on '
           'the response regardless.',
           []),
-         ('Z17', 'test_msg_zcash_seed_fingerprint', 'test_device_fingerprint_matches_python_helper',
+         ('Z13', 'test_msg_zcash_seed_fingerprint', 'test_device_fingerprint_matches_python_helper',
           'Fingerprint matches host computation',
           'The device-derived fingerprint equals calculate_seed_fingerprint(seed) — firmware C and '
           'the python helper agree byte-for-byte for the all-all-all seed.',
           []),
-         ('Z18', 'test_msg_zcash_seed_fingerprint', 'test_sign_pczt_helper_rejects_wrong_fingerprint',
+         ('Z14', 'test_msg_zcash_seed_fingerprint', 'test_sign_pczt_helper_rejects_wrong_fingerprint',
           'PCZT signing rejects wrong fingerprint',
           'A wrong expected_seed_fingerprint on a PCZT signing request is rejected before any '
           'signing crypto runs.',
+          []),
+         ('Z15', 'test_msg_zcash_sign_pczt',
+          'test_all_dummy_shield_streams_outputs_inputs_and_no_orchard_sigs',
+          'Shield streams dummy actions without device signatures',
+          'The client streams transparent inputs/outputs and both dummy Orchard actions, preserves '
+          'their finalized PCZT signatures, and expects no compact device Orchard signatures.',
+          []),
+         ('Z16', 'test_msg_zcash_sign_pczt',
+          'test_mixed_deshield_returns_only_real_spend_signature',
+          'Deshield returns only real-spend signatures',
+          'A mixed real/dummy Orchard action set returns one compact signature for the real spend.',
+          []),
+         ('Z17', 'test_msg_zcash_sign_pczt',
+          'test_private_send_preserves_compact_real_spend_order',
+          'Private send preserves real-spend signature order',
+          'Compact device signatures remain ordered by the real-spend actions when dummy actions '
+          'are interleaved.',
+          []),
+         ('Z18', 'test_msg_zcash_sign_pczt',
+          'test_missing_is_spend_is_rejected_before_device_call',
+          'Missing spend classification rejected',
+          'Every action must explicitly declare is_spend before any device call is made.',
+          []),
+         ('Z19', 'test_msg_zcash_sign_pczt',
+          'test_host_transparent_sighash_is_rejected_before_device_call',
+          'Host transparent sighash rejected',
+          'The client refuses a host-provided transparent sighash instead of forwarding it as '
+          'trusted device input.',
+          []),
+         ('Z20', 'test_msg_zcash_sign_pczt',
+          'test_signature_count_must_match_real_spends',
+          'Signature count bound to real spends',
+          'The returned compact signature count must equal the number of real-spend actions.',
+          []),
+         ('Z21', 'test_msg_zcash_sign_pczt',
+          'test_duplicate_action_request_is_rejected',
+          'Duplicate action requests rejected',
+          'A repeated device request for the same action index aborts the streaming session.',
           []),
      ]),
 
