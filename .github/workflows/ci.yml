@@ -4,7 +4,7 @@
 # and runs the full python integration test suite against it.
 #
 # Stage 1: GATE (seconds)
-#   └─ lint        basic Python syntax check
+#   └─ lint        Python syntax + deterministic protocol contract tests
 #
 # Stage 2: TEST (gated by Stage 1)
 #   └─ integration full pytest suite against emulator
@@ -34,6 +34,18 @@ jobs:
       - name: Syntax check
         run: python -m py_compile keepkeylib/*.py
 
+      - name: Install contract-test dependencies
+        run: |
+          pip install "protobuf>=3.20,<4" mnemonic ecdsa pytest
+
+      - name: Run deterministic Zcash PCZT contract tests
+        env:
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python
+        run: |
+          python -m pytest -q \
+            tests/test_msg_zcash_sign_pczt.py \
+            tests/test_zcash_seed_fingerprint_helper.py
+
       - name: Lint summary
         run: |
           echo "## 🔑 KeepKey python-keepkey — Lint" >> "$GITHUB_STEP_SUMMARY"
@@ -41,6 +53,7 @@ jobs:
           echo "| Check | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Syntax | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Zcash PCZT contract | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
 
   # ═══════════════════════════════════════════════════════════
   # STAGE 2: TEST — pull published emulator, run pytest
