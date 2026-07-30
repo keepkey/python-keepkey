@@ -830,6 +830,7 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         self.requires_message("EthereumTxMetadata")
         self.requires_message("LoadClearsignSigner")
         self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 1)
         self._load_ci_signer()
 
     def _load_ci_signer(self):
@@ -967,9 +968,9 @@ class TestEthereumClearSigning(common.KeepKeyTest):
 
         The device is sent (1) an actual EthereumSignTx with genuine Aave
         supply(asset,amount,onBehalfOf,referralCode) calldata, and (2) a signed
-        metadata blob whose tx_hash == the exact sighash of that tx. With
-        AdvancedMode OFF, the VERIFIED blob is the ONLY reason this contract
-        call may sign without the blind-sign gate.
+        metadata blob whose tx_hash == the exact sighash of that tx. Runtime
+        identities require AdvancedMode, and their decoded annotation is
+        followed by the normal raw-calldata review.
 
         On device this renders, in order:
           WHO  -> Clearsign Warning (signer 'CI Test') + Contract: 0x7d27…c7a9
@@ -978,9 +979,9 @@ class TestEthereumClearSigning(common.KeepKeyTest):
           WHY  -> the signature is REFUSED unless the signed digest equals the
                   metadata's committed tx_hash (asserted by the recover below).
         """
-        self.client.apply_policy("AdvancedMode", 0)
+        self.client.apply_policy("AdvancedMode", 1)
         # Drop the AdvancedMode-toggle confirm frame so the captured OLED
-        # sequence is exactly the who/what/why review screens.
+        # sequence starts at the who/what/why review and additive raw screens.
         self._drop_setup_screenshots()
         n = parse_path(DEVICE_PATH)
         chain_id, nonce, gas_price, gas_limit, value = 1, 7, 20000000000, 200000, 0
@@ -1010,13 +1011,11 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         self.assertEqual(signer, self.client.ethereum_get_address(n))
 
     def _clearsign_flow(self, flow, chain_id=1):
-        """Run one catalog flow END-TO-END with AdvancedMode OFF: real tx,
-        per-tx-bound metadata, who/what/why confirm screens (auto-acked),
-        sign, and assert the signature recovers to the device signer over
-        this exact digest. The user never sees calldata hex — with
-        AdvancedMode OFF the VERIFIED metadata is the ONLY reason the
-        contract data may sign at all."""
-        self.client.apply_policy("AdvancedMode", 0)
+        """Run one catalog flow END-TO-END with AdvancedMode ON: real tx,
+        per-tx-bound metadata, who/what/why annotation plus the ordinary raw
+        review (auto-acked), sign, and assert the signature recovers to the
+        device signer over this exact digest."""
+        self.client.apply_policy("AdvancedMode", 1)
         self._drop_setup_screenshots()
         n = parse_path(DEVICE_PATH)
         tx_hash = flow_tx_hash(flow, chain_id)
@@ -1062,7 +1061,7 @@ class TestEthereumClearSigning(common.KeepKeyTest):
     def test_replay_rejected_when_digest_differs(self):
         """Metadata bound to tx A, then sign tx B (same contract+selector+chain,
         different calldata) → device aborts at send_signature, NO signature."""
-        self.client.apply_policy("AdvancedMode", 0)
+        self.client.apply_policy("AdvancedMode", 1)
         n = parse_path(DEVICE_PATH)
         chain_id, gas_price, gas_limit = 1, 20000000000, 200000
 
@@ -1093,6 +1092,14 @@ class TestEthereumClearSigning(common.KeepKeyTest):
 
         # OFF + unknown contract + no metadata → blocked
         self.client.apply_policy("AdvancedMode", 0)
+        with self.assertRaises(CallException) as ctx:
+            self.client.load_clearsign_signer(
+                key_id=TEST_KEY_ID,
+                pubkey=test_signer_compressed_pubkey(),
+                alias=CI_SIGNER_ALIAS,
+            )
+        self.assertIn("AdvancedMode required", str(ctx.exception))
+
         try:
             self.client.ethereum_sign_tx(
                 n=n, nonce=0, gas_price=20000000000, gas_limit=200000,
@@ -1163,6 +1170,7 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         is loaded — proves there is no built-in trust path in phase 1."""
         self.client.wipe_device()  # factory reset drops loaded signers
         self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 1)
 
         blob, _, _ = TestVectorCatalog.valid_aave_supply()
         resp = self.client.ethereum_send_tx_metadata(
@@ -1263,13 +1271,14 @@ class TestClearSignV2Device(common.KeepKeyTest):
         self.requires_message("EthereumTxMetadata")
         self.requires_message("LoadClearsignSigner")
         self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 1)
         self.client.load_clearsign_signer(
             key_id=TEST_KEY_ID, pubkey=test_signer_compressed_pubkey(),
             alias=CI_SIGNER_ALIAS)
         self._drop_setup_screenshots()
 
     def test_v2_transfer_decodes_signs_and_recovers(self):
-        self.client.apply_policy("AdvancedMode", 0)
+        self.client.apply_policy("AdvancedMode", 1)
         self._drop_setup_screenshots()
         n = parse_path(DEVICE_PATH)
         chain_id, nonce, gas_price, gas_limit, value = 1, 3, 20000000000, 250000, 0
@@ -1296,14 +1305,14 @@ class TestClearSignV2Device(common.KeepKeyTest):
         signer = recover_eth_signer(sig_r, sig_s, sig_v, tx_hash, chain_id)
         self.assertEqual(signer, self.client.ethereum_get_address(n))
 
-    def test_v2_calldata_length_mismatch_falls_back_to_blind_sign_gate(self):
+    def test_v2_calldata_length_mismatch_falls_back_to_raw_review(self):
         """The headline v2 security property: a blob's schema says 2 words,
         but the calldata actually being signed carries 3. decode_v2_args'
         structural completeness check (total calldata bytes must equal
         exactly 4 + 32*num_args) fails, matches_tx returns false, and the tx
-        falls through to the ordinary blind-sign path — with AdvancedMode
-        OFF that is a hard reject, never a clear-signed-but-wrong display."""
-        self.client.apply_policy("AdvancedMode", 0)
+        falls through to the ordinary AdvancedMode raw review, never a
+        clear-signed-but-wrong display."""
+        self.client.apply_policy("AdvancedMode", 1)
         self._drop_setup_screenshots()
         n = parse_path(DEVICE_PATH)
         chain_id, nonce, gas_price, gas_limit, value = 1, 3, 20000000000, 250000, 0
@@ -1319,11 +1328,11 @@ class TestClearSignV2Device(common.KeepKeyTest):
             signed_payload=blob, metadata_version=1, key_id=TEST_KEY_ID)
         self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
 
-        with self.assertRaises(CallException) as ctx:
-            self.client.ethereum_sign_tx(
-                n=n, nonce=nonce, gas_price=gas_price, gas_limit=gas_limit,
-                to=USDC_ADDRESS, value=value, data=data, chain_id=chain_id)
-        self.assertIn("Blind signing disabled", str(ctx.exception))
+        _, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=n, nonce=nonce, gas_price=gas_price, gas_limit=gas_limit,
+            to=USDC_ADDRESS, value=value, data=data, chain_id=chain_id)
+        self.assertIsNotNone(sig_r)
+        self.assertIsNotNone(sig_s)
 
     def test_v2_unsupported_arg_format_returns_malformed(self):
         """v2 supports only fixed single-word ADDRESS/AMOUNT/TOKEN_AMOUNT arg
@@ -1360,8 +1369,8 @@ class TestClearSignV2Device(common.KeepKeyTest):
 # ═══════════════════════════════════════════════════════════════════════
 # Dynamically generate one full-confirm device test per CLEARSIGN_FLOWS
 # entry (mirrors keepkey-sdk tests/evm-clearsign): every real-world flow a
-# user actually performs, each confirmed end-to-end with AdvancedMode OFF
-# and ZERO calldata hex on the OLED — only who/what/why screens. Avoids
+# user actually performs, each confirmed end-to-end with AdvancedMode ON and
+# both the who/what/why annotation and raw calldata review. Avoids
 # hand-writing 50+ near-identical test methods; the catalog IS the test
 # list, so growing it (see keepkeylib/clearsign_catalog.py) needs no
 # changes here. 'aave-v3-supply' is excluded — it's the flagship full-

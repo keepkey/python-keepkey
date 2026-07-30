@@ -718,7 +718,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         clear-sign metadata uses. The device verifies it and shows an extra
         'Token "USDC" signed by <alias> <fingerprint>' screen; decimals must
         also match the signed instruction bytes or the symbol is not trusted.
-        Clear-signs with AdvancedMode OFF."""
+        Runtime identities require AdvancedMode."""
         self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.requires_message("LoadClearsignSigner")
@@ -733,6 +733,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         # Load the CI signer into slot 3 through the production trust path
         # (device confirm auto-acked by debuglink) — phase 1 has no built-ins.
         assert_test_key_matches_slot3()
+        self.client.apply_policy('AdvancedMode', True)
         self.client.load_clearsign_signer(
             key_id=3,
             pubkey=test_signer_compressed_pubkey(),
@@ -775,7 +776,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
             signer_key_id=3,
         )
 
-        self.client.apply_policy('AdvancedMode', False)
+        self.client.apply_policy('AdvancedMode', True)
         resp = self.client.call(messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"),
             raw_tx=raw_tx,
