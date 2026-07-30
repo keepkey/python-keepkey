@@ -73,7 +73,42 @@ def sign_kwargs(actions):
     }
 
 
+def ironwood_sign_kwargs(actions):
+    kwargs = sign_kwargs(actions)
+    kwargs.update({
+        'branch_id': 0x37A5165B,
+        'orchard_digest': b'\x14' * 32,
+        'shielded_pool': zcash_proto.ZCASH_SHIELDED_POOL_IRONWOOD,
+        'ironwood_digest': b'\x15' * 32,
+        'orchard_value_balance': 0,
+        'tx_version': 6,
+        'version_group_id': 0xD884B698,
+    })
+    return kwargs
+
+
 class TestZcashSignPCZTClient(unittest.TestCase):
+    def test_ironwood_v6_metadata_is_forwarded_exactly(self):
+        actions = [action(0, False)]
+        client = ScriptedClient([
+            zcash_proto.ZcashPCZTActionAck(next_index=0),
+            zcash_proto.ZcashSignedPCZT(signatures=[]),
+        ])
+
+        signed = client.zcash_sign_pczt(**ironwood_sign_kwargs(actions))
+
+        self.assertEqual(list(signed.signatures), [])
+        request = client.sent[0]
+        self.assertEqual(request.branch_id, 0x37A5165B)
+        self.assertEqual(request.tx_version, 6)
+        self.assertEqual(request.version_group_id, 0xD884B698)
+        self.assertEqual(
+            request.shielded_pool,
+            zcash_proto.ZCASH_SHIELDED_POOL_IRONWOOD,
+        )
+        self.assertEqual(request.orchard_digest, b'\x14' * 32)
+        self.assertEqual(request.ironwood_digest, b'\x15' * 32)
+
     def test_all_dummy_shield_streams_outputs_inputs_and_no_orchard_sigs(self):
         actions = [action(0, False), action(1, False)]
         responses = [
@@ -125,6 +160,8 @@ class TestZcashSignPCZTClient(unittest.TestCase):
         self.assertEqual(request.tx_version, 5)
         self.assertEqual(request.version_group_id, 0x26A7270A)
         self.assertFalse(request.HasField('sapling_digest'))
+        self.assertFalse(request.HasField('shielded_pool'))
+        self.assertFalse(request.HasField('ironwood_digest'))
         self.assertFalse(client.sent[3].is_spend)
         self.assertFalse(client.sent[4].is_spend)
         self.assertFalse(client.sent[2].HasField('sighash'))
