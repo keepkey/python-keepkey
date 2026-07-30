@@ -1860,6 +1860,7 @@ class ProtocolMixin(object):
                         total_amount=0, fee=0, branch_id=0x37519621,
                         header_digest=None, transparent_digest=None,
                         sapling_digest=None, orchard_digest=None,
+                        shielded_pool=None, ironwood_digest=None,
                         orchard_flags=None, orchard_value_balance=None,
                         orchard_anchor=None, tx_version=None,
                         version_group_id=None, lock_time=None,
@@ -1867,10 +1868,10 @@ class ProtocolMixin(object):
                         transparent_inputs=None,
                         expected_seed_fingerprint=None,
                         return_transparent_signatures=False):
-        """Sign a Zcash Orchard shielded transaction via PCZT protocol.
+        """Sign a Zcash Orchard-family shielded transaction via PCZT protocol.
 
-        Streams transparent outputs, then transparent inputs, then Orchard
-        actions in the exact order requested by firmware 7.15. Orchard
+        Streams transparent outputs, then transparent inputs, then shielded
+        actions in the exact order requested by firmware 7.15. Shielded
         signatures are compact: the response contains one signature for each
         action whose explicit ``is_spend`` value is true, in action order.
 
@@ -1885,6 +1886,8 @@ class ProtocolMixin(object):
             transparent_digest: 32-byte transparent digest
             sapling_digest: 32-byte sapling digest
             orchard_digest: 32-byte orchard digest
+            shielded_pool: ZcashShieldedPool value (Orchard by default)
+            ironwood_digest: 32-byte Ironwood digest for transaction v6
             orchard_flags: bundle flags byte (enables digest verification)
             orchard_value_balance: signed i64 value balance
             orchard_anchor: 32-byte anchor
@@ -1938,6 +1941,10 @@ class ProtocolMixin(object):
             kwargs['sapling_digest'] = sapling_digest
         if orchard_digest is not None:
             kwargs['orchard_digest'] = orchard_digest
+        if shielded_pool is not None:
+            kwargs['shielded_pool'] = shielded_pool
+        if ironwood_digest is not None:
+            kwargs['ironwood_digest'] = ironwood_digest
         if orchard_flags is not None:
             kwargs['orchard_flags'] = orchard_flags
         if orchard_value_balance is not None:
