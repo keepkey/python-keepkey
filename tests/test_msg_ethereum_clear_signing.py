@@ -832,6 +832,9 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
         self._load_ci_signer()
+        # apply_policy() calls Initialize to refresh Features, and Initialize
+        # deliberately starts a new session that clears RAM-only signers. Tests
+        # must not redundantly re-apply AdvancedMode after loading this signer.
 
     def _load_ci_signer(self):
         """Load the CI test signer through the production trust path (device
@@ -979,10 +982,6 @@ class TestEthereumClearSigning(common.KeepKeyTest):
           WHY  -> the signature is REFUSED unless the signed digest equals the
                   metadata's committed tx_hash (asserted by the recover below).
         """
-        self.client.apply_policy("AdvancedMode", 1)
-        # Drop the AdvancedMode-toggle confirm frame so the captured OLED
-        # sequence starts at the who/what/why review and additive raw screens.
-        self._drop_setup_screenshots()
         n = parse_path(DEVICE_PATH)
         chain_id, nonce, gas_price, gas_limit, value = 1, 7, 20000000000, 200000, 0
         amount = 10500000000000000000  # 10.5 DAI (18 decimals)
@@ -1015,8 +1014,6 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         per-tx-bound metadata, who/what/why annotation plus the ordinary raw
         review (auto-acked), sign, and assert the signature recovers to the
         device signer over this exact digest."""
-        self.client.apply_policy("AdvancedMode", 1)
-        self._drop_setup_screenshots()
         n = parse_path(DEVICE_PATH)
         tx_hash = flow_tx_hash(flow, chain_id)
         resp = self.client.ethereum_send_tx_metadata(
@@ -1061,7 +1058,6 @@ class TestEthereumClearSigning(common.KeepKeyTest):
     def test_replay_rejected_when_digest_differs(self):
         """Metadata bound to tx A, then sign tx B (same contract+selector+chain,
         different calldata) → device aborts at send_signature, NO signature."""
-        self.client.apply_policy("AdvancedMode", 1)
         n = parse_path(DEVICE_PATH)
         chain_id, gas_price, gas_limit = 1, 20000000000, 200000
 
@@ -1276,10 +1272,10 @@ class TestClearSignV2Device(common.KeepKeyTest):
             key_id=TEST_KEY_ID, pubkey=test_signer_compressed_pubkey(),
             alias=CI_SIGNER_ALIAS)
         self._drop_setup_screenshots()
+        # As above, do not call apply_policy() again after loading the signer:
+        # its Initialize refresh correctly clears session-only trust anchors.
 
     def test_v2_transfer_decodes_signs_and_recovers(self):
-        self.client.apply_policy("AdvancedMode", 1)
-        self._drop_setup_screenshots()
         n = parse_path(DEVICE_PATH)
         chain_id, nonce, gas_price, gas_limit, value = 1, 3, 20000000000, 250000, 0
         # transfer(to=VITALIK, amount=1.5 USDC) — the device decodes both from
@@ -1312,8 +1308,6 @@ class TestClearSignV2Device(common.KeepKeyTest):
         exactly 4 + 32*num_args) fails, matches_tx returns false, and the tx
         falls through to the ordinary AdvancedMode raw review, never a
         clear-signed-but-wrong display."""
-        self.client.apply_policy("AdvancedMode", 1)
-        self._drop_setup_screenshots()
         n = parse_path(DEVICE_PATH)
         chain_id, nonce, gas_price, gas_limit, value = 1, 3, 20000000000, 250000, 0
         args = [
