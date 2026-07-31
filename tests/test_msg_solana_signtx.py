@@ -638,7 +638,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
             0xc6, 0xfa, 0x7a, 0xf3, 0xbe, 0xdb, 0xad, 0x3a,
             0x3d, 0x65, 0xf3, 0x6a, 0xab, 0xc9, 0x74, 0x31,
             0xb1, 0xbb, 0xe4, 0xc2, 0xd2, 0xf6, 0xe0, 0xe4,
-            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x20, 0x23, 0x34,
+            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x2f, 0x5d, 0x61,
         ])
 
         # SPL Token Transfer instruction: opcode=3 (u8) + amount (LE u64)
@@ -687,7 +687,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
             0xc6, 0xfa, 0x7a, 0xf3, 0xbe, 0xdb, 0xad, 0x3a,
             0x3d, 0x65, 0xf3, 0x6a, 0xab, 0xc9, 0x74, 0x31,
             0xb1, 0xbb, 0xe4, 0xc2, 0xd2, 0xf6, 0xe0, 0xe4,
-            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x20, 0x23, 0x34,
+            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x2f, 0x5d, 0x61,
         ])
 
         # TransferChecked: opcode=12 (u8) + amount (LE u64) + decimals (u8);
@@ -747,7 +747,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
             0xc6, 0xfa, 0x7a, 0xf3, 0xbe, 0xdb, 0xad, 0x3a,
             0x3d, 0x65, 0xf3, 0x6a, 0xab, 0xc9, 0x74, 0x31,
             0xb1, 0xbb, 0xe4, 0xc2, 0xd2, 0xf6, 0xe0, 0xe4,
-            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x20, 0x23, 0x34,
+            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x2f, 0x5d, 0x61,
         ])
         decimals = 6
         symbol = "USDC"
@@ -892,6 +892,75 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         ))
         self.assertEqual(len(resp.signature), 64)
         self.assertFalse(all(b == 0 for b in resp.signature))
+
+    def test_solana_sign_x402_zero_lut_usdc_payment(self):
+        """Official x402 SVM shape clear-signs without blind signing.
+
+        The sponsor is fee payer, the KeepKey key is the token authority, the
+        payment is TransferChecked, and payTo is supplied separately so the
+        device must derive and verify its associated token account itself.
+        """
+        self.requires_firmware("7.15.0")
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        authority = self._get_from_pubkey()
+        sponsor = b'\x10' * 32
+        source = b'\x30' * 32
+        pay_to = bytes([
+            0xea, 0x4a, 0x6c, 0x63, 0xe2, 0x9c, 0x52, 0x0a,
+            0xbe, 0xf5, 0x50, 0x7b, 0x13, 0x2e, 0xc5, 0xf9,
+            0x95, 0x47, 0x76, 0xae, 0xbe, 0xbe, 0x7b, 0x92,
+            0x42, 0x1e, 0xea, 0x69, 0x14, 0x46, 0xd2, 0x2c,
+        ])
+        destination_ata = bytes([
+            0x67, 0x30, 0x2e, 0x49, 0x18, 0x94, 0xd7, 0x49,
+            0x2e, 0xa6, 0xbe, 0x4f, 0x91, 0x4e, 0xa4, 0xf4,
+            0x5f, 0xa1, 0x42, 0xe6, 0x45, 0x86, 0x7c, 0x91,
+            0x64, 0xa2, 0x76, 0xd5, 0xdd, 0x76, 0xf0, 0x76,
+        ])
+        usdc_mint = bytes([
+            0xc6, 0xfa, 0x7a, 0xf3, 0xbe, 0xdb, 0xad, 0x3a,
+            0x3d, 0x65, 0xf3, 0x6a, 0xab, 0xc9, 0x74, 0x31,
+            0xb1, 0xbb, 0xe4, 0xc2, 0xd2, 0xf6, 0xe0, 0xe4,
+            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x2f, 0x5d, 0x61,
+        ])
+
+        accounts = [
+            sponsor, authority, source, destination_ata, usdc_mint,
+            self.COMPUTE_BUDGET_PROGRAM, self.TOKEN_PROGRAM,
+            self.MEMO_PROGRAM,
+        ]
+        raw_tx = bytearray([0x80, 2, 0, 3, len(accounts)])
+        for account in accounts:
+            raw_tx.extend(account)
+        raw_tx.extend(b'\xbb' * 32)
+        raw_tx.append(4)
+
+        # ComputeBudget::SetComputeUnitLimit(120000)
+        raw_tx.extend(bytes([5, 0, 5, 2]))
+        raw_tx.extend(struct.pack('<I', 120000))
+        # ComputeBudget::SetComputeUnitPrice(1000 micro-lamports)
+        raw_tx.extend(bytes([5, 0, 9, 3]))
+        raw_tx.extend(struct.pack('<Q', 1000))
+        # SPL TransferChecked(source, mint, destination ATA, authority)
+        raw_tx.extend(bytes([6, 4, 2, 4, 3, 1, 10, 12]))
+        raw_tx.extend(struct.pack('<Q', 2000))
+        raw_tx.append(6)
+        # Required x402 uniqueness memo: a 16-byte nonce encoded as hex.
+        memo = b'00112233445566778899aabbccddeeff'
+        raw_tx.extend(bytes([7, 1, 1, len(memo)]))
+        raw_tx.extend(memo)
+        raw_tx.append(0)  # zero address-lookup tables
+
+        token_info = messages.SolanaTokenInfo(
+            mint=usdc_mint, symbol="USDC", decimals=6)
+        self.client.apply_policy('AdvancedMode', False)
+        response = self.client.solana_sign_tx(
+            parse_path("m/44'/501'/0'/0'"), bytes(raw_tx),
+            token_info=[token_info], token_recipient_owner=[pay_to])
+        self.assertEqual(len(response.signature), 64)
+        self.assertFalse(all(b == 0 for b in response.signature))
 
     def test_solana_sign_versioned_v0_opaque(self):
         """Versioned v0 transaction whose instruction reaches into an address
