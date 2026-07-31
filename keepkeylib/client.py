@@ -689,6 +689,39 @@ class ProtocolMixin(object):
         response = self.call(msg)
         return response
 
+    def ethereum_sign_typed_data(self, n, typed_data):
+        """Clear-sign structured EIP-712 data on the device.
+
+        The firmware hashes the domain and message itself and displays every
+        typed value before signing. This is the safe path for EIP-3009 x402
+        payments; ``ethereum_sign_typed_data_hash`` remains the explicit
+        AdvancedMode-only fallback for callers that only have precomputed
+        hashes.
+        """
+        required = ('types', 'primaryType', 'domain')
+        missing = [name for name in required if name not in typed_data]
+        if missing:
+            raise ValueError('Missing EIP-712 property: %s' % ', '.join(missing))
+
+        # The legacy structured firmware endpoint expects the standard EIP-712
+        # root property names to remain present in each streamed JSON fragment.
+        types_prop = json.dumps(
+            {'types': typed_data['types']}, separators=(',', ':'))
+        ptype_prop = json.dumps(
+            {'primaryType': typed_data['primaryType']}, separators=(',', ':'))
+
+        # Firmware receives domain and message separately, and retains the
+        # independently-computed domain separator only until message signing.
+        self.e712_types_values(
+            n, types_prop, ptype_prop,
+            json.dumps({'domain': typed_data['domain']}, separators=(',', ':')),
+            1)
+        return self.e712_types_values(
+            n, types_prop, ptype_prop,
+            json.dumps(
+                {'message': typed_data.get('message', {})},
+                separators=(',', ':')), 2)
+
     @expect(eth_proto.EthereumMessageSignature)
     def ethereum_sign_message(self, n, message):
         n = self._convert_prime(n)

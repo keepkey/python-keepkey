@@ -14,7 +14,13 @@ class TestMessageSigningProtocolBindings(unittest.TestCase):
             'token_recipient_owner'
         ]
         self.assertEqual(field.number, 12)
-        self.assertEqual(field.label, field.LABEL_REPEATED)
+        # protobuf 6 removed the public ``label`` accessor in favor of the
+        # semantic predicates; generated bindings must remain testable with
+        # both the release toolchain and current developer environments.
+        if hasattr(field, 'label'):
+            self.assertEqual(field.label, field.LABEL_REPEATED)
+        else:
+            self.assertTrue(field.is_repeated)
         self.assertEqual(field.type, field.TYPE_BYTES)
 
         owner = bytes(range(32))

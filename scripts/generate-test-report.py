@@ -860,13 +860,17 @@ SECTIONS = [
           'Contract function call', 'Generic contract call signing.', []),
          ('E16', 'test_sign_typed_data', 'test_ethereum_sign_typed_data_hash',
           'EIP-712 typed-data hash signing (legacy, no on-device display)',
-          'KNOWN GAP, disclosed rather than hidden: EIP-712 (the standard behind wallet permits, '
-          'OpenSea listings, and DAO votes — a daily-driver format) is only supported at the '
-          'domain-separator-hash + message-hash level. The device signs two host-computed 32-byte '
-          'hashes; it does NOT parse or display the typed-data domain or message fields, so this '
-          'path shows the user no readable WHO/WHAT — it is effectively a blind hash-sign, not a '
-          'clear-sign. Full structured EIP-712 display is a firmware feature, not yet built.',
+          'The legacy endpoint receives two host-computed 32-byte hashes, so firmware keeps it '
+          'behind AdvancedMode and cannot show readable WHO/WHAT. Structured formats such as '
+          'x402 EIP-3009 use the separate device-parsed path proven by E16b.',
           []),
+         ('E16b', 'test_sign_typed_data', 'test_ethereum_sign_x402_eip3009',
+          'x402 EVM EIP-3009 payment clear-signs structured data',
+          'The device computes the EIP-712 hashes itself and displays the Base Sepolia USDC '
+          'domain plus every TransferWithAuthorization field: payer, recipient, exact value, '
+          'validity window and nonce. AdvancedMode stays OFF; the facilitator pays gas but '
+          'cannot alter the signed destination or amount.',
+          ['USDC domain fields', 'TransferWithAuthorization fields']),
          ('E17', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_approve_liquidity_ETH',
           'Uniswap V2 add-liquidity approve (pending)',
           'PENDING, disclosed: known emulator limitation — an approve to an unknown (non-registry) '
@@ -1713,6 +1717,16 @@ SECTIONS = [
           'Lookup-table accounts cannot be resolved on-device, so the tx routes to the '
           'blind-sign gate.',
           []),
+         ('S25', 'test_msg_solana_signtx',
+          'test_solana_sign_x402_zero_lut_usdc_payment',
+          'x402 zero-LUT v0 USDC payment is hardware verified',
+          'The sponsor pays fees while the KeepKey key authorizes TransferChecked. The device '
+          'renders 0.002 USDC from firmware-owned mint metadata, derives ATA(payTo, mint) '
+          'offline, and displays the merchant owner only after it matches the signed '
+          'destination token account. The required x402 uniqueness memo is also displayed; '
+          'AdvancedMode stays OFF.',
+          ['Compute budget', 'Known USDC mint', 'Verified recipient owner',
+           '0.002 USDC', 'x402 memo']),
      ]),
 
     ('T', 'TRON', '7.14.0',
