@@ -1722,10 +1722,21 @@ class ProtocolMixin(object):
         )
 
     @expect(solana_proto.SolanaSignedTx)
-    def solana_sign_tx(self, address_n, raw_tx):
-        return self.call(
-            solana_proto.SolanaSignTx(address_n=address_n, raw_tx=raw_tx)
-        )
+    def solana_sign_tx(self, address_n, raw_tx, token_info=None,
+                       token_recipient_owner=None):
+        """Sign a Solana transaction with optional display metadata.
+
+        ``token_recipient_owner`` contains candidate 32-byte SPL token-account
+        owners (for example an x402 ``payTo`` address). Firmware only displays
+        a candidate after deriving its associated token account and matching
+        the destination present in the signed TransferChecked instruction.
+        """
+        return self.call(solana_proto.SolanaSignTx(
+            address_n=address_n,
+            raw_tx=raw_tx,
+            token_info=token_info or [],
+            token_recipient_owner=token_recipient_owner or [],
+        ))
 
     @expect(solana_proto.SolanaMessageSignature)
     def solana_sign_message(self, address_n, message, show_display=False):
