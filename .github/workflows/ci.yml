@@ -13,9 +13,9 @@ name: CI
 
 on:
   push:
-    branches: [master, develop, 'feature/**', 'fix/**', 'hotfix/**']
+    branches: [master, develop, reconcile/upstream-sync, 'feature/**', 'fix/**', 'hotfix/**']
   pull_request:
-    branches: [master, develop]
+    branches: [master, develop, reconcile/upstream-sync]
 
 jobs:
   # ═══════════════════════════════════════════════════════════
