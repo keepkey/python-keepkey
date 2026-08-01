@@ -19,10 +19,6 @@ from keepkeylib import types_pb2 as proto
 from keepkeylib.tools import parse_path
 
 
-# Version in which SPENDTAPROOT support lands.  Keep this in step with
-# CMakeLists.txt: if the firmware version is below it these tests SKIP, so a
-# value that is never reached makes them silently green forever.
-TAPROOT_FIRMWARE_VERSION = "7.16.0"
 
 
 class TestMsgGetaddressTaproot(common.KeepKeyTest):
@@ -38,7 +34,7 @@ class TestMsgGetaddressTaproot(common.KeepKeyTest):
         this implementation produced -- the comparison is against independent
         ground truth.
         """
-        self.requires_firmware(TAPROOT_FIRMWARE_VERSION)
+        self.requires_taproot()
         self.setup_mnemonic_abandon()
         self.client.clear_session()
 

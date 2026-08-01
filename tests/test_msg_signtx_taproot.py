@@ -24,8 +24,6 @@ from keepkeylib.tools import parse_path
 from keepkeylib.tx_api import TxApiBitcoin
 
 
-# Keep in step with CMakeLists.txt; see test_msg_getaddress_taproot.py.
-TAPROOT_FIRMWARE_VERSION = "7.16.0"
 
 # Synthetic prev tx paying 100000 sat to the BIP-86 first receiving address of
 # the "abandon abandon ... about" mnemonic
@@ -55,7 +53,7 @@ class TestMsgSigntxTaproot(KeepKeyTest):
         through our own verifier, which would pass even if the device
         committed to the wrong transaction.
         """
-        self.requires_firmware(TAPROOT_FIRMWARE_VERSION)
+        self.requires_taproot()
         self.setup_mnemonic_abandon()
         self.client.set_tx_api(TxApiBitcoin)
 
