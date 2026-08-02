@@ -59,6 +59,18 @@ class TestMsgGetaddressTaproot(common.KeepKeyTest):
                 script_type=proto.SPENDTAPROOT),
             'bc1p3qkhfews2uk44qtvauqyr2ttdsw7svhkl9nkm9s9c3x4ax5h60wqwruhk7')
 
+    def test_show_taproot_address(self):
+        """Display the full BIP-86 address on the trusted OLED."""
+        self.requires_taproot()
+        self.setup_mnemonic_abandon()
+        self.client.clear_session()
+        address = self.client.get_address(
+            "Bitcoin", parse_path("86'/0'/0'/0/0"), True, None,
+            script_type=proto.SPENDTAPROOT)
+        self.assertEqual(
+            address,
+            'bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr')
+
 
 if __name__ == '__main__':
     unittest.main()
