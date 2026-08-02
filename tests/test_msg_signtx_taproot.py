@@ -188,6 +188,38 @@ class TestMsgSigntxTaproot(KeepKeyTest):
             self.client.sign_tx(
                 "Bitcoin", [taproot, incomplete_legacy], [recipient])
 
+    def test_mixed_p2tr_rejects_wrong_legacy_amount(self):
+        """Reject a host amount that disagrees with the actual legacy prevout."""
+        self.requires_taproot()
+        self.setup_mnemonic_abandon()
+        self.client.set_tx_api(TxApiBitcoin)
+
+        taproot = proto_types.TxInputType(
+            address_n=parse_path("86'/0'/0'/0/0"),
+            amount=100000,
+            prev_hash=unhexlify(MIXED_PREV_TXID),
+            prev_index=0,
+            script_type=proto_types.SPENDTAPROOT,
+        )
+        tampered_legacy = proto_types.TxInputType(
+            address_n=parse_path("44'/0'/0'/0/0"),
+            amount=50001,
+            prev_hash=unhexlify(MIXED_PREV_TXID),
+            prev_index=1,
+            script_type=proto_types.SPENDADDRESS,
+        )
+        recipient = proto_types.TxOutputType(
+            address=OUT_ADDRESS,
+            amount=140000,
+            script_type=proto_types.PAYTOADDRESS,
+        )
+
+        with self.assertRaisesRegex(
+                CallException,
+                "Input amount or script does not match prevout"):
+            self.client.sign_tx(
+                "Bitcoin", [taproot, tampered_legacy], [recipient])
+
 
 if __name__ == '__main__':
     unittest.main()
