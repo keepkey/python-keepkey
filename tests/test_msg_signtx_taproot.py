@@ -182,7 +182,9 @@ class TestMsgSigntxTaproot(KeepKeyTest):
             script_type=proto_types.PAYTOADDRESS,
         )
 
-        with self.assertRaises(CallException):
+        with self.assertRaisesRegex(
+                CallException,
+                "Taproot transaction input without amount"):
             self.client.sign_tx(
                 "Bitcoin", [taproot, incomplete_legacy], [recipient])
 

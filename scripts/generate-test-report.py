@@ -387,6 +387,8 @@ FULL_SEQUENCE_TESTS = {
     ('test_msg_ethereum_clear_signing', 'test_clearsign_erc4337_entrypoint_v0_7_handleops'),
     ('test_msg_ethereum_clear_signing', 'test_clearsign_safe_exectransaction'),
     ('test_msg_ethereum_clear_signing', 'test_clearsign_permit2_permit_transfer_from'),
+    ('test_msg_ethereum_clear_signing',
+     'test_v2_calldata_length_mismatch_falls_back_to_raw_review'),
     # Native THOR/MAYA memo hardening: the raw memo pager (MEMO 1/N .. N/N,
     # complete memo bytes, sole memo gate) IS the security story — show every
     # page for every memo variant, not a single best frame.
@@ -1371,13 +1373,14 @@ SECTIONS = [
           'the device decodes.',
           ['Clearsign warning', 'v2 decoded transfer to/amount', 'Sign transaction']),
          ('VS6', 'test_msg_ethereum_clear_signing',
-          'test_v2_calldata_length_mismatch_falls_back_to_blind_sign_gate',
-          'v2 decode-mismatch falls back to blind-sign (fail-closed)',
+          'test_v2_calldata_length_mismatch_falls_back_to_raw_review',
+          'v2 decode-mismatch falls back to raw review (fail-closed)',
           'THE headline v2 security property: schema says 2 words, calldata carries 3. '
           'decode_v2_args\' structural completeness check fails, so the device does NOT '
-          'clear-sign a decode that would not match what it is about to sign — it falls '
-          'through to the ordinary blind-sign gate, and AdvancedMode OFF hard-rejects it.',
-          ['Blind signing disabled (Failure)']),
+          'clear-sign a decode that would not match what it is about to sign. With '
+          'AdvancedMode ON it falls through to the ordinary unverified raw review, and '
+          'the ordered OLED captures prove the decoded ClearSign display was not used.',
+          ['Unverified transaction warning', 'Raw data review', 'Sign transaction']),
          ('VS7', 'test_msg_ethereum_clear_signing',
           'test_v2_unsupported_arg_format_returns_malformed',
           'v2 unsupported arg format rejected at blob load',
@@ -1982,6 +1985,7 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     pdf = PDF(); pb = PB(pdf)
     _build_frame_census(screenshot_dir)
     ts = datetime.now().strftime('%Y-%m-%d %H:%M')
+    build_label = os.environ.get('KK_BUILD_LABEL', '').strip()
     active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
     # Separate specs section (no tests) from test sections
     specs = [s for s in active if not s[5]]
@@ -2021,6 +2025,9 @@ def render(output_path, fw_version, results, screenshot_dir=None):
         if skipped: parts.append(f'{skipped} skipped')
         if missing: parts.append(f'{missing} pending')
         pb.text(10, f'Firmware {fw_version}  |  {ts}  |  {total} tests: {", ".join(parts)}')
+    if build_label:
+        for line in _w(f'Candidate: {build_label}', 95):
+            pb.text(8, line, bold=True)
     pb.gap(6)
     pb.text(12, 'Sections', bold=True)
     _hdr_withheld = _hdr_pending = False
