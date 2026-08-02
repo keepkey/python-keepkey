@@ -387,6 +387,8 @@ FULL_SEQUENCE_TESTS = {
     ('test_msg_ethereum_clear_signing', 'test_clearsign_erc4337_entrypoint_v0_7_handleops'),
     ('test_msg_ethereum_clear_signing', 'test_clearsign_safe_exectransaction'),
     ('test_msg_ethereum_clear_signing', 'test_clearsign_permit2_permit_transfer_from'),
+    ('test_msg_ethereum_clear_signing',
+     'test_v2_calldata_length_mismatch_falls_back_to_raw_review'),
     # Native THOR/MAYA memo hardening: the raw memo pager (MEMO 1/N .. N/N,
     # complete memo bytes, sole memo gate) IS the security story — show every
     # page for every memo variant, not a single best frame.
@@ -765,25 +767,52 @@ SECTIONS = [
           'Transaction with both legacy and SegWit inputs in the same transaction.',
           []),
          ('B20', 'test_msg_signtx_p2tr', 'test_send_p2tr_only',
-          'Sign Taproot P2TR tx',
-          'Taproot (BIP-341/342) with Schnorr signatures. Newest address type with improved '
-          'privacy and efficiency.',
-          ['Taproot confirmation']),
-         ('B21', 'test_msg_signmessage', 'test_sign',
+          'Create a Taproot P2TR output',
+          'Pays from SegWit inputs to a P2TR output. This exercises P2TR output parsing and '
+          'display, but does not exercise a Schnorr key-path spend.',
+          ['Taproot output confirmation']),
+         ('B21', 'test_msg_signtx_taproot', 'test_send_p2tr',
+          'Sign a Taproot key-path spend',
+          'Spends a BIP-86 P2TR input using BIP-341 SIGHASH_DEFAULT and a BIP-340 Schnorr '
+          'signature. The 64-byte witness is compared byte-for-byte with an independently '
+          'computed reference value.',
+          ['P2TR recipient confirmation', 'Fee confirmation']),
+         ('B22', 'test_msg_signtx_taproot', 'test_send_p2tr_with_change',
+          'Sign P2TR with device-derived change',
+          'Derives m/86\'/0\'/0\'/1/0 on-device, emits a P2TR change output, and verifies '
+          'the Schnorr witness against an independent BIP-340/341 reference.',
+          ['P2TR recipient confirmation', 'Fee confirmation']),
+         ('B23', 'test_msg_signtx_taproot', 'test_send_mixed_p2tr_and_legacy',
+          'Sign mixed Taproot and legacy inputs',
+          'Commits the P2TR signature to both inputs, including the legacy prevout amount and '
+          'scriptPubKey, while independently verifying the resulting Schnorr witness.',
+          []),
+         ('B24', 'test_msg_signtx_taproot',
+          'test_mixed_p2tr_requires_every_input_amount',
+          'Reject incomplete mixed Taproot commitments',
+          'Fails closed when any input amount is absent, preventing the device from producing '
+          'a valid Schnorr signature over an incomplete BIP-341 commitment.',
+          []),
+         ('B25', 'test_msg_getaddress_taproot', 'test_show_taproot_address',
+          'Show BIP-86 address on OLED',
+          'Displays the complete bech32m Taproot receive address and QR code on the trusted '
+          'device screen for host-independent verification.',
+          ['Taproot address + QR code']),
+         ('B26', 'test_msg_signmessage', 'test_sign',
           'Sign message with BTC key',
           'Signs arbitrary text with a BTC address key. Used for proof-of-ownership and login.',
           ['Sign message on OLED']),
-         ('B22', 'test_msg_signmessage_segwit', 'test_sign',
+         ('B27', 'test_msg_signmessage_segwit', 'test_sign',
           'Sign message with SegWit key', 'Message signing with P2SH-SegWit address key.', []),
-         ('B23', 'test_msg_signmessage_segwit_native', 'test_sign',
+         ('B28', 'test_msg_signmessage_segwit_native', 'test_sign',
           'Sign message with bech32 key', 'Message signing with native SegWit address key.', []),
-         ('B24', 'test_msg_verifymessage', 'test_message_verify',
+         ('B29', 'test_msg_verifymessage', 'test_message_verify',
           'Verify signed message', 'Device verifies a message signature against a BTC address.', []),
-         ('B25', 'test_msg_signtx_bgold', 'test_send_bitcoin_gold_nochange',
+         ('B30', 'test_msg_signtx_bgold', 'test_send_bitcoin_gold_nochange',
           'Sign Bitcoin Gold tx', 'BTG fork uses same signing code with different chain parameters.', []),
-         ('B26', 'test_msg_signtx_dash', 'test_send_dash',
+         ('B31', 'test_msg_signtx_dash', 'test_send_dash',
           'Sign Dash transaction', 'Dash special transaction types (InstantSend-compatible).', []),
-         ('B27', 'test_msg_signtx_grs', 'test_one_one_fee',
+         ('B32', 'test_msg_signtx_grs', 'test_one_one_fee',
           'Sign Groestlcoin tx', 'GRS uses Groestl hash instead of SHA-256d for tx hashing.', []),
          # Zcash transparent signing moved to its own section Y (Zcash Transparent).
      ]),
@@ -1344,13 +1373,14 @@ SECTIONS = [
           'the device decodes.',
           ['Clearsign warning', 'v2 decoded transfer to/amount', 'Sign transaction']),
          ('VS6', 'test_msg_ethereum_clear_signing',
-          'test_v2_calldata_length_mismatch_falls_back_to_blind_sign_gate',
-          'v2 decode-mismatch falls back to blind-sign (fail-closed)',
+          'test_v2_calldata_length_mismatch_falls_back_to_raw_review',
+          'v2 decode-mismatch falls back to raw review (fail-closed)',
           'THE headline v2 security property: schema says 2 words, calldata carries 3. '
           'decode_v2_args\' structural completeness check fails, so the device does NOT '
-          'clear-sign a decode that would not match what it is about to sign — it falls '
-          'through to the ordinary blind-sign gate, and AdvancedMode OFF hard-rejects it.',
-          ['Blind signing disabled (Failure)']),
+          'clear-sign a decode that would not match what it is about to sign. With '
+          'AdvancedMode ON it falls through to the ordinary unverified raw review, and '
+          'the ordered OLED captures prove the decoded ClearSign display was not used.',
+          ['Unverified transaction warning', 'Raw data review', 'Sign transaction']),
          ('VS7', 'test_msg_ethereum_clear_signing',
           'test_v2_unsupported_arg_format_returns_malformed',
           'v2 unsupported arg format rejected at blob load',
@@ -1955,6 +1985,7 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     pdf = PDF(); pb = PB(pdf)
     _build_frame_census(screenshot_dir)
     ts = datetime.now().strftime('%Y-%m-%d %H:%M')
+    build_label = os.environ.get('KK_BUILD_LABEL', '').strip()
     active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
     # Separate specs section (no tests) from test sections
     specs = [s for s in active if not s[5]]
@@ -1994,6 +2025,9 @@ def render(output_path, fw_version, results, screenshot_dir=None):
         if skipped: parts.append(f'{skipped} skipped')
         if missing: parts.append(f'{missing} pending')
         pb.text(10, f'Firmware {fw_version}  |  {ts}  |  {total} tests: {", ".join(parts)}')
+    if build_label:
+        for line in _w(f'Candidate: {build_label}', 95):
+            pb.text(8, line, bold=True)
     pb.gap(6)
     pb.text(12, 'Sections', bold=True)
     _hdr_withheld = _hdr_pending = False

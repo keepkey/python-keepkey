@@ -127,6 +127,18 @@ class KeepKeyTest(unittest.TestCase):
         if semver.VersionInfo.parse(version) < semver.VersionInfo.parse(ver_required):
             self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
 
+    def requires_taproot(self):
+        """Skip unless the firmware reports taproot support.
+
+        Gates on a capability rather than a version.  Which release taproot
+        ships in is still open, and a version gate that is never reached makes
+        these tests silently green forever -- the failure mode that looks
+        exactly like passing.
+        """
+        self.client.init_device()
+        if not getattr(self.client.features, 'supports_taproot', False):
+            self.skipTest("Firmware does not report supports_taproot")
+
     def requires_message(self, msg_name):
         """Skip if firmware does not handle this message type.
         Use alongside requires_firmware for per-feature gating:
