@@ -644,8 +644,12 @@ SECTIONS = [
           'or information leaks. Verifies input sanitization.',
           []),
          ('C27', 'test_msg_getentropy', 'test_entropy',
-          'Hardware RNG entropy',
-          'Reads random bytes from the hardware RNG. Used to verify the entropy source is functional.',
+          'Hardware RNG audit budget and lock policy',
+          'Proves a fresh initialized, PIN-protected, locked device still requires confirmation; '
+          'then proves an uninitialized device returns exactly 8 x 8192 bytes (64 KiB) without a '
+          'press, with exact lengths, unique blocks, and conservative catastrophic-failure health '
+          'checks. The next request must restore confirmation. These checks detect a stuck or '
+          'grossly biased source; they are not a statistical certification of the hardware RNG.',
           []),
          ('C28', 'test_msg_cipherkeyvalue', 'test_encrypt',
           'Symmetric key encryption',
