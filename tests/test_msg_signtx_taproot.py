@@ -87,7 +87,36 @@ class TestMsgSigntxTaproot(KeepKeyTest):
             script_type=proto_types.PAYTOADDRESS,
         )
 
-        (signatures, _) = self.client.sign_tx("Bitcoin", [inp1], [out1])
+        with self.client:
+            self.client.set_expected_responses([
+                proto.TxRequest(
+                    request_type=proto_types.TXINPUT,
+                    details=proto_types.TxRequestDetailsType(
+                        request_index=0)),
+                proto.TxRequest(
+                    request_type=proto_types.TXOUTPUT,
+                    details=proto_types.TxRequestDetailsType(
+                        request_index=0)),
+                proto.ButtonRequest(
+                    code=proto_types.ButtonRequest_ConfirmOutput),
+                proto.ButtonRequest(
+                    code=proto_types.ButtonRequest_SignTx),
+                proto.TxRequest(
+                    request_type=proto_types.TXINPUT,
+                    details=proto_types.TxRequestDetailsType(
+                        request_index=0)),
+                proto.TxRequest(
+                    request_type=proto_types.TXOUTPUT,
+                    details=proto_types.TxRequestDetailsType(
+                        request_index=0)),
+                proto.TxRequest(
+                    request_type=proto_types.TXINPUT,
+                    details=proto_types.TxRequestDetailsType(
+                        request_index=0)),
+                proto.TxRequest(request_type=proto_types.TXFINISHED),
+            ])
+            (signatures, _) = self.client.sign_tx(
+                "Bitcoin", [inp1], [out1])
 
         self.assertEqual(len(signatures), 1)
         self.assertEqual(hexlify(signatures[0]).decode(), EXPECTED_WITNESS)
