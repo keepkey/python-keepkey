@@ -59,7 +59,101 @@ EXPECTED_MIXED_WITNESS = (
 )
 
 
+# Full BIP-144 serializations, captured from the emulator and cross-checked
+# against an independent derivation from this file's own inputs and the
+# EXPECTED_* witnesses above. These pin the bytes the host would broadcast --
+# `signature` alone was populated correctly even while the witness and the
+# locktime footer were being dropped on the wire.
+EXPECTED_SERIALIZED_TX = (
+    "0100000000010137eea6e08b6227cd775f08153e291187d0df2a23261dab50752f98"
+    "113903326e0000000000ffffffff01905f0100000000001976a914759d6677091e97"
+    "3b9e9d99f19c68fbf43e3f05f988ac0140afe221b16d648a1ad7329f976593073238"
+    "0cc67765bd73af7ce13b59911468512d9ee77e34af56fe1f59f98372011f7cb400ce"
+    "d614d808c690c5ba907fb62de900000000"
+)
+EXPECTED_SERIALIZED_TX_CHANGE = (
+    "0100000000010137eea6e08b6227cd775f08153e291187d0df2a23261dab50752f98"
+    "113903326e0000000000ffffffff0250c30000000000001976a914759d6677091e97"
+    "3b9e9d99f19c68fbf43e3f05f988ac409c000000000000225120882d74e5d0572d5a"
+    "816cef0041a96b6c1de832f6f9676d9605c44d5e9a97d3dc0140e3c44408fe61256a"
+    "d406733f100f1ee856eb31854335efa59e60a61ea5d41ab341802f0cccb55f644042"
+    "a1ab390f0a406b9d3efe3996d05442b4ee43d5355eab00000000"
+)
+EXPECTED_SERIALIZED_TX_MIXED = (
+    "01000000000102a4a9ecee1384341b77c2db4d5cc54239854f0efc5f9978f3a2a878"
+    "2608df1f3e0000000000ffffffffa4a9ecee1384341b77c2db4d5cc54239854f0efc"
+    "5f9978f3a2a8782608df1f3e010000006a47304402205aa50469308c21e9e1ba0299"
+    "cd235add026914e4406bcfa6d9c0403c8cc3cf580220764a5832ad1bc36ba6a21020"
+    "a253c2272bca5aa1643d9c41b12c318b0a38824e012103aaeb52dd7494c361049de6"
+    "7cc680e83ebcbbbdbeb13637d92cd845f70308af5effffffff01e022020000000000"
+    "1976a914759d6677091e973b9e9d99f19c68fbf43e3f05f988ac0140b596e1bbefb8"
+    "55af9852942797075d4f452b2d186cb17a76226892334a497a62adb9a02f7c1b4573"
+    "e4d48b92e2307bb0b2282c97e2c5350bb3c21619fab855a20000000000"
+)
+
+
 class TestMsgSigntxTaproot(KeepKeyTest):
+
+    def assertCompleteSegwitTx(self, raw, signatures, n_in, n_out):
+        """Parse the serialized tx strictly; it must consume exactly len(raw).
+
+        `signature` and `serialized_tx` are separate nanopb fields on
+        TxRequestSerializedType, each with its own presence flag.  Asserting
+        only `signature` passes even when the device never transmits the
+        witness stack -- the host then gets a tx that declares the segwit
+        marker/flag, carries no witness and no locktime, and every node
+        rejects it.  A structural parse catches that: the marker promises
+        witnesses, so the stream ends early and the offset check fails.
+
+        Returns the witness stacks, one list per input.
+        """
+        pos = [0]
+
+        def take(n):
+            if len(raw) < pos[0] + n:
+                raise AssertionError(
+                    "tx truncated at offset %d: wanted %d more byte(s) of %d "
+                    "total: %s"
+                    % (pos[0], n, len(raw), hexlify(raw).decode()))
+            out = raw[pos[0]:pos[0] + n]
+            pos[0] += n
+            return out
+
+        def varint():
+            first = take(1)[0]
+            if first < 0xfd:
+                return first
+            width = {0xfd: 2, 0xfe: 4, 0xff: 8}[first]
+            return int.from_bytes(take(width), "little")
+
+        take(4)                                              # nVersion
+        marker = take(2)
+        if marker != unhexlify("0001"):
+            raise AssertionError(
+                "missing segwit marker/flag: got %s" % hexlify(marker).decode())
+        if varint() != n_in:
+            raise AssertionError("unexpected input count")
+        for _ in range(n_in):
+            take(32); take(4); take(varint()); take(4)       # outpoint, sig, seq
+        if varint() != n_out:
+            raise AssertionError("unexpected output count")
+        for _ in range(n_out):
+            take(8); take(varint())                          # value, scriptPubKey
+        witnesses = [[take(varint()) for _ in range(varint())]
+                     for _ in range(n_in)]
+        take(4)                                              # nLockTime footer
+        if pos[0] != len(raw):
+            raise AssertionError(
+                "trailing bytes: parsed %d of %d" % (pos[0], len(raw)))
+
+        # Every BIP-340 signature the device reported must actually appear in
+        # the witness data it serialized.
+        flat = [item for stack in witnesses for item in stack]
+        for sig in signatures:
+            if len(sig) == 64 and sig not in flat:
+                raise AssertionError(
+                    "schnorr signature absent from serialized_tx witnesses")
+        return witnesses
 
     def test_send_p2tr(self):
         """Spend a P2TR input and compare the witness byte for byte.
@@ -115,11 +209,15 @@ class TestMsgSigntxTaproot(KeepKeyTest):
                         request_index=0)),
                 proto.TxRequest(request_type=proto_types.TXFINISHED),
             ])
-            (signatures, _) = self.client.sign_tx(
+            (signatures, serialized) = self.client.sign_tx(
                 "Bitcoin", [inp1], [out1])
 
         self.assertEqual(len(signatures), 1)
         self.assertEqual(hexlify(signatures[0]).decode(), EXPECTED_WITNESS)
+        witnesses = self.assertCompleteSegwitTx(serialized, signatures, 1, 1)
+        # key-path spend: exactly one stack item, the bare 64-byte signature
+        self.assertEqual(witnesses[0], [signatures[0]])
+        self.assertEqual(hexlify(serialized).decode(), EXPECTED_SERIALIZED_TX)
 
     def test_send_p2tr_with_change(self):
         """P2TR change is device-derived and omitted from recipient prompts."""
@@ -150,7 +248,14 @@ class TestMsgSigntxTaproot(KeepKeyTest):
 
         self.assertEqual(hexlify(signatures[0]).decode(),
                          EXPECTED_CHANGE_WITNESS)
+        # EXPECTED_CHANGE_SCRIPT is a phase-1 output byte, which the device
+        # transmits regardless of whether the witness ever reaches the host.
+        # Assert the whole transaction, not just that prefix.
         self.assertIn(unhexlify(EXPECTED_CHANGE_SCRIPT), serialized)
+        witnesses = self.assertCompleteSegwitTx(serialized, signatures, 1, 2)
+        self.assertEqual(witnesses[0], [signatures[0]])
+        self.assertEqual(hexlify(serialized).decode(),
+                         EXPECTED_SERIALIZED_TX_CHANGE)
 
     def test_send_mixed_p2tr_and_legacy(self):
         """A P2TR signature commits to the legacy input's real prevout."""
@@ -178,13 +283,19 @@ class TestMsgSigntxTaproot(KeepKeyTest):
             script_type=proto_types.PAYTOADDRESS,
         )
 
-        (signatures, _) = self.client.sign_tx(
+        (signatures, serialized) = self.client.sign_tx(
             "Bitcoin", [taproot, legacy], [recipient])
 
         self.assertEqual(len(signatures), 2)
         self.assertEqual(hexlify(signatures[0]).decode(),
                          EXPECTED_MIXED_WITNESS)
         self.assertTrue(signatures[1])
+        witnesses = self.assertCompleteSegwitTx(serialized, signatures, 2, 1)
+        self.assertEqual(witnesses[0], [signatures[0]])
+        # the legacy input must still serialize an EMPTY witness (0x00)
+        self.assertEqual(witnesses[1], [])
+        self.assertEqual(hexlify(serialized).decode(),
+                         EXPECTED_SERIALIZED_TX_MIXED)
 
     def test_mixed_p2tr_requires_every_input_amount(self):
         """Fail closed instead of signing an incomplete BIP-341 commitment."""
