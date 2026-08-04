@@ -192,6 +192,48 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertIsInstance(resp, proto.Success)
         self.assertEqual(' '.join(mnemonic), expected_mnemonic)
 
+    def test_reset_reentry_disarms_entropy_ack(self):
+        """An aborted reset must not leave EntropyAck armed.
+
+        Regression: reset_init aborts (dice cancel, PIN mismatch, ...) left
+        awaiting_entropy set from an earlier run while zeroing int_entropy,
+        so a following EntropyAck derived the seed from
+        sha256(0*32 || host_bytes) -- entirely host-chosen.
+        """
+        self.requires_firmware("7.15.0")
+        self.client.wipe_device()
+
+        # Arm a reset and walk away without acking the entropy request.
+        ret = self.client.call_raw(proto.ResetDevice(display_random=False,
+                                               strength=256,
+                                               passphrase_protection=False,
+                                               pin_protection=False,
+                                               language='english',
+                                               label='first'))
+        self.assertIsInstance(ret, proto.EntropyRequest)
+
+        # Re-enter with dice, then abort from the host.
+        ret = self.client.call_raw(proto.ResetDevice(display_random=False,
+                                               strength=256,
+                                               passphrase_protection=False,
+                                               pin_protection=False,
+                                               language='english',
+                                               label='second',
+                                               dice_entropy=True))
+        self.assertIsInstance(ret, proto.ButtonRequest)
+        self.assertEqual(ret.code, proto_types.ButtonRequest_DiceRoll)
+        ret = self.client.call_raw(proto.Cancel())
+        self.assertIsInstance(ret, proto.Failure)
+
+        # The abandoned reset must be disarmed, so this cannot generate a seed.
+        ret = self.client.call_raw(proto.EntropyAck(entropy=b'H' * 32))
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertIn('Not in Reset mode', ret.message)
+
+        # And the device must still be uninitialized.
+        ret = self.client.call_raw(proto.Initialize())
+        self.assertFalse(ret.initialized)
+
     def test_reset_device_pin(self):
         external_entropy = b'zlutoucky kun upel divoke ody' * 2
         strength = 128
