@@ -779,17 +779,23 @@ SECTIONS = [
           'Sign a Taproot key-path spend',
           'Spends a BIP-86 P2TR input using BIP-341 SIGHASH_DEFAULT and a BIP-340 Schnorr '
           'signature. The 64-byte witness is compared byte-for-byte with an independently '
-          'computed reference value.',
+          'computed reference value. The complete 153-byte transaction is then parsed as '
+          'BIP-144 and must consume every byte, proving the witness stack and the 4-byte '
+          'locktime footer actually reached the host rather than only the signature field.',
           ['P2TR recipient confirmation', 'Fee confirmation']),
          ('B22', 'test_msg_signtx_taproot', 'test_send_p2tr_with_change',
           'Sign P2TR with device-derived change',
           'Derives m/86\'/0\'/0\'/1/0 on-device, emits a P2TR change output, and verifies '
-          'the Schnorr witness against an independent BIP-340/341 reference.',
+          'the Schnorr witness against an independent BIP-340/341 reference. The complete '
+          '196-byte transaction is parsed as BIP-144 and must consume every byte, and the '
+          'change output is matched as a full value/length/script triple.',
           ['P2TR recipient confirmation', 'Fee confirmation']),
          ('B23', 'test_msg_signtx_taproot', 'test_send_mixed_p2tr_and_legacy',
           'Sign mixed Taproot and legacy inputs',
           'Commits the P2TR signature to both inputs, including the legacy prevout amount and '
-          'scriptPubKey, while independently verifying the resulting Schnorr witness.',
+          'scriptPubKey, while independently verifying the resulting Schnorr witness. The '
+          'complete 301-byte transaction is parsed as BIP-144; the Taproot input must carry '
+          'a single 64-byte stack item and the legacy input its empty 0x00 witness.',
           []),
          ('B24', 'test_msg_signtx_taproot',
           'test_mixed_p2tr_requires_every_input_amount',
@@ -2199,13 +2205,29 @@ def screenshot_filter(fw_version):
     return ' or '.join(terms)
 
 
+# Modules whose tests must actually RUN once the firmware is new enough to be
+# catalogued for them -- a skip is a failure, not a waiver.
+#
+# The general rule below treats 'skip' as a design waiver, which is right for
+# build-flag-gated features (bitcoin-only, zcash-privacy). It is wrong for a
+# capability the build claims to have: every taproot test opens with
+# requires_taproot(), so if that capability regressed, all six would skip and
+# the report would still read green -- the report would be certifying coverage
+# it never obtained. Listing a module here converts that silence into a failure.
+MUST_RUN_MODULES = {
+    'test_msg_signtx_taproot',
+    'test_msg_getaddress_taproot',
+}
+
+
 def validate_junit(fw_version, results):
     """Check SECTIONS tests against JUnit results. Returns (passed, failed_list).
 
     A test is considered failed if it appears in SECTIONS for this firmware version
     and the JUnit result is 'fail' or 'error' (not 'skip' or 'pass').
     Tests with no JUnit entry are treated as missing (also a failure).
-    Tests that were skipped (gated by requires_message/requires_firmware) are OK.
+    Tests that were skipped (gated by requires_message/requires_firmware) are OK,
+    unless their module is in MUST_RUN_MODULES.
     """
     active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
     failures = []
@@ -2214,6 +2236,8 @@ def validate_junit(fw_version, results):
             status = _lookup(results, mod, meth)
             if status in ('fail', 'error'):
                 failures.append((tid, mod, meth, status))
+            elif status == 'skip' and mod in MUST_RUN_MODULES:
+                failures.append((tid, mod, meth, 'skipped-but-required'))
             elif not status:
                 failures.append((tid, mod, meth, 'missing'))
     return (len(failures) == 0, failures)
