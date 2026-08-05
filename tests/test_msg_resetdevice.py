@@ -245,10 +245,11 @@ class TestDeviceReset(common.KeepKeyTest):
                                                language='english',
                                                label='test'))
 
-        self.assertIsInstance(ret, proto.ButtonRequest)
-        self.client.debug.press_yes()
-        ret = self.client.call_raw(proto.ButtonAck())
-
+        # display_random=True above is deliberate: the field stays in the wire
+        # schema for host compatibility but production firmware ignores it,
+        # because internal entropy is seed pre-image material. A host that
+        # sets it must get a NORMAL reset -- no Internal Entropy screen -- so
+        # the very next message is the PIN request, not a ButtonRequest.
         self.assertIsInstance(ret, proto.PinMatrixRequest)
 
         # Enter PIN for first time
@@ -318,10 +319,11 @@ class TestDeviceReset(common.KeepKeyTest):
                                                language='english',
                                                label='test'))
 
-        self.assertIsInstance(ret, proto.ButtonRequest)
-        self.client.debug.press_yes()
-        ret = self.client.call_raw(proto.ButtonAck())
-
+        # display_random=True above is deliberate: the field stays in the wire
+        # schema for host compatibility but production firmware ignores it,
+        # because internal entropy is seed pre-image material. A host that
+        # sets it must get a NORMAL reset -- no Internal Entropy screen -- so
+        # the very next message is the PIN request, not a ButtonRequest.
         self.assertIsInstance(ret, proto.PinMatrixRequest)
 
         # Enter PIN for first time
