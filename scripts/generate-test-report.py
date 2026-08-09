@@ -2068,6 +2068,42 @@ SECTIONS = [
           'Duplicate action requests rejected',
           'A repeated device request for the same action index aborts the streaming session.',
           []),
+         ('Z22', 'test_msg_zcash_sign_pczt_device',
+          'test_shielded_output_review_is_two_screens',
+          'Shielded output review: amount and full address (ON DEVICE)',
+          'The first test in this suite that sends ZcashSignPCZT to an actual device -- Z15-Z21 '
+          'above are offline contract tests against a scripted transport. Signs a shielded-only '
+          'transaction built from the firmware\'s own known-answer note vector, so the device '
+          'accepts its recomputed commitment, and asserts the output review is two screens. It '
+          'has to be: a unified address is 106 characters, three full body rows, and the body is '
+          'three rows total, so a single confirm holding the question, the address and the amount '
+          'renders 76 characters of address and silently drops the rest along with the amount. '
+          'That screen is the verification gate for Orchard output values -- total_amount on the '
+          'summary is a host-supplied prompt -- so the amount vanishing there is the whole trust '
+          'story. Verified as a regression test: against the shipped 7.15.0 RC emulator it fails '
+          'with "expected 2 ConfirmOutput screens, got 1".',
+          ['Shielded amount review', 'Shielded recipient address']),
+         ('Z23', 'test_msg_zcash_sign_pczt_device',
+          'test_note_commitment_binds_the_recipient',
+          'Tampered recipient breaks the note commitment (ON DEVICE)',
+          'Flipping one bit of the recipient makes the device-recomputed cmx disagree with the '
+          'supplied commitment, and signing is refused. This is what stops a host displaying one '
+          'recipient while committing to another.',
+          []),
+         ('Z24', 'test_msg_zcash_sign_pczt_device',
+          'test_pool_selection_is_honoured',
+          'Orchard commitment rejected under the Ironwood pool (ON DEVICE)',
+          'The same note commits to a different value in each pool, so offering the Orchard '
+          'commitment while declaring Ironwood must be rejected. Passes trivially if the device '
+          'ignores shielded_pool, which is why it is paired with Z25.',
+          []),
+         ('Z25', 'test_msg_zcash_sign_pczt_device',
+          'test_ironwood_note_is_accepted',
+          'Ironwood commitment for the same note is accepted (ON DEVICE)',
+          'The positive half of Z24: identical inputs, Ironwood commitment, accepted. Together '
+          'they prove the pool branch is selected by shielded_pool rather than one path serving '
+          'both.',
+          []),
      ]),
 
     ('D', 'BIP-85 Child Derivation', '7.14.0',
