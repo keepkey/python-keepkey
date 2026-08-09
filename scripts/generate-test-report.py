@@ -2038,7 +2038,14 @@ SECTIONS = [
           'test_private_send_preserves_compact_real_spend_order',
           'Private send preserves real-spend signature order',
           'Compact device signatures remain ordered by the real-spend actions when dummy actions '
-          'are interleaved.',
+          'are interleaved. OFFLINE CONTRACT TEST -- like every test in test_msg_zcash_sign_pczt, '
+          'it drives a ScriptedTransport with canned responses and never reaches a device. It '
+          'proves the client builds and orders the messages correctly; it proves nothing about '
+          'firmware behaviour, and it can never produce an OLED frame. ZcashSignPCZT is not sent '
+          'to a device anywhere in this suite, so the on-device shielded signing path -- '
+          'including the per-output confirm that is the designed verification gate for Orchard '
+          'output values -- has no automated coverage at all. Shielded signing must be walked on '
+          'real hardware.',
           []),
          ('Z18', 'test_msg_zcash_sign_pczt',
           'test_missing_is_spend_is_rejected_before_device_call',
