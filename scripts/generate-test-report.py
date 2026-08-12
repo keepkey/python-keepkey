@@ -745,11 +745,22 @@ SECTIONS = [
           'Bytes past the declared roll count must not affect the result, so uninitialized tail '
           'bytes of the roll buffer can never leak into seed material.',
           []),
-         ('K8', 'Storage', 'PinKdfV16RewrapsToV19AfterCorrectPin',
-          'v16 storage unlocks and rewraps to v19',
-          'The migration path for the hardened PIN KDF: an existing device on the old format must '
-          'still unlock with its current PIN and then be rewrapped. If this regressed, every '
+         ('K8', 'Storage', 'PinKdfRewrapsToActiveVersionAfterCorrectPin',
+          'Correct PIN unlocks and rewraps to the ACTIVE KDF',
+          'The migration path for the hardened PIN KDF: an existing device must still unlock with '
+          'its current PIN, and any rewrap must target whatever KDF the build actually has '
+          'enabled. Renamed from PinKdfV16RewrapsToV19AfterCorrectPin because it is no longer '
+          'v19-specific -- the test now asserts BOTH sides of the STORAGE_PIN_KDF_V19 gate, so it '
+          'is meaningful in the shipping build where v19 is off. If this regressed, every '
           'upgrading device would be locked out of its own seed.',
+          []),
+         ('K8b', 'Storage', 'PinUnlocksAfterRebootUnderV17',
+          'The PIN still opens the wallet after a reboot',
+          'The whole round trip in device order: create, set a PIN, serialize the V17 record as '
+          'storage_commit() does, reload into fresh state as a boot would, unlock, decrypt. Every '
+          'other storage test stays in RAM, and the wallet lockout this guards against lived '
+          'exactly on the serialize/reboot boundary -- a wrap the persisted record could not '
+          'describe, so the next boot derived the wrong KDF and every PIN failed.',
           []),
          ('K9', 'Storage', 'PinKdfV2FlagIsVersionedInV19',
           'KDF version flag is recorded in v19',
