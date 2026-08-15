@@ -245,10 +245,21 @@ class TestDeviceReset(common.KeepKeyTest):
                                                language='english',
                                                label='test'))
 
-        self.assertIsInstance(ret, proto.ButtonRequest)
-        self.client.debug.press_yes()
-        ret = self.client.call_raw(proto.ButtonAck())
-
+        # display_random=True above is deliberate: the field stays in the wire
+        # schema for host compatibility. Firmware 7.15.0 (fw 320f0eb5, "no
+        # entropy display") stopped honouring it -- internal entropy is seed
+        # pre-image material, and a host that sets the flag and reads that
+        # screen once can compute SHA256(shown || ext) and derive the seed.
+        #
+        # Branch on the version rather than skipping the test: everything below
+        # (PIN entry, EntropyRequest/Ack, mnemonic derivation) is version-
+        # independent and must keep running on older firmware.
+        f = self.client.features
+        if (f.major_version, f.minor_version, f.patch_version) < (7, 15, 0):
+            # Pre-7.15: the Internal Entropy screen legitimately still exists.
+            self.assertIsInstance(ret, proto.ButtonRequest)
+            self.client.debug.press_yes()
+            ret = self.client.call_raw(proto.ButtonAck())
         self.assertIsInstance(ret, proto.PinMatrixRequest)
 
         # Enter PIN for first time
@@ -318,10 +329,21 @@ class TestDeviceReset(common.KeepKeyTest):
                                                language='english',
                                                label='test'))
 
-        self.assertIsInstance(ret, proto.ButtonRequest)
-        self.client.debug.press_yes()
-        ret = self.client.call_raw(proto.ButtonAck())
-
+        # display_random=True above is deliberate: the field stays in the wire
+        # schema for host compatibility. Firmware 7.15.0 (fw 320f0eb5, "no
+        # entropy display") stopped honouring it -- internal entropy is seed
+        # pre-image material, and a host that sets the flag and reads that
+        # screen once can compute SHA256(shown || ext) and derive the seed.
+        #
+        # Branch on the version rather than skipping the test: everything below
+        # (PIN entry, EntropyRequest/Ack, mnemonic derivation) is version-
+        # independent and must keep running on older firmware.
+        f = self.client.features
+        if (f.major_version, f.minor_version, f.patch_version) < (7, 15, 0):
+            # Pre-7.15: the Internal Entropy screen legitimately still exists.
+            self.assertIsInstance(ret, proto.ButtonRequest)
+            self.client.debug.press_yes()
+            ret = self.client.call_raw(proto.ButtonAck())
         self.assertIsInstance(ret, proto.PinMatrixRequest)
 
         # Enter PIN for first time

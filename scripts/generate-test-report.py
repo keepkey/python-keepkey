@@ -340,9 +340,22 @@ def detect_fw():
         v = f'{r.major_version}.{r.minor_version}.{r.patch_version}'; c.close(); return v
     except: return None
 
+# Census of everything the merged JUnit actually contained, so the report can
+# state how much of the run it covers.  Without this the PDF silently implies
+# that its catalog IS the test suite -- an RC audit read "no dice in the report"
+# as "dice is untested" when test_reset_device_dice had in fact run green.
+JUNIT_CENSUS = {'ran': 0, 'skipped': 0, 'native': 0}
+
+
 def parse_junit(path):
     """Parse junit XML for pass/fail. Returns dict keyed by 'module::method' (precise)
-    and 'method' (fallback). Module is extracted from classname: tests.test_msg_foo.TestBar → test_msg_foo."""
+    and 'method' (fallback). Module is extracted from classname: tests.test_msg_foo.TestBar → test_msg_foo.
+
+    Native gtest suites carry a bare classname ("Dice", "Storage") with no dotted
+    python module, so they get keyed as 'Suite::Test'. They used to produce no
+    'mod::meth' key at all, which made every native unit test structurally
+    impossible to put in SECTIONS -- the firmware-unit XMLs were merged in and
+    then silently unusable."""
     if not path or not os.path.exists(path): return {}
     import xml.etree.ElementTree as ET
     results = {}
@@ -353,6 +366,12 @@ def parse_junit(path):
         elif tc.find('error') is not None: status = 'error'
         elif tc.find('skipped') is not None: status = 'skip'
         else: status = 'pass'
+        JUNIT_CENSUS['ran'] += 1
+        # 'ran' counts every collected testcase, skips included. A version-gated
+        # feature test that SKIPs on an older emulator is NOT evidence the feature
+        # works, so the two must never be reported as one number.
+        if status == 'skip':
+            JUNIT_CENSUS['skipped'] += 1
         # Extract module from classname: tests.test_msg_foo.TestBar → test_msg_foo
         mod = ''
         if cls:
@@ -361,6 +380,9 @@ def parse_junit(path):
                 if p.startswith('test_msg_') or p.startswith('test_sign_') or p.startswith('test_verify_'):
                     mod = p
                     break
+            if not mod and '.' not in cls:
+                mod = cls               # native gtest suite
+                JUNIT_CENSUS['native'] += 1
             results[f'{cls}.{name}'] = status
         # Key by module::method (disambiguates collisions like test_sign_btc_eth_swap)
         if mod:
@@ -670,6 +692,95 @@ SECTIONS = [
           'Enter a non-BIP-39 word ("zz") during cipher recovery with enforce_wordlist=True. '
           'Firmware must reject immediately with Failure instead of silently accepting.',
           ['Wordlist rejection warning']),
+     ]),
+
+    ('K', 'Seed Generation Hardening (7.15)', '7.15.0',
+     'The 7.15 changes to how a seed comes into existence: user-supplied dice entropy folded in '
+     'on-device, and the PIN key-derivation rewrap. These ran green from the first 7.15 RC but '
+     'appeared nowhere in this report, because the catalog could not reference native firmware '
+     'unit tests at all and nobody had catalogued the two new pyk cases. Absent evidence read as '
+     'absent coverage during an RC audit, which is exactly the failure this section exists to '
+     'prevent.',
+     [
+         'DICE: user rolls a d6 on-device; short press advances 1-6, long press commits, undo backs out.',
+         'The roll string is hashed and the digest confirmed on the OLED before it is mixed in.',
+         'MIX: int_entropy = SHA256(int_entropy || rolls), folded in BEFORE the host EntropyRequest,',
+         'so the device commits to its own contribution first and the host cannot choose the seed.',
+         'ABORT: any aborted reset must disarm EntropyAck, or a later host EntropyAck would derive',
+         'a seed from sha256(0*32 || host_bytes) -- entirely host-chosen. That is K2.',
+         'PIN KDF: a v16 storage blob must still unlock and then rewrap to v19, or the upgrade bricks.',
+     ],
+     [
+         ('K1', 'test_msg_resetdevice', 'test_reset_device_dice',
+          'Dice entropy end-to-end',
+          'Drives the full on-device dice flow over DebugLink: 99 rolls injected in chunks with undo '
+          'exercised, extras past the cap dropped. Asserts the device-computed digest equals '
+          'SHA256 of exactly the expected roll string, then derives the mnemonic from the post-mix '
+          'internal entropy and compares -- which is what proves the rolls actually reached the seed '
+          'rather than being collected and discarded.',
+          ['Dice entry screen', 'Digest confirmation']),
+         ('K2', 'test_msg_resetdevice', 'test_reset_reentry_disarms_entropy_ack',
+          'Aborted reset disarms EntropyAck',
+          'Regression for a host-chosen-seed hole: reset_init aborts left awaiting_entropy set from '
+          'an earlier run while zeroing int_entropy, so a following EntropyAck derived the seed '
+          'from host bytes alone. Arms a reset, re-enters with dice, cancels, and asserts the '
+          'next EntropyAck is refused with "Not in Reset mode" and the device stays uninitialized.',
+          []),
+         ('K3', 'Dice', 'RollsForStrength',
+          'Roll count per seed strength',
+          'd6 carries log2(6)=2.585 bits, so 128/192/256-bit seeds need 50/75/99 rolls '
+          '(the Coldcard convention). A short count would silently weaken the seed.',
+          []),
+         ('K4', 'Dice', 'MixZeroEntropyVector',
+          'Mix known-answer vector (zero entropy)',
+          'SHA256(0x00*32 || "123456") against a hardcoded digest. Pins the mix construction so a '
+          'refactor cannot quietly change how dice enter the seed.',
+          []),
+         ('K5', 'Dice', 'MixNonZeroEntropyVector',
+          'Mix known-answer vector (non-zero entropy)',
+          'Same construction with a non-zero starting entropy buffer, pinned to a hardcoded digest.',
+          []),
+         ('K6', 'Dice', 'MixDependsOnRolls',
+          'Different rolls produce different entropy',
+          'Two mixes differing only in the final roll must diverge. Catches a mix that ignores its '
+          'roll argument -- the failure mode where dice appear to work and contribute nothing.',
+          []),
+         ('K7', 'Dice', 'MixUsesExactCount',
+          'Only the counted rolls contribute',
+          'Bytes past the declared roll count must not affect the result, so uninitialized tail '
+          'bytes of the roll buffer can never leak into seed material.',
+          []),
+         ('K8', 'Storage', 'PinKdfRewrapsToActiveVersionAfterCorrectPin',
+          'Correct PIN unlocks and rewraps to the ACTIVE KDF',
+          'The migration path for the hardened PIN KDF: an existing device must still unlock with '
+          'its current PIN, and any rewrap must target whatever KDF the build actually has '
+          'enabled. Renamed from PinKdfV16RewrapsToV19AfterCorrectPin because it is no longer '
+          'v19-specific -- the test now asserts BOTH sides of the STORAGE_PIN_KDF_V19 gate, so it '
+          'is meaningful in the shipping build where v19 is off. If this regressed, every '
+          'upgrading device would be locked out of its own seed.',
+          []),
+         ('K8b', 'Storage', 'PinUnlocksAfterRebootUnderV17',
+          'The PIN still opens the wallet after a reboot',
+          'The whole round trip in device order: create, set a PIN, serialize the V17 record as '
+          'storage_commit() does, reload into fresh state as a boot would, unlock, decrypt. Every '
+          'other storage test stays in RAM, and the wallet lockout this guards against lived '
+          'exactly on the serialize/reboot boundary -- a wrap the persisted record could not '
+          'describe, so the next boot derived the wrong KDF and every PIN failed.',
+          []),
+         ('K9', 'Storage', 'PinKdfV2FlagIsVersionedInV19',
+          'KDF version flag is recorded in v19',
+          'The new KDF is marked in the storage version band, so firmware can tell which derivation '
+          'a blob was written with instead of guessing.',
+          []),
+         ('K10', 'Storage', 'StorageUpgrade_Normal',
+          'Normal storage upgrade path',
+          'Baseline upgrade across storage versions with policies and cache preserved.',
+          []),
+         ('K11', 'Storage', 'NoopSecMigrate',
+          'Idempotent security migration',
+          'Re-running the migration on already-migrated storage must be a no-op rather than a '
+          'second rewrap.',
+          []),
      ]),
 
     ('B', 'Bitcoin', '7.0.0',
@@ -1943,7 +2054,14 @@ SECTIONS = [
           'test_private_send_preserves_compact_real_spend_order',
           'Private send preserves real-spend signature order',
           'Compact device signatures remain ordered by the real-spend actions when dummy actions '
-          'are interleaved.',
+          'are interleaved. OFFLINE CONTRACT TEST -- like every test in test_msg_zcash_sign_pczt, '
+          'it drives a ScriptedTransport with canned responses and never reaches a device. It '
+          'proves the client builds and orders the messages correctly; it proves nothing about '
+          'firmware behaviour, and it can never produce an OLED frame. ZcashSignPCZT is not sent '
+          'to a device anywhere in THIS module. On-device shielded signing is covered '
+          'separately by test_msg_zcash_sign_pczt_device (see Z22), which drives a real '
+          'device and asserts the per-output confirm screens; this module proves only that '
+          'the client builds and orders the messages correctly.',
           []),
          ('Z18', 'test_msg_zcash_sign_pczt',
           'test_missing_is_spend_is_rejected_before_device_call',
@@ -1965,6 +2083,42 @@ SECTIONS = [
           'test_duplicate_action_request_is_rejected',
           'Duplicate action requests rejected',
           'A repeated device request for the same action index aborts the streaming session.',
+          []),
+         ('Z22', 'test_msg_zcash_sign_pczt_device',
+          'test_shielded_output_review_is_two_screens',
+          'Shielded output review: amount and full address (ON DEVICE)',
+          'The first test in this suite that sends ZcashSignPCZT to an actual device -- Z15-Z21 '
+          'above are offline contract tests against a scripted transport. Signs a shielded-only '
+          'transaction built from the firmware\'s own known-answer note vector, so the device '
+          'accepts its recomputed commitment, and asserts the output review is two screens. It '
+          'has to be: a unified address is 106 characters, three full body rows, and the body is '
+          'three rows total, so a single confirm holding the question, the address and the amount '
+          'renders 76 characters of address and silently drops the rest along with the amount. '
+          'That screen is the verification gate for Orchard output values -- total_amount on the '
+          'summary is a host-supplied prompt -- so the amount vanishing there is the whole trust '
+          'story. Verified as a regression test: against the shipped 7.15.0 RC emulator it fails '
+          'with "expected 2 ConfirmOutput screens, got 1".',
+          ['Shielded amount review', 'Shielded recipient address']),
+         ('Z23', 'test_msg_zcash_sign_pczt_device',
+          'test_note_commitment_binds_the_recipient',
+          'Tampered recipient breaks the note commitment (ON DEVICE)',
+          'Flipping one bit of the recipient makes the device-recomputed cmx disagree with the '
+          'supplied commitment, and signing is refused. This is what stops a host displaying one '
+          'recipient while committing to another.',
+          []),
+         ('Z24', 'test_msg_zcash_sign_pczt_device',
+          'test_pool_selection_is_honoured',
+          'Orchard commitment rejected under the Ironwood pool (ON DEVICE)',
+          'The same note commits to a different value in each pool, so offering the Orchard '
+          'commitment while declaring Ironwood must be rejected. Passes trivially if the device '
+          'ignores shielded_pool, which is why it is paired with Z25.',
+          []),
+         ('Z25', 'test_msg_zcash_sign_pczt_device',
+          'test_ironwood_note_is_accepted',
+          'Ironwood commitment for the same note is accepted (ON DEVICE)',
+          'The positive half of Z24: identical inputs, Ironwood commitment, accepted. Together '
+          'they prove the pool branch is selected by shielded_pool rather than one path serving '
+          'both.',
           []),
      ]),
 
@@ -2044,6 +2198,21 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     if build_label:
         for line in _w(f'Candidate: {build_label}', 95):
             pb.text(8, line, bold=True)
+    # Scope of this document. The catalog is a curated subset, and saying so is
+    # the difference between evidence and a misleading completeness claim: an RC
+    # audit grepped this PDF for feature keywords, found none, and reported four
+    # features as untested when their tests had run green in the same CI run.
+    ran = JUNIT_CENSUS['ran']
+    if ran:
+        pb.gap(3)
+        skipped = JUNIT_CENSUS['skipped']
+        for line in _w('Scope: this report is a curated catalog of %d tests. The CI run collected %d '
+                       '(%d of them native firmware unit tests); %d SKIPPED and did not execute, '
+                       'usually because the emulator predates the firmware the test targets -- a skip '
+                       'is not evidence the feature works. Absence from this report is NOT '
+                       'evidence that a feature is untested -- check the JUnit artifacts.'
+                       % (total, ran, JUNIT_CENSUS['native'], skipped), 100):
+            pb.text(8, line, color=GRAY)
     pb.gap(6)
     pb.text(12, 'Sections', bold=True)
     _hdr_withheld = _hdr_pending = False
