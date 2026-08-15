@@ -21,6 +21,7 @@ actually honours shielded_pool instead of ignoring it.
 
 import hashlib
 import struct
+import time
 import unittest
 
 import common
@@ -182,6 +183,11 @@ def _lit_pixels(layout):
     return total
 
 
+# Matches client.SCREENSHOT_SETTLE_SECONDS; the emulator needs a moment to
+# finish drawing after ButtonRequest before read_layout() is meaningful.
+BUTTON_RENDER_SETTLE_SECONDS = 0.5
+
+
 class TestZcashShieldedSigningDevice(common.KeepKeyTest):
 
     def setUp(self):
@@ -197,6 +203,17 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         original = self.client.callback_ButtonRequest
 
         def capture(msg):
+            # The firmware emits ButtonRequest immediately BEFORE drawing the
+            # confirmation, so the framebuffer must be allowed to settle first.
+            # original(msg) does contain that delay, but it runs after this read
+            # and then presses the button -- so reading before it captures a
+            # partially drawn (or previous) screen, and reading after it captures
+            # the NEXT one. Settle here instead.
+            #
+            # Unconditional, unlike client.callback_ButtonRequest's SCREENSHOT-only
+            # sleep: these are structural assertions, not screenshot evidence, so
+            # they need a settled layout on every run.
+            time.sleep(BUTTON_RENDER_SETTLE_SECONDS)
             screens.append((msg.code, self.client.debug.read_layout()))
             return original(msg)
 

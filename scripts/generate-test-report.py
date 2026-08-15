@@ -344,7 +344,7 @@ def detect_fw():
 # state how much of the run it covers.  Without this the PDF silently implies
 # that its catalog IS the test suite -- an RC audit read "no dice in the report"
 # as "dice is untested" when test_reset_device_dice had in fact run green.
-JUNIT_CENSUS = {'ran': 0, 'native': 0}
+JUNIT_CENSUS = {'ran': 0, 'skipped': 0, 'native': 0}
 
 
 def parse_junit(path):
@@ -367,6 +367,11 @@ def parse_junit(path):
         elif tc.find('skipped') is not None: status = 'skip'
         else: status = 'pass'
         JUNIT_CENSUS['ran'] += 1
+        # 'ran' counts every collected testcase, skips included. A version-gated
+        # feature test that SKIPs on an older emulator is NOT evidence the feature
+        # works, so the two must never be reported as one number.
+        if status == 'skip':
+            JUNIT_CENSUS['skipped'] += 1
         # Extract module from classname: tests.test_msg_foo.TestBar → test_msg_foo
         mod = ''
         if cls:
@@ -2053,10 +2058,10 @@ SECTIONS = [
           'it drives a ScriptedTransport with canned responses and never reaches a device. It '
           'proves the client builds and orders the messages correctly; it proves nothing about '
           'firmware behaviour, and it can never produce an OLED frame. ZcashSignPCZT is not sent '
-          'to a device anywhere in this suite, so the on-device shielded signing path -- '
-          'including the per-output confirm that is the designed verification gate for Orchard '
-          'output values -- has no automated coverage at all. Shielded signing must be walked on '
-          'real hardware.',
+          'to a device anywhere in THIS module. On-device shielded signing is covered '
+          'separately by test_msg_zcash_sign_pczt_device (see Z22), which drives a real '
+          'device and asserts the per-output confirm screens; this module proves only that '
+          'the client builds and orders the messages correctly.',
           []),
          ('Z18', 'test_msg_zcash_sign_pczt',
           'test_missing_is_spend_is_rejected_before_device_call',
@@ -2200,10 +2205,13 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     ran = JUNIT_CENSUS['ran']
     if ran:
         pb.gap(3)
-        for line in _w('Scope: this report is a curated catalog of %d tests. The CI run executed %d '
-                       '(%d of them native firmware unit tests). Absence from this report is NOT '
+        skipped = JUNIT_CENSUS['skipped']
+        for line in _w('Scope: this report is a curated catalog of %d tests. The CI run collected %d '
+                       '(%d of them native firmware unit tests); %d SKIPPED and did not execute, '
+                       'usually because the emulator predates the firmware the test targets -- a skip '
+                       'is not evidence the feature works. Absence from this report is NOT '
                        'evidence that a feature is untested -- check the JUnit artifacts.'
-                       % (total, ran, JUNIT_CENSUS['native']), 100):
+                       % (total, ran, JUNIT_CENSUS['native'], skipped), 100):
             pb.text(8, line, color=GRAY)
     pb.gap(6)
     pb.text(12, 'Sections', bold=True)
