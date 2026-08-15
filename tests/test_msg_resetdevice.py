@@ -235,6 +235,14 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertFalse(ret.initialized)
 
     def test_reset_device_pin(self):
+        # Firmware 7.15.0 removed the Internal Entropy screen (fw 320f0eb5,
+        # "no entropy display"): internal entropy is seed pre-image material, so a
+        # host that sets display_random and reads that screen could compute
+        # SHA256(shown || ext) and derive the seed. This test asserts the POST-removal
+        # flow (next message is PinMatrixRequest, not a ButtonRequest), so it must
+        # SKIP on older firmware rather than fail against a screen that legitimately
+        # still exists there.
+        self.requires_firmware("7.15.0")
         external_entropy = b'zlutoucky kun upel divoke ody' * 2
         strength = 128
 
@@ -309,6 +317,14 @@ class TestDeviceReset(common.KeepKeyTest):
         self.client.call_raw(proto.Cancel())
 
     def test_failed_pin(self):
+        # Firmware 7.15.0 removed the Internal Entropy screen (fw 320f0eb5,
+        # "no entropy display"): internal entropy is seed pre-image material, so a
+        # host that sets display_random and reads that screen could compute
+        # SHA256(shown || ext) and derive the seed. This test asserts the POST-removal
+        # flow (next message is PinMatrixRequest, not a ButtonRequest), so it must
+        # SKIP on older firmware rather than fail against a screen that legitimately
+        # still exists there.
+        self.requires_firmware("7.15.0")
         external_entropy = 'zlutoucky kun upel divoke ody' * 2
         strength = 128
 
