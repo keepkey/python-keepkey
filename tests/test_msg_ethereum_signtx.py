@@ -43,15 +43,16 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
             value=10,
             data=b"abcdefghijklmnop" * 16,
+            chain_id=1,
         )
-        self.assertEqual(sig_v, 28)
+        self.assertEqual(sig_v, 37)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "6da89ed8627a491bedc9e0382f37707ac4e5102e25e7a1234cb697cedb7cd2c0",
+            "8580110f4113ec0fc6549a7cfc23ce93efd5ae2bbb1a274f03a42374f5feb391",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "691f73b145647623e2d115b208a7c3455a6a8a83e3b4db5b9c6d9bc75825038a",
+            "36fa05c132ee8db6eced6410b9ee9745e2b6bf3716316f3a792a887e852e90e2",
         )
 
         # Second sign — same params, verify deterministic signature
@@ -63,15 +64,16 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
             value=10,
             data=b"abcdefghijklmnop" * 16,
+            chain_id=1,
         )
-        self.assertEqual(sig_v, 28)
+        self.assertEqual(sig_v, 37)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "6da89ed8627a491bedc9e0382f37707ac4e5102e25e7a1234cb697cedb7cd2c0",
+            "8580110f4113ec0fc6549a7cfc23ce93efd5ae2bbb1a274f03a42374f5feb391",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "691f73b145647623e2d115b208a7c3455a6a8a83e3b4db5b9c6d9bc75825038a",
+            "36fa05c132ee8db6eced6410b9ee9745e2b6bf3716316f3a792a887e852e90e2",
         )
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -82,15 +84,16 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
             value=12345678901234567890,
             data=b"ABCDEFGHIJKLMNOP" * 256 + b"!!!",
+            chain_id=1,
         )
-        self.assertEqual(sig_v, 28)
+        self.assertEqual(sig_v, 38)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "4e90b13c45c6a9bf4aaad0e5427c3e62d76692b36eb727c78d332441b7400404",
+            "2a72ecd90252eed066d113776f4c7573a468e2dbef5f503dbc1b7c616c1902a2",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "3ff236e7d05f0f9b1ee3d70599bb4200638f28388a8faf6bb36db9e04dc544be",
+            "30e216f799ba0a16688e7e365ac3439b40d29405ef7bb7939aa5a407a05e5670",
         )
 
         self.client.apply_policy("AdvancedMode", 0)
@@ -114,6 +117,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
                 value=0,
                 data=b"abcdefghijklmnop" * 16,
+                chain_id=1,
             )
             self.fail("Expected Failure -- blind signing should be blocked")
         except CallException as e:
@@ -137,6 +141,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
             value=0,
             data=b"abcdefghijklmnop" * 16,
+            chain_id=1,
         )
         self.assertIsNotNone(sig_v)
         self.client.apply_policy("AdvancedMode", 0)
@@ -154,15 +159,16 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
             value=0,
             data=b"ABCDEFGHIJKLMNOP" * 256 + b"!!!",
+            chain_id=1,
         )
-        self.assertEqual(sig_v, 28)
+        self.assertEqual(sig_v, 38)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "070e9dafda4d9e733fa7b6747a75f8a4916459560efb85e3e73cd39f31aa160d",
+            "1bc0410a7e3e035dcdd24a9473b9c9fb95287c23f4ac8ad4e53ad70956cf40bf",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "7842db33ef15c27049ed52741db41fe3238a6fa3a6a0888fcfb74d6917600e41",
+            "465f4aa446c65b72285c7ed67d13520ace6ba63f4a34aa5b995df92151358afa",
         )
 
     def test_ethereum_signtx_newcontract(self):
@@ -180,6 +186,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=20000,
             to="",
             value=12345678901234567890,
+            chain_id=1,
         )
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -190,15 +197,16 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             to="",
             value=12345678901234567890,
             data=b"ABCDEFGHIJKLMNOP" * 256 + b"!!!",
+            chain_id=1,
         )
-        self.assertEqual(sig_v, 28)
+        self.assertEqual(sig_v, 38)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "b401884c10ae435a2e792303b5fc257a09f94403b2883ad8c0ac7a7282f5f1f9",
+            "db5d0092d44df683b1ab955d6c170c3d612e78ea9baa33bc328602ce3970843e",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "4742fc9e6a5fa8db3db15c2d856914a7f3daab21603a6c1ce9e9927482f8352e",
+            "2392007ebb23dfaef07c93d45fba2a6d286c005f8491d0a209769caa2ac5c0a0",
         )
 
     def test_ethereum_sanity_checks(self):
@@ -216,6 +224,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,
             to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
             value=12345678901234567890,
+            chain_id=1,
         )
 
         # no gas price and no max fee per gas
@@ -227,6 +236,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=10000,
             to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
             value=12345678901234567890,
+            chain_id=1,
         )
 
         # no gas limit
@@ -238,6 +248,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_price=10000,
             to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
             value=12345678901234567890,
+            chain_id=1,
         )
 
         # no nonce
@@ -249,7 +260,74 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=123456,
             to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
             value=12345678901234567890,
+            chain_id=1,
         )
+
+    def test_ethereum_signtx_omitted_chain_id_rejected(self):
+        """An omitted chain_id must be refused, not silently signed pre-EIP-155.
+
+        Before 7.14.2 the `chain_id < 1` bounds check lived inside
+        `if (msg->has_chain_id)`, so a host that simply left the field out
+        reached chain_id == 0 without tripping it. Two things followed:
+
+          - send_signature() appends the EIP-155 fields only `if (chain_id)`,
+            so the device emitted a pre-EIP-155 signature -- replayable on
+            every EVM chain where this address is funded at this nonce.
+          - ethereumFormatAmount() switches on the chain id for the ticker;
+            cid 0 matches no case, so the confirm screen rendered a bare
+            number. No screen named a network. The user could not see either
+            problem before holding the button.
+
+        This is the regression test for that. It asserts the refusal, and the
+        sibling tests in this file all now pass chain_id explicitly so they
+        keep exercising their own subject rather than this one.
+        """
+        self.requires_firmware("7.14.2")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 1)
+
+        try:
+            self.client.ethereum_sign_tx(
+                n=[0, 0],
+                nonce=0,
+                gas_price=20,
+                gas_limit=20,
+                to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
+                value=10,
+            )
+            self.fail(
+                "Expected Failure -- a transaction with no chain_id must be "
+                "refused, not signed without replay protection"
+            )
+        except CallException as e:
+            self.assertIn("Chain Id out of bounds", str(e))
+
+        self.client.apply_policy("AdvancedMode", 0)
+
+    def test_ethereum_signtx_explicit_zero_chain_id_rejected(self):
+        """chain_id=0 sent explicitly is refused the same way as omitting it.
+
+        Covers the other half of the same gate: 7.14.1 already rejected an
+        explicit 0, and that must not regress while fixing the absent case.
+        """
+        self.requires_firmware("7.14.2")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        try:
+            self.client.ethereum_sign_tx(
+                n=[0, 0],
+                nonce=0,
+                gas_price=20,
+                gas_limit=20,
+                to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
+                value=10,
+                chain_id=0,
+            )
+            self.fail("Expected Failure -- chain_id=0 must be refused")
+        except CallException as e:
+            self.assertIn("Chain Id out of bounds", str(e))
 
     def test_ethereum_signtx_nodata_eip155(self):
         self.requires_fullFeature()
@@ -503,15 +581,16 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=20,
             to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
             value=10,
+            chain_id=1,
         )
-        self.assertEqual(sig_v, 27)
+        self.assertEqual(sig_v, 38)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "9b61192a161d056c66cfbbd331edb2d783a0193bd4f65f49ee965f791d898f72",
+            "e66bea09792bbb60b3166bd4526a26c741ad298266da6d86a32c828a6e5499b6",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "49c0bbe35131592c6ed5c871ac457feeb16a1493f64237387fab9b83c1a202f7",
+            "604c59f8aece9170a1d91fe7c6b09ce52e4de41b8bd572d945af171adbeafab6",
         )
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
@@ -521,15 +600,16 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             gas_limit=20000,
             to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
             value=12345678901234567890,
+            chain_id=1,
         )
-        self.assertEqual(sig_v, 28)
+        self.assertEqual(sig_v, 38)
         self.assertEqual(
             binascii.hexlify(sig_r),
-            "6de597b8ec1b46501e5b159676e132c1aa78a95bd5892ef23560a9867528975a",
+            "b37433f196fb64c7d6028907e5a7b75a4b02d2d822545b4d1014fe9cf172c526",
         )
         self.assertEqual(
             binascii.hexlify(sig_s),
-            "6e33c4230b1ecf96a8dbb514b4aec0a6d6ba53f8991c8143f77812aa6daa993f",
+            "47a0d7c13f3cf0b260973ba90a86b42c01b7e7cd55adba1dc40dee1a79011144",
         )
 
 
