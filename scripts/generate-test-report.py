@@ -973,6 +973,59 @@ SECTIONS = [
          ('D6', 'test_msg_bip85', 'test_bip85_invalid_word_count',
           'Invalid count rejected', 'Word counts other than 12/18/24 are refused.', []),
      ]),
+    ('D', 'Display Disclosure - What Is Shown Is What Is Signed', '7.14.2',
+     'The single property behind every display/sign divergence found in the 7.14.2 audit: two '
+     'requests whose SIGNED BYTES differ must not produce IDENTICAL screens. If two payloads render '
+     'the same pixels, whatever separates them was invisible when the user approved, and the '
+     'signature covers the difference. A failure here means a host can show one thing and have '
+     'another signed - the exact class the OLED exists to prevent.',
+     [
+         'ASSERTED DIFFERENTIALLY: DebugLinkState.layout is the framebuffer, not text, so these',
+         'compare screen sequences. That assumes nothing about wording, fonts or truncation',
+         'strategy, so it survives copy changes and cannot be satisfied by a plausible-looking screen.',
+         '',
+         'EACH CASE PUTS THE DIFFERENCE WHERE AN IMPLEMENTATION STOPS LOOKING:',
+         '- past an embedded NUL: a protobuf bytes field is not a C string; "%s" stops, the signature does not',
+         '- past whitespace padding: a leading space costs no pixels once wrapped, so a padded body measures as fitting',
+         '- past one screenful: a truncating renderer drops the tail instead of paging it',
+         '- behind newlines: exercises the row counter rather than the character count',
+         '',
+         'REFUSAL COUNTS AS A PASS. Declining to sign what it cannot display honestly satisfies',
+         'the property; the failure under test is signing it while looking identical to the benign case.',
+     ],
+     [
+         ('D1', 'test_msg_display_disclosure', 'test_bytes_past_an_embedded_nul_are_disclosed',
+          'Bytes after a NUL are shown',
+          'A protobuf bytes field is not a NUL-terminated string. Rendering it with "%s" stops at the '
+          'first NUL while the signature covers message.size bytes, so a payload like '
+          '"benign login\\0 AND APPROVE TRANSFER" displays only the benign prefix. This asserts the '
+          'two payloads do not present identically.',
+          ['Message screen, plain', 'Message screen, NUL-suffixed']),
+         ('D2', 'test_msg_display_disclosure', 'test_bytes_past_whitespace_padding_are_disclosed',
+          'Whitespace cannot hide signed text',
+          'Whitespace is the cheapest way to push content out of view: a leading space costs zero '
+          'pixels once a line has wrapped, so padding can make an over-long body measure as fitting '
+          'while the tail is neither shown nor dropped from the signature.',
+          ['Message screen, short', 'Message screen, padded']),
+         ('D3', 'test_msg_display_disclosure', 'test_bytes_past_the_first_screen_are_disclosed',
+          'Content beyond one screen is not silently dropped',
+          'Whether the device pages the remainder, states how much is hidden, or refuses is not '
+          'asserted - only that a long payload with a distinct tail does not look identical to a '
+          'short one.',
+          ['Message screen, fits', 'Message screen, overlong']),
+         ('D4', 'test_msg_display_disclosure', 'test_newline_padding_does_not_collapse_the_screen',
+          'Line counting cannot be overflowed',
+          'Line counting is a security boundary once it gates a truncation warning. A body carrying '
+          'many newlines exercises the row counter rather than the character count; if that counter '
+          'wraps, an arbitrarily long body reports as fitting.',
+          ['Message screen, one line', 'Message screen, newline-padded']),
+         ('D5', 'test_msg_display_disclosure', 'test_signing_shows_at_least_one_screen',
+          'Guard: the comparisons are not vacuous',
+          'Every other test in this section compares screen sequences. A flow that produced no '
+          'ButtonRequest would make two payloads compare equal as empty tuples and pass while showing '
+          'the user nothing. This asserts at least one non-blank screen is actually displayed.',
+          ['Control message screen']),
+     ]),
 ]
 
 # ---------------------------------------------------------------
