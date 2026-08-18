@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-zcash.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x14messages-zcash.proto\"\xde\x02\n\rZcashSignPCZT\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07\x61\x63\x63ount\x18\x02 \x01(\r\x12\x11\n\tpczt_data\x18\x03 \x01(\x0c\x12\x11\n\tn_actions\x18\x04 \x01(\r\x12\x14\n\x0ctotal_amount\x18\x05 \x01(\x04\x12\x0b\n\x03\x66\x65\x65\x18\x06 \x01(\x04\x12\x11\n\tbranch_id\x18\x07 \x01(\r\x12\x15\n\rheader_digest\x18\x08 \x01(\x0c\x12\x1a\n\x12transparent_digest\x18\t \x01(\x0c\x12\x16\n\x0esapling_digest\x18\n \x01(\x0c\x12\x16\n\x0eorchard_digest\x18\x0b \x01(\x0c\x12\x15\n\rorchard_flags\x18\x0c \x01(\r\x12\x1d\n\x15orchard_value_balance\x18\r \x01(\x03\x12\x16\n\x0eorchard_anchor\x18\x0e \x01(\x0c\x12\x1c\n\x14n_transparent_inputs\x18\x1e \x01(\r\"\x81\x02\n\x0fZcashPCZTAction\x12\r\n\x05index\x18\x01 \x01(\r\x12\r\n\x05\x61lpha\x18\x02 \x01(\x0c\x12\x0f\n\x07sighash\x18\x03 \x01(\x0c\x12\x0e\n\x06\x63v_net\x18\x04 \x01(\x0c\x12\r\n\x05value\x18\x05 \x01(\x04\x12\x10\n\x08is_spend\x18\x06 \x01(\x08\x12\x11\n\tnullifier\x18\x07 \x01(\x0c\x12\x0b\n\x03\x63mx\x18\x08 \x01(\x0c\x12\x0b\n\x03\x65pk\x18\t \x01(\x0c\x12\x13\n\x0b\x65nc_compact\x18\n \x01(\x0c\x12\x10\n\x08\x65nc_memo\x18\x0b \x01(\x0c\x12\x16\n\x0e\x65nc_noncompact\x18\x0c \x01(\x0c\x12\n\n\x02rk\x18\r \x01(\x0c\x12\x16\n\x0eout_ciphertext\x18\x0e \x01(\x0c\"(\n\x12ZcashPCZTActionAck\x12\x12\n\nnext_index\x18\x01 \x01(\r\"3\n\x0fZcashSignedPCZT\x12\x12\n\nsignatures\x18\x01 \x03(\x0c\x12\x0c\n\x04txid\x18\x02 \x01(\x0c\"N\n\x12ZcashGetOrchardFVK\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07\x61\x63\x63ount\x18\x02 \x01(\r\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\"7\n\x0fZcashOrchardFVK\x12\n\n\x02\x61k\x18\x01 \x01(\x0c\x12\n\n\x02nk\x18\x02 \x01(\x0c\x12\x0c\n\x04rivk\x18\x03 \x01(\x0c\"Z\n\x15ZcashTransparentInput\x12\r\n\x05index\x18\x01 \x02(\r\x12\x0f\n\x07sighash\x18\x02 \x02(\x0c\x12\x11\n\taddress_n\x18\x03 \x03(\r\x12\x0e\n\x06\x61mount\x18\x04 \x01(\x04\"<\n\x13ZcashTransparentSig\x12\x11\n\tsignature\x18\x01 \x02(\x0c\x12\x12\n\nnext_index\x18\x02 \x01(\rB1\n\x1a\x63om.keepkey.deviceprotocolB\x13KeepKeyMessageZcash')
+  serialized_pb=_b('\n\x14messages-zcash.proto\"\x81\x03\n\rZcashSignPCZT\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07\x61\x63\x63ount\x18\x02 \x01(\r\x12\x11\n\tpczt_data\x18\x03 \x01(\x0c\x12\x11\n\tn_actions\x18\x04 \x01(\r\x12\x14\n\x0ctotal_amount\x18\x05 \x01(\x04\x12\x0b\n\x03\x66\x65\x65\x18\x06 \x01(\x04\x12\x11\n\tbranch_id\x18\x07 \x01(\r\x12\x15\n\rheader_digest\x18\x08 \x01(\x0c\x12\x1a\n\x12transparent_digest\x18\t \x01(\x0c\x12\x16\n\x0esapling_digest\x18\n \x01(\x0c\x12\x16\n\x0eorchard_digest\x18\x0b \x01(\x0c\x12\x15\n\rorchard_flags\x18\x0c \x01(\r\x12\x1d\n\x15orchard_value_balance\x18\r \x01(\x03\x12\x16\n\x0eorchard_anchor\x18\x0e \x01(\x0c\x12\x1c\n\x14n_transparent_inputs\x18\x1e \x01(\r\x12!\n\x19\x65xpected_seed_fingerprint\x18\x1f \x01(\x0c\"\x81\x02\n\x0fZcashPCZTAction\x12\r\n\x05index\x18\x01 \x01(\r\x12\r\n\x05\x61lpha\x18\x02 \x01(\x0c\x12\x0f\n\x07sighash\x18\x03 \x01(\x0c\x12\x0e\n\x06\x63v_net\x18\x04 \x01(\x0c\x12\r\n\x05value\x18\x05 \x01(\x04\x12\x10\n\x08is_spend\x18\x06 \x01(\x08\x12\x11\n\tnullifier\x18\x07 \x01(\x0c\x12\x0b\n\x03\x63mx\x18\x08 \x01(\x0c\x12\x0b\n\x03\x65pk\x18\t \x01(\x0c\x12\x13\n\x0b\x65nc_compact\x18\n \x01(\x0c\x12\x10\n\x08\x65nc_memo\x18\x0b \x01(\x0c\x12\x16\n\x0e\x65nc_noncompact\x18\x0c \x01(\x0c\x12\n\n\x02rk\x18\r \x01(\x0c\x12\x16\n\x0eout_ciphertext\x18\x0e \x01(\x0c\"(\n\x12ZcashPCZTActionAck\x12\x12\n\nnext_index\x18\x01 \x01(\r\"3\n\x0fZcashSignedPCZT\x12\x12\n\nsignatures\x18\x01 \x03(\x0c\x12\x0c\n\x04txid\x18\x02 \x01(\x0c\"N\n\x12ZcashGetOrchardFVK\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07\x61\x63\x63ount\x18\x02 \x01(\r\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\"Q\n\x0fZcashOrchardFVK\x12\n\n\x02\x61k\x18\x01 \x01(\x0c\x12\n\n\x02nk\x18\x02 \x01(\x0c\x12\x0c\n\x04rivk\x18\x03 \x01(\x0c\x12\x18\n\x10seed_fingerprint\x18\x04 \x01(\x0c\"Z\n\x15ZcashTransparentInput\x12\r\n\x05index\x18\x01 \x02(\r\x12\x0f\n\x07sighash\x18\x02 \x02(\x0c\x12\x11\n\taddress_n\x18\x03 \x03(\r\x12\x0e\n\x06\x61mount\x18\x04 \x01(\x04\"<\n\x13ZcashTransparentSig\x12\x11\n\tsignature\x18\x01 \x02(\x0c\x12\x12\n\nnext_index\x18\x02 \x01(\r\"\x93\x01\n\x13ZcashDisplayAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07\x61\x63\x63ount\x18\x02 \x01(\r\x12\x0f\n\x07\x61\x64\x64ress\x18\x03 \x01(\t\x12\n\n\x02\x61k\x18\x04 \x01(\x0c\x12\n\n\x02nk\x18\x05 \x01(\x0c\x12\x0c\n\x04rivk\x18\x06 \x01(\x0c\x12!\n\x19\x65xpected_seed_fingerprint\x18\x07 \x01(\x0c\"9\n\x0cZcashAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x18\n\x10seed_fingerprint\x18\x02 \x01(\x0c\x42\x31\n\x1a\x63om.keepkey.deviceprotocolB\x13KeepKeyMessageZcash')
 )
 
 
@@ -137,6 +137,13 @@ _ZCASHSIGNPCZT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='expected_seed_fingerprint', full_name='ZcashSignPCZT.expected_seed_fingerprint', index=15,
+      number=31, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -150,7 +157,7 @@ _ZCASHSIGNPCZT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=25,
-  serialized_end=375,
+  serialized_end=410,
 )
 
 
@@ -271,8 +278,8 @@ _ZCASHPCZTACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=378,
-  serialized_end=635,
+  serialized_start=413,
+  serialized_end=670,
 )
 
 
@@ -302,8 +309,8 @@ _ZCASHPCZTACTIONACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=637,
-  serialized_end=677,
+  serialized_start=672,
+  serialized_end=712,
 )
 
 
@@ -340,8 +347,8 @@ _ZCASHSIGNEDPCZT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=679,
-  serialized_end=730,
+  serialized_start=714,
+  serialized_end=765,
 )
 
 
@@ -385,8 +392,8 @@ _ZCASHGETORCHARDFVK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=732,
-  serialized_end=810,
+  serialized_start=767,
+  serialized_end=845,
 )
 
 
@@ -418,6 +425,13 @@ _ZCASHORCHARDFVK = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='seed_fingerprint', full_name='ZcashOrchardFVK.seed_fingerprint', index=3,
+      number=4, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -430,8 +444,8 @@ _ZCASHORCHARDFVK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=812,
-  serialized_end=867,
+  serialized_start=847,
+  serialized_end=928,
 )
 
 
@@ -482,8 +496,8 @@ _ZCASHTRANSPARENTINPUT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=869,
-  serialized_end=959,
+  serialized_start=930,
+  serialized_end=1020,
 )
 
 
@@ -520,9 +534,10 @@ _ZCASHTRANSPARENTSIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=961,
-  serialized_end=1021,
+  serialized_start=1022,
+  serialized_end=1082,
 )
+
 
 _ZCASHDISPLAYADDRESS = _descriptor.Descriptor(
   name='ZcashDisplayAddress',
@@ -573,6 +588,13 @@ _ZCASHDISPLAYADDRESS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='expected_seed_fingerprint', full_name='ZcashDisplayAddress.expected_seed_fingerprint', index=6,
+      number=7, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -585,8 +607,8 @@ _ZCASHDISPLAYADDRESS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1023,
-  serialized_end=1133,
+  serialized_start=1085,
+  serialized_end=1232,
 )
 
 
@@ -604,6 +626,13 @@ _ZCASHADDRESS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='seed_fingerprint', full_name='ZcashAddress.seed_fingerprint', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -616,8 +645,8 @@ _ZCASHADDRESS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1135,
-  serialized_end=1167,
+  serialized_start=1234,
+  serialized_end=1291,
 )
 
 DESCRIPTOR.message_types_by_name['ZcashSignPCZT'] = _ZCASHSIGNPCZT

@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-ripple.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x15messages-ripple.proto\";\n\x10RippleGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\" \n\rRippleAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"\x8e\x01\n\x0cRippleSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0b\n\x03\x66\x65\x65\x18\x02 \x01(\x04\x12\r\n\x05\x66lags\x18\x03 \x01(\r\x12\x10\n\x08sequence\x18\x04 \x01(\r\x12\x1c\n\x14last_ledger_sequence\x18\x05 \x01(\r\x12\x1f\n\x07payment\x18\x06 \x01(\x0b\x32\x0e.RipplePayment\"M\n\rRipplePayment\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x04\x12\x13\n\x0b\x64\x65stination\x18\x02 \x01(\t\x12\x17\n\x0f\x64\x65stination_tag\x18\x03 \x01(\r\":\n\x0eRippleSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x02 \x01(\x0c\x42;\n#com.shapeshift.keepkey.lib.protobufB\x14KeepKeyMessageRipple')
+  serialized_pb=_b('\n\x15messages-ripple.proto\";\n\x10RippleGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\" \n\rRippleAddress\x12\x0f\n\x07address\x18\x01 \x01(\t\"\x9c\x01\n\x0cRippleSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0b\n\x03fee\x18\x02 \x01(\x04\x12\r\n\x05flags\x18\x03 \x01(\r\x12\x10\n\x08sequence\x18\x04 \x01(\r\x12\x1c\n\x14last_ledger_sequence\x18\x05 \x01(\r\x12\x1f\n\x07payment\x18\x06 \x01(\x0b2\x0e.RipplePayment\x12\x0c\n\x04memo\x18\x07 \x01(\t\"M\n\rRipplePayment\x12\x0e\n\x06amount\x18\x01 \x01(\x04\x12\x13\n\x0bdestination\x18\x02 \x01(\t\x12\x17\n\x0fdestination_tag\x18\x03 \x01(\r\":\n\x0eRippleSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x15\n\rserialized_tx\x18\x02 \x01(\x0cB;\n#com.shapeshift.keepkey.lib.protobufB\x14KeepKeyMessageRipple')
 )
 
 
@@ -143,6 +143,13 @@ _RIPPLESIGNTX = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='memo', full_name='RippleSignTx.memo', index=6,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -156,7 +163,7 @@ _RIPPLESIGNTX = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=121,
-  serialized_end=263,
+  serialized_end=277,
 )
 
 
@@ -200,8 +207,8 @@ _RIPPLEPAYMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=265,
-  serialized_end=342,
+  serialized_start=279,
+  serialized_end=356,
 )
 
 
@@ -238,8 +245,8 @@ _RIPPLESIGNEDTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=344,
-  serialized_end=402,
+  serialized_start=358,
+  serialized_end=416,
 )
 
 _RIPPLESIGNTX.fields_by_name['payment'].message_type = _RIPPLEPAYMENT

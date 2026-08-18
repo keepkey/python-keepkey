@@ -13,6 +13,7 @@ from . import messages_solana_pb2 as solana_proto
 from . import messages_tron_pb2 as tron_proto
 from . import messages_ton_pb2 as ton_proto
 from . import messages_zcash_pb2 as zcash_proto
+from . import messages_hive_pb2 as hive_proto
 
 map_type_to_class = {}
 map_class_to_type = {}
@@ -97,4 +98,23 @@ for wire_id, (msg_name, mod) in _zcash_wire_ids.items():
         map_type_to_class[wire_id] = msg_class
         map_class_to_type[msg_class] = wire_id
 
-# check_missing() — skip: Zcash types are not in old messages_pb2 enum
+# Manually register Hive messages (not in the old messages_pb2.py enum)
+_hive_wire_ids = {
+    1600: ('HiveGetPublicKey',        hive_proto),
+    1601: ('HivePublicKey',           hive_proto),
+    1602: ('HiveSignTx',              hive_proto),
+    1603: ('HiveSignedTx',            hive_proto),
+    1604: ('HiveGetPublicKeys',       hive_proto),
+    1605: ('HivePublicKeys',          hive_proto),
+    1606: ('HiveSignAccountCreate',   hive_proto),
+    1607: ('HiveSignedAccountCreate', hive_proto),
+    1608: ('HiveSignAccountUpdate',   hive_proto),
+    1609: ('HiveSignedAccountUpdate', hive_proto),
+}
+for wire_id, (msg_name, mod) in _hive_wire_ids.items():
+    msg_class = getattr(mod, msg_name, None)
+    if msg_class is not None:
+        map_type_to_class[wire_id] = msg_class
+        map_class_to_type[msg_class] = wire_id
+
+# check_missing() — skip: Zcash/Hive types are not in old messages_pb2 enum

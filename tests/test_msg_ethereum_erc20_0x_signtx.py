@@ -164,8 +164,18 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
     # test transformERC20
     def test__sign_transformERC20(self):
         self.requires_fullFeature()
+        # transformERC20 is pinned to the 0x ExchangeProxy and bounded by its
+        # displayed input/min-output amounts, so it clear-signs WITHOUT
+        # AdvancedMode at any calldata size (the transformations[] tail exceeds
+        # one chunk). No AdvancedMode policy is set here on purpose.
         self.requires_firmware("7.1.5")
         self.setup_mnemonic_nopin_nopassphrase()
+        # transformERC20 to the 0x Exchange Proxy is blind contract data (no
+        # recognized token / contract handler). Since 7.15.0 the device
+        # hard-rejects blind contract data unless AdvancedMode is on (Insight
+        # clear-signing policy) — same as test_sign_longdata_swap above. This
+        # test checks signing correctness, so run it in expert mode.
+        self.client.apply_policy("AdvancedMode", 1)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             # Data from:

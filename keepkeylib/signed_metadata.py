@@ -128,7 +128,7 @@ def serialize_metadata(
     args: list,
     classification: int = CLASSIFICATION_VERIFIED,
     timestamp: int = None,
-    key_id: int = 0,
+    key_id: int = 3,
     version: int = 1,
 ) -> bytes:
     """Serialize metadata fields into canonical binary (unsigned).
@@ -137,12 +137,21 @@ def serialize_metadata(
         chain_id: EIP-155 chain ID
         contract_address: 20-byte contract address
         selector: 4-byte function selector
-        tx_hash: 32-byte keccak-256 of unsigned tx (can be zeroed for phase 1)
+        tx_hash: 32-byte keccak-256 sighash of the UNSIGNED tx. Firmware binds
+            the emitted signature to this value (signed_metadata_enforce), so it
+            MUST equal the real digest the device will sign. Compute it with
+            eth_sighash_legacy() / eth_sighash_eip1559() below — never zero it.
         method_name: UTF-8 method name (max 64 bytes)
         args: list of dicts with keys: name, format, value (bytes)
         classification: 0=OPAQUE, 1=VERIFIED, 2=MALFORMED
         timestamp: Unix seconds (defaults to now)
-        key_id: embedded public key slot (0-3)
+        key_id: embedded public key slot. Defaults to 3, the DEBUG_LINK CI test
+            slot whose pubkey == TEST_PRIVATE_KEY's pubkey (see
+            assert_test_key_matches_slot3). The embedded key_id MUST equal both
+            the protocol-level EthereumTxMetadata.key_id and the slot the
+            signature verifies against, or firmware returns MALFORMED.
+            PRODUCTION callers (Pioneer) MUST pass key_id=0 explicitly and sign
+            with the offline production key.
         version: schema version (must be 1)
 
     Returns:
@@ -228,41 +237,36 @@ def sign_metadata(payload: bytes, private_key: bytes = None) -> bytes:
 
     digest = hashlib.sha256(payload).digest()
 
+    # NOTE: firmware hashes the identical byte range — sha256 over
+    # version..key_id (i.e. the whole serialize_metadata() output), excluding
+    # the trailing signature(64)+recovery(1). See signed_metadata_process():
+    # signed_len = payload_len - 64 - 1.
     try:
-        from ecdsa import SigningKey, SECP256k1, util
-        sk = SigningKey.from_string(private_key, curve=SECP256k1)
-        sig_der = sk.sign_digest(digest, sigencode=util.sigencode_string)
-        # sig_der is r(32) || s(32) = 64 bytes
-        r = sig_der[:32]
-        s = sig_der[32:]
+        from ecdsa import SigningKey, SECP256k1, util, VerifyingKey
+    except ImportError as exc:
+        # Fail loud. A zero signature would be silently rejected by firmware as
+        # MALFORMED, disguising "ecdsa not installed" as a crypto/key mismatch.
+        raise RuntimeError(
+            "The 'ecdsa' package is required to sign metadata "
+            "(pip install ecdsa)."
+        ) from exc
 
-        # Recovery: compute v (27 or 28)
-        vk = sk.get_verifying_key()
-        pubkey = b'\x04' + vk.to_string()
-        # Try recovery with v=0 and v=1
-        from ecdsa import VerifyingKey
-        for v in (0, 1):
-            try:
-                recovered = VerifyingKey.from_public_key_recovery_with_digest(
-                    sig_der, digest, SECP256k1, hashfunc=hashlib.sha256
-                )
-                for i, rk in enumerate(recovered):
-                    if rk.to_string() == vk.to_string():
-                        recovery = 27 + i
-                        break
-                else:
-                    recovery = 27
-                break
-            except Exception:
-                continue
-        else:
-            recovery = 27
+    sk = SigningKey.from_string(private_key, curve=SECP256k1)
+    sig = sk.sign_digest(digest, sigencode=util.sigencode_string)  # r(32)||s(32)
+    r = sig[:32]
+    s = sig[32:]
 
-    except ImportError:
-        # Fallback: zero signature for struct-only testing
-        r = b'\x00' * 32
-        s = b'\x00' * 32
-        recovery = 27
+    # Recovery byte (27/28). Firmware verifies against the stored slot pubkey and
+    # ignores this byte, but the canonical blob carries it.
+    vk = sk.get_verifying_key()
+    recovered = VerifyingKey.from_public_key_recovery_with_digest(
+        sig, digest, SECP256k1, hashfunc=hashlib.sha256
+    )
+    recovery = 27
+    for i, rk in enumerate(recovered):
+        if rk.to_string() == vk.to_string():
+            recovery = 27 + i
+            break
 
     return payload + r + s + bytes([recovery])
 
@@ -280,7 +284,8 @@ def build_test_metadata(
     """Convenience: build a complete signed test metadata blob.
 
     Defaults to an Aave V3 supply() call on Ethereum mainnet.
-    Uses key_id=1 (CI test slot) by default.
+    Uses key_id=3 (the DEBUG_LINK CI test slot) by default and signs with
+    TEST_PRIVATE_KEY, whose pubkey == firmware METADATA_PUBKEYS[3].
     """
     if contract_address is None:
         contract_address = bytes.fromhex('7d2768de32b0b80b7a3454c06bdac94a69ddc7a9')
@@ -318,3 +323,176 @@ def build_test_metadata(
         **kwargs,
     )
     return sign_metadata(payload)
+
+
+# ── Test-signer ↔ firmware slot binding ───────────────────────────────
+# The only key the test suite can sign with is TEST_PRIVATE_KEY, derived via
+# SignIdentity index 0 (see _derive_insight_key(slot=0)). Its compressed pubkey
+# equals firmware METADATA_PUBKEYS[3] (the CI test slot, compiled only under
+# #if DEBUG_LINK). The "0" and the "3" are DIFFERENT namespaces — derivation
+# index vs firmware key_id array slot — and the mapping index0 -> slot3 is
+# intentional. Do NOT "fix" it by deriving at slot=3 or embedding key_id=0.
+FIRMWARE_SLOT3_PUBKEY = bytes.fromhex(
+    '02e3b3015c47ddcaabe4f8e872f1ed8f09ca145a8d81770d92213d56da31ab5107'
+)
+
+
+def test_signer_compressed_pubkey(private_key: bytes = None) -> bytes:
+    """Return the 33-byte compressed secp256k1 pubkey for the signer."""
+    from ecdsa import SigningKey, SECP256k1
+    if private_key is None:
+        private_key = TEST_PRIVATE_KEY
+    vk = SigningKey.from_string(private_key, curve=SECP256k1).get_verifying_key()
+    point = vk.pubkey.point
+    prefix = 0x02 if (point.y() % 2 == 0) else 0x03
+    return bytes([prefix]) + point.x().to_bytes(32, 'big')
+
+
+def assert_test_key_matches_slot3():
+    """Prove pubkey(TEST_PRIVATE_KEY) == firmware METADATA_PUBKEYS[3].
+
+    Guards the key_id=3 default: if this fails, every VERIFIED test vector would
+    be rejected as MALFORMED by ecdsa_verify_digest against the wrong slot.
+    """
+    pub = test_signer_compressed_pubkey()
+    if pub != FIRMWARE_SLOT3_PUBKEY:
+        raise AssertionError(
+            "Test signer pubkey %s != firmware slot 3 %s — key_id=3 vectors "
+            "will not verify on device." % (pub.hex(), FIRMWARE_SLOT3_PUBKEY.hex())
+        )
+    return pub
+
+
+# ── Ethereum sighash (keccak-256 over RLP) ─────────────────────────────
+# Produces the EXACT digest firmware feeds to ecdsa_sign_digest, so that a
+# metadata blob's tx_hash binds the real transaction. Cross-checked against the
+# device: a known signed legacy tx recovers to its m/44'/60'/0'/0/0 signer.
+
+_KECCAK_RC = [
+    0x0000000000000001, 0x0000000000008082, 0x800000000000808A, 0x8000000080008000,
+    0x000000000000808B, 0x0000000080000001, 0x8000000080008081, 0x8000000000008009,
+    0x000000000000008A, 0x0000000000000088, 0x0000000080008009, 0x000000008000000A,
+    0x000000008000808B, 0x800000000000008B, 0x8000000000008089, 0x8000000000008003,
+    0x8000000000008002, 0x8000000000000080, 0x000000000000800A, 0x800000008000000A,
+    0x8000000080008081, 0x8000000000008080, 0x0000000080000001, 0x8000000080008008,
+]
+_KECCAK_ROT = [
+    [0, 36, 3, 41, 18],
+    [1, 44, 10, 45, 2],
+    [62, 6, 43, 15, 61],
+    [28, 55, 25, 21, 56],
+    [27, 20, 39, 8, 14],
+]
+_KECCAK_MASK = (1 << 64) - 1
+
+
+def _rotl64(x, n):
+    return ((x << n) | (x >> (64 - n))) & _KECCAK_MASK
+
+
+def _keccak_f1600(st):
+    for rc in _KECCAK_RC:
+        c = [st[x][0] ^ st[x][1] ^ st[x][2] ^ st[x][3] ^ st[x][4] for x in range(5)]
+        d = [c[(x - 1) % 5] ^ _rotl64(c[(x + 1) % 5], 1) for x in range(5)]
+        for x in range(5):
+            for y in range(5):
+                st[x][y] ^= d[x]
+        b = [[0] * 5 for _ in range(5)]
+        for x in range(5):
+            for y in range(5):
+                b[y][(2 * x + 3 * y) % 5] = _rotl64(st[x][y], _KECCAK_ROT[x][y])
+        for x in range(5):
+            for y in range(5):
+                st[x][y] = b[x][y] ^ ((~b[(x + 1) % 5][y]) & b[(x + 2) % 5][y])
+        st[0][0] ^= rc
+
+
+def keccak256(data: bytes) -> bytes:
+    """Keccak-256 (Ethereum), NOT NIST SHA3-256 (different padding)."""
+    rate = 136  # 1088-bit rate for 256-bit output
+    st = [[0] * 5 for _ in range(5)]
+    msg = bytearray(data)
+    msg.append(0x01)  # keccak pad10*1 (0x01 .. 0x80), distinct from SHA3's 0x06
+    while len(msg) % rate != 0:
+        msg.append(0x00)
+    msg[-1] ^= 0x80
+    for off in range(0, len(msg), rate):
+        block = msg[off:off + rate]
+        for i in range(rate // 8):
+            st[i % 5][i // 5] ^= int.from_bytes(block[i * 8:i * 8 + 8], 'little')
+        _keccak_f1600(st)
+    out = bytearray()
+    while len(out) < 32:
+        for y in range(5):
+            for x in range(5):
+                if len(out) < 32:
+                    out += st[x][y].to_bytes(8, 'little')
+    return bytes(out[:32])
+
+
+def _int_min_be(value: int) -> bytes:
+    """Minimal big-endian (no leading zeros); 0 -> b'' (RLP integer encoding)."""
+    if value == 0:
+        return b''
+    out = bytearray()
+    while value > 0:
+        out.insert(0, value & 0xFF)
+        value >>= 8
+    return bytes(out)
+
+
+def _rlp_str(b: bytes) -> bytes:
+    if len(b) == 1 and b[0] < 0x80:
+        return b
+    if len(b) <= 55:
+        return bytes([0x80 + len(b)]) + b
+    le = _int_min_be(len(b))
+    return bytes([0xB7 + len(le)]) + le + b
+
+
+def _rlp_list(items) -> bytes:
+    body = b''.join(items)
+    if len(body) <= 55:
+        return bytes([0xC0 + len(body)]) + body
+    le = _int_min_be(len(body))
+    return bytes([0xF7 + len(le)]) + le + body
+
+
+def eth_sighash_legacy(nonce, gas_price, gas_limit, to, value, data, chain_id):
+    """keccak256(rlp([nonce, gasPrice, gasLimit, to, value, data, chainId,0,0])).
+
+    `to` is 20 raw bytes (b'' for contract creation); ints are minimal-BE.
+    Matches firmware ethereum.c legacy EIP-155 hashing exactly.
+    """
+    items = [
+        _rlp_str(_int_min_be(nonce)),
+        _rlp_str(_int_min_be(gas_price)),
+        _rlp_str(_int_min_be(gas_limit)),
+        _rlp_str(bytes(to)),
+        _rlp_str(_int_min_be(value)),
+        _rlp_str(bytes(data)),
+    ]
+    if chain_id:
+        items += [_rlp_str(_int_min_be(chain_id)), _rlp_str(b''), _rlp_str(b'')]
+    return keccak256(_rlp_list(items))
+
+
+def eth_sighash_eip1559(chain_id, nonce, max_priority_fee_per_gas,
+                        max_fee_per_gas, gas_limit, to, value, data):
+    """keccak256(0x02 || rlp([chainId, nonce, maxPriorityFee, maxFee, gasLimit,
+    to, value, data, []])) with an empty (0xC0) access list.
+
+    Matches firmware ethereum.c EIP-1559 hashing exactly.
+    """
+    items = [
+        _rlp_str(_int_min_be(chain_id)),
+        _rlp_str(_int_min_be(nonce)),
+        _rlp_str(_int_min_be(max_priority_fee_per_gas)),
+        _rlp_str(_int_min_be(max_fee_per_gas)),
+        _rlp_str(_int_min_be(gas_limit)),
+        _rlp_str(bytes(to)),
+        _rlp_str(_int_min_be(value)),
+        _rlp_str(bytes(data)),
+        _rlp_list([]),  # empty access list -> 0xC0
+    ]
+    return keccak256(b'\x02' + _rlp_list(items))

@@ -6,12 +6,17 @@ EthBlindSigning policy gate. Covers:
 
   1. Valid signed metadata → VERIFIED classification
   2. Invalid/malicious metadata → MALFORMED classification
-  3. Policy: EthBlindSigning disabled → hard reject on unknown contract data
+  3. Policy: AdvancedMode disabled → hard reject on unknown contract data
   4. Backwards compat: no metadata sent → existing flow unchanged
   5. Adversarial: tampered fields, wrong key, replayed metadata, truncated payloads
+  6. tx_hash binding: signature is refused unless the signed digest equals the
+     metadata's committed tx_hash (signed_metadata_enforce)
 
 Requires: pip install ecdsa
-Test key: private=0x01 (secp256k1 generator point G) — NEVER use in production.
+Metadata signer: TEST_PRIVATE_KEY (SignIdentity index 0 of the BIP-39 test
+mnemonic); its pubkey == firmware METADATA_PUBKEYS[3], the DEBUG_LINK CI slot.
+All metadata vectors therefore use key_id=3. NEVER use in production.
+The device wallet (mnemonic12 from common.py) signs the actual transactions.
 """
 
 import unittest
@@ -37,8 +42,19 @@ from keepkeylib.signed_metadata import (
     CLASSIFICATION_OPAQUE,
     CLASSIFICATION_MALFORMED,
     TEST_PRIVATE_KEY,
+    keccak256,
+    eth_sighash_legacy,
+    assert_test_key_matches_slot3,
+    FIRMWARE_SLOT3_PUBKEY,
+    test_signer_compressed_pubkey,
 )
 from keepkeylib.tools import parse_path
+from keepkeylib.client import CallException
+
+# The metadata CI slot. Must match: embedded payload key_id, protocol
+# EthereumTxMetadata.key_id, and the firmware slot the signature verifies
+# against (METADATA_PUBKEYS[3], compiled only under #if DEBUG_LINK).
+TEST_KEY_ID = 3
 
 # ─── Test constants ────────────────────────────────────────────────────
 
@@ -58,6 +74,52 @@ DEFAULT_ARGS = [
      'value': (10500000000000000000).to_bytes(32, 'big')},
     {'name': 'onBehalfOf', 'format': ARG_FORMAT_ADDRESS, 'value': VITALIK},
 ]
+
+# A token the firmware token list recognizes (CVC) — see
+# test_msg_ethereum_erc20_approve.py, which signs to it with AdvancedMode OFF.
+CVC_TOKEN = bytes.fromhex('41e5560054824ea6b0732e656e3ad64e20e94e45')
+
+# Device wallet path. With mnemonic12 (common.KeepKeyTest) this is signer
+# 0x3f2329c9adfbccd9a84f52c906e936a42da18cb8 — used to check recovered signer.
+DEVICE_PATH = "44'/60'/0'/0/0"
+
+
+def bound_metadata(tx_hash, contract=AAVE_V3_POOL, selector=AAVE_SUPPLY_SELECTOR,
+                   chain_id=1, method_name='supply', args=None):
+    """Signed VERIFIED metadata committing to a specific real tx sighash."""
+    payload = serialize_metadata(
+        chain_id=chain_id,
+        contract_address=contract,
+        selector=selector,
+        tx_hash=tx_hash,
+        method_name=method_name,
+        args=DEFAULT_ARGS if args is None else args,
+        key_id=TEST_KEY_ID,
+    )
+    return sign_metadata(payload)
+
+
+def recover_eth_signer(sig_r, sig_s, sig_v, digest, chain_id):
+    """Recover the 20-byte Ethereum signer from a legacy (EIP-155) signature."""
+    from ecdsa import VerifyingKey, SECP256k1, util
+    if chain_id:
+        rec = sig_v - (35 + 2 * chain_id)
+    else:
+        rec = sig_v - 27
+    keys = VerifyingKey.from_public_key_recovery_with_digest(
+        sig_r + sig_s, digest, SECP256k1, hashfunc=None,
+        sigdecode=util.sigdecode_string,
+    )
+    return keccak256(keys[rec].to_string())[-20:]
+
+
+def aave_supply_calldata(amount, on_behalf=VITALIK, asset=DAI_ADDRESS):
+    """supply(asset,amount,onBehalfOf) calldata — 100 bytes, leads with the
+    AAVE supply selector so signed_metadata_matches_tx() binds it."""
+    return (AAVE_SUPPLY_SELECTOR
+            + b'\x00' * 12 + asset
+            + amount.to_bytes(32, 'big')
+            + b'\x00' * 12 + on_behalf)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -401,6 +463,37 @@ class TestSerializerUnit(unittest.TestCase):
         with self.assertRaises(BadSignatureError):
             vk.verify_digest(sig, digest)
 
+    def test_test_key_matches_firmware_slot3(self):
+        """The signing key's pubkey == firmware METADATA_PUBKEYS[3].
+
+        Guards the BLOCKER: if these diverge, every VERIFIED vector would be
+        rejected as MALFORMED on device. This is why all vectors use key_id=3.
+        """
+        try:
+            import ecdsa  # noqa: F401
+        except ImportError:
+            self.skipTest('ecdsa library not installed')
+        self.assertEqual(test_signer_compressed_pubkey(), FIRMWARE_SLOT3_PUBKEY)
+        # Must not raise.
+        assert_test_key_matches_slot3()
+
+    def test_default_key_id_is_slot3(self):
+        """serialize_metadata embeds key_id=3 by default (matches the signer)."""
+        blob = build_test_metadata(args=[])
+        # key_id is the last byte of the payload, i.e. before sig(64)+recovery(1).
+        self.assertEqual(blob[-66], TEST_KEY_ID)
+
+    def test_keccak256_known_vectors(self):
+        """keccak256 (not NIST SHA3) — empty string + function selectors."""
+        self.assertEqual(
+            keccak256(b'').hex(),
+            'c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470',
+        )
+        self.assertEqual(keccak256(b'transfer(address,uint256)')[:4].hex(),
+                         'a9059cbb')
+        self.assertEqual(keccak256(b'approve(address,uint256)')[:4].hex(),
+                         '095ea7b3')
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # Device tests — require KeepKey connected with test firmware
@@ -411,7 +504,7 @@ class TestEthereumClearSigning(common.KeepKeyTest):
 
     def setUp(self):
         super().setUp()
-        self.requires_firmware("7.14.0")
+        self.requires_firmware("7.15.0")
         self.requires_message("EthereumTxMetadata")
         self.setup_mnemonic_nopin_nopassphrase()
 
@@ -530,6 +623,129 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         self.assertIsNotNone(sig_r)
         self.assertIsNotNone(sig_s)
 
+    # ── tx_hash binding (the authoritative gate) ──────────────────────
+
+    def test_binding_happy_path_signs_and_recovers(self):
+        """Metadata.tx_hash = real sighash of the SignTx → signing completes and
+        the signature recovers to the device's own signer (binds THIS tx)."""
+        # AdvancedMode OFF on purpose: a VERIFIED blob is the *only* reason this
+        # contract call is allowed to sign without the blind-sign gate.
+        self.client.apply_policy("AdvancedMode", 0)
+        n = parse_path(DEVICE_PATH)
+        chain_id, nonce, gas_price, gas_limit, value = 1, 7, 20000000000, 200000, 0
+        data = aave_supply_calldata(10500000000000000000)
+        tx_hash = eth_sighash_legacy(nonce, gas_price, gas_limit, AAVE_V3_POOL,
+                                     value, data, chain_id)
+
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=bound_metadata(tx_hash),
+            metadata_version=1, key_id=TEST_KEY_ID)
+        self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
+
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=n, nonce=nonce, gas_price=gas_price, gas_limit=gas_limit,
+            to=AAVE_V3_POOL, value=value, data=data, chain_id=chain_id)
+        self.assertIsNotNone(sig_r)
+        self.assertIsNotNone(sig_s)
+        signer = recover_eth_signer(sig_r, sig_s, sig_v, tx_hash, chain_id)
+        self.assertEqual(signer, self.client.ethereum_get_address(n))
+
+    def test_replay_rejected_when_digest_differs(self):
+        """Metadata bound to tx A, then sign tx B (same contract+selector+chain,
+        different calldata) → device aborts at send_signature, NO signature."""
+        self.client.apply_policy("AdvancedMode", 0)
+        n = parse_path(DEVICE_PATH)
+        chain_id, gas_price, gas_limit = 1, 20000000000, 200000
+
+        data_a = aave_supply_calldata(1000000000000000000)
+        tx_hash_a = eth_sighash_legacy(0, gas_price, gas_limit, AAVE_V3_POOL,
+                                       0, data_a, chain_id)
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=bound_metadata(tx_hash_a),
+            metadata_version=1, key_id=TEST_KEY_ID)
+        self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
+
+        # Same selector/contract/chain (matches_tx → screens shown), but the
+        # amount differs so the real digest != committed tx_hash.
+        data_b = aave_supply_calldata(500000000000000000000)
+        try:
+            self.client.ethereum_sign_tx(
+                n=n, nonce=0, gas_price=gas_price, gas_limit=gas_limit,
+                to=AAVE_V3_POOL, value=0, data=data_b, chain_id=chain_id)
+            self.fail("Expected Failure — metadata committed to a different tx")
+        except CallException as e:
+            self.assertIn("Metadata does not match signed transaction", str(e))
+
+    def test_advanced_mode_gate(self):
+        """AdvancedMode OFF + unknown contract + no metadata → hard reject;
+        ON → raw-data confirm path signs; recognized ERC-20 transfer unaffected."""
+        n = parse_path(DEVICE_PATH)
+        data = aave_supply_calldata(1000000000000000000)
+
+        # OFF + unknown contract + no metadata → blocked
+        self.client.apply_policy("AdvancedMode", 0)
+        try:
+            self.client.ethereum_sign_tx(
+                n=n, nonce=0, gas_price=20000000000, gas_limit=200000,
+                to=AAVE_V3_POOL, value=0, data=data, chain_id=1)
+            self.fail("Expected Failure — blind signing disabled")
+        except CallException as e:
+            self.assertIn("Blind signing disabled", str(e))
+
+        # ON → raw-data confirm path → signs
+        self.client.apply_policy("AdvancedMode", 1)
+        _, sig_r, _ = self.client.ethereum_sign_tx(
+            n=n, nonce=0, gas_price=20000000000, gas_limit=200000,
+            to=AAVE_V3_POOL, value=0, data=data, chain_id=1)
+        self.assertIsNotNone(sig_r)
+        self.client.apply_policy("AdvancedMode", 0)
+
+        # Recognized ERC-20 transfer is decoded natively → NOT blind-gated even
+        # with AdvancedMode OFF (token resolves via tokenByChainAddress).
+        erc20 = (bytes.fromhex('a9059cbb') + b'\x00' * 12 + VITALIK
+                 + (1000000).to_bytes(32, 'big'))
+        _, sig_r, _ = self.client.ethereum_sign_tx(
+            n=n, nonce=1, gas_price=20000000000, gas_limit=80000,
+            to=CVC_TOKEN, value=0, data=erc20, chain_id=1)
+        self.assertIsNotNone(sig_r)
+
+    def test_cancel_clears_metadata_not_reused(self):
+        """Cancel mid-confirm → metadata cleared; a later matching tx is NOT
+        silently signed using the stale blob."""
+        n = parse_path(DEVICE_PATH)
+        chain_id, gas_price, gas_limit = 1, 20000000000, 200000
+        data = aave_supply_calldata(1000000000000000000)
+        tx_hash = eth_sighash_legacy(0, gas_price, gas_limit, AAVE_V3_POOL,
+                                     0, data, chain_id)
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=bound_metadata(tx_hash),
+            metadata_version=1, key_id=TEST_KEY_ID)
+        self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
+
+        # Press NO on the first decoded confirm screen → signed_metadata_confirm
+        # returns false → ActionCancelled + ethereum_signing_abort (clears blob).
+        self.client.button = False
+        try:
+            self.client.ethereum_sign_tx(
+                n=n, nonce=0, gas_price=gas_price, gas_limit=gas_limit,
+                to=AAVE_V3_POOL, value=0, data=data, chain_id=chain_id)
+            self.fail("Expected Failure — user cancelled the verified confirm")
+        except CallException as e:
+            self.assertIn("cancelled", str(e).lower())
+        finally:
+            self.client.button = True
+
+        # Same tx, no new metadata, AdvancedMode OFF → blind-sign gate must fire.
+        # If the stale blob were reused it would suppress the gate and sign.
+        self.client.apply_policy("AdvancedMode", 0)
+        try:
+            self.client.ethereum_sign_tx(
+                n=n, nonce=0, gas_price=gas_price, gas_limit=gas_limit,
+                to=AAVE_V3_POOL, value=0, data=data, chain_id=chain_id)
+            self.fail("Expected Failure — stale metadata must not be reused")
+        except CallException as e:
+            self.assertIn("Blind signing disabled", str(e))
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # Print all test vectors (for documentation / external verification)
@@ -561,7 +777,7 @@ def print_test_vectors():
 
     print('═' * 72)
     print('  EVM Clear Signing — Test Vector Catalog')
-    print('  Test key: privkey=0x01 (secp256k1 generator)')
+    print('  Metadata signer: SignIdentity idx0 == firmware slot 3 (key_id=3)')
     print('═' * 72)
 
     for i, gen in enumerate(vectors):

@@ -784,15 +784,16 @@ SECTIONS = [
        'cause fund loss or invalid transactions on the block-lattice.',
        [])]),
 
-    # ===== 7.14 NEW FEATURES =====
-    ('V', 'EVM Clear-Signing', '7.14.0',
+    # ===== 7.15.1 NEW FEATURES =====
+    ('V', 'EVM Clear-Signing', '7.15.0',
      'NEW: Verified transaction metadata for EVM contracts. Host sends a signed blob with contract '
      'name, function, and decoded parameters. Device verifies blob signature against trusted key, '
-     'then shows human-readable details with VERIFIED icon. Blind-sign policy gating is deferred '
-     'to firmware 7.15+.',
+     'then shows human-readable details with VERIFIED icon. The signature is bound to the full tx '
+     'hash, and AdvancedMode is the single blind-sign gate (off = reject unknown contract data).',
      [
          'CLEAR-SIGN: Signed metadata -> verify signature -> VERIFIED icon + method + decoded args',
-         'BLIND SIGN: No metadata + AdvancedMode on -> contract data signed (no gate until 7.15+)',
+         'BINDING: metadata committed to tx A, signing tx B is refused at send_signature',
+         'BLIND SIGN: No metadata + AdvancedMode off -> unknown contract data hard-rejected',
      ],
      [
          ('V1', 'test_msg_ethereum_clear_signing', 'test_valid_metadata_returns_verified',
@@ -817,7 +818,27 @@ SECTIONS = [
          ('V8', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_allowed',
           'Blind sign permitted (AdvancedMode ON)',
           'Contract data with AdvancedMode enabled. Device allows signing. '
-          'Blind-sign blocking deferred to 7.15+.',
+          'Blind-sign policy gating covered in 7.15.0+.',
+          []),
+         ('V9', 'test_msg_ethereum_clear_signing', 'test_binding_happy_path_signs_and_recovers',
+          'Full tx-hash binding (happy path)',
+          'Metadata tx_hash = the real sighash of the EthereumSignTx. Device shows the verified '
+          'decoded screens, signs, and the signature recovers to the device signer.',
+          ['VERIFIED icon + method', 'Decoded contract + args']),
+         ('V10', 'test_msg_ethereum_clear_signing', 'test_replay_rejected_when_digest_differs',
+          'Replay reject (binding enforced)',
+          'Metadata committed to tx A; signing tx B (same contract/selector/chain, different '
+          'calldata) is refused at send_signature with "Metadata does not match signed transaction".',
+          ['Verified screen then reject']),
+         ('V11', 'test_msg_ethereum_clear_signing', 'test_advanced_mode_gate',
+          'AdvancedMode blind-sign gate',
+          'AdvancedMode OFF + unknown contract + no metadata is hard-rejected; ON signs; a '
+          'natively-decoded ERC-20 transfer is unaffected.',
+          ['Blind sign disabled (Blocked)']),
+         ('V12', 'test_msg_ethereum_clear_signing', 'test_cancel_clears_metadata_not_reused',
+          'Cancel clears metadata (no stale reuse)',
+          'Cancelling the verified confirm clears the blob; a later matching tx is not silently '
+          'signed with the stale metadata.',
           []),
      ]),
 
