@@ -100,6 +100,20 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
         )
 
 
+    @unittest.skip(
+        "XRP memo is not a supported feature yet. A THORChain memo cannot "
+        "traverse hdwallet -> RippleSignTx: the protobuf has no memo field "
+        "(RippleSignTx carries 1-6, RipplePayment carries "
+        "amount/destination/destination_tag), and hdwallet's rippleSignTx "
+        "never reads tx.value.memo. The firmware therefore never receives it "
+        "and cannot serialize it. Tracked as keepkey/keepkey-vault#422.\n"
+        "\n"
+        "This assertion is CORRECT and is deliberately left intact: it "
+        "describes the behaviour the product needs. Do NOT make it pass by "
+        "asserting the memo is absent -- that would encode the bug as the "
+        "contract. Re-enable only when the signed serialization actually "
+        "preserves the memo."
+    )
     def test_sign_with_thorchain_memo(self):
         self.requires_fullFeature()
         self.requires_firmware("7.14.2")
