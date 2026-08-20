@@ -90,6 +90,17 @@ class ScreenRecorder(object):
                 # A capture failure must not mask the behaviour under test;
                 # the assertions below check what was captured.
                 pass
+            try:
+                # Also emit the frame as a PNG through the normal capture path.
+                # This class answers ButtonRequests itself, which bypasses the
+                # client's own capture hook -- so under KEEPKEY_SCREENSHOT=1
+                # these tests were selected by the screenshot filter, passed,
+                # and produced NO images. The screens this suite exists to
+                # police were the ones nobody could look at.
+                if getattr(client, 'screenshot_dir', None):
+                    client._capture_oled()
+            except Exception:
+                pass
             if recorder.answer:
                 client.debug.press_yes()
             else:
