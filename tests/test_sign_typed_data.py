@@ -32,6 +32,9 @@ class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
         self.requires_fullFeature()
         self.requires_firmware("7.4.0")
         self.setup_mnemonic_allallall()
+        # 7.14.2 gates precomputed typed hashes behind AdvancedMode: the device
+        # cannot bind the hash to any typed data it displayed. Opt in explicitly.
+        self.client.apply_policy("AdvancedMode", 1)
         f = open('sign_typed_data.json')
         txtests = json.load(f)
         f.close()

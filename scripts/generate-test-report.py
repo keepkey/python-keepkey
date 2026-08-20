@@ -275,6 +275,89 @@ def parse_junit(path):
 # context = why this test exists, what it proves, what user sees
 
 SECTIONS = [
+    ('S', 'Display Binding - What the Device Signs Is What It Shows', '7.14.2',
+     'The 7.14.2 security release changed what reaches the OLED on the signing paths. Every '
+     'defect it fixed was a case of the device hashing bytes it never rendered, or rendering '
+     'text it could not vouch for. These tests exist to capture those screens: a passing wire '
+     'assertion proves the device refused or signed, but only the screen proves the user was '
+     'told the truth about what they approved.',
+     [
+         'DISCLOSURE RULE: every byte covered by the signature must be reachable on screen.',
+         '',
+         'The defects this section guards against, all shipped at some point:',
+         '- bytes past an embedded NUL were signed and never drawn ("%s" stops at 0x00)',
+         '- whitespace padding pushed a tail past the cut with no warning',
+         '- 456 bytes past the initial chunk were hashed with a clear-sign screen showing',
+         '  confident token amounts for calldata the device had not seen',
+         '- an unresolved token rendered as the literal "Unknown token value" and signed',
+         '- a truncated memo dropped its last character (Confirm limit 42 vs 420)',
+         '',
+         'A test here with an EMPTY screenshot list is deliberate: refusal paths draw nothing,',
+         'and their evidence is the Failure on the wire plus the absence of a ButtonRequest.',
+     ],
+     [
+         ('S1', 'test_msg_ethereum_erc20_0x_signtx', 'test__sign_transformERC20',
+          '0x transformERC20 raw disclosure',
+          'A 1480-byte transformERC20 payload exceeds one 1024-byte chunk. The device must NOT '
+          'clear-sign it as a token swap, because the bytes past the initial chunk are hashed '
+          'without being decoded. With AdvancedMode on it falls to the raw path, where the byte '
+          'count shown must be the FULL length (1480), not the chunk length (1024) - a short '
+          'count would under-report what is being signed.',
+          ['Raw contract data screen showing the full byte count']),
+         ('S2', 'test_msg_ethereum_erc20_0x_signtx', 'test_sign_0x_swap_ERC20_to_ETH',
+          '0x sellToUniswap names both assets',
+          'Clear-signing is only honest when BOTH token words resolve to known assets. This '
+          'payload resolves (USDC -> ETH) and must name both sides with real amounts. The '
+          'failure this guards is a screen naming a DEX while showing no amount.',
+          ['Swap screen naming both assets and amounts']),
+         ('S3', 'test_msg_ethereum_erc20_0x_signtx', 'test_sign_longdata_swap',
+          'Long 0x calldata stays disclosed',
+          'Calldata spanning multiple chunks must not silently lose its tail from the display '
+          'while remaining inside the signature.',
+          ['Contract data screen']),
+         ('S8', 'test_msg_ethereum_signing_guards',
+          'test_contract_handler_streamed_calldata_signs_full_data',
+          'Streamed calldata is fully covered',
+          'Calldata delivered across several chunks must be hashed in full and disclosed in full. '
+          'This is the positive control for the chunk-completeness gate. NOTE: every test in '
+          'test_msg_ethereum_signing_guards currently SKIPS in CI under requires_firmware, so no '
+          'screen can be captured for it yet - the screenshot list stays empty until the gate '
+          'opens, rather than declaring an expectation nothing can satisfy.',
+          []),
+         ('S9', 'test_msg_ethereum_signing_guards', 'test_eip1559_requires_chain_id',
+          'Omitted chain_id is refused before any screen',
+          'Without a chain_id the device cannot name the network, and a signature would be '
+          'pre-EIP-155 - replayable on every EVM chain. The refusal happens before the first '
+          'confirm(), so NO screen is drawn and no ButtonRequest is emitted. The empty '
+          'screenshot list below is the assertion.',
+          []),
+         ('S10', 'test_verify_typed_data', 'test_structured_eip712_is_refused',
+          'Structured EIP-712 is closed by default',
+          'The legacy JSON parser could not guarantee that every displayed value was the '
+          'canonical value being hashed, and one screen took its title from the attacker-supplied '
+          'domain name. The feature is withdrawn rather than shipped with a screen it could not '
+          'vouch for: zero screens, refusal on the wire.',
+          []),
+         ('S11', 'test_msg_binance_sign_tx', 'test_transfer',
+          'Binance denom renders in full',
+          'A long denom must render completely and must not overflow the formatting buffer.',
+          ['Transfer screen showing the full denom']),
+         ('S12', 'test_msg_ping', 'test_ping_long_body_is_paged',
+          'A long body is paged, not clipped',
+          'A body that will not fit one screen is shown across several, with the page number '
+          'in the title. Before 7.14.2 the device drew what fitted and stopped - no ellipsis, '
+          'no warning - and a later warning screen claimed "Hold to view it anyway" while '
+          're-drawing the same clipped text. These captures are the evidence that the '
+          'remainder is now actually reachable. The press DURATIONS (click to page, hold to '
+          'approve) are not assertable in an emulator with no physical button.',
+          ['Numbered page screens covering the whole body']),
+         ('S13', 'test_msg_ping', 'test_ping_short_body_is_not_paged',
+          'A body that fits is not paged',
+          'The control for S12. A fitting body must still take exactly one screen with an '
+          'unnumbered title - otherwise a pager that numbered every confirmation, making '
+          'ordinary approvals cost extra presses, would pass unnoticed.',
+          ['Single unnumbered confirmation screen']),
+     ]),
     ('X', 'Device Specifications', '0.0.0',
      'The KeepKey is an open-source hardware wallet built on an ARM Cortex-M3 (STM32F205, 120MHz) '
      'with a 256x64 monochrome OLED, single confirmation button, and micro-USB interface. The '
@@ -973,6 +1056,59 @@ SECTIONS = [
          ('D6', 'test_msg_bip85', 'test_bip85_invalid_word_count',
           'Invalid count rejected', 'Word counts other than 12/18/24 are refused.', []),
      ]),
+    ('D', 'Display Disclosure - What Is Shown Is What Is Signed', '7.14.2',
+     'The single property behind every display/sign divergence found in the 7.14.2 audit: two '
+     'requests whose SIGNED BYTES differ must not produce IDENTICAL screens. If two payloads render '
+     'the same pixels, whatever separates them was invisible when the user approved, and the '
+     'signature covers the difference. A failure here means a host can show one thing and have '
+     'another signed - the exact class the OLED exists to prevent.',
+     [
+         'ASSERTED DIFFERENTIALLY: DebugLinkState.layout is the framebuffer, not text, so these',
+         'compare screen sequences. That assumes nothing about wording, fonts or truncation',
+         'strategy, so it survives copy changes and cannot be satisfied by a plausible-looking screen.',
+         '',
+         'EACH CASE PUTS THE DIFFERENCE WHERE AN IMPLEMENTATION STOPS LOOKING:',
+         '- past an embedded NUL: a protobuf bytes field is not a C string; "%s" stops, the signature does not',
+         '- past whitespace padding: a leading space costs no pixels once wrapped, so a padded body measures as fitting',
+         '- past one screenful: a truncating renderer drops the tail instead of paging it',
+         '- behind newlines: exercises the row counter rather than the character count',
+         '',
+         'REFUSAL COUNTS AS A PASS. Declining to sign what it cannot display honestly satisfies',
+         'the property; the failure under test is signing it while looking identical to the benign case.',
+     ],
+     [
+         ('D1', 'test_msg_display_disclosure', 'test_bytes_past_an_embedded_nul_are_disclosed',
+          'Bytes after a NUL are shown',
+          'A protobuf bytes field is not a NUL-terminated string. Rendering it with "%s" stops at the '
+          'first NUL while the signature covers message.size bytes, so a payload like '
+          '"benign login\\0 AND APPROVE TRANSFER" displays only the benign prefix. This asserts the '
+          'two payloads do not present identically.',
+          ['Message screen, plain', 'Message screen, NUL-suffixed']),
+         ('D2', 'test_msg_display_disclosure', 'test_bytes_past_whitespace_padding_are_disclosed',
+          'Whitespace cannot hide signed text',
+          'Whitespace is the cheapest way to push content out of view: a leading space costs zero '
+          'pixels once a line has wrapped, so padding can make an over-long body measure as fitting '
+          'while the tail is neither shown nor dropped from the signature.',
+          ['Message screen, short', 'Message screen, padded']),
+         ('D3', 'test_msg_display_disclosure', 'test_bytes_past_the_first_screen_are_disclosed',
+          'Content beyond one screen is not silently dropped',
+          'Whether the device pages the remainder, states how much is hidden, or refuses is not '
+          'asserted - only that a long payload with a distinct tail does not look identical to a '
+          'short one.',
+          ['Message screen, fits', 'Message screen, overlong']),
+         ('D4', 'test_msg_display_disclosure', 'test_newline_padding_does_not_collapse_the_screen',
+          'Line counting cannot be overflowed',
+          'Line counting is a security boundary once it gates a truncation warning. A body carrying '
+          'many newlines exercises the row counter rather than the character count; if that counter '
+          'wraps, an arbitrarily long body reports as fitting.',
+          ['Message screen, one line', 'Message screen, newline-padded']),
+         ('D5', 'test_msg_display_disclosure', 'test_signing_shows_at_least_one_screen',
+          'Guard: the comparisons are not vacuous',
+          'Every other test in this section compares screen sequences. A flow that produced no '
+          'ButtonRequest would make two payloads compare equal as empty tuples and pass while showing '
+          'the user nothing. This asserts at least one non-blank screen is actually displayed.',
+          ['Control message screen']),
+     ]),
 ]
 
 # ---------------------------------------------------------------
@@ -1111,6 +1247,46 @@ def screenshot_filter(fw_version):
     return ' or '.join(terms)
 
 
+def screenshot_audit(fw_version, screenshot_root, junit_path=None):
+    """Which SECTIONS tests DECLARED screens but captured none?
+
+    The CI gate was `total PNG count > 0`, which a single captured suite
+    satisfies. That cannot distinguish "captured everything" from "captured
+    something": in the 7.14.2 round, 345 PNGs were produced while every suite
+    the release actually changed captured zero, and the phase reported healthy.
+
+    Returns (ok, missing) where missing is a list of (module, method) that
+    declared a non-empty screenshot list, were not skipped, and produced no
+    PNG directory. Skipped tests are not missing -- a version-gated test
+    cannot draw.
+    """
+    import os as _os
+    skipped = set()
+    if junit_path and _os.path.exists(junit_path):
+        import xml.etree.ElementTree as _ET
+        root = _ET.parse(junit_path).getroot()
+        suites = [root] if root.tag == 'testsuite' else root.findall('testsuite')
+        for su in suites:
+            for tc in su.findall('testcase'):
+                if tc.find('skipped') is not None:
+                    cn = tc.get('classname', '')
+                    mod = next((p for p in cn.split('.') if p.startswith('test_')), '')
+                    skipped.add((mod, tc.get('name')))
+
+    active = [x for x in SECTIONS if ver_ge(fw_version, x[2])]
+    missing = []
+    for letter, title, mf, bg, fl, tests in active:
+        for tid, mod, meth, ttl, ctx, scr in tests:
+            if not scr:
+                continue
+            if (mod, meth) in skipped:
+                continue
+            d = _os.path.join(screenshot_root, mod.replace('test_', '', 1), meth)
+            if not _os.path.isdir(d) or not [f for f in _os.listdir(d) if f.endswith('.png')]:
+                missing.append((mod, meth))
+    return (len(missing) == 0, missing)
+
+
 def validate_junit(fw_version, results):
     """Check SECTIONS tests against JUnit results. Returns (passed, failed_list).
 
@@ -1137,6 +1313,10 @@ def main():
     p.add_argument('--fw-version', default=None)
     p.add_argument('--junit', default=None, help='JUnit XML for pass/fail results')
     p.add_argument('--screenshots', default=None, help='Directory with per-test OLED screenshots')
+    p.add_argument('--screenshot-audit', metavar='SCREENSHOT_DIR',
+                   help='exit 1 if any SECTIONS test that declared screens captured none')
+    p.add_argument('--audit-junit', metavar='XML', default=None,
+                   help='JUnit XML for --screenshot-audit, so skipped tests are not counted missing')
     p.add_argument('--screenshot-filter', action='store_true',
                    help='Print pytest -k expression for tests needing screenshots, then exit')
     p.add_argument('--validate-junit', action='store_true',
@@ -1150,6 +1330,15 @@ def main():
         if fw: print(f'Detected: {fw}', file=sys.stderr)
         else: print('No emulator, defaulting to 7.10.0', file=sys.stderr); fw = '7.10.0'
 
+    if args.screenshot_audit:
+        ok, missing = screenshot_audit(fw, args.screenshot_audit, args.audit_junit)
+        if ok:
+            print('screenshot audit: every declared screen was captured')
+            sys.exit(0)
+        print('screenshot audit FAILED -- declared screens with no capture:')
+        for mod, meth in missing:
+            print('  %s::%s' % (mod, meth))
+        sys.exit(1)
     if args.screenshot_filter:
         print(screenshot_filter(fw))
         sys.exit(0)
