@@ -731,7 +731,11 @@ class ProtocolMixin(object):
             data, chunk = data[1024:], data[:1024]
             msg.data_initial_chunk = chunk
 
-        if chain_id:
+        # `is not None`, not truthiness: chain_id=0 is a value a caller may
+        # legitimately want to put on the wire to see it refused, and dropping
+        # it here turns that into an omitted field -- a different case, which
+        # firmware before 7.14.2 handled differently.
+        if chain_id is not None:
             msg.chain_id = chain_id
 
         response = self.call(msg)
