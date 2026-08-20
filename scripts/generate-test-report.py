@@ -342,6 +342,21 @@ SECTIONS = [
           'Binance denom renders in full',
           'A long denom must render completely and must not overflow the formatting buffer.',
           ['Transfer screen showing the full denom']),
+         ('S12', 'test_msg_ping', 'test_ping_long_body_is_paged',
+          'A long body is paged, not clipped',
+          'A body that will not fit one screen is shown across several, with the page number '
+          'in the title. Before 7.14.2 the device drew what fitted and stopped - no ellipsis, '
+          'no warning - and a later warning screen claimed "Hold to view it anyway" while '
+          're-drawing the same clipped text. These captures are the evidence that the '
+          'remainder is now actually reachable. The press DURATIONS (click to page, hold to '
+          'approve) are not assertable in an emulator with no physical button.',
+          ['Numbered page screens covering the whole body']),
+         ('S13', 'test_msg_ping', 'test_ping_short_body_is_not_paged',
+          'A body that fits is not paged',
+          'The control for S12. A fitting body must still take exactly one screen with an '
+          'unnumbered title - otherwise a pager that numbered every confirmation, making '
+          'ordinary approvals cost extra presses, would pass unnoticed.',
+          ['Single unnumbered confirmation screen']),
      ]),
     ('X', 'Device Specifications', '0.0.0',
      'The KeepKey is an open-source hardware wallet built on an ARM Cortex-M3 (STM32F205, 120MHz) '
