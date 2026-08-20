@@ -55,6 +55,47 @@ class TestPing(common.KeepKeyTest):
             res = self.client.ping('random data', passphrase_protection=True)
             self.assertEqual(res, 'random data')
 
+    def test_ping_long_body_is_paged(self):
+        """A body that will not fit one screen must be shown across several.
+
+        Before 7.14.2 the device drew what fitted and stopped: no ellipsis, no
+        warning, nothing to tell the user the tail of an address or an amount
+        had been dropped. A warning screen was then added that said "Hold to
+        view it anyway" and re-drew the SAME clipped body, which is worse --
+        it claims a disclosure it does not make.
+
+        Now the body is paged, and the titles carry n/m. This test exists so
+        those pages are CAPTURED: the screens are the evidence, and until this
+        test existed no suite with an over-long body was in the screenshot set,
+        so the pager's own rendering appeared nowhere in CI.
+
+        The press DURATIONS -- click to page, hold to approve -- are not
+        assertable here. The emulator has no physical button; that half needs
+        hardware.
+        """
+        self.requires_firmware("7.14.2")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        # Digit ramp: the Nth character is str(N % 10), so a dropped or
+        # repeated character at a page seam is visible by inspection.
+        body = ''.join(str(i % 10) for i in range(255))
+        res = self.client.ping(body, button_protection=True)
+        self.assertEqual(res, body)
+
+    def test_ping_short_body_is_not_paged(self):
+        """The control for the test above.
+
+        A body that fits must still take exactly one screen with an unnumbered
+        title. Without this, a pager that numbered every confirmation -- making
+        ordinary approvals cost two presses -- would pass unnoticed.
+        """
+        self.requires_firmware("7.14.2")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        body = ''.join(str(i % 10) for i in range(100))
+        res = self.client.ping(body, button_protection=True)
+        self.assertEqual(res, body)
+
     def test_ping_format_specifier_sanitize(self):
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()

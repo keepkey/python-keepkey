@@ -86,6 +86,10 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         opaque blind-sign path, which requires AdvancedMode."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
+        # 7.14.2 gates TronSignTx behind AdvancedMode: this line has no raw_data
+        # parser, so the device cannot vouch for amount or destination and
+        # discloses it as a blind signature. Opt in explicitly here.
+        self.client.apply_policy("AdvancedMode", 1)
 
         # Provide raw_data (pre-serialized transaction)
         # This is a minimal valid protobuf for a TransferContract
@@ -192,6 +196,10 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         """Signing the same raw_data twice must produce identical 65-byte signatures."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
+        # 7.14.2 gates TronSignTx behind AdvancedMode: this line has no raw_data
+        # parser, so the device cannot vouch for amount or destination and
+        # discloses it as a blind signature. Opt in explicitly here.
+        self.client.apply_policy("AdvancedMode", 1)
 
         raw_data = binascii.unhexlify(
             '0a02abcd2208424242424242424240'
@@ -224,6 +232,10 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         """Signing the same raw_data with different account paths must produce different signatures."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
+        # 7.14.2 gates TronSignTx behind AdvancedMode: this line has no raw_data
+        # parser, so the device cannot vouch for amount or destination and
+        # discloses it as a blind signature. Opt in explicitly here.
+        self.client.apply_policy("AdvancedMode", 1)
 
         raw_data = binascii.unhexlify(
             '0a02abcd2208424242424242424240'
