@@ -2845,13 +2845,12 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     ran = JUNIT_CENSUS['ran']
     if ran:
         pb.gap(3)
-        skipped = JUNIT_CENSUS['skipped']
         for line in _w('Scope: this report is a curated catalog of %d tests. The CI run collected %d '
                        '(%d of them native firmware unit tests); %d SKIPPED and did not execute, '
                        'usually because the emulator predates the firmware the test targets -- a skip '
                        'is not evidence the feature works. Absence from this report is NOT '
                        'evidence that a feature is untested -- check the JUnit artifacts.'
-                       % (total, ran, JUNIT_CENSUS['native'], skipped), 100):
+                       % (total, ran, JUNIT_CENSUS['native'], JUNIT_CENSUS['skipped']), 100):
             pb.text(8, line, color=GRAY)
     pb.gap(6)
     pb.text(12, 'Sections', bold=True)
@@ -2994,6 +2993,9 @@ def render(output_path, fw_version, results, screenshot_dir=None):
 
     pb.finish()
     pdf.write(output_path)
+    assert passed + failed + skipped + missing == total, (
+        'catalog counts do not reconcile: %d+%d+%d+%d != %d'
+        % (passed, failed, skipped, missing, total))
     print(f'{output_path}: fw={fw_version}, {len(active)} sections, {total} tests '
           f'({passed} passed, {failed} failed, {skipped} skipped, {missing} pending)')
 
