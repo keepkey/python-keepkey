@@ -194,5 +194,18 @@ class KeepKeyTest(unittest.TestCase):
             self.client.features.firmware_variant == "EmulatorBTC":
         self.skipTest("Full feature firmware required to run this test")
 
+    def requires_bitcoinOnly(self):
+      """Inverse of requires_fullFeature(): skip unless this IS the
+      bitcoin-only product.
+
+      Usable since the firmware learned to report the variant honestly --
+      variant_getName() used to answer "Emulator" for both products, so a
+      bitcoin-only emulator was indistinguishable from a full one and this
+      guard could not be written.
+      """
+      if self.client.features.firmware_variant not in ("KeepKeyBTC",
+                                                       "EmulatorBTC"):
+        self.skipTest("Bitcoin-only firmware required to run this test")
+
             
 

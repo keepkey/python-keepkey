@@ -100,6 +100,12 @@ class TestBitcoinOnlyVariant(common.KeepKeyTest):
     def setUp(self):
         super(TestBitcoinOnlyVariant, self).setUp()
         self.requires_firmware("7.15.0")
+        # This whole file describes the BITCOIN-ONLY product. Several tests
+        # assert screen sequences that differ on the multi-chain build -- the
+        # OP_RETURN one decodes a THORChain memo there and draws more screens --
+        # so running them against a full-feature device is a category error, not
+        # a finding. CI points the pyk suite at the full emulator image.
+        self.requires_bitcoinOnly()
         self.screens = []
         # Refuse (press NO) on the Nth ButtonRequest of the current flow;
         # None means confirm everything.
