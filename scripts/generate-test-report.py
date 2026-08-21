@@ -1859,9 +1859,15 @@ SECTIONS = [
      ]),
 
     ('S', 'Solana', '7.14.0',
-     'NEW: Full Solana with Ed25519 (SLIP-10), base58 addresses, 37 instruction types across 7 '
-     'programs. Key security fix: full 44-character address display replaces old 8-char truncation '
-     'that was a spoofing vector.',
+     'Full Solana with Ed25519 (SLIP-10), base58 addresses, 37 instruction types across 7 '
+     'programs. The 44-character address is displayed in full: the old 8-character truncation '
+     'was a spoofing vector, because two addresses agreeing on their first eight base58 '
+     'characters are cheap to grind.  The open gap this release closes is versioned (v0) '
+     'transactions whose accounts live in an Address Lookup Table. The device cannot resolve a '
+     'table it has never seen, so until now it routed them to the blind-sign gate (S24) and '
+     'signed accounts it never showed. S26-S29 are KKSOLSW1: a loaded provider attests the '
+     'resolved accounts, bound to sha256(raw_tx), and the device DISPLAYS them -- in addition '
+     'to, never instead of, the review that already existed.',
      [
          'ADDRESS: m/44\'/501\'/0\' Ed25519 -> full 44-char base58 on OLED',
          'SIGN TX: Parse instructions -> per-instruction confirmation -> Ed25519 sign',
@@ -1986,6 +1992,47 @@ SECTIONS = [
           'AdvancedMode stays OFF.',
           ['Compute budget', 'Known USDC mint', 'Verified recipient owner',
            '0.002 USDC', 'x402 memo']),
+         # KKSOLSW1 -- the answer to S24. A v0 tx whose accounts live in a
+         # lookup table cannot be resolved on-device, so today the device signs
+         # accounts it never showed. These four are the additive invariant
+         # (section F) restated for Solana, and R-4.1 of SRS-7.15.
+         ('S26', 'test_msg_solana_lut_attestation',
+          'test_attested_accounts_are_shown_and_blind_sign_still_follows',
+          'Attested lookup-table accounts are shown, and the blind-sign warning survives',
+          'A loaded provider attests the resolved accounts over '
+          '"KeepKeySolanaTxAccounts/1" || sha256(raw_tx) || count || keys. The device verifies '
+          'through the same chain-agnostic anchor as every other runtime signer, then adds one '
+          'identity screen and one screen per account IN FRONT of the existing flow. The '
+          'assertion is exact and it is the whole point: the attested run shows '
+          'len(base) + 1 + len(accounts) screens and its TAIL equals the baseline sequence '
+          'exactly. More screens, never fewer.',
+          ['Provider identity + NOT verified by KeepKey', 'Lookup account 1',
+           'Lookup account 2', 'Existing blind-sign warning']),
+         ('S27', 'test_msg_solana_lut_attestation',
+          'test_bad_signature_degrades_to_todays_flow',
+          'A signature that does not verify changes nothing',
+          'The failure mode of a describer must be silence, not a refusal: a provider outage '
+          'or a botched signature costs the user the extra screens and nothing else. The '
+          'confirmation sequence is asserted EQUAL to the no-attestation baseline, and the '
+          'transaction still signs.',
+          []),
+         ('S28', 'test_msg_solana_lut_attestation',
+          'test_attestation_does_not_replay_onto_another_transaction',
+          'An attestation cannot be replayed onto another transaction',
+          'sha256(raw_tx) is inside the preimage, so an attestation is worthless anywhere but '
+          'the transaction it was issued for. The test perturbs one byte of the lookup-table '
+          'address and replays the signature: the device falls back to the baseline flow. '
+          'Without this binding, a provider\'s single honest attestation could be reused to '
+          'describe a transaction it never saw -- the accounts would be real, and the '
+          'transaction spending them would not be.',
+          []),
+         ('S29', 'test_msg_solana_lut_attestation',
+          'test_no_signer_loaded_means_no_extra_screens',
+          'With no signer loaded a well-formed attestation is inert',
+          'Trust is opt-in and per-session. A perfectly valid attestation from a provider the '
+          'user never loaded verifies against nothing and renders nothing, which is the '
+          'property that keeps 7.15 safe without any key-management programme.',
+          []),
      ]),
 
     ('T', 'TRON', '7.14.0',
@@ -3064,9 +3111,16 @@ def screenshot_filter(fw_version):
 # requires_taproot(), so if that capability regressed, all six would skip and
 # the report would still read green -- the report would be certifying coverage
 # it never obtained. Listing a module here converts that silence into a failure.
+# Mapped to the firmware version from which a skip becomes a failure. A
+# version-blind set would fail every older-firmware run for a module that
+# legitimately cannot exist yet.
 MUST_RUN_MODULES = {
-    'test_msg_signtx_taproot',
-    'test_msg_getaddress_taproot',
+    'test_msg_signtx_taproot': '7.0.0',
+    'test_msg_getaddress_taproot': '7.0.0',
+    # R-4.1. Gated on requires_message('LoadClearsignSigner'), so if provider
+    # loading regressed, all four would skip and the report would certify a
+    # feature it never exercised.
+    'test_msg_solana_lut_attestation': '7.15.0',
 }
 
 def screenshot_audit(fw_version, screenshot_root, junit_path=None):
@@ -3125,7 +3179,7 @@ def validate_junit(fw_version, results):
             status = _lookup(results, mod, meth)
             if status in ('fail', 'error'):
                 failures.append((tid, mod, meth, status))
-            elif status == 'skip' and mod in MUST_RUN_MODULES:
+            elif status == 'skip' and ver_ge(fw_version, MUST_RUN_MODULES.get(mod, '99.0.0')):
                 failures.append((tid, mod, meth, 'skipped-but-required'))
             elif not status:
                 failures.append((tid, mod, meth, 'missing'))
