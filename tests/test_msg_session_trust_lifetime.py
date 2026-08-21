@@ -229,8 +229,23 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
 
         port = int(str(config.TRANSPORT_ARGS[0]).split(':')[1])
         found = _emulator_process(port)
-        self.assertIsNotNone(
-            found, "no emulator process is bound to udp/%d" % port)
+        if found is None:
+            # The emulator is reachable over UDP but is NOT a process this
+            # harness can signal -- in CI it runs as a separate docker-compose
+            # service, so there is no pid here to kill and relaunch. That is an
+            # environmental limit, not a firmware result, and failing on it
+            # makes a green tree look red for a reason no code change can fix.
+            #
+            # Skipping is still not free: the report renders this section as
+            # WITHHELD, which the atlas guide defines as "carries no evidence".
+            # So the property stays unproven wherever the harness does not own
+            # the emulator, and is proven on every local run and in the manual
+            # hardware round. Both facts are visible; neither is silent.
+            self.skipTest(
+                "power cycle needs an emulator process this harness owns; "
+                "none is bound to udp/%d (CI runs it as a separate container). "
+                "Run locally, or record the unplug/replug as manual evidence."
+                % port)
         pid, exe, cwd = found
 
         self.client.close()
