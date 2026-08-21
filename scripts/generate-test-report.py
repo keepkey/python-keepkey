@@ -2523,25 +2523,25 @@ SECTIONS = [
            'Enable Policy: Experimental (marker, four commits)',
            'Enable Policy: AdvancedMode (re-armed after the reboot to isolate the slot)']),
          ('I6', 'test_msg_session_trust_lifetime',
-          'test_disabling_advanced_mode_makes_signer_inert_not_erased',
-          'Disabling AdvancedMode suspends the signer, it does not revoke it',
-          'MEASURED, and it contradicts the shorthand that disabling AdvancedMode clears loaded '
-          'signers. Turning the policy off does make the signer unusable - every consumer in '
-          'signed_metadata.c refuses a runtime slot while the policy is off, so metadata fails closed. '
-          'But nothing erases the slot: storage_setPolicy() flips a bit and only session_clear() calls '
-          'signed_metadata_clear_signers(). Sending the bare ApplyPolicies to turn the policy back on '
-          'brings the old signer straight back to VERIFIED, and the expected-response list asserts '
-          'exactly one ButtonRequest for that - the "Trust CI Test ... NOT verified by KeepKey" consent '
-          'is provably NOT re-shown. The host API hides this because apply_policy() follows every '
-          'policy change with Initialize, and it is the Initialize that clears the slot (I3). Release '
-          'consequence: a user who disables AdvancedMode to drop a provider has suspended it, not '
-          'revoked it, and the screen that re-arms it names the policy but never the signer it silently '
-          'reinstates.',
+          'test_disabling_advanced_mode_revokes_the_signer',
+          'Disabling AdvancedMode revokes the signer, it does not suspend it',
+          'With the policy off, revoking and suspending are indistinguishable: every consumer in '
+          'signed_metadata.c refuses a runtime slot while AdvancedMode is off, so metadata fails '
+          'closed either way. The difference shows on the way back. Suspending would mean '
+          're-enabling the policy silently re-arms a provider the user never re-loaded, on a '
+          'confirmation screen that names the policy and never names the signer - so a user who '
+          'disabled AdvancedMode to drop a provider would not have dropped it. '
+          'fsm_msgApplyPolicies therefore calls signed_metadata_clear_signers() on disable. The '
+          're-enable is sent as the bare ApplyPolicies with an exact expected-response list - one '
+          'ButtonRequest and a Success - so the absence of a trust screen there is proof, not '
+          'observation: trust cannot be restored by a policy toggle at all. Coming back costs a '
+          'fresh LoadClearsignSigner consent, the screen that names the alias and fingerprint.',
           ['Enable Policy: AdvancedMode',
            "Load Clearsigner: Trust 'CI Test' (fingerprint) ... NOT verified by KeepKey",
            'Disable Policy: AdvancedMode',
            'Home screen at the refusal - the metadata message fails closed with no screen',
-           'Enable Policy: AdvancedMode - the ONLY confirm shown on re-arming; no second trust screen']),
+           'Enable Policy: AdvancedMode - the only confirm on re-arming, and the signer does NOT '
+           'come back with it']),
      ]),
     ('L', 'Bitcoin-Only Variant', '7.15.0',
      'KK_BITCOIN_ONLY=ON builds a second shipping product out of the same tree: coins.def keeps '

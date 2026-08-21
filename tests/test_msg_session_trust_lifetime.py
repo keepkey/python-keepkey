@@ -433,30 +433,27 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
             CLASSIFICATION_MALFORMED,
             "the signer came back after a power cycle — it was written to flash")
 
-    def test_disabling_advanced_mode_makes_signer_inert_not_erased(self):
-        """MEASURED behaviour, and it is NOT "disabling AdvancedMode clears the
-        signer".
+    def test_disabling_advanced_mode_revokes_the_signer(self):
+        """Turning the policy off DROPS the provider, it does not suspend it.
 
-        Turning the policy off does make the signer unusable: every consumer in
-        signed_metadata.c (signed_metadata_process, _verify_attestation,
-        _signer_fingerprint) refuses a runtime slot while AdvancedMode is off,
-        so the metadata message fails closed.  But nothing erases the slot —
-        storage_setPolicy() only flips a policy bit, and only session_clear()
-        calls signed_metadata_clear_signers().  Turn the policy back on and the
-        old signer verifies again, with NO second trust screen: the expected
-        response list below is exactly one ApplyPolicies ButtonRequest and a
-        Success, so the "Trust 'CI Test' (…) NOT verified by KeepKey" consent is
-        provably not re-shown.
+        Every consumer in signed_metadata.c already refuses a runtime slot
+        while AdvancedMode is off, so with the policy off the two behaviours
+        are indistinguishable — the metadata fails closed either way.  The
+        difference only shows on the way back.
 
-        Why the host path looks otherwise: ProtocolMixin.apply_policy() follows
-        every policy change with Initialize, and it is that Initialize — not the
-        policy change — that clears the signer (test_signer_dropped_by_initialize).
-        A host that sends the bare message gets the behaviour asserted here.
+        Suspending would mean re-enabling the policy silently re-arms a
+        provider the user never re-loaded, on a confirmation screen that names
+        the policy and never names the signer.  A user who disabled
+        AdvancedMode to drop a provider would not have dropped it.  So
+        fsm_msgApplyPolicies calls signed_metadata_clear_signers() on disable,
+        and coming back costs a fresh LoadClearsignSigner consent — the screen
+        that names the alias and fingerprint, which is the screen that should
+        appear whenever trust begins.
 
-        Consequence to weigh at release: a user who disables AdvancedMode to
-        revoke a provider has not revoked it, only suspended it.  Re-enabling
-        the policy costs one button press whose screen names the policy and
-        never names the signer it silently re-arms.
+        The re-enable is sent as the bare message with the exact expected
+        response list: one ApplyPolicies ButtonRequest and a Success.  No trust
+        screen appears there, which is the point — trust cannot be restored by
+        a policy toggle at all.
         """
         self._arm_session()
 
@@ -474,11 +471,10 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
             self._apply_policy_raw("AdvancedMode", True)
 
         self._assertClassification(
-            CLASSIFICATION_VERIFIED,
-            "the signer did NOT survive the policy toggle. That is stricter "
-            "than the code path allows today, so something changed: re-read "
-            "storage_setPolicy() and signed_metadata_clear_signers() before "
-            "loosening this assertion")
+            CLASSIFICATION_MALFORMED,
+            "the signer survived disabling AdvancedMode — re-enabling the "
+            "policy re-armed a provider the user never re-loaded, on a screen "
+            "that never named it")
 
 
 if __name__ == '__main__':
