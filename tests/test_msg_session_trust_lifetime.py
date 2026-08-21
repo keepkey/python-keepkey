@@ -94,17 +94,25 @@ def probe_blob():
 def _emulator_process(port):
     """(pid, exe, cwd) of the process BOUND to udp/port, or None.
 
+    NOTE: subprocess.run(capture_output=/text=) is Python 3.7+. The CI test
+    container runs 3.6, where passing them raises TypeError inside subprocess
+    and this helper dies before any of its own logic runs -- which is why the
+    power-cycle tests FAILED in CI instead of skipping. PIPE plus
+    universal_newlines is the spelling both understand.
+
     Skips this test client's own connected socket, which lsof also reports on
     the same port but as a `local->remote` pair rather than a bare bind.
     """
     try:
         out = subprocess.run(['lsof', '-nP', '-iUDP:%d' % port, '-Fpn'],
-                             capture_output=True, text=True).stdout
-    except FileNotFoundError:
-        raise RuntimeError(
-            "lsof is required to find and restart the emulator for the "
-            "power-cycle tests; install it or run these against a device you "
-            "can power-cycle by hand")
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, universal_newlines=True).stdout
+    except (FileNotFoundError, OSError):
+        # No lsof: this harness cannot identify, let alone restart, the
+        # emulator process -- the same situation as a remote one. Report "not
+        # found" so _power_cycle() skips with its explanation, rather than
+        # failing a green tree over a missing tool.
+        return None
     pid = None
     for line in out.splitlines():
         if line.startswith('p'):
@@ -114,10 +122,12 @@ def _emulator_process(port):
             if '->' in name or not name.endswith(':%d' % port):
                 continue
             exe = subprocess.run(['ps', '-o', 'comm=', '-p', str(pid)],
-                                 capture_output=True, text=True).stdout.strip()
+                                 stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, universal_newlines=True).stdout.strip()
             cwd_out = subprocess.run(
                 ['lsof', '-a', '-p', str(pid), '-d', 'cwd', '-Fn'],
-                capture_output=True, text=True).stdout
+                stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, universal_newlines=True).stdout
             cwd = None
             for cwd_line in cwd_out.splitlines():
                 if cwd_line.startswith('n'):
