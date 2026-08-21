@@ -1057,7 +1057,7 @@ SECTIONS = [
      ],
      [
          ('E1', 'test_msg_ethereum_getaddress', 'test_ethereum_getaddress',
-          'Derive ETH address', 'Standard m/44\'/60\'/0\'/0/0 derivation. EIP-55 checksum address.', ['ETH address']),
+          'Derive ETH address', 'Standard m/44\'/60\'/0\'/0/0 derivation. EIP-55 checksum address. No screen: GetAddress without show_display returns on the wire and draws nothing.', []),
          ('E2', 'test_msg_ethereum_signtx', 'test_ethereum_signtx_nodata',
           'Sign ETH transfer',
           'Simple value transfer with no contract data. Device shows recipient + amount + gas.',
@@ -1193,7 +1193,7 @@ SECTIONS = [
      ],
      [
          ('R1', 'test_msg_ripple_get_address', 'test_ripple_get_address',
-          'Derive XRP address', 'Standard m/44\'/144\'/0\'/0/0 derivation.', ['XRP address']),
+          'Derive XRP address', 'Standard m/44\'/144\'/0\'/0/0 derivation. No screen: address is returned on the wire; the display path is the show variant.', []),
          ('R2', 'test_msg_ripple_sign_tx', 'test_sign',
           'Sign XRP payment', 'Payment with amount in drops (1 XRP = 1,000,000 drops).', ['XRP send']),
          ('R3', 'test_msg_ripple_sign_tx', 'test_ripple_sign_invalid_fee',
@@ -1421,8 +1421,8 @@ SECTIONS = [
          ('V1', 'test_msg_ethereum_clear_signing', 'test_valid_metadata_returns_verified',
           'Valid metadata accepted',
           'Correctly signed metadata blob from a loaded signer is accepted. Device shows the '
-          'clearsign warning (signer alias + fingerprint) then the decoded method + contract.',
-          ['Clearsign warning (signer alias)']),
+          'clearsign warning (signer alias + fingerprint) then the decoded method + contract. No screen: this asserts the VERIFIED classification on the wire, before any render.',
+          []),
          ('V2', 'test_msg_ethereum_clear_signing', 'test_wrong_key_returns_malformed',
           'Wrong signing key rejected', 'Metadata signed with wrong key is rejected as malformed.', []),
          ('V3', 'test_msg_ethereum_clear_signing', 'test_tampered_method_returns_malformed',
@@ -1864,7 +1864,7 @@ SECTIONS = [
      ],
      [
          ('S1', 'test_msg_solana_getaddress', 'test_solana_get_address',
-          'Derive Solana address', 'Full 44-character base58 address displayed on OLED.', ['Full 44-char address']),
+          'Derive Solana address', 'Full 44-character base58 address displayed on OLED. No screen: the drawn address is test_solana_show_address (S3b).', []),
          ('S2', 'test_msg_solana_getaddress', 'test_solana_different_accounts',
           'Different account indices', 'Verifies different accounts produce different addresses.', []),
          ('S3', 'test_msg_solana_getaddress', 'test_solana_deterministic',
@@ -1992,7 +1992,7 @@ SECTIONS = [
      ],
      [
          ('T1', 'test_msg_tron_getaddress', 'test_tron_get_address',
-          'Derive TRON address', 'Full 34-character base58 address.', ['Full 34-char address']),
+          'Derive TRON address', 'Full 34-character base58 address. No screen: the drawn address is test_tron_show_address (T3b).', []),
          ('T2', 'test_msg_tron_getaddress', 'test_tron_different_accounts',
           'Different accounts', 'Different indices produce different addresses.', []),
          ('T3', 'test_msg_tron_getaddress', 'test_tron_deterministic',
@@ -2016,7 +2016,7 @@ SECTIONS = [
      ],
      [
          ('N1', 'test_msg_ton_getaddress', 'test_ton_get_address',
-          'Derive TON address', 'Full 48-character base64url address.', ['Full 48-char address']),
+          'Derive TON address', 'Full 48-character base64url address. No screen: the drawn address is test_ton_show_address (N2b).', []),
          ('N2', 'test_msg_ton_getaddress', 'test_ton_different_accounts',
           'Different accounts', 'Different indices produce different addresses.', []),
          ('N2b', 'test_msg_ton_getaddress', 'test_ton_show_address',
@@ -2081,7 +2081,7 @@ SECTIONS = [
      ],
      [
          ('Z1', 'test_msg_zcash_orchard', 'test_fvk_reference_vectors',
-          'FVK reference vectors', 'FVK output matches known test vectors.', ['FVK export']),
+          'FVK reference vectors', 'FVK output matches known test vectors. No screen: reference-vector arithmetic, compared in memory.', []),
          ('Z2', 'test_msg_zcash_orchard', 'test_fvk_field_ranges',
           'FVK field ranges', 'ak, nk, rivk are within valid Pallas curve ranges.', []),
          ('Z3', 'test_msg_zcash_orchard', 'test_fvk_consistency_across_calls',
