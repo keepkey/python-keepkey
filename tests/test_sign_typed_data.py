@@ -75,21 +75,29 @@ class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
             },
         }
 
-        # Structured EIP-712 is clear-signable with blind signing disabled.
+        # 7.14.2 DISABLED structured EIP-712 outright, pending canonical
+        # display hardening: the device could not prove that what it rendered
+        # was what it hashed. This vector is the x402 EIP-3009
+        # TransferWithAuthorization payment flow, and it is currently REFUSED
+        # rather than signed.
+        #
+        # The expected hashes are retained below the refusal, unused, because
+        # they are independent reference values from the EIP-712 V4 encoder and
+        # are what this test should assert again the day the display hardening
+        # lands. Deleting them would lose the only checked-in oracle for this
+        # vector. See docs/security/ for the 7.16 structured-EIP-712 item.
         self.client.apply_policy('AdvancedMode', False)
-        response = self.client.ethereum_sign_typed_data(
-            tools.parse_path("m/44'/60'/0'/0/0"), typed_data)
+        with self.assertRaises(CallException) as ctx:
+            self.client.ethereum_sign_typed_data(
+                tools.parse_path("m/44'/60'/0'/0/0"), typed_data)
+        self.assertIn("Structured EIP-712 disabled", str(ctx.exception))
 
-        # Hashes are independent reference values from the EIP-712 V4 encoder.
-        self.assertEqual(
-            binascii.hexlify(response.domain_separator_hash),
-            b"71f17a3b2ff373b803d70a5a07c046c1a2bc8e89c09ef722fcb047abe94c9818")
-        self.assertEqual(
-            binascii.hexlify(response.message_hash),
-            b"ccb8d59d2e8a63beafb02887b4c9dd2f79d3527df4167f8c6b36e3e43cf373be")
-        self.assertEqual(response.address,
-                         "0x73d0385F4d8E00C5e6504C6030F47BF6212736A8")
-        self.assertEqual(len(response.signature), 65)
+        # Re-enable when structured EIP-712 returns:
+        #   domain_separator_hash
+        #     71f17a3b2ff373b803d70a5a07c046c1a2bc8e89c09ef722fcb047abe94c9818
+        #   message_hash
+        #     ccb8d59d2e8a63beafb02887b4c9dd2f79d3527df4167f8c6b36e3e43cf373be
+        #   address 0x73d0385F4d8E00C5e6504C6030F47BF6212736A8, 65-byte signature
 
     def test_ethereum_sign_typed_data_hash(self):
         self.requires_fullFeature()
@@ -119,7 +127,10 @@ class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
         self.client.apply_policy('AdvancedMode', False)
         with self.assertRaises(CallException) as ctx:
             sign(txtests['tests'][0])
-        self.assertIn('disabled by policy', str(ctx.exception))
+        # The firmware names the remedy rather than just the refusal:
+        # "Enable AdvancedMode to blind-sign typed hashes".
+        self.assertIn('Enable AdvancedMode to blind-sign typed hashes',
+                      str(ctx.exception))
 
         self.client.apply_policy('AdvancedMode', True)
         try:
