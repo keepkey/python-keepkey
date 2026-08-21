@@ -1525,7 +1525,12 @@ SECTIONS = [
           'absent priority fee must still hash and sign to the correct device address.',
           []),
          ('VG4', 'test_msg_ethereum_signing_guards', 'test_type2_without_max_fee_rejected',
-          'Type-2 tx without max_fee_per_gas rejected', '', []),
+          'Type-2 tx without max_fee_per_gas rejected',
+          'The 0x02 envelope prefix comes from msg.type but the fee fields come from '
+          'has_max_fee_per_gas, so a type-2 tx carrying only gas_price would hash a legacy '
+          'fee into a 1559 field list. Refused, because a signature over a malformed field '
+          'list is still a valid signature over SOMETHING.',
+          []),
          ('VG5', 'test_msg_ethereum_signing_guards', 'test_legacy_with_max_fee_rejected',
           'Legacy tx with max_fee_per_gas rejected',
           'Mixing legacy gas_price semantics with EIP-1559 fee fields is refused rather than '
@@ -2791,7 +2796,30 @@ SECTIONS = [
 # ---------------------------------------------------------------
 # Render
 # ---------------------------------------------------------------
+def _audit_catalog():
+    """Structural check on SECTIONS, run on every render.
+
+    A catalog entry with a blank context renders as a bare test name, which is
+    exactly the row a human auditor cannot evaluate -- VG4 shipped that way and
+    nothing complained. Duplicate ids or letters silently overwrite each other
+    in cross-references. Cheap to assert, and the report is evidence.
+    """
+    letters, ids = set(), set()
+    for letter, title, mf, bg, notes, tests in SECTIONS:
+        assert letter not in letters, 'duplicate section letter %s' % letter
+        letters.add(letter)
+        assert (bg or '').strip(), 'section %s has no background' % letter
+        for t in tests:
+            assert len(t) == 6, 'malformed entry in section %s: %r' % (letter, t)
+            tid, mod, meth, ttl, ctx, scr = t
+            assert tid not in ids, 'duplicate test id %s' % tid
+            ids.add(tid)
+            assert (ttl or '').strip(), '%s has no title' % tid
+            assert (ctx or '').strip(), '%s has no context -- it would render as a bare name' % tid
+
+
 def render(output_path, fw_version, results, screenshot_dir=None):
+    _audit_catalog()
     pdf = PDF(); pb = PB(pdf)
     _build_frame_census(screenshot_dir)
     ts = datetime.now().strftime('%Y-%m-%d %H:%M')
@@ -2815,10 +2843,21 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     withheld = [s for s in active if s[5] and _section_state(s) == 'withheld']
     pending  = [s for s in active if s[5] and _section_state(s) == 'pending']
     test_sections = tested + withheld + pending
-    total = sum(len(s[5]) for s in test_sections)
-    passed  = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) == 'pass')
-    failed  = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) in ('fail','error'))
-    skipped = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) == 'skip')
+    # Count DISTINCT tests, not catalog rows. A few tests are deliberately
+    # catalogued twice because they carry two different arguments -- e.g.
+    # test_eip1559_requires_chain_id is the replayable-signature refusal in the
+    # 7.14.2 defect narrative (J9) AND a guard in the EVM catalog (VG2). Both
+    # entries earn their place, but summing rows made the header claim more
+    # tests than the run contains, and an auditor reconciling the header
+    # against the JUnit finds a shortfall that is pure double-counting.
+    distinct = {}
+    for s in test_sections:
+        for t in s[5]:
+            distinct[(t[1], t[2])] = _lookup(results, t[1], t[2])
+    total   = len(distinct)
+    passed  = sum(1 for v in distinct.values() if v == 'pass')
+    failed  = sum(1 for v in distinct.values() if v in ('fail', 'error'))
+    skipped = sum(1 for v in distinct.values() if v == 'skip')
     missing = total - passed - failed - skipped
 
     # Title
