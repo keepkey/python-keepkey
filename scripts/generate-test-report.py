@@ -2850,6 +2850,73 @@ SECTIONS = [
           'build stays green.',
           []),
      ]),
+
+    # Two-character id because all 26 letters were taken. The catalog keys on a
+    # string, not a char, so this costs nothing.
+    ('TD', 'Structured EIP-712 - The Device Reads The Document', '7.15.0',
+     'Until now every EIP-712 signature a KeepKey produced was BLIND. The host computed '
+     'domainSeparator and messageHash and the device signed two opaque 32-byte values -- it could '
+     'not see a spender, an amount or a chain. Permit2 approvals, the single most common instrument '
+     'in a drainer, took that path.\n'
+     'Now the device walks the document itself. It asks for one struct definition, or one leaf '
+     'value, at a time, and hashes each value in the SAME call that displays it. There is no second '
+     'read that could return something different, and each member_path is requested exactly once -- '
+     'Trezor shipped this protocol with a hole there until 2.12.0, where a host could answer the '
+     'domain name one way for the summary screen and another for the hashing pass.\n'
+     'The predecessor was withdrawn in 7.14.2 because its JSON parser could not guarantee the '
+     'displayed value was the value being hashed. Here that property is structural rather than '
+     'reviewed.',
+     ['THE HASHES COME FROM OUTSIDE THIS REPOSITORY. TD1 asserts the values published by',
+      'assets/eip-712/Example.js in ethereum/EIPs -- the reference implementation the spec',
+      'links to -- and independently republished by Example.sol, by eth-sig-util\'s V3 and V4',
+      'snapshots, and by Mrtenz/eip-712.',
+      '',
+      'That matters more than it looks. The firmware C, the hdwallet TypeScript and the python',
+      'client were written by one hand against one reading of the spec. Three of them agreeing',
+      'proves the reading is SELF-CONSISTENT and nothing more; a shared misreading would produce',
+      'three consistent wrong answers. It cannot produce these two numbers.',
+      '',
+      'HARDWARE, 2026-08-21, K1-14AM, unsigned build of the 7.15 line:',
+      '  9 screens, one per leaf; all rendered correctly per operator review',
+      '  42-character addresses displayed IN FULL -- the truncation class that shipped as a',
+      '  bug at >42 chars does not reproduce',
+      '  domainSeparator and messageHash matched the published values on silicon',
+      '  device address 0x73d0385F4d8E00C5e6504C6030F47BF6212736A8, same as the emulator',
+      '',
+      'Behind AdvancedMode. This is new parser surface reachable from a website.'],
+     [('TD1', 'test_msg_eip712_streaming', 'test_spec_example_matches_the_published_hashes',
+       'The device\'s own hashes equal the EIP-712 reference implementation\'s',
+       'The canonical Mail/Person document. Mail references Person TWICE, so the walk pushes a '
+       'child frame, derives Person\'s typeHash through its own dependency closure, folds it to 32 '
+       'bytes and hands it back to the parent -- the nested-struct machinery, exercised rather '
+       'than reasoned about. Forty round trips. domainSeparator '
+       'f2cee375...912090f and messageHash c52c0ee5...4b371e, both published, both matched on '
+       'hardware and in the emulator.',
+       ['Domain name', 'Domain version', 'chainId', 'verifyingContract (42 chars, in full)',
+        'Cow / wallet', 'Bob / wallet', 'contents']),
+      ('TD2', 'test_msg_eip712_streaming', 'test_array_of_structs_walks',
+       'An array of structs walks and signs',
+       'Arrays hash WITHOUT a typeHash prefix -- enc(array) is the keccak of the concatenated '
+       'element encodings and nothing else -- so getting this wrong yields a digest no verifier '
+       'reproduces rather than an error anyone would notice. Arrays were refused entirely until a '
+       'kilobyte was reclaimed from MAX_DECODE_SIZE: at 13 KB the ARM image missed the linker\'s '
+       '16,384 B runtime-reserve gate by 204 bytes, at 12 KB it clears it by 812.',
+       []),
+      ('TD3', 'test_msg_eip712_streaming',
+       'test_fixed_array_length_must_match_the_declared_size',
+       'A fixed dimension must match the document',
+       'address[2] carrying three elements is refused. The dimension is part of the type string '
+       'and therefore part of typeHash, and the COUNT is the only thing the device is ever told -- '
+       'accept a different one and it signs a document whose type declares another, with nothing '
+       'downstream able to notice.',
+       []),
+      ('TD4', 'test_msg_eip712_streaming', 'test_advanced_mode_gates_the_endpoint',
+       'The endpoint is gated behind AdvancedMode',
+       'Structured display is strictly MORE information than the blind path it replaces, so the '
+       'gate is not about the feature being dangerous. It is about new parser surface reachable '
+       'from a website staying closed until there is hardware evidence behind it. There now is.',
+       [])]),
+
 ]
 
 # ---------------------------------------------------------------
