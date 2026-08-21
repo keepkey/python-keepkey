@@ -1112,18 +1112,30 @@ SECTIONS = [
          ('E15', 'test_msg_ethereum_cfunc', 'test_sign_execTx',
           'Contract function call', 'Generic contract call signing.', []),
          ('E16', 'test_sign_typed_data', 'test_ethereum_sign_typed_data_hash',
-          'EIP-712 typed-data hash signing (legacy, no on-device display)',
-          'The legacy endpoint receives two host-computed 32-byte hashes, so firmware keeps it '
-          'behind AdvancedMode and cannot show readable WHO/WHAT. Structured formats such as '
-          'x402 EIP-3009 use the separate device-parsed path proven by E16b.',
+          'EIP-712 typed data is BLIND-signed, behind AdvancedMode',
+          'The only working EIP-712 path. The host computes both 32-byte hashes and the device '
+          'signs them, so it cannot show a recipient, an amount or a chain -- it shows the two '
+          'digests and asks whether to trust the host. The test proves both halves of the gate: '
+          'with AdvancedMode ON the signature is produced, and with it OFF the device refuses '
+          'with "Enable AdvancedMode to blind-sign typed hashes". Every EIP-712 signature a '
+          'KeepKey produces today, Permit2 approvals included, takes this path.',
           []),
          ('E16b', 'test_sign_typed_data', 'test_ethereum_sign_x402_eip3009',
-          'x402 EVM EIP-3009 payment clear-signs structured data',
-          'The device computes the EIP-712 hashes itself and displays the Base Sepolia USDC '
-          'domain plus every TransferWithAuthorization field: payer, recipient, exact value, '
-          'validity window and nonce. AdvancedMode stays OFF; the facilitator pays gas but '
-          'cannot alter the signed destination or amount.',
-          ['USDC domain fields', 'TransferWithAuthorization fields']),
+          'Structured EIP-712 is DISABLED, and x402 EIP-3009 is refused',
+          'This entry asserted the opposite until 2026-08-21, and the report shipped it green: it '
+          'claimed the device "computes the EIP-712 hashes itself and displays every '
+          'TransferWithAuthorization field", and declared two screens for fields that are never '
+          'drawn. The test underneath had already been rewritten to assert the REFUSAL. A reader '
+          'would have concluded x402 EVM payments clear-sign. They do not.\n'
+          'What the test actually proves: Ethereum712TypesValues is answered with '
+          '"Structured EIP-712 disabled pending canonical display hardening". The JSON parser '
+          'could not guarantee the displayed value was the value hashed, so 7.14.2 withdrew the '
+          'path rather than ship it. The EIP-712 V4 reference hashes stay in the fixture, unused, '
+          'as the vector to re-assert when the streaming implementation lands (SRS-7.16 R-4.1, '
+          'R-4.2).\n'
+          'The screen list is EMPTY because a refusal draws nothing -- the evidence is the '
+          'Failure on the wire.',
+          []),
          ('E17', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_approve_liquidity_ETH',
           'Uniswap V2 add-liquidity approve (pending)',
           'PENDING, disclosed: known emulator limitation — an approve to an unknown (non-registry) '
