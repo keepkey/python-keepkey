@@ -377,7 +377,12 @@ def parse_junit(path):
         if cls:
             parts = cls.split('.')
             for p in parts:
-                if p.startswith('test_msg_') or p.startswith('test_sign_') or p.startswith('test_verify_'):
+                # Any test module, not just the test_msg_/test_sign_/test_verify_
+                # families. test_storage_version_gate matched none of those, so
+                # it produced no 'mod::meth' key and all eight of its results
+                # were invisible -- the section rendered "Pending (no firmware
+                # support yet)" while the tests were passing.
+                if p.startswith('test_'):
                     mod = p
                     break
             if not mod and '.' not in cls:
