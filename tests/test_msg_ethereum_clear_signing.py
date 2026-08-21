@@ -1102,7 +1102,8 @@ class TestEthereumClearSigning(common.KeepKeyTest):
                 to=AAVE_V3_POOL, value=0, data=data, chain_id=1)
             self.fail("Expected Failure — blind signing disabled")
         except CallException as e:
-            self.assertIn("Blind signing disabled", str(e))
+            self.assertIn("Arbitrary contract data signing disabled by policy",
+                          str(e))
 
         # ON → raw-data confirm path → signs
         self.client.apply_policy("AdvancedMode", 1)
@@ -1156,7 +1157,8 @@ class TestEthereumClearSigning(common.KeepKeyTest):
                 to=AAVE_V3_POOL, value=0, data=data, chain_id=chain_id)
             self.fail("Expected Failure — stale metadata must not be reused")
         except CallException as e:
-            self.assertIn("Blind signing disabled", str(e))
+            self.assertIn("Arbitrary contract data signing disabled by policy",
+                          str(e))
 
 
     # ── LoadClearsignSigner — the phase-1 trust path ───────────────────

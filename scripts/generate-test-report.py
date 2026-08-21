@@ -401,6 +401,15 @@ def parse_junit(path):
 # Tests whose whole point is the ordered on-device review sequence — render
 # every review screen in order (who/what/why), not a single "best" thumbnail.
 FULL_SEQUENCE_TESTS = {
+    # The additive invariant IS an ordered-sequence claim: the decoded screens
+    # are additional and the baseline raw review still follows them. Showing a
+    # best-of-3 sample would hide exactly the thing being proved.
+    ('test_msg_ethereum_clearsign_additive',
+     'test_successful_decode_still_runs_the_raw_review'),
+    ('test_msg_ethereum_clearsign_additive',
+     'test_v2_schema_decode_still_runs_the_raw_review'),
+    ('test_msg_ethereum_clearsign_additive',
+     'test_failed_signature_falls_back_to_the_unverified_review'),
     ('test_msg_ethereum_clear_signing', 'test_binding_happy_path_signs_and_recovers'),
     ('test_msg_ethereum_clear_signing', 'test_clearsign_erc20_approve_unlimited'),
     ('test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v2_eth_to_token'),
@@ -487,7 +496,7 @@ def _v_catalog_tests(start_id=17):
 _V_CATALOG_TESTS = _v_catalog_tests(start_id=17)
 
 SECTIONS = [
-    ('S', 'Display Binding - What the Device Signs Is What It Shows', '7.14.2',
+    ('J', 'Display Binding - What the Device Signs Is What It Shows', '7.14.2',
      'The 7.14.2 security release changed what reaches the OLED on the signing paths. Every '
      'defect it fixed was a case of the device hashing bytes it never rendered, or rendering '
      'text it could not vouch for. These tests exist to capture those screens: a passing wire '
@@ -508,7 +517,7 @@ SECTIONS = [
          'and their evidence is the Failure on the wire plus the absence of a ButtonRequest.',
      ],
      [
-         ('S1', 'test_msg_ethereum_erc20_0x_signtx', 'test__sign_transformERC20',
+         ('J1', 'test_msg_ethereum_erc20_0x_signtx', 'test__sign_transformERC20',
           '0x transformERC20 raw disclosure',
           'A 1480-byte transformERC20 payload exceeds one 1024-byte chunk. The device must NOT '
           'clear-sign it as a token swap, because the bytes past the initial chunk are hashed '
@@ -516,18 +525,18 @@ SECTIONS = [
           'count shown must be the FULL length (1480), not the chunk length (1024) - a short '
           'count would under-report what is being signed.',
           ['Raw contract data screen showing the full byte count']),
-         ('S2', 'test_msg_ethereum_erc20_0x_signtx', 'test_sign_0x_swap_ERC20_to_ETH',
+         ('J2', 'test_msg_ethereum_erc20_0x_signtx', 'test_sign_0x_swap_ERC20_to_ETH',
           '0x sellToUniswap names both assets',
           'Clear-signing is only honest when BOTH token words resolve to known assets. This '
           'payload resolves (USDC -> ETH) and must name both sides with real amounts. The '
           'failure this guards is a screen naming a DEX while showing no amount.',
           ['Swap screen naming both assets and amounts']),
-         ('S3', 'test_msg_ethereum_erc20_0x_signtx', 'test_sign_longdata_swap',
+         ('J3', 'test_msg_ethereum_erc20_0x_signtx', 'test_sign_longdata_swap',
           'Long 0x calldata stays disclosed',
           'Calldata spanning multiple chunks must not silently lose its tail from the display '
           'while remaining inside the signature.',
           ['Contract data screen']),
-         ('S8', 'test_msg_ethereum_signing_guards',
+         ('J8', 'test_msg_ethereum_signing_guards',
           'test_contract_handler_streamed_calldata_signs_full_data',
           'Streamed calldata is fully covered',
           'Calldata delivered across several chunks must be hashed in full and disclosed in full. '
@@ -536,25 +545,25 @@ SECTIONS = [
           'screen can be captured for it yet - the screenshot list stays empty until the gate '
           'opens, rather than declaring an expectation nothing can satisfy.',
           []),
-         ('S9', 'test_msg_ethereum_signing_guards', 'test_eip1559_requires_chain_id',
+         ('J9', 'test_msg_ethereum_signing_guards', 'test_eip1559_requires_chain_id',
           'Omitted chain_id is refused before any screen',
           'Without a chain_id the device cannot name the network, and a signature would be '
           'pre-EIP-155 - replayable on every EVM chain. The refusal happens before the first '
           'confirm(), so NO screen is drawn and no ButtonRequest is emitted. The empty '
           'screenshot list below is the assertion.',
           []),
-         ('S10', 'test_verify_typed_data', 'test_structured_eip712_is_refused',
+         ('J10', 'test_verify_typed_data', 'test_structured_eip712_is_refused',
           'Structured EIP-712 is closed by default',
           'The legacy JSON parser could not guarantee that every displayed value was the '
           'canonical value being hashed, and one screen took its title from the attacker-supplied '
           'domain name. The feature is withdrawn rather than shipped with a screen it could not '
           'vouch for: zero screens, refusal on the wire.',
           []),
-         ('S11', 'test_msg_binance_sign_tx', 'test_transfer',
+         ('J11', 'test_msg_binance_sign_tx', 'test_transfer',
           'Binance denom renders in full',
           'A long denom must render completely and must not overflow the formatting buffer.',
           ['Transfer screen showing the full denom']),
-         ('S12', 'test_msg_ping', 'test_ping_long_body_is_paged',
+         ('J12', 'test_msg_ping', 'test_ping_long_body_is_paged',
           'A long body is paged, not clipped',
           'A body that will not fit one screen is shown across several, with the page number '
           'in the title. Before 7.14.2 the device drew what fitted and stopped - no ellipsis, '
@@ -563,7 +572,7 @@ SECTIONS = [
           'remainder is now actually reachable. The press DURATIONS (click to page, hold to '
           'approve) are not assertable in an emulator with no physical button.',
           ['Numbered page screens covering the whole body']),
-         ('S13', 'test_msg_ping', 'test_ping_short_body_is_not_paged',
+         ('J13', 'test_msg_ping', 'test_ping_short_body_is_not_paged',
           'A body that fits is not paged',
           'The control for S12. A fitting body must still take exactly one screen with an '
           'unnumbered title - otherwise a pager that numbered every confirmation, making '
@@ -2229,7 +2238,7 @@ SECTIONS = [
          ('D6', 'test_msg_bip85', 'test_bip85_invalid_word_count',
           'Invalid count rejected', 'Word counts other than 12/18/24 are refused.', []),
      ]),
-    ('D', 'Display Disclosure - What Is Shown Is What Is Signed', '7.14.2',
+    ('Q', 'Display Disclosure - What Is Shown Is What Is Signed', '7.14.2',
      'The single property behind every display/sign divergence found in the 7.14.2 audit: two '
      'requests whose SIGNED BYTES differ must not produce IDENTICAL screens. If two payloads render '
      'the same pixels, whatever separates them was invisible when the user approved, and the '
@@ -2250,37 +2259,527 @@ SECTIONS = [
          'the property; the failure under test is signing it while looking identical to the benign case.',
      ],
      [
-         ('D1', 'test_msg_display_disclosure', 'test_bytes_past_an_embedded_nul_are_disclosed',
+         ('Q1', 'test_msg_display_disclosure', 'test_bytes_past_an_embedded_nul_are_disclosed',
           'Bytes after a NUL are shown',
           'A protobuf bytes field is not a NUL-terminated string. Rendering it with "%s" stops at the '
           'first NUL while the signature covers message.size bytes, so a payload like '
           '"benign login\\0 AND APPROVE TRANSFER" displays only the benign prefix. This asserts the '
           'two payloads do not present identically.',
           ['Message screen, plain', 'Message screen, NUL-suffixed']),
-         ('D2', 'test_msg_display_disclosure', 'test_bytes_past_whitespace_padding_are_disclosed',
+         ('Q2', 'test_msg_display_disclosure', 'test_bytes_past_whitespace_padding_are_disclosed',
           'Whitespace cannot hide signed text',
           'Whitespace is the cheapest way to push content out of view: a leading space costs zero '
           'pixels once a line has wrapped, so padding can make an over-long body measure as fitting '
           'while the tail is neither shown nor dropped from the signature.',
           ['Message screen, short', 'Message screen, padded']),
-         ('D3', 'test_msg_display_disclosure', 'test_bytes_past_the_first_screen_are_disclosed',
+         ('Q3', 'test_msg_display_disclosure', 'test_bytes_past_the_first_screen_are_disclosed',
           'Content beyond one screen is not silently dropped',
           'Whether the device pages the remainder, states how much is hidden, or refuses is not '
           'asserted - only that a long payload with a distinct tail does not look identical to a '
           'short one.',
           ['Message screen, fits', 'Message screen, overlong']),
-         ('D4', 'test_msg_display_disclosure', 'test_newline_padding_does_not_collapse_the_screen',
+         ('Q4', 'test_msg_display_disclosure', 'test_newline_padding_does_not_collapse_the_screen',
           'Line counting cannot be overflowed',
           'Line counting is a security boundary once it gates a truncation warning. A body carrying '
           'many newlines exercises the row counter rather than the character count; if that counter '
           'wraps, an arbitrarily long body reports as fitting.',
           ['Message screen, one line', 'Message screen, newline-padded']),
-         ('D5', 'test_msg_display_disclosure', 'test_signing_shows_at_least_one_screen',
+         ('Q5', 'test_msg_display_disclosure', 'test_signing_shows_at_least_one_screen',
           'Guard: the comparisons are not vacuous',
           'Every other test in this section compares screen sequences. A flow that produced no '
           'ButtonRequest would make two payloads compare equal as empty tuples and pass while showing '
           'the user nothing. This asserts at least one non-blank screen is actually displayed.',
           ['Control message screen']),
+     ]),
+    ('F', 'Clear-Sign Provider Context - Additive Invariant', '7.15.0',
+     'Clear-signing is annotation, not authority. A provider signer is loaded at runtime by the '
+     'host (LoadClearsignSigner: RAM-only, user-confirmed, dropped on reboot) and is NOT verified '
+     'by KeepKey, so its decoded who/what/why screens must be ADDED to the ordinary unverified '
+     'review, never substituted for it. A runtime schema that could suppress the amount screen, '
+     'the raw-calldata screen or the fee screen would be a screen-substitution oracle: a friendly '
+     '"supply 10.5 DAI to Aave" on the glass with arbitrary bytes under the signature. '
+     'lib/firmware/ethereum.c forces needs_confirm and data_needs_confirm back to TRUE whenever '
+     'the metadata came from a loaded signer; the else-branch that is allowed to suppress is '
+     'reserved for a future firmware-PINNED key and has no reachable input in this build. Every '
+     'test below proves this by MEASUREMENT rather than by model: it signs the same transaction '
+     'twice against the same device state, records the raw 2048-byte OLED framebuffer at every '
+     'ButtonRequest, and requires the no-metadata baseline frames to reappear byte-for-byte as the '
+     'tail of the clear-signed run. Adjacent sections cover "no metadata -> blind sign", replay '
+     'rejection and cancel-clears-metadata; none of them proves the raw review FOLLOWS a '
+     'SUCCESSFUL decode.',
+     [
+         'ADDITIVE RULE: a runtime provider may ADD screens. It may never REMOVE one.',
+         '',
+         'Measured on the Aave V3 supply() fixture (132 bytes of real ABI calldata, AdvancedMode on):',
+         '- baseline, no metadata      : 3 screens - Send / Confirm Ethereum Data / Transaction',
+         '- v1 metadata VERIFIED       : 10 screens - Identity, "Call: supply", Contract, one screen',
+         '                               per attested argument (4), THEN the same 3 baseline screens',
+         '- v2 static schema VERIFIED  : 13 screens - 7 decoded, then the same 3 baseline screens',
+         '- signature fails to verify  : 3 screens - byte-identical to the baseline. The device does',
+         '                               NOT refuse, and shows NO partial decoded information.',
+         '',
+         'The tail comparison is a byte-for-byte framebuffer match, so it is immune to pagination and',
+         'to value-dependent rendering: whatever the baseline drew, the clear-signed run must draw.',
+         '',
+         'Phase 1 ships with every built-in verification slot zeroed, so a VERIFIED blob can only come',
+         'from a runtime-loaded signer and the suppression branch cannot be reached. F5 has an EMPTY',
+         'screenshot list on purpose: rejecting metadata draws nothing at all.',
+     ],
+     [
+         ('F1', 'test_msg_ethereum_clearsign_additive',
+          'test_successful_decode_still_runs_the_raw_review',
+          'A successful decode adds screens, replaces none',
+          'The headline invariant. A runtime provider clear-signs a real Aave V3 supply() call, and '
+          'the decoded identity/method/contract/argument screens are followed by the SAME '
+          'amount, raw-calldata and fee screens the device draws with no metadata at all - proven by '
+          'signing the identical transaction twice and requiring the three baseline frames to '
+          'reappear byte-for-byte at the tail. The signature still recovers to this device over this '
+          'exact digest, so the screens shown were bound to the transaction signed.',
+          ['Identity screen naming the loaded signer and its fingerprint',
+           'Decoded argument screens (protocol / asset / amount / onBehalfOf)',
+           'Raw contract data screen, unchanged from the baseline',
+           'Fee screen']),
+         ('F2', 'test_msg_ethereum_clearsign_additive',
+          'test_v2_schema_decode_still_runs_the_raw_review',
+          'v2 static schema is additive too',
+          'v2 is where suppression would be most tempting: the blob attests a decode shape and no '
+          'tx_hash, so the reserved branch drops the raw review outright and keeps the amount screen '
+          'only if the schema moves value. For a runtime signer that branch is not taken. Decoded '
+          'against the Aave fixture rather than an ERC-20 transfer on purpose - a recognized token '
+          'contract has no raw-data screen in its own baseline, so it could not show that the raw '
+          'review survives.',
+          ['Decoded screens with values read from the calldata being signed (amount: 10.5 DAI)',
+           'Raw contract data screen, unchanged from the baseline',
+           'Fee screen']),
+         ('F3', 'test_msg_ethereum_clearsign_additive',
+          'test_failed_signature_falls_back_to_the_unverified_review',
+          'A payload that fails to verify falls back, it does not refuse',
+          'One tampered byte inside the signed region makes the blob MALFORMED. The device must then '
+          'behave exactly as if no metadata had ever been sent: the ordinary unverified review, no '
+          'refusal, and no partial decoded information on the glass. The assertion is that the whole '
+          'signing run is frame-for-frame identical to the baseline - any decoded screen would be a '
+          'frame the baseline does not contain.',
+          ['Amount/recipient screen identical to the no-metadata baseline',
+           'Raw contract data screen identical to the no-metadata baseline',
+           'Fee screen identical to the no-metadata baseline']),
+         ('F4', 'test_msg_ethereum_clearsign_additive',
+          'test_no_runtime_slot_can_reach_the_suppression_branch',
+          'Every runtime key slot stays additive',
+          'The suppression branch is gated on a signer that is NOT runtime-loaded. All four key slots '
+          'are loaded at runtime and each in turn produces a VERIFIED decode that is still followed '
+          'by the complete baseline review, so no slot is a privileged one. A slot that suppressed '
+          'would surface here as a missing tail frame.',
+          ['Identity screen for each loaded slot',
+           'Raw contract data screen after every slot\'s decode']),
+         ('F5', 'test_msg_ethereum_clearsign_additive',
+          'test_no_slot_verifies_without_a_runtime_load',
+          'No firmware-pinned signer exists to suppress anything',
+          'The complementary half. With no signer loaded, a correctly signed blob addressed to each '
+          'of the four slots comes back MALFORMED: this build carries no built-in verification key, '
+          'so the branch that may suppress the raw review has no reachable input. Sending metadata '
+          'draws no screen, so the empty screenshot list below is the assertion.',
+          []),
+     ]),
+    ('I', 'Session and Trust Lifetime', '7.15.0',
+     'Clear-signing works by trusting somebody else. A provider key loaded with LoadClearsignSigner '
+     'decides which transactions the device is willing to describe in words, and AdvancedMode decides '
+     'whether the device will sign contract data it cannot describe at all. Neither is a decision a '
+     'user should still be living with tomorrow. Both are session state by design: AdvancedMode is a '
+     'policy the storage writer refuses to persist, and loaded signers are RAM slots that no code path '
+     'writes to flash. Design intent is not evidence, so this section revokes them for real - it '
+     'restarts the firmware process with its flash image intact, which is a reboot and not a wipe, and '
+     'watches what comes back.',
+     [
+         'LIFETIME RULE: trust granted by a button press dies with the session that granted it.',
+         '',
+         'The two claims under test, and where they live:',
+         '- AdvancedMode is session-scoped. Storage flags bit 12 is written as zero and ignored on',
+         '  read at four sites in storage.c; policy.h calls the bit BURNED because firmware <= 7.15',
+         '  would read a reused bit as "blind signing enabled".',
+         '- Loaded signers are RAM only. session_clear() calls signed_metadata_clear_signers()',
+         '  unconditionally, so Initialize and ClearSession both drop them; a reboot drops them',
+         '  because they were never anywhere else.',
+         '',
+         'The asymmetry between the two is deliberate and is asserted, not assumed: Initialize drops',
+         'the signer but LEAVES AdvancedMode armed (hosts send Initialize before nearly every',
+         'operation, so disarming there would demand a button press each time), while ClearSession',
+         'drops both.',
+         '',
+         'READING THE POWER-CYCLE TESTS: on the emulator flash_erase_word() is compiled out, so the',
+         'sectors that storage_commit() abandons keep their "stor" magic and find_active_storage()',
+         'may boot into a record two commits stale. A test that ignored this would read every policy',
+         'back OFF for the wrong reason and pass against firmware that persisted it. Each power-cycle',
+         'test therefore sets a MARKER policy (Experimental) after the state under test and commits',
+         'until every sector carries it; the marker coming back is what licenses any conclusion about',
+         'AdvancedMode, and the surviving seed and label are what distinguish a reboot from a wipe.',
+     ],
+     [
+         ('I1', 'test_msg_session_trust_lifetime',
+          'test_advanced_mode_is_off_after_power_cycle',
+          'AdvancedMode does not survive a reboot',
+          'AdvancedMode and Experimental are neighbouring bits of the same storage flags word, set by '
+          'the same ApplyPolicies message and written by the same storage_writeStorageV16Plaintext '
+          'call. Both are turned on, Experimental second, and the firmware is restarted with its flash '
+          'image untouched. Experimental must come back - proving flash survived AND that the record '
+          'read at boot was written while AdvancedMode was armed - and AdvancedMode must be OFF. A '
+          'device that inherited the policy from flash would boot with blind signing already enabled '
+          'and no confirmation, which is precisely why bit 12 was retired.',
+          ['Enable Policy: AdvancedMode', 'Enable Policy: Experimental (marker, four commits)']),
+         ('I2', 'test_msg_session_trust_lifetime',
+          'test_advanced_mode_survives_initialize_but_not_clear_session',
+          'Initialize keeps the policy, ClearSession revokes it',
+          'session_clear_impl() disarms AdvancedMode only when clear_pin is set: ClearSession passes '
+          'true, Initialize passes false. This pins the asymmetry from both sides. If Initialize ever '
+          'started disarming, every host that sends it before an operation would demand a fresh '
+          'confirmation and the policy would be unusable; if ClearSession ever stopped, an explicit '
+          'lock would leave the blind-signing capability armed behind it.',
+          ['Enable Policy: AdvancedMode']),
+         ('I3', 'test_msg_session_trust_lifetime', 'test_signer_dropped_by_initialize',
+          'Session teardown drops the loaded signer',
+          'A signer is loaded, verified live, and then Initialize is sent. The metadata blob that was '
+          'VERIFIED becomes MALFORMED. AdvancedMode is asserted still ON immediately before that probe, '
+          'so the policy gate cannot be what refused it - the slot is empty. An ordinary GetFeatures is '
+          'sent first as the negative control: if merely exchanging messages dropped signers, the '
+          'teardown assertion would be proving nothing.',
+          ['Enable Policy: AdvancedMode',
+           "Load Clearsigner: Trust 'CI Test' (fingerprint) ... NOT verified by KeepKey"]),
+         ('I4', 'test_msg_session_trust_lifetime', 'test_signer_dropped_by_clear_session',
+          'ClearSession revokes both halves of the trust',
+          'ClearSession is the explicit lock, and it must take the provider key with it. Straight '
+          'afterwards the metadata message is refused outright ("AdvancedMode required") - that Failure '
+          'is the policy gate and says nothing about the slot, so the policy is re-armed with a bare '
+          'ApplyPolicies (no Initialize, which would clear the slot by itself) and the blob probed '
+          'again. MALFORMED is the assertion: the signer itself is gone.',
+          ['Enable Policy: AdvancedMode',
+           "Load Clearsigner: Trust 'CI Test' (fingerprint) ... NOT verified by KeepKey",
+           'Home screen at the refusal - the AdvancedMode gate draws no screen of its own',
+           'Enable Policy: AdvancedMode (re-armed to isolate the slot)']),
+         ('I5', 'test_msg_session_trust_lifetime', 'test_signer_dropped_by_power_cycle',
+          'Reboot drops the loaded signer',
+          'RAM-only should make this true by construction, but "by construction" is exactly what a '
+          'persistence bug breaks, and the report should carry the reboot rather than infer it. The '
+          'marker policy is set AFTER the signer is loaded, so the record the device boots into is one '
+          'that was written while the signer was live - the record a firmware that persisted signers '
+          'would have persisted them into. Seed, label and marker all come back; the signer does not.',
+          ['Enable Policy: AdvancedMode',
+           "Load Clearsigner: Trust 'CI Test' (fingerprint) ... NOT verified by KeepKey",
+           'Enable Policy: Experimental (marker, four commits)',
+           'Enable Policy: AdvancedMode (re-armed after the reboot to isolate the slot)']),
+         ('I6', 'test_msg_session_trust_lifetime',
+          'test_disabling_advanced_mode_makes_signer_inert_not_erased',
+          'Disabling AdvancedMode suspends the signer, it does not revoke it',
+          'MEASURED, and it contradicts the shorthand that disabling AdvancedMode clears loaded '
+          'signers. Turning the policy off does make the signer unusable - every consumer in '
+          'signed_metadata.c refuses a runtime slot while the policy is off, so metadata fails closed. '
+          'But nothing erases the slot: storage_setPolicy() flips a bit and only session_clear() calls '
+          'signed_metadata_clear_signers(). Sending the bare ApplyPolicies to turn the policy back on '
+          'brings the old signer straight back to VERIFIED, and the expected-response list asserts '
+          'exactly one ButtonRequest for that - the "Trust CI Test ... NOT verified by KeepKey" consent '
+          'is provably NOT re-shown. The host API hides this because apply_policy() follows every '
+          'policy change with Initialize, and it is the Initialize that clears the slot (I3). Release '
+          'consequence: a user who disables AdvancedMode to drop a provider has suspended it, not '
+          'revoked it, and the screen that re-arms it names the policy but never the signer it silently '
+          'reinstates.',
+          ['Enable Policy: AdvancedMode',
+           "Load Clearsigner: Trust 'CI Test' (fingerprint) ... NOT verified by KeepKey",
+           'Disable Policy: AdvancedMode',
+           'Home screen at the refusal - the metadata message fails closed with no screen',
+           'Enable Policy: AdvancedMode - the ONLY confirm shown on re-arming; no second trust screen']),
+     ]),
+    ('L', 'Bitcoin-Only Variant', '7.15.0',
+     'KK_BITCOIN_ONLY=ON builds a second shipping product out of the same tree: coins.def keeps '
+     'only Bitcoin and Testnet, messagemap.def drops every altcoin handler, KK_ZCASH_PRIVACY is '
+     'forced OFF, and transaction.c takes a BITCOIN_ONLY arm on the OP_RETURN path that confirms '
+     'raw bytes instead of decoding a THORChain memo. Until this section none of it had a test and '
+     'CI only ever ran the multi-chain emulator, so an entire shipping product was audited by '
+     'nothing. These tests never skip: each asserts the behaviour that is correct for the variant '
+     'it is talking to, so a run against the regular image proves the strip did NOT leak into the '
+     'multi-chain product, and a run against the bitcoin-only image proves it happened. The '
+     'variant is identified from GetCoinTable, not from features.firmware_variant -- L3 explains '
+     'why that field cannot be trusted.',
+     [
+         'PRODUCT: two build products, one tree. Regular = every coin family plus Zcash Orchard.',
+         'Bitcoin-only = Bitcoin + Testnet, no altcoins, no shielded Zcash, no ERC-20 token table.',
+         'STRIPPED BY NAME: coinByName() must refuse Litecoin/Dogecoin/BCH/Zcash/DigiByte/Dash --',
+         '  "bitcoin-only" is not "UTXO-only", and a silent fallback to Bitcoin parameters would',
+         '  hand back an xpub with the wrong version bytes under an altcoin label.',
+         'STRIPPED BY MESSAGE: an absent handler answers Failure_UnexpectedMessage from the board',
+         '  dispatcher, draws nothing, and leaves the message loop usable.',
+         'OP_RETURN: no memo parser is linked, so a THORChain memo is disclosed as the bytes',
+         '  themselves. The OMNI branch sits ABOVE the #if and must still decode.',
+         'REFUSAL: refusing the raw OP_RETURN screen returns -1 from compile_output(), which must',
+         '  surface as ActionCancelled with no signature and no further screens.',
+     ],
+     [
+         ('L1', 'test_msg_bitcoin_only_variant', 'test_bitcoin_signing_survives_the_strip',
+          'Bitcoin still signs, byte for byte',
+          'The one thing the bitcoin-only product must still do. Stripping coins, handlers and the '
+          'Orchard engine touches coins.def, messagemap.def, fsm.c and the AES table selection; any '
+          'of them going wrong surfaces here first. The signature is compared against the exact '
+          'vector test_msg_signtx.test_one_one_fee pins on the multi-chain build, so both products '
+          'must produce identical transactions from the same seed. The two review screens are '
+          'asserted as well: a signing test alone cannot see a dropped confirmation.',
+          ['Send 0.0038 BTC to 1MJ2tj2ThBE62zXbBYA5ZaN3fdve5CPAz1',
+           'TRANSACTION: send 0.0039 BTC from your wallet, including a 0.0001 BTC fee']),
+         ('L2', 'test_msg_bitcoin_only_variant', 'test_coin_table_is_bitcoin_and_testnet_only',
+          'The coin table is the product boundary',
+          'GetCoinTable must report exactly two coins, Bitcoin and Testnet, with no ERC-20 tokens '
+          '(TOKENS_COUNT is 0 and `tokens` is not linked at all). A host enumerating coins is the '
+          'only way a user learns what the device will sign, so the count and the names are part '
+          'of the product, not an implementation detail. On the regular image the same test '
+          'asserts the table is larger -- the strip must not leak.',
+          []),
+         ('L3', 'test_msg_bitcoin_only_variant', 'test_firmware_variant_names_the_bitcoin_only_product',
+          'features.firmware_variant must name the product',
+          'FAILED ON THE BITCOIN-ONLY IMAGE AS MEASURED, and the failure is the finding. '
+          'firmware_variant is the only wire-visible product identifier and the whole pyk suite '
+          'gates on it: common.requires_fullFeature() skips a test when it reads "KeepKeyBTC" or '
+          '"EmulatorBTC". The bitcoin-only emulator reported plain "Emulator", so '
+          'requires_fullFeature() is dead code and every altcoin test in the directory runs '
+          'against a bitcoin-only image and fails instead of skipping. Section X of this report '
+          'states the KeepKeyBTC contract as fact. variant_getName() has two arms and only the '
+          'EMULATOR one returns a literal; the hardware arm takes the model variant name from '
+          'variant_getInfo() and has no BITCOIN_ONLY case at all, so bitcoin-only HARDWARE reports '
+          'exactly what a multi-chain device of the same model reports. The assertion is by '
+          'suffix, not against a fixed string, so it stays honest for both arms.',
+          []),
+         ('L4', 'test_msg_bitcoin_only_variant', 'test_altcoin_message_handlers_are_absent',
+          'Every stripped chain refuses without drawing',
+          'Thirteen probes -- Ethereum, Cosmos, Osmosis, Nano, EOS, THORChain, Maya, Ripple, '
+          'Binance, TRON, TON, Solana, Hive -- must each answer Failure_UnexpectedMessage, the '
+          'board dispatcher\'s answer for a message type that is not in the map. The two ways this '
+          'goes wrong are a half-linked handler (wrong failure, or a hang) and one that renders '
+          'before refusing: a bitcoin-only device must never draw a chain it cannot sign. The '
+          'framebuffer is compared byte-for-byte across all thirteen for exactly that reason, and '
+          'a Ping afterwards proves the message loop is not wedged. The screenshot list is '
+          'deliberately empty -- the evidence is that nothing was drawn.',
+          []),
+         ('L5', 'test_msg_bitcoin_only_variant', 'test_altcoin_coin_names_are_refused',
+          'Stripped coins are refused by name',
+          'The other half of the boundary. GetPublicKey is a Bitcoin-family message and stays in '
+          'the map, so coinByName() is what has to say no: Litecoin, Dogecoin, BitcoinCash, Zcash, '
+          'DigiByte and Dash must each come back Failure_Other "Invalid coin name" rather than '
+          'falling through to Bitcoin\'s parameters and returning an xpub with the wrong version '
+          'bytes under an altcoin label. Bitcoin and Testnet must still work.',
+          []),
+         ('L6', 'test_msg_bitcoin_only_variant', 'test_zcash_privacy_is_compiled_out',
+          'Zcash privacy is compiled out with the coin',
+          'The Orchard engine is the largest thing in the image and its handlers live behind '
+          'ZCASH_PRIVACY, not BITCOIN_ONLY -- the two gates are tied together in CMakeLists, not '
+          'in the source, so nothing in C would catch that wiring breaking. ZcashGetOrchardFVK and '
+          'ZcashDisplayAddress must be unknown messages, and transparent Zcash must be gone from '
+          'the coin table in the same breath, so no Zcash path of either kind survives.',
+          []),
+         ('L7', 'test_msg_bitcoin_only_variant', 'test_op_return_thorchain_memo_is_confirmed_raw',
+          'A THORChain memo is disclosed raw, not decoded',
+          'The arm the alpha merge added to compile_output(). With no memo parser linked, a memo '
+          'the multi-chain image explains -- swap, asset, destination, affiliate -- is shown on the '
+          'bitcoin-only image as the bytes themselves. That is the right answer (a decode the image '
+          'cannot perform must never be faked) but it had never been executed, because CI runs only '
+          'the multi-chain emulator. Screen counts are measured, not modelled: bitcoin-only shows '
+          'exactly three requests (output, raw OP_RETURN, SignTx) while the regular image expands '
+          'the same memo into strictly more ConfirmOutput screens. Both must sign a script carrying '
+          'the memo verbatim, so disclosure and signature are pinned to the same bytes.',
+          ['Send 0.0038 BTC to 1MJ2tj2ThBE62zXbBYA5ZaN3fdve5CPAz1',
+           'CONFIRM OP_RETURN: SWAP:ETH.ETH:0x41e5560054824ea6b0732e656e3ad64e20e94e45:420:kk:75',
+           'TRANSACTION: send 0.0039 BTC from your wallet, including a 0.0001 BTC fee']),
+         ('L8', 'test_msg_bitcoin_only_variant', 'test_op_return_refusal_cancels_the_signature',
+          'Refusing the OP_RETURN screen aborts the signature',
+          'The BITCOIN_ONLY arm returns -1 when confirm_data is refused, and the multi-chain arm '
+          'has its own CANCELLED path that must not answer a refusal by asking again on a second '
+          'screen. Both must surface as Failure_ActionCancelled with no signature, and the flow '
+          'must stop AT the refused screen -- a SignTx request afterwards would mean the refusal '
+          'was recorded and then ignored.',
+          ['Send 0.0038 BTC to 1MJ2tj2ThBE62zXbBYA5ZaN3fdve5CPAz1',
+           'CONFIRM OP_RETURN: the memo screen the user refuses']),
+         ('L9', 'test_msg_bitcoin_only_variant', 'test_omni_op_return_is_still_decoded',
+          'The shared OMNI branch survived the strip',
+          'compile_output() tests for an "omni" prefix ABOVE the BITCOIN_ONLY split, so an OMNI '
+          'simple send is still decoded into a sentence on the bitcoin-only image. The regression '
+          'guarded against is the new #else swallowing the OMNI case, silently downgrading a '
+          'decoded amount to a hex dump. Proved by contrast rather than by OCR: the same twenty '
+          'bytes with the leading "o" changed to "p" are no longer OMNI and fall through to the '
+          'raw-data screen, so the two screens must differ and the decoded one must be the sparser '
+          'of the two. Both payloads ride in ONE transaction, as two data outputs, because L11 '
+          'makes a second signing in the same session impossible.',
+          ['CONFIRM OMNI: Do you want to send 1 OMNI?',
+           'CONFIRM OP_RETURN: 706D6E6900000000000000010000000005F5E100 -- the same bytes, raw',
+           'Send 0.0038 BTC to 1MJ2tj2ThBE62zXbBYA5ZaN3fdve5CPAz1',
+           'TRANSACTION: send 0.0039 BTC from your wallet, including a 0.0001 BTC fee']),
+         ('L10', 'test_msg_bitcoin_only_variant', 'test_repeated_transaction_is_allowed_without_op_return',
+          'An exact repeat is not a duplicate',
+          'The control for L11. compile_output() carries an anti-malware check (txin_check.c): warn '
+          'when a transaction pays the same amount to the same address as the previous one but was '
+          'built from DIFFERENT inputs, which is what a host rewriting a segwit txid looks like. An '
+          'exact repeat -- same outputs AND same inputs -- is not that and is deliberately allowed. '
+          'Signing it twice here pins that, so the refusal in L11 cannot be explained away as the '
+          'duplicate guard doing its job.',
+          []),
+         ('L11', 'test_msg_bitcoin_only_variant', 'test_op_return_does_not_poison_the_duplicate_detector',
+          'An OP_RETURN output must not poison the duplicate detector',
+          'FAILS ON BOTH PRODUCTS, and the failure is the finding. Sign a transaction whose last '
+          'output is OP_RETURN, then sign the transaction L10 just proved is allowed, and the '
+          'device answers "WARNING: DUPLICATE TRANSACTION! Already signed a tx with the same '
+          'outputs. To try again, unplug/replug KeepKey." and aborts. signing.c calls '
+          'txin_dgst_final() once per output, but txin_dgst_save_and_reset() -- the only thing that '
+          're-initialises the SHA-256 context -- is reached only on the pay-to-address path; an '
+          'OP_RETURN output returns before it. So a transaction ending in OP_RETURN leaves the '
+          'context finalised and never re-initialised, the next transaction\'s inputs are hashed '
+          'into a finalised context, and its digest no longer matches while amount and address '
+          'still do -- precisely the (same outputs, different inputs) pattern the check exists to '
+          'flag. Fail-safe, in that it refuses rather than signs, but it refuses a legitimate '
+          'transaction and demands a replug, and every OP_RETURN-terminated transaction arms it: '
+          'that is every THORChain and Maya swap the wallet builds. Nothing had caught it because '
+          'common.KeepKeyTest wipes the device in setUp, so no existing test signs two transactions '
+          'in one session.',
+          ['Send 0.0038 BTC to 1MJ2tj2ThBE62zXbBYA5ZaN3fdve5CPAz1 (first transaction)',
+           'CONFIRM OP_RETURN: the memo that arms the detector',
+           'WARNING: DUPLICATE TRANSACTION! Already signed a tx with the same outputs']),
+     ]),
+    ('U', 'Storage Upgrade Preservation', '7.15.0',
+     'A signed UPGRADE must never wipe. A DOWNGRADE wipes, and that is correct. Those two '
+     'sentences are the whole policy (docs/StorageVersionGate.md), and until this section '
+     'nothing in the suite tested either half - every other test creates storage with the '
+     'firmware under test and never crosses a release boundary, which is exactly where this '
+     'class of defect lives. The mechanism is one function: storage_init() hands whatever is in '
+     'flash to storage_fromFlash(), and if version_from_int() does not recognise the version it '
+     'returns StorageVersion_NONE, the load reports SUS_Invalid, and storage_init() runs '
+     'storage_reset() + storage_commit(). No prompt, no warning - the wallet is gone at boot. '
+     'The flash format this build reads and writes is V17, the same format shipped in v7.14.1. '
+     '7.15 reverted the RC27 bump to V19 (commit 6bebde7b2) because one boot silently migrated '
+     '17 to 19 and from that moment no downgrade was possible without a wipe; V18, the '
+     'clear-sign identity block, is dead, and the V19 serializer survives only behind '
+     'STORAGE_PIN_KDF_V19 == 0. U5 pins that V17 as a literal, on purpose: the compile-time '
+     'assert compares two numbers in the same header, and raising the baseline to make a build '
+     'compile is the edit the SOP calls its highest-severity review item.',
+     [
+         'THE RULE: recognise every version any shipped firmware ever wrote, and never lower',
+         'STORAGE_VERSION. Both ways of breaking it compile cleanly and pass every other test:',
+         '- lowering STORAGE_VERSION below a version that has shipped;',
+         '- deleting, reordering or renumbering an entry in storage_versions.inc.',
+         '',
+         'The reverse direction is NOT a defect. Older firmware cannot read a newer record, so a',
+         'DOWNGRADE lands on SUS_Invalid and resets. Do not "fix" that: the reset is what stops',
+         'an attacker flashing an older, validly signed image with a known extraction bug and',
+         'keeping the seed.',
+         '',
+         'HOW THESE TESTS REACH THE GATE: it only runs at boot, and no host message can reboot',
+         'the device. SoftReset (messages.proto type 89) has no messagemap entry and no handler',
+         'body, and fsm_msgDebugLinkFlashDump() is compiled out under EMULATOR, so the emulator',
+         'can neither be restarted nor have its flash read over the wire. U1-U4 therefore start',
+         'their OWN kkemu on their own port pair and own its emulator.img, which lib/emulator/',
+         'setup.c mmaps as the flash array. Killing that process and starting it again IS a',
+         'power cycle, and restamping the version word in the image is what an arriving device',
+         'presents: a record whose header says one version while the firmware says another.',
+         '',
+         'WHAT THIS SECTION DOES NOT COVER, stated plainly:',
+         '- No signed image is involved. The bootloader preserves storage only when SIG_FLAG is',
+         '  set, the firmware being replaced was officially signed, and the new image verifies.',
+         '  An unsigned development or RC build fails two of those by construction, so "the',
+         '  upgrade did not wipe" is finally proven only with a signed build on a production',
+         '  device.',
+         '- U2 restamps a record THIS build wrote rather than replaying one 7.14.x wrote, so the',
+         '  V16 reader runs but the older LAYOUTS (V1-V15) and their fallthrough chain do not.',
+         '- U1-U4 SKIP wherever no kkemu binary can be started. The CI python-keepkey image',
+         '  (scripts/emulator/python-keepkey.Dockerfile) copies the source but never builds the',
+         '  emulator, so as the pipeline stands today only U5-U8 run in CI. A skipped U1-U4 in',
+         '  this report means the release was NOT audited for upgrade preservation.',
+     ],
+     [
+         ('U1', 'test_storage_version_gate', 'test_reboot_preserves_the_wallet',
+          'A power cycle keeps the wallet',
+          'The boundary the ordinary storage tests never cross. Every other test lives inside '
+          'one session, where the wallet is a RAM shadow; only a power cycle re-runs '
+          'storage_init() and proves the bytes committed to flash were both written and '
+          'readable. The PIN is load-bearing: the seed lives in encrypted_sec and the key that '
+          'decrypts it is only ever stored wrapped by the PIN, so an address that still derives '
+          'after the reboot proves the wrapped key, its fingerprint and the ciphertext all '
+          'round-tripped together. This test is also the control for U2 - a record already at '
+          'STORAGE_VERSION reports SUS_Valid, so nothing is rewritten at boot, and the flash '
+          'image is asserted byte-identical across the restart.',
+          ['Wipe Device confirm (the arrangement wipes before loading the seed)',
+           'Import Recovery Sentence confirm',
+           'Home screen after the power cycle: locked, wallet still present',
+           'Bitcoin Account #0 / Address #0 showing the same address as before the reboot']),
+         ('U2', 'test_storage_version_gate', 'test_v16_blob_upgrades_without_wiping',
+          'A V16 wallet upgrades, it does not wipe',
+          'The policy in one test: the device arrives carrying the format written by the release '
+          'it is leaving, and the incoming firmware must READ it rather than reset it. '
+          'storage_fromFlash() takes case StorageVersion_16, reads through storage_readV16(), '
+          'restamps the record V17 and reports SUS_Updated, which storage_init() answers with a '
+          'commit - a migration, not a wipe. The V16 record is built from the four things that '
+          'actually differ between the formats: the version stamp, flags bits 18/19 '
+          '(authdata_initialized / authdata_encrypted), authdata_fingerprint at +469, and the '
+          '512-byte V16 ciphertext against the 1024-byte V17 one. The same address behind the '
+          'same PIN is the assertion; it can only derive if the wrapped storage key unwrapped, '
+          'the V16 ciphertext decrypted and the seed came back byte-identical. A surviving '
+          'wallet alone would not prove the V16 branch ran, so the test also asserts flash was '
+          'written at boot - the side effect only SUS_Updated has.',
+          ['Wipe Device confirm', 'Import Recovery Sentence confirm',
+           'Home screen after the migrating boot: wallet still present',
+           'Bitcoin Account #0 / Address #0 - the same address the V16 record held']),
+         ('U3', 'test_storage_version_gate', 'test_unrecognised_version_wipes_on_boot',
+          'An unrecognised version wipes, deliberately',
+          'The half of the policy nobody should be tempted to soften. A device that has run '
+          'newer firmware carries a newer stamp; older firmware cannot read it, so '
+          'version_from_int() returns StorageVersion_NONE and storage_init() resets. That reset '
+          'is the rollback protection: without it an attacker could flash an older, validly '
+          'signed image with a known extraction bug and keep the seed. The stamp used is one '
+          'past the version this build just committed - measured from the device, not read out '
+          'of the header - which is exactly what the next format bump will look like from here. '
+          'The device must come up with no wallet, no PIN and no label.',
+          ['Wipe Device confirm', 'Import Recovery Sentence confirm',
+           'Home screen after the boot that reset storage: no wallet']),
+         ('U4', 'test_storage_version_gate', 'test_bitcoin_only_band_refuses_without_wiping',
+          'A bitcoin-only wallet is refused, not destroyed',
+          'Seeds created under bitcoin-only firmware are stamped in a reserved band (10000 + the '
+          'normal version). Multi-chain firmware must not load one - that seed was never meant '
+          'to be multi-chain-exposed - but it must also leave it alone: SUS_BitcoinOnlyLocked '
+          'resets only the RAM shadow, and storage_commit() returns early while btc_only_locked, '
+          'so flash is never touched. Three assertions, in order of what they cost you: the '
+          'device comes up locked and uninitialized; the storage sector is byte-for-byte what it '
+          'was, everywhere except the stamp the test itself changed; and once the band stamp is '
+          'removed the wallet boots again and derives the original address. Without the third, '
+          '"refuse rather than wipe" would be a claim about intent rather than about bytes.',
+          ['Wipe Device confirm', 'Import Recovery Sentence confirm',
+           'Home screen while locked out by the bitcoin-only band: no wallet',
+           'Bitcoin Account #0 / Address #0 after the band stamp is removed - the wallet is back']),
+         ('U5', 'test_storage_version_gate', 'test_active_flash_format_is_v17',
+          'This build writes flash format V17',
+          'An independent witness for the number the whole gate turns on. The compile-time '
+          'assert in storage.c compares STORAGE_VERSION against STORAGE_VERSION_LAST_SHIPPED - '
+          'two values in the same header, editable in one commit - so it cannot notice a release '
+          'that raises both. 7.15 deliberately reverted to V17; if V19 (or anything else) '
+          're-lands, this test fails and the bump has to be argued for in review rather than '
+          'discovered in the field. Reads the firmware sources, so it runs even where no '
+          'emulator can be restarted. No screen: it never touches the device, and the empty '
+          'list below says so.',
+          []),
+         ('U6', 'test_storage_version_gate', 'test_version_never_drops_below_a_shipped_release',
+          'The version never goes backwards or into the band',
+          'Lowering STORAGE_VERSION wipes every device upgrading FROM a shipped release: its '
+          'record stops being recognised, so the gate maps it to StorageVersion_NONE and '
+          'storage_init() resets. The version must also stay below STORAGE_VERSION_BTC_ONLY_BASE '
+          '(10000), or a multi-chain wallet would be stamped into the band that multi-chain '
+          'firmware refuses to load - locking the wallet out of its own firmware.',
+          []),
+         ('U7', 'test_storage_version_gate',
+          'test_version_ladder_is_contiguous_and_ends_at_storage_version',
+          'storage_versions.inc is append-only',
+          'The enum is emitted in .inc order after StorageVersion_NONE = 0, which is what makes '
+          'StorageVersion_N == N. Delete or renumber an entry and version_from_int() quietly '
+          'loses that case, wiping every device carrying it. This asserts the ladder is '
+          'contiguous from 1 and that its last entry is STORAGE_VERSION - the two properties the '
+          'in-tree static asserts depend on.',
+          []),
+         ('U8', 'test_storage_version_gate', 'test_every_ladder_version_has_a_reader',
+          'Every ladder version has a reader case',
+          'The failure the static asserts do NOT cover. They pin the enum to its own numbering '
+          'and say nothing about the switch in storage_fromFlash(). Drop a case and control '
+          'falls out of the switch to return SUS_Invalid, which storage_init() answers with '
+          'storage_reset() - every device carrying that version is wiped on upgrade and the '
+          'build stays green.',
+          []),
      ]),
 ]
 

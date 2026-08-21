@@ -193,12 +193,20 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertEqual(' '.join(mnemonic), expected_mnemonic)
 
     def test_reset_reentry_disarms_entropy_ack(self):
-        """An aborted reset must not leave EntropyAck armed.
+        """An abandoned reset must never leave EntropyAck armed.
 
-        Regression: reset_init aborts (dice cancel, PIN mismatch, ...) left
-        awaiting_entropy set from an earlier run while zeroing int_entropy,
-        so a following EntropyAck derived the seed from
+        Regression this guards: reset_init aborts (dice cancel, PIN mismatch,
+        ...) left awaiting_entropy set from an earlier run while zeroing
+        int_entropy, so a following EntropyAck derived the seed from
         sha256(0*32 || host_bytes) -- entirely host-chosen.
+
+        7.15 closes it EARLIER and more strongly than the original fix did.
+        #429 replaced the separate awaiting_entropy flag with a single armed
+        (kind) ceremony, and setup_stage() now REFUSES to open a second
+        ceremony on top of an armed one. So the re-entry this test used to
+        perform is rejected outright rather than being allowed and then
+        disarmed -- there is no second ceremony to leave armed. Both halves are
+        asserted below: the refusal, and then the original property.
         """
         self.requires_firmware("7.15.0")
         self.client.wipe_device()
@@ -212,7 +220,9 @@ class TestDeviceReset(common.KeepKeyTest):
                                                label='first'))
         self.assertIsInstance(ret, proto.EntropyRequest)
 
-        # Re-enter with dice, then abort from the host.
+        # Re-entry is REFUSED while a ceremony is armed. This is the #429
+        # guard; before it, the second ResetDevice was accepted and the code
+        # had to remember to disarm the first one.
         ret = self.client.call_raw(proto.ResetDevice(display_random=False,
                                                strength=256,
                                                passphrase_protection=False,
@@ -220,8 +230,10 @@ class TestDeviceReset(common.KeepKeyTest):
                                                language='english',
                                                label='second',
                                                dice_entropy=True))
-        self.assertIsInstance(ret, proto.ButtonRequest)
-        self.assertEqual(ret.code, proto_types.ButtonRequest_DiceRoll)
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertIn('middle of setup', ret.message)
+
+        # Abandon the FIRST ceremony the way the host is told to.
         ret = self.client.call_raw(proto.Cancel())
         self.assertIsInstance(ret, proto.Failure)
 
