@@ -2813,8 +2813,8 @@ SECTIONS = [
           ['Wipe Device confirm', 'Import Recovery Sentence confirm',
            'Home screen while locked out by the bitcoin-only band: no wallet',
            'Bitcoin Account #0 / Address #0 after the band stamp is removed - the wallet is back']),
-         ('U5', 'test_storage_version_gate', 'test_active_flash_format_is_v20',
-          'This build writes flash format V20, and the bump is argued',
+         ('U5', 'test_storage_version_gate', 'test_last_shipped_never_moves_backwards',
+          'STORAGE_VERSION_LAST_SHIPPED never moves backwards',
           'An independent witness for the number the whole gate turns on. The compile-time '
           'assert in storage.c compares STORAGE_VERSION against STORAGE_VERSION_LAST_SHIPPED - '
           'two values in the same header, editable in one commit - so it cannot notice a release '
@@ -2831,11 +2831,18 @@ SECTIONS = [
           'which is normal downgrade behaviour and is in the release note rather than left to be '
           'discovered.',
           []),
-         ('U5b', 'test_storage_version_gate', 'test_burned_versions_have_no_reader',
-          'Formats 18 and 19 have no reader, on purpose',
-          'The absence of a dispatch case is what sends a burned blob to the wipe path. That is '
-          'an easy thing to undo while tidying a switch statement, and undoing it would silently '
-          'restore the misparse - so the absence is asserted rather than assumed.',
+         ('U5b', 'test_storage_version_gate',
+          'test_burned_versions_are_dispatched_to_the_wipe_path',
+          'A burned format is dispatched, and what it reaches is the wipe',
+          'This used to assert the ABSENCE of a dispatch case, on the theory that a burned blob '
+          'falls through to a default. It does not: storage_fromFlash() has no default case, '
+          'deliberately, so that -Werror=switch names any version nobody handled. An unlisted '
+          'version therefore does not fall anywhere - it fails the ARM build. So the label must '
+          'exist; what must NOT exist is a reader behind it. Asserted as the real property: the '
+          'burned versions are dispatched, and the arm they reach returns SUS_Invalid with no '
+          'storage_readVxx call. Which versions are burned is read from '
+          'storage_versions.inc rather than written down here, so the test holds on a line that '
+          'burns nothing as readily as on one that burns two.',
           []),
          ('U6', 'test_storage_version_gate', 'test_version_never_drops_below_a_shipped_release',
           'The version never goes backwards or into the band',
@@ -2854,13 +2861,15 @@ SECTIONS = [
           'contiguous from 1 and that its last entry is STORAGE_VERSION - the two properties the '
           'in-tree static asserts depend on.',
           []),
-         ('U8', 'test_storage_version_gate', 'test_every_ladder_version_has_a_reader',
-          'Every ladder version has a reader case',
+         ('U8', 'test_storage_version_gate', 'test_every_shipped_version_has_a_reader',
+          'Every shipped version still has a reader',
           'The failure the static asserts do NOT cover. They pin the enum to its own numbering '
-          'and say nothing about the switch in storage_fromFlash(). Drop a case and control '
-          'falls out of the switch to return SUS_Invalid, which storage_init() answers with '
-          'storage_reset() - every device carrying that version is wiped on upgrade and the '
-          'build stays green.',
+          'and say nothing about what the switch in storage_fromFlash() does with it. Drop the '
+          'reader for a version that reached hardware and every device carrying it is wiped on '
+          'upgrade. Scoped to SHIPPED versions on purpose: a burned format legitimately has no '
+          'reader, so asserting "every ladder version has a reader" would make burning one '
+          'impossible to express. The companion assertion, that no shipped version is ever '
+          'declared burned, is what stops that scoping being used as a loophole.',
           []),
      ]),
 
