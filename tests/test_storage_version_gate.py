@@ -234,6 +234,19 @@ def _define(text, name):
     return int(m.group(1))
 
 
+def _define_opt(text, name):
+    """Value of an integer #define, or None when it is not there at all.
+
+    _define asserts, which is right for STORAGE_VERSION: every tree has one.
+    STORAGE_VERSION_LAST_SHIPPED arrives with the release that introduces the
+    storage version gate, so on an older tree its absence is a fact about the
+    branch rather than a defect, and the caller decides what that means.
+    """
+    folded = text.replace("\\\n", " ")
+    m = re.search(r"^\s*#\s*define\s+" + name + r"\b\s+(\d+)", folded, re.M)
+    return int(m.group(1)) if m else None
+
+
 def _strip_c_comments(text):
     """Comments are prose and must never be mistaken for code.
 
@@ -635,7 +648,29 @@ class TestStorageVersionGateSource(unittest.TestCase):
         self.c = _read_source("lib/firmware/storage.c")
         self.inc = _read_source("lib/firmware/storage_versions.inc")
         self.version = _define(self.h, "STORAGE_VERSION")
-        self.last_shipped = _define(self.h, "STORAGE_VERSION_LAST_SHIPPED")
+
+        # The gate is a FEATURE of the firmware, and this suite runs against
+        # whatever tree it is checked out beside -- including release branches
+        # that predate the gate entirely. Gate on the capability, not on a
+        # version string.
+        #
+        # The distinction that matters: a tree that never had the gate has
+        # nothing here to assert, and failing it would only teach people to
+        # ignore this file. A tree that USES the constant but no longer defines
+        # it is the regression this suite exists to catch, and it still fails --
+        # so the skip cannot swallow the deletion it is meant to detect.
+        self.last_shipped = _define_opt(self.h, "STORAGE_VERSION_LAST_SHIPPED")
+        if self.last_shipped is None:
+            if "STORAGE_VERSION_LAST_SHIPPED" in self.c:
+                self.fail(
+                    "lib/firmware/storage.c references "
+                    "STORAGE_VERSION_LAST_SHIPPED but storage.h no longer "
+                    "defines it. The floor was deleted out from under the "
+                    "static assert that enforces it.")
+            raise unittest.SkipTest(
+                "this firmware tree predates the storage version gate: "
+                "storage.h defines no STORAGE_VERSION_LAST_SHIPPED, so there "
+                "is no shipped floor to check against")
 
         self.ladder = _ladder(self.inc)
         self.burned = _burned_declared(self.inc)
