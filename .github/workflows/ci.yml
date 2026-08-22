@@ -70,28 +70,59 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
-    services:
-      kkemu:
-        # kktech/kkemu:latest on Docker Hub is firmware 7.10.0, built
-        # 2026-03-12 -- five months and six minor versions behind the suite
-        # that runs against it. Pin a digest once a current image is published;
-        # until then the version gate below is what fails closed.
-        image: kktech/kkemu:latest
-        ports:
-          - 11044:11044/udp
-          - 11045:11045/udp
-          - 5000:5000
+    # NO published emulator image. This job BUILDS one from current firmware.
+    #
+    # It used to pull kktech/kkemu:latest -- a floating tag whose image was
+    # five months and six minor versions stale. That single fact caused every
+    # symptom we chased: 80 tests gating on requires_firmware("7.15.0") skipped
+    # silently, and one unskipped test drove a ctime() path that segfaults on
+    # the old image and does not exist in current firmware.
+    #
+    # Publishing a fresher image would only reset that clock. Building from
+    # source removes the class: the emulator under test is, by construction,
+    # the firmware the tests were written against.
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          path: python-keepkey
+
+      # python-keepkey is a SUBMODULE of the firmware repo, so the firmware is
+      # where the emulator lives. alpha is the fork's integration branch.
+      - name: Checkout firmware
+        uses: actions/checkout@v4
+        with:
+          repository: BitHighlander/keepkey-firmware
+          ref: alpha
+          submodules: recursive
+          path: keepkey-firmware
+
+      # Test THIS checkout of python-keepkey, not the one the firmware pins.
+      - name: Overlay this python-keepkey onto the firmware tree
+        run: |
+          rm -rf keepkey-firmware/deps/python-keepkey
+          cp -a python-keepkey keepkey-firmware/deps/python-keepkey
+
+      - name: Build the emulator
+        timeout-minutes: 20
+        working-directory: keepkey-firmware
+        run: |
+          docker build -t kkemu-ci -f scripts/emulator/Dockerfile .
+
+      - name: Start the emulator
+        run: |
+          docker run -d --name kkemu \
+            -p 11044:11044/udp -p 11045:11045/udp -p 5000:5000 kkemu-ci
+          sleep 3
+          docker logs kkemu | head -5
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dependencies
+        working-directory: python-keepkey
         run: |
           pip install --upgrade pip
           pip install "protobuf>=3.20,<4"
@@ -125,7 +156,7 @@ jobs:
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
           KK_MIN_FW: "7.15.0"
           KK_UDP_TIMEOUT: "20"
-        working-directory: tests
+        working-directory: python-keepkey/tests
         run: |
           python - <<'PY'
           import os, sys
@@ -155,18 +186,18 @@ jobs:
         env:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
-          PYTHONPATH: "${{ github.workspace }}/keepkeylib:${{ github.workspace }}"
+          PYTHONPATH: "${{ github.workspace }}/python-keepkey/keepkeylib:${{ github.workspace }}/python-keepkey"
           # A crashed emulator now raises instead of blocking in recv() forever.
           KK_UDP_TIMEOUT: "45"
         run: |
-          cd tests
+          cd python-keepkey/tests
           pytest -v --junitxml=junit.xml 2>&1 | tee pytest-output.txt
           echo "${PIPESTATUS[0]}" > status
 
       - name: Test summary
         if: always()
         run: |
-          XML="tests/junit.xml"
+          XML="python-keepkey/tests/junit.xml"
           echo "## 🔑 KeepKey python-keepkey — Integration Tests" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
@@ -223,7 +254,7 @@ jobs:
         uses: mikepenz/action-junit-report@v4
         if: always()
         with:
-          report_paths: tests/junit.xml
+          report_paths: python-keepkey/tests/junit.xml
           annotate_only: true
           require_tests: true
           fail_on_failure: true
@@ -231,5 +262,5 @@ jobs:
       - name: Fail on test failure
         if: always()
         run: |
-          STATUS=$(cat tests/status 2>/dev/null || echo "1")
+          STATUS=$(cat python-keepkey/tests/status 2>/dev/null || echo "1")
           [ "$STATUS" = "0" ] || exit 1
