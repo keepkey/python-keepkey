@@ -17,6 +17,12 @@ on:
   pull_request:
     branches: [master, develop, reconcile/upstream-sync]
 
+# One run per ref: a new push supersedes the old instead of both burning a
+# runner to completion.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ═══════════════════════════════════════════════════════════
   # STAGE 1: GATE
@@ -62,26 +68,74 @@ jobs:
   integration:
     needs: [lint]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
 
-    services:
-      kkemu:
-        image: kktech/kkemu:latest
-        ports:
-          - 11044:11044/udp
-          - 11045:11045/udp
-          - 5000:5000
+    # NO published emulator image. This job BUILDS one from current firmware.
+    #
+    # It used to pull kktech/kkemu:latest -- a floating tag whose image was
+    # five months and six minor versions stale. That single fact caused every
+    # symptom we chased: 80 tests gating on requires_firmware("7.15.0") skipped
+    # silently, and one unskipped test drove a ctime() path that segfaults on
+    # the old image and does not exist in current firmware.
+    #
+    # Publishing a fresher image would only reset that clock. Building from
+    # source removes the class: the emulator under test is, by construction,
+    # the firmware the tests were written against.
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          path: python-keepkey
+
+      # python-keepkey is a SUBMODULE of the firmware repo, so the firmware is
+      # where the emulator lives. alpha is the fork's integration branch.
+      - name: Checkout firmware
+        uses: actions/checkout@v4
+        with:
+          repository: BitHighlander/keepkey-firmware
+          ref: alpha
+          path: keepkey-firmware
+
+      # NOT `submodules: recursive`. trezor-firmware carries a micropython
+      # vendor tree whose lib/lwip lives on git.savannah.gnu.org, which serves
+      # dumb HTTP and cannot do the shallow clone actions/checkout requests --
+      # it fails the whole job. The firmware repo's own CI inits exactly these
+      # paths, non-recursively, for the same reason.
+      - name: Init the submodules the emulator build needs
+        working-directory: keepkey-firmware
+        run: |
+          git submodule update --init --depth 1 deps/crypto/trezor-firmware
+          git submodule update --init --depth 1 deps/device-protocol
+          git submodule update --init --depth 1 deps/googletest
+          git submodule update --init --depth 1 deps/qrenc/QR-Code-generator
+          git submodule update --init --depth 1 deps/sca-hardening/SecAESSTM32
+
+      # Test THIS checkout of python-keepkey, not the one the firmware pins.
+      - name: Overlay this python-keepkey onto the firmware tree
+        run: |
+          rm -rf keepkey-firmware/deps/python-keepkey
+          cp -a python-keepkey keepkey-firmware/deps/python-keepkey
+
+      - name: Build the emulator
+        timeout-minutes: 20
+        working-directory: keepkey-firmware
+        run: |
+          docker build -t kkemu-ci -f scripts/emulator/Dockerfile .
+
+      - name: Start the emulator
+        run: |
+          docker run -d --name kkemu \
+            -p 11044:11044/udp -p 11045:11045/udp -p 5000:5000 kkemu-ci
+          sleep 3
+          docker logs kkemu | head -5
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dependencies
+        working-directory: python-keepkey
         run: |
           pip install --upgrade pip
           pip install "protobuf>=3.20,<4"
@@ -101,20 +155,67 @@ jobs:
             sleep 1
           done
 
-      - name: Run integration tests
+      # "The emulator answered a ping" is not "the emulator is the right
+      # firmware". CI ran a 7.16-era suite against a 7.10.0 image for five
+      # months: 80 tests gate on requires_firmware("7.15.0") and silently
+      # SKIPPED, while one unskipped test drove a code path that segfaults in
+      # 7.10.0 and is already fixed in 7.15 -- which reads as a product failure
+      # but is only a stale image. A floating tag cannot tell you that. This
+      # can, and it fails closed.
+      - name: Assert the emulator is not older than the suite
+        timeout-minutes: 2
         env:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
-          PYTHONPATH: "${{ github.workspace }}/keepkeylib:${{ github.workspace }}"
+          KK_MIN_FW: "7.15.0"
+          KK_UDP_TIMEOUT: "20"
+        working-directory: keepkey-firmware/deps/python-keepkey/tests
         run: |
-          cd tests
+          python - <<'PY'
+          import os, sys
+          sys.path.insert(0, '..')
+          import config
+          from keepkeylib.client import KeepKeyDebuglinkClient
+          c = KeepKeyDebuglinkClient(config.TRANSPORT(*config.TRANSPORT_ARGS,
+                                                      **config.TRANSPORT_KWARGS))
+          c.set_debuglink(config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS,
+                                                 **config.DEBUG_TRANSPORT_KWARGS))
+          c.init_device()
+          f = c.features
+          got = (f.major_version, f.minor_version, f.patch_version)
+          floor = tuple(int(x) for x in os.environ['KK_MIN_FW'].split('.'))
+          print('emulator firmware %d.%d.%d, floor %s' %
+                (got + (os.environ['KK_MIN_FW'],)))
+          if got < floor:
+              sys.exit('FATAL: the emulator image predates the tests that run '
+                       'against it. Republish kktech/kkemu from current '
+                       'firmware and pin the new digest above.')
+          PY
+
+      # Step-level timeout, deliberately: a JOB-level timeout ends the job as
+      # "cancelled", which reads as an infra blip. A step timeout is a FAILURE.
+      - name: Run integration tests
+        timeout-minutes: 8
+        env:
+          KK_TRANSPORT_MAIN: "127.0.0.1:11044"
+          KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
+          PYTHONPATH: "${{ github.workspace }}/keepkey-firmware/deps/python-keepkey"
+          # A crashed emulator now raises instead of blocking in recv() forever.
+          KK_UDP_TIMEOUT: "45"
+        run: |
+          # From the OVERLAID copy, not the standalone checkout: the
+          # storage-version-gate tests assert against lib/firmware/storage.c,
+          # which they find by walking UP. Run them as a sibling of the
+          # firmware and they resolve; run them standalone and they fail
+          # claiming the sources are missing.
+          cd keepkey-firmware/deps/python-keepkey/tests
           pytest -v --junitxml=junit.xml 2>&1 | tee pytest-output.txt
           echo "${PIPESTATUS[0]}" > status
 
       - name: Test summary
         if: always()
         run: |
-          XML="tests/junit.xml"
+          XML="keepkey-firmware/deps/python-keepkey/tests/junit.xml"
           echo "## 🔑 KeepKey python-keepkey — Integration Tests" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
@@ -161,15 +262,23 @@ jobs:
           echo "---" >> "$GITHUB_STEP_SUMMARY"
           echo "*KeepKey python-keepkey CI*" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload test results
+      # NO check_name. With one, this action publishes a SEPARATE check run
+      # via the Checks API, and its require_tests default of 'false' means an
+      # absent junit.xml -- which is exactly what a killed pytest leaves behind
+      # -- reports conclusion:success with zero duration. That green check sat
+      # on top of a job timing out at 30 minutes for at least six merges.
+      # annotate_only keeps the inline annotations without minting a check.
+      - name: Annotate test results
         uses: mikepenz/action-junit-report@v4
         if: always()
         with:
-          report_paths: tests/junit.xml
-          check_name: Integration Tests
+          report_paths: keepkey-firmware/deps/python-keepkey/tests/junit.xml
+          annotate_only: true
+          require_tests: true
+          fail_on_failure: true
 
       - name: Fail on test failure
         if: always()
         run: |
-          STATUS=$(cat tests/status 2>/dev/null || echo "1")
+          STATUS=$(cat keepkey-firmware/deps/python-keepkey/tests/status 2>/dev/null || echo "1")
           [ "$STATUS" = "0" ] || exit 1

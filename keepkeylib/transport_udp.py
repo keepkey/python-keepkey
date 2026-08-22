@@ -2,9 +2,22 @@ from __future__ import print_function
 
 '''SocketTransport implements TCP socket interface for Transport.'''
 
+import os
 import socket
 from select import select
 from .transport import Transport
+
+# A dead emulator must surface as an ERROR, not as an infinite wait.
+#
+# The socket had no timeout, so when the emulator segfaulted mid-suite,
+# recv() blocked in a syscall until something outside killed the process --
+# in CI that was a 30-minute job timeout reported as "cancelled", which reads
+# as an infrastructure blip rather than the device crash it actually was. It
+# hid a real segfault for at least six merges.
+#
+# Generous by default because a confirm screen legitimately waits on a human;
+# override for unattended runs with KK_UDP_TIMEOUT (seconds, 0 disables).
+DEFAULT_TIMEOUT = float(os.environ.get('KK_UDP_TIMEOUT', '60'))
 
 class FakeRead(object):
     # Let's pretend we have a file-like interface
@@ -31,6 +44,8 @@ class UDPTransport(Transport):
     def _open(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.connect(self.device)
+        if DEFAULT_TIMEOUT > 0:
+            self.socket.settimeout(DEFAULT_TIMEOUT)
 
     def _close(self):
         self.socket.close()
@@ -57,7 +72,19 @@ class UDPTransport(Transport):
 
     def _raw_read(self, length):
         while len(self.buffer) < length:
-            data = self.socket.recv(64)
+            try:
+                data = self.socket.recv(64)
+            except socket.timeout:
+                # Name the cause. "timed out" alone sends people looking at the
+                # test; the device is what stopped answering.
+                raise IOError(
+                    'No response from the emulator at %s:%d after %gs -- it is '
+                    'not running, has crashed, or is wedged on a confirm screen '
+                    'nothing acknowledged. Set KK_UDP_TIMEOUT to change or 0 to '
+                    'disable.' % (self.device[0], self.device[1],
+                                  DEFAULT_TIMEOUT))
+            if not data:
+                raise IOError('Emulator closed the connection')
             self.buffer += data[1:]
 
         ret = self.buffer[:length]

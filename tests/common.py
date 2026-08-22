@@ -156,6 +156,7 @@ class KeepKeyTest(unittest.TestCase):
         """
         from keepkeylib import messages_ethereum_pb2 as _eth
         from keepkeylib import messages_pb2 as _proto
+        from keepkeylib import types_pb2 as _types
 
         probe = _eth.EthereumSignTypedData()
         for n in (0x8000002C, 0x8000003C, 0x80000000, 0, 0):
@@ -166,7 +167,7 @@ class KeepKeyTest(unittest.TestCase):
         resp = self.client.call_raw(probe)
         if isinstance(resp, _proto.Failure):
             self.client.init_device()
-            if resp.code == _proto.Failure_UnexpectedMessage:
+            if resp.code == _types.Failure_UnexpectedMessage:
                 self.skipTest(
                     "Firmware does not implement structured EIP-712 "
                     "(EthereumSignTypedData is not handled)")
