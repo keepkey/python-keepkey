@@ -91,6 +91,11 @@ def probe_blob():
     ))
 
 
+# Names `ps -o comm=` reports for the emulator binary. Anything else bound to
+# the port is not ours to kill -- see the guard in _emulator_process().
+_EMULATOR_EXE_NAMES = ('kkemu',)
+
+
 def _emulator_process(port):
     """(pid, exe, cwd) of the process BOUND to udp/port, or None.
 
@@ -124,6 +129,20 @@ def _emulator_process(port):
             exe = subprocess.run(['ps', '-o', 'comm=', '-p', str(pid)],
                                  stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, universal_newlines=True).stdout.strip()
+            if os.path.basename(exe) not in _EMULATOR_EXE_NAMES:
+                # Whatever holds this port, it is not the firmware. Whenever the
+                # emulator runs in a container the bound process is the Docker
+                # port forwarder -- docker-proxy or dockerd on Linux,
+                # com.docker.backend on macOS -- in a different pid namespace
+                # from kkemu. Killing it does not reboot anything: it removes
+                # the port forward, and every later test in the run then blocks
+                # forever on a socket that will never answer again. Measured
+                # here: it took the whole Docker daemon down mid-suite.
+                #
+                # Fall through to "not found" so _power_cycle() takes its
+                # documented skip, which the report renders as WITHHELD rather
+                # than as a pass.
+                continue
             cwd_out = subprocess.run(
                 ['lsof', '-a', '-p', str(pid), '-d', 'cwd', '-Fn'],
                 stdout=subprocess.PIPE,

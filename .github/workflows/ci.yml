@@ -68,10 +68,14 @@ jobs:
   integration:
     needs: [lint]
     runs-on: ubuntu-latest
-    timeout-minutes: 14
+    timeout-minutes: 15
 
     services:
       kkemu:
+        # kktech/kkemu:latest on Docker Hub is firmware 7.10.0, built
+        # 2026-03-12 -- five months and six minor versions behind the suite
+        # that runs against it. Pin a digest once a current image is published;
+        # until then the version gate below is what fails closed.
         image: kktech/kkemu:latest
         ports:
           - 11044:11044/udp
@@ -107,10 +111,47 @@ jobs:
             sleep 1
           done
 
+      # "The emulator answered a ping" is not "the emulator is the right
+      # firmware". CI ran a 7.16-era suite against a 7.10.0 image for five
+      # months: 80 tests gate on requires_firmware("7.15.0") and silently
+      # SKIPPED, while one unskipped test drove a code path that segfaults in
+      # 7.10.0 and is already fixed in 7.15 -- which reads as a product failure
+      # but is only a stale image. A floating tag cannot tell you that. This
+      # can, and it fails closed.
+      - name: Assert the emulator is not older than the suite
+        timeout-minutes: 2
+        env:
+          KK_TRANSPORT_MAIN: "127.0.0.1:11044"
+          KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
+          KK_MIN_FW: "7.15.0"
+          KK_UDP_TIMEOUT: "20"
+        working-directory: tests
+        run: |
+          python - <<'PY'
+          import os, sys
+          sys.path.insert(0, '..')
+          import config
+          from keepkeylib.client import KeepKeyDebuglinkClient
+          c = KeepKeyDebuglinkClient(config.TRANSPORT(*config.TRANSPORT_ARGS,
+                                                      **config.TRANSPORT_KWARGS))
+          c.set_debuglink(config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS,
+                                                 **config.DEBUG_TRANSPORT_KWARGS))
+          c.init_device()
+          f = c.features
+          got = (f.major_version, f.minor_version, f.patch_version)
+          floor = tuple(int(x) for x in os.environ['KK_MIN_FW'].split('.'))
+          print('emulator firmware %d.%d.%d, floor %s' %
+                (got + (os.environ['KK_MIN_FW'],)))
+          if got < floor:
+              sys.exit('FATAL: the emulator image predates the tests that run '
+                       'against it. Republish kktech/kkemu from current '
+                       'firmware and pin the new digest above.')
+          PY
+
       # Step-level timeout, deliberately: a JOB-level timeout ends the job as
       # "cancelled", which reads as an infra blip. A step timeout is a FAILURE.
       - name: Run integration tests
-        timeout-minutes: 10
+        timeout-minutes: 8
         env:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
