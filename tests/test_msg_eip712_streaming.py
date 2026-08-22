@@ -87,7 +87,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         super(TestMsgEip712Streaming, self).setUp()
         self.requires_firmware("7.15.0")
         self.requires_fullFeature()
-        self.requires_message("EthereumSignTypedData")
+        self.requires_structured_eip712()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy('AdvancedMode', 1)
 
