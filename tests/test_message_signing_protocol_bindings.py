@@ -9,6 +9,29 @@ from keepkeylib import messages_tron_pb2 as tron_proto
 
 class TestMessageSigningProtocolBindings(unittest.TestCase):
 
+    def test_solana_recipient_owner_hint_is_additive_field_12(self):
+        field = solana_proto.SolanaSignTx.DESCRIPTOR.fields_by_name[
+            'token_recipient_owner'
+        ]
+        self.assertEqual(field.number, 12)
+        # protobuf 6 removed the public ``label`` accessor in favor of the
+        # semantic predicates; generated bindings must remain testable with
+        # both the release toolchain and current developer environments.
+        if hasattr(field, 'label'):
+            self.assertEqual(field.label, field.LABEL_REPEATED)
+        else:
+            self.assertTrue(field.is_repeated)
+        self.assertEqual(field.type, field.TYPE_BYTES)
+
+        owner = bytes(range(32))
+        encoded = solana_proto.SolanaSignTx(
+            address_n=[0x8000002c, 0x800001f5, 0x80000000, 0x80000000],
+            raw_tx=b'\x80x402',
+            token_recipient_owner=[owner],
+        ).SerializeToString()
+        decoded = solana_proto.SolanaSignTx.FromString(encoded)
+        self.assertEqual(list(decoded.token_recipient_owner), [owner])
+
     def test_solana_offchain_messages_are_mapped(self):
         self.assertEqual(proto.MessageType_SolanaSignOffchainMessage, 756)
         self.assertEqual(proto.MessageType_SolanaOffchainMessageSignature, 757)

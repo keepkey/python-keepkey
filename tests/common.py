@@ -80,14 +80,24 @@ class KeepKeyTest(unittest.TestCase):
             print("Setup finished")
             print("--------------")
 
+    def _drop_setup_screenshots(self):
+        # Discard wipe/load "setUp noise" frames so they can't be picked as a
+        # test's representative OLED image. No-op without a debuglink client.
+        fn = getattr(self.client, 'reset_screenshots', None)
+        if fn:
+            fn()
+
     def setup_mnemonic_allallall(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic_all, pin='', passphrase_protection=False, label='test', language='english')
+        self._drop_setup_screenshots()
 
     def setup_mnemonic_abandon(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic_abandon, pin='', passphrase_protection=False, label='test', language='english')
+        self._drop_setup_screenshots()
 
     def setup_mnemonic_nopin_nopassphrase(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic12, pin='', passphrase_protection=False, label='test', language='english')
+        self._drop_setup_screenshots()
 
     def setup_mnemonic_vuln20007(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic20007, pin='', passphrase_protection=False, label='test', language='english')
@@ -116,6 +126,56 @@ class KeepKeyTest(unittest.TestCase):
         version = "%s.%s.%s" % (features.major_version, features.minor_version, features.patch_version)
         if semver.VersionInfo.parse(version) < semver.VersionInfo.parse(ver_required):
             self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
+
+    def requires_taproot(self):
+        """Skip unless the firmware reports taproot support.
+
+        Gates on a capability rather than a version.  Which release taproot
+        ships in is still open, and a version gate that is never reached makes
+        these tests silently green forever -- the failure mode that looks
+        exactly like passing.
+        """
+        self.client.init_device()
+        if not getattr(self.client.features, 'supports_taproot', False):
+            self.skipTest("Firmware does not report supports_taproot")
+
+    def requires_structured_eip712(self):
+        """Skip unless the FIRMWARE drives the structured EIP-712 walk.
+
+        requires_message() cannot answer this. It asks whether
+        python-keepkey's own bindings define a message, which is a property of
+        the pinned submodule and not of the firmware under test -- so it passes
+        on every branch regardless, and a branch without eip712_stream.c fails
+        these tests as though the feature were broken rather than absent.
+
+        Probes the device instead: firmware that does not implement the walk
+        answers the opening message with Failure_UnexpectedMessage. A firmware
+        that DOES implement it answers with a struct request, and we cancel.
+        Anything else is left to fail the test, because "the feature is present
+        but misbehaving" must never be mistaken for "the feature is absent".
+        """
+        from keepkeylib import messages_ethereum_pb2 as _eth
+        from keepkeylib import messages_pb2 as _proto
+        from keepkeylib import types_pb2 as _types
+
+        probe = _eth.EthereumSignTypedData()
+        for n in (0x8000002C, 0x8000003C, 0x80000000, 0, 0):
+            probe.address_n.append(n)
+        probe.primary_type = "EIP712Domain"
+        probe.metamask_v4_compat = True
+
+        resp = self.client.call_raw(probe)
+        if isinstance(resp, _proto.Failure):
+            self.client.init_device()
+            if resp.code == _types.Failure_UnexpectedMessage:
+                self.skipTest(
+                    "Firmware does not implement structured EIP-712 "
+                    "(EthereumSignTypedData is not handled)")
+            # Any other Failure is a real problem; let the test run and report it.
+            return
+        # Feature is present -- put the device back before the test starts.
+        self.client.call_raw(_proto.Cancel())
+        self.client.init_device()
 
     def requires_message(self, msg_name):
         """Skip if firmware does not handle this message type.
@@ -150,6 +210,15 @@ class KeepKeyTest(unittest.TestCase):
         from keepkeylib import messages_pb2 as base_proto
         msg = getattr(proto, msg_name)()
         try:
+            # An empty probe cannot be serialized for messages with `required`
+            # fields (e.g. GetBip85Mnemonic word_count/index). That is a
+            # client-side limitation, NOT a firmware-support signal: the proto
+            # class exists and requires_firmware already gates the version, so
+            # let the real test exercise it rather than skipping.
+            msg.SerializeToString()
+        except Exception:
+            return
+        try:
             resp = self.client.call_raw(msg)
             if hasattr(resp, 'code') and resp.code == 1:  # Failure_UnexpectedMessage
                 self.skipTest("%s not supported by this firmware build" % msg_name)
@@ -162,6 +231,19 @@ class KeepKeyTest(unittest.TestCase):
       if self.client.features.firmware_variant == "KeepKeyBTC" or \
             self.client.features.firmware_variant == "EmulatorBTC":
         self.skipTest("Full feature firmware required to run this test")
+
+    def requires_bitcoinOnly(self):
+      """Inverse of requires_fullFeature(): skip unless this IS the
+      bitcoin-only product.
+
+      Usable since the firmware learned to report the variant honestly --
+      variant_getName() used to answer "Emulator" for both products, so a
+      bitcoin-only emulator was indistinguishable from a full one and this
+      guard could not be written.
+      """
+      if self.client.features.firmware_variant not in ("KeepKeyBTC",
+                                                       "EmulatorBTC"):
+        self.skipTest("Bitcoin-only firmware required to run this test")
 
             
 

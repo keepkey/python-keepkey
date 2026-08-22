@@ -18,11 +18,13 @@
 #
 # The script has been modified for KeepKey Device.
 
+import time
 import unittest
 import common
 import hashlib
 
 from keepkeylib import messages_pb2 as proto
+from keepkeylib import types_pb2 as proto_types
 from mnemonic import Mnemonic
 
 def generate_entropy(strength, internal_entropy, external_entropy):
@@ -109,6 +111,141 @@ class TestDeviceReset(common.KeepKeyTest):
         resp = self.client.call_raw(proto.Ping(pin_protection=True))
         self.assertIsInstance(resp, proto.Success)
 
+    def test_reset_device_dice(self):
+        self.requires_firmware("7.15.0")
+
+        external_entropy = b'zlutoucky kun upel divoke ody' * 2
+        strength = 256  # 99 rolls
+
+        ret = self.client.call_raw(proto.ResetDevice(display_random=False,
+                                               strength=strength,
+                                               passphrase_protection=False,
+                                               pin_protection=False,
+                                               language='english',
+                                               label='dice',
+                                               dice_entropy=True))
+
+        # Device announces the on-device dice entry screen
+        self.assertIsInstance(ret, proto.ButtonRequest)
+        self.assertEqual(ret.code, proto_types.ButtonRequest_DiceRoll)
+
+        # Ack without blocking on the reply: the device only leaves the dice
+        # screen once the rolls are complete, and input is ignored until the
+        # ButtonRequest is acked.
+        self.client.transport.write(proto.ButtonAck())
+        time.sleep(0.3)
+
+        # Inject rolls in max_size-40 chunks, exercising undo ('u') along the
+        # way. Simulate the same rules host-side to know the expected string.
+        chunks = [
+            "123456" * 6 + "1234",           # 40 digits
+            "654321" * 6 + "43u2",           # 39 digits + undo
+            "1234561234561234561u2u3",       # more undo churn
+            "555555555555555555555555",      # top up past 99 (extras dropped)
+        ]
+        expected = []
+        for chunk in chunks:
+            for c in chunk:
+                if c == 'u':
+                    if expected:
+                        expected.pop()
+                elif len(expected) < 99:
+                    expected.append(c)
+            self.client.debug.press_input(chunk)
+            time.sleep(0.2)
+        expected = ''.join(expected)
+        self.assertEqual(len(expected), 99)
+
+        # Rolls complete -> digest confirmation screen
+        resp = self.client.transport.read_blocking()
+        self.assertIsInstance(resp, proto.ButtonRequest)
+        self.assertEqual(resp.code, proto_types.ButtonRequest_DiceRoll)
+
+        # The device-computed digest must cover exactly the injected rolls
+        dice_digest = self.client.debug.read_dice_digest()
+        self.assertEqual(dice_digest,
+                         hashlib.sha256(expected.encode('ascii')).digest())
+
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
+
+        # From here the flow is the standard one: the displayed internal
+        # entropy is the post-dice-mix value and still binds the seed.
+        self.assertIsInstance(ret, proto.EntropyRequest)
+        internal_entropy = self.client.debug.read_reset_entropy()
+        resp = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
+
+        entropy = generate_entropy(strength, internal_entropy, external_entropy)
+        expected_mnemonic = Mnemonic('english').to_mnemonic(entropy)
+
+        # Explainer dialog, then the paginated backup
+        self.assertIsInstance(resp, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        resp = self.client.call_raw(proto.ButtonAck())
+
+        mnemonic = []
+        while isinstance(resp, proto.ButtonRequest):
+            mnemonic.append(self.client.debug.read_reset_word())
+            self.client.debug.press_yes()
+            resp = self.client.call_raw(proto.ButtonAck())
+
+        self.assertIsInstance(resp, proto.Success)
+        self.assertEqual(' '.join(mnemonic), expected_mnemonic)
+
+    def test_reset_reentry_disarms_entropy_ack(self):
+        """An abandoned reset must never leave EntropyAck armed.
+
+        Regression this guards: reset_init aborts (dice cancel, PIN mismatch,
+        ...) left awaiting_entropy set from an earlier run while zeroing
+        int_entropy, so a following EntropyAck derived the seed from
+        sha256(0*32 || host_bytes) -- entirely host-chosen.
+
+        7.15 closes it EARLIER and more strongly than the original fix did.
+        #429 replaced the separate awaiting_entropy flag with a single armed
+        (kind) ceremony, and setup_stage() now REFUSES to open a second
+        ceremony on top of an armed one. So the re-entry this test used to
+        perform is rejected outright rather than being allowed and then
+        disarmed -- there is no second ceremony to leave armed. Both halves are
+        asserted below: the refusal, and then the original property.
+        """
+        self.requires_firmware("7.15.0")
+        self.client.wipe_device()
+
+        # Arm a reset and walk away without acking the entropy request.
+        ret = self.client.call_raw(proto.ResetDevice(display_random=False,
+                                               strength=256,
+                                               passphrase_protection=False,
+                                               pin_protection=False,
+                                               language='english',
+                                               label='first'))
+        self.assertIsInstance(ret, proto.EntropyRequest)
+
+        # Re-entry is REFUSED while a ceremony is armed. This is the #429
+        # guard; before it, the second ResetDevice was accepted and the code
+        # had to remember to disarm the first one.
+        ret = self.client.call_raw(proto.ResetDevice(display_random=False,
+                                               strength=256,
+                                               passphrase_protection=False,
+                                               pin_protection=False,
+                                               language='english',
+                                               label='second',
+                                               dice_entropy=True))
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertIn('middle of setup', ret.message)
+
+        # Abandon the FIRST ceremony the way the host is told to.
+        ret = self.client.call_raw(proto.Cancel())
+        self.assertIsInstance(ret, proto.Failure)
+
+        # The abandoned reset must be disarmed, so this cannot generate a seed.
+        ret = self.client.call_raw(proto.EntropyAck(entropy=b'H' * 32))
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertIn('Not in Reset mode', ret.message)
+
+        # And the device must still be uninitialized.
+        ret = self.client.call_raw(proto.Initialize())
+        self.assertFalse(ret.initialized)
+
     def test_reset_device_pin(self):
         external_entropy = b'zlutoucky kun upel divoke ody' * 2
         strength = 128
@@ -120,10 +257,21 @@ class TestDeviceReset(common.KeepKeyTest):
                                                language='english',
                                                label='test'))
 
-        self.assertIsInstance(ret, proto.ButtonRequest)
-        self.client.debug.press_yes()
-        ret = self.client.call_raw(proto.ButtonAck())
-
+        # display_random=True above is deliberate: the field stays in the wire
+        # schema for host compatibility. Firmware 7.15.0 (fw 320f0eb5, "no
+        # entropy display") stopped honouring it -- internal entropy is seed
+        # pre-image material, and a host that sets the flag and reads that
+        # screen once can compute SHA256(shown || ext) and derive the seed.
+        #
+        # Branch on the version rather than skipping the test: everything below
+        # (PIN entry, EntropyRequest/Ack, mnemonic derivation) is version-
+        # independent and must keep running on older firmware.
+        f = self.client.features
+        if (f.major_version, f.minor_version, f.patch_version) < (7, 15, 0):
+            # Pre-7.15: the Internal Entropy screen legitimately still exists.
+            self.assertIsInstance(ret, proto.ButtonRequest)
+            self.client.debug.press_yes()
+            ret = self.client.call_raw(proto.ButtonAck())
         self.assertIsInstance(ret, proto.PinMatrixRequest)
 
         # Enter PIN for first time
@@ -193,10 +341,21 @@ class TestDeviceReset(common.KeepKeyTest):
                                                language='english',
                                                label='test'))
 
-        self.assertIsInstance(ret, proto.ButtonRequest)
-        self.client.debug.press_yes()
-        ret = self.client.call_raw(proto.ButtonAck())
-
+        # display_random=True above is deliberate: the field stays in the wire
+        # schema for host compatibility. Firmware 7.15.0 (fw 320f0eb5, "no
+        # entropy display") stopped honouring it -- internal entropy is seed
+        # pre-image material, and a host that sets the flag and reads that
+        # screen once can compute SHA256(shown || ext) and derive the seed.
+        #
+        # Branch on the version rather than skipping the test: everything below
+        # (PIN entry, EntropyRequest/Ack, mnemonic derivation) is version-
+        # independent and must keep running on older firmware.
+        f = self.client.features
+        if (f.major_version, f.minor_version, f.patch_version) < (7, 15, 0):
+            # Pre-7.15: the Internal Entropy screen legitimately still exists.
+            self.assertIsInstance(ret, proto.ButtonRequest)
+            self.client.debug.press_yes()
+            ret = self.client.call_raw(proto.ButtonAck())
         self.assertIsInstance(ret, proto.PinMatrixRequest)
 
         # Enter PIN for first time
