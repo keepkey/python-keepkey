@@ -2813,8 +2813,8 @@ SECTIONS = [
           ['Wipe Device confirm', 'Import Recovery Sentence confirm',
            'Home screen while locked out by the bitcoin-only band: no wallet',
            'Bitcoin Account #0 / Address #0 after the band stamp is removed - the wallet is back']),
-         ('U5', 'test_storage_version_gate', 'test_active_flash_format_is_v17',
-          'This build writes flash format V17',
+         ('U5', 'test_storage_version_gate', 'test_active_flash_format_is_v20',
+          'This build writes flash format V20, and the bump is argued',
           'An independent witness for the number the whole gate turns on. The compile-time '
           'assert in storage.c compares STORAGE_VERSION against STORAGE_VERSION_LAST_SHIPPED - '
           'two values in the same header, editable in one commit - so it cannot notice a release '
@@ -2822,7 +2822,20 @@ SECTIONS = [
           're-lands, this test fails and the bump has to be argued for in review rather than '
           'discovered in the field. Reads the firmware sources, so it runs even where no '
           'emulator can be restarted. No screen: it never touches the device, and the empty '
-          'list below says so.',
+          'list below says so.\n'
+          '7.16 moves to V20 to hold passkey credentials. It skips 18 and 19 because both were '
+          'ACTIVE formats in alpha builds before 6bebde7b2 reverted to V17 - 18 the clear-sign '
+          'identity block, 19 the PIN-KDF migration - so devices carrying those blobs exist, and '
+          'reusing a number would make this firmware PARSE one as passkey state rather than '
+          'refuse it. Upgrading preserves the wallet; downgrading to 7.15 or earlier erases it, '
+          'which is normal downgrade behaviour and is in the release note rather than left to be '
+          'discovered.',
+          []),
+         ('U5b', 'test_storage_version_gate', 'test_burned_versions_have_no_reader',
+          'Formats 18 and 19 have no reader, on purpose',
+          'The absence of a dispatch case is what sends a burned blob to the wipe path. That is '
+          'an easy thing to undo while tidying a switch statement, and undoing it would silently '
+          'restore the misparse - so the absence is asserted rather than assumed.',
           []),
          ('U6', 'test_storage_version_gate', 'test_version_never_drops_below_a_shipped_release',
           'The version never goes backwards or into the band',
