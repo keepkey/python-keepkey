@@ -169,7 +169,7 @@ jobs:
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
           KK_MIN_FW: "7.15.0"
           KK_UDP_TIMEOUT: "20"
-        working-directory: python-keepkey/tests
+        working-directory: keepkey-firmware/deps/python-keepkey/tests
         run: |
           python - <<'PY'
           import os, sys
@@ -199,18 +199,23 @@ jobs:
         env:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
-          PYTHONPATH: "${{ github.workspace }}/python-keepkey/keepkeylib:${{ github.workspace }}/python-keepkey"
+          PYTHONPATH: "${{ github.workspace }}/keepkey-firmware/deps/python-keepkey"
           # A crashed emulator now raises instead of blocking in recv() forever.
           KK_UDP_TIMEOUT: "45"
         run: |
-          cd python-keepkey/tests
+          # From the OVERLAID copy, not the standalone checkout: the
+          # storage-version-gate tests assert against lib/firmware/storage.c,
+          # which they find by walking UP. Run them as a sibling of the
+          # firmware and they resolve; run them standalone and they fail
+          # claiming the sources are missing.
+          cd keepkey-firmware/deps/python-keepkey/tests
           pytest -v --junitxml=junit.xml 2>&1 | tee pytest-output.txt
           echo "${PIPESTATUS[0]}" > status
 
       - name: Test summary
         if: always()
         run: |
-          XML="python-keepkey/tests/junit.xml"
+          XML="keepkey-firmware/deps/python-keepkey/tests/junit.xml"
           echo "## 🔑 KeepKey python-keepkey — Integration Tests" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
@@ -267,7 +272,7 @@ jobs:
         uses: mikepenz/action-junit-report@v4
         if: always()
         with:
-          report_paths: python-keepkey/tests/junit.xml
+          report_paths: keepkey-firmware/deps/python-keepkey/tests/junit.xml
           annotate_only: true
           require_tests: true
           fail_on_failure: true
@@ -275,5 +280,5 @@ jobs:
       - name: Fail on test failure
         if: always()
         run: |
-          STATUS=$(cat python-keepkey/tests/status 2>/dev/null || echo "1")
+          STATUS=$(cat keepkey-firmware/deps/python-keepkey/tests/status 2>/dev/null || echo "1")
           [ "$STATUS" = "0" ] || exit 1
