@@ -17,6 +17,12 @@ on:
   pull_request:
     branches: [master, develop, reconcile/upstream-sync]
 
+# One run per ref: a new push supersedes the old instead of both burning a
+# runner to completion.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ═══════════════════════════════════════════════════════════
   # STAGE 1: GATE
@@ -62,7 +68,7 @@ jobs:
   integration:
     needs: [lint]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 14
 
     services:
       kkemu:
@@ -101,11 +107,16 @@ jobs:
             sleep 1
           done
 
+      # Step-level timeout, deliberately: a JOB-level timeout ends the job as
+      # "cancelled", which reads as an infra blip. A step timeout is a FAILURE.
       - name: Run integration tests
+        timeout-minutes: 10
         env:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
           PYTHONPATH: "${{ github.workspace }}/keepkeylib:${{ github.workspace }}"
+          # A crashed emulator now raises instead of blocking in recv() forever.
+          KK_UDP_TIMEOUT: "45"
         run: |
           cd tests
           pytest -v --junitxml=junit.xml 2>&1 | tee pytest-output.txt
@@ -161,12 +172,20 @@ jobs:
           echo "---" >> "$GITHUB_STEP_SUMMARY"
           echo "*KeepKey python-keepkey CI*" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload test results
+      # NO check_name. With one, this action publishes a SEPARATE check run
+      # via the Checks API, and its require_tests default of 'false' means an
+      # absent junit.xml -- which is exactly what a killed pytest leaves behind
+      # -- reports conclusion:success with zero duration. That green check sat
+      # on top of a job timing out at 30 minutes for at least six merges.
+      # annotate_only keeps the inline annotations without minting a check.
+      - name: Annotate test results
         uses: mikepenz/action-junit-report@v4
         if: always()
         with:
           report_paths: tests/junit.xml
-          check_name: Integration Tests
+          annotate_only: true
+          require_tests: true
+          fail_on_failure: true
 
       - name: Fail on test failure
         if: always()
