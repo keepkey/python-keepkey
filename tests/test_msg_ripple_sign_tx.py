@@ -100,6 +100,71 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
         )
 
 
+    @unittest.skip(
+        "XRP memo is not a supported feature yet. A THORChain memo cannot "
+        "traverse hdwallet -> RippleSignTx: the protobuf has no memo field "
+        "(RippleSignTx carries 1-6, RipplePayment carries "
+        "amount/destination/destination_tag), and hdwallet's rippleSignTx "
+        "never reads tx.value.memo. The firmware therefore never receives it "
+        "and cannot serialize it. Tracked as keepkey/keepkey-vault#422.\n"
+        "\n"
+        "This assertion is CORRECT and is deliberately left intact: it "
+        "describes the behaviour the product needs. Do NOT make it pass by "
+        "asserting the memo is absent -- that would encode the bug as the "
+        "contract. Re-enable only when the signed serialization actually "
+        "preserves the memo."
+    )
+    def test_sign_with_thorchain_memo(self):
+        self.requires_fullFeature()
+        self.requires_firmware("7.14.2")
+
+        self.setup_mnemonic_allallall()
+
+        memo = "=:ETH.ETH:0xabcdef1234567890abcdef1234567890abcdef12:0:t:0"
+        msg = messages.RippleSignTx(
+            address_n=parse_path("m/44'/144'/0'/0/0"),
+            payment=messages.RipplePayment(
+                amount=100000000,
+                destination="rBKz5MC2iXdoS3XgnNSYmF69K1Yo4NS3Ws"
+            ),
+            flags=0x80000000,
+            fee=100000,
+            sequence=25,
+            memo=memo
+        )
+        resp = self.client.call(msg)
+
+        # Verify the XRPL Memos array is appended to the serialized tx.
+        # Format: 0xF9 (STArray[9]) 0xEA (STObject[10]) 0x7D (MemoData VL[13])
+        #         <varint len> <UTF-8 memo bytes> 0xE1 (end object) 0xF1 (end array)
+        memo_bytes = memo.encode('ascii')
+        expected_tail = (
+            bytes([0xF9, 0xEA, 0x7D, len(memo_bytes)]) +
+            memo_bytes +
+            bytes([0xE1, 0xF1])
+        )
+        self.assertTrue(
+            resp.serialized_tx.endswith(expected_tail),
+            "serialized_tx must end with XRPL Memos array containing THORChain routing memo"
+        )
+
+        # A plain send without memo must not contain the Memos marker
+        msg_no_memo = messages.RippleSignTx(
+            address_n=parse_path("m/44'/144'/0'/0/0"),
+            payment=messages.RipplePayment(
+                amount=100000000,
+                destination="rBKz5MC2iXdoS3XgnNSYmF69K1Yo4NS3Ws"
+            ),
+            flags=0x80000000,
+            fee=100000,
+            sequence=26
+        )
+        resp2 = self.client.call(msg_no_memo)
+        self.assertFalse(
+            b'\xf9\xea' in resp2.serialized_tx,
+            "plain send must not contain Memos array (0xF9 0xEA marker sequence)"
+        )
+
     def test_ripple_sign_invalid_fee(self):
         self.requires_fullFeature()
         self.requires_firmware("6.4.0")

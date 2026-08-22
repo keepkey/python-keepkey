@@ -29,6 +29,39 @@ from keepkeylib import tools
 
 class TestMsgE712Verify(common.KeepKeyTest):
   
+    def test_structured_eip712_is_refused(self):
+        """7.14.2 disables structured EIP-712 outright.
+
+        ethereum_structured_eip712_enabled() returns false
+        (lib/firmware/ethereum.c), so fsm_msgEthereum712TypesValues fails closed
+        before parsing anything. The legacy JSON parser could not guarantee that
+        every displayed value was the canonical value being hashed, and the
+        release withdrew the feature rather than ship a screen it could not
+        vouch for.
+
+        This is NOT an AdvancedMode gate and there is no opt-in: assert the
+        refusal. When a canonical implementation lands, this test should be
+        replaced by test_verify below, not simply deleted.
+        """
+        self.requires_fullFeature()
+        self.requires_firmware("7.14.2")
+        self.setup_mnemonic_allallall()
+
+        try:
+            self.client.e712_types_values(
+                n=tools.parse_path("m/44'/60'/0'/0/0"),
+                types_prop='{"types": {"EIP712Domain": []}}',
+                ptype_prop='{"primaryType": "EIP712Domain"}',
+                value_prop='{"domain": {}}',
+                typevals=1,
+            )
+            self.fail("Expected Failure -- structured EIP-712 is disabled in 7.14.2")
+        except CallException as e:
+            self.assertIn("Structured EIP-712 disabled", str(e))
+
+    @unittest.skip("structured EIP-712 is disabled in 7.14.2; see "
+                   "test_structured_eip712_is_refused. Re-enable together with "
+                   "a canonical display implementation.")
     def test_verify(self):
         self.requires_fullFeature()
         self.requires_firmware("7.5.1")
