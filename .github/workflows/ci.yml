@@ -1,14 +1,37 @@
 # KeepKey python-keepkey CI
 #
-# Pulls the published emulator image (kktech/kkemu) from DockerHub
-# and runs the full python integration test suite against it.
-#
 # Stage 1: GATE (seconds)
 #   └─ lint        basic Python syntax check
 #
 # Stage 2: TEST (gated by Stage 1)
-#   └─ integration full pytest suite against emulator
-
+#   └─ integration full pytest suite against the kktech/kkemu service image
+#
+# NOTE on what this job tests: it runs against a PUBLISHED emulator image, so
+# it tests the tests against whatever firmware that image was built from, not
+# against current firmware. Suites that gate on requires_firmware() therefore
+# SKIP rather than fail when the image is older than the feature -- the run
+# stays green while covering less than it appears to. Building the emulator
+# from current firmware in this job is the fix, and is what removes the
+# caveat; it is not done here.
+#
+# This is the ONLY CI for this repo. A CircleCI job (emulator-build-test) ran
+# alongside it and is retired here -- see .circleci/config.yml in history.
+# It is not worth keeping:
+#
+#   * It cloned firmware `master` unconditionally, so a branch carrying a newer
+#     test harness was always run against older firmware, and failed for a
+#     reason the pull request did not cause. It has been red since build #673
+#     while these workflows stayed green on the same commits.
+#   * It set no timeouts. A hung test produced no output until CircleCI killed
+#     the job at ten minutes, which reports a timeout rather than a failing
+#     test and discards every result after the hang.
+#   * Its own result collection was broken independently: the final step read
+#     test-reports/python-keepkey/status, which no longer exists, so the job
+#     could not report a verdict even when the suite completed.
+#   * It also ran the firmware's C++ firmware-unit suite, which covers firmware
+#     code that no change in THIS repo can affect, and which the firmware repo
+#     already runs in its own CI.
+#
 name: CI
 
 on:
