@@ -442,7 +442,18 @@ class TestStorageVersionGateSource(unittest.TestCase):
             "is a deliberate release act (docs/StorageVersionGate.md): confirm "
             "the reader chain, the anti-rollback story, and the release notes, "
             "then update this test." % self.version)
-        self.assertEqual(20, self.last_shipped)
+        # LAST_SHIPPED stays at 17 until 7.16 actually SHIPS in a signed
+        # release. It is the high-water mark of what is IN THE FIELD, not of
+        # what is in the tree -- and storage.h says two lines above the
+        # constant that raising it to make a build compile "is the exact edit
+        # that turns every upgrade in the field into a silent wipe". The
+        # compile-time assert only needs STORAGE_VERSION >= LAST_SHIPPED, and
+        # 20 >= 17 holds, so nothing requires the raise.
+        self.assertEqual(
+            17, self.last_shipped,
+            "STORAGE_VERSION_LAST_SHIPPED is %d. It tracks the last SIGNED "
+            "release (7.15 = V17) and moves in the release commit that tags "
+            "7.16, not when a format lands in the tree." % self.last_shipped)
 
     def test_burned_versions_have_no_reader(self):
         """18 and 19 must never be parsed by 7.16.
