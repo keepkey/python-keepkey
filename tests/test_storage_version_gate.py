@@ -455,22 +455,50 @@ class TestStorageVersionGateSource(unittest.TestCase):
             "release (7.15 = V17) and moves in the release commit that tags "
             "7.16, not when a format lands in the tree." % self.last_shipped)
 
-    def test_burned_versions_have_no_reader(self):
-        """18 and 19 must never be parsed by 7.16.
+    def test_burned_versions_are_dispatched_to_the_wipe_path(self):
+        """18 and 19 must never be PARSED by 7.16.
 
         They were real formats in alpha builds before the 7.15 revert, so
         devices carrying them exist. A reader for either would parse a
-        clear-sign identity block or a PIN-KDF blob as passkey state. The
-        absence of a case in the dispatch is what sends them to the wipe path,
-        and this test is what stops one being added back by someone tidying up
-        the switch.
+        clear-sign identity block or a PIN-KDF blob as passkey state.
+
+        This used to assert the absence of a `case StorageVersion_18:` label,
+        on the theory that falling to the default is what sends them to the
+        wipe path. That was wrong twice over: storage_fromFlash has NO default
+        case -- deliberately, so -Werror=switch names any version we forget --
+        so an unlisted version does not fall anywhere, it fails the ARM build.
+
+        So the labels must exist. What must NOT exist is a reader behind them.
+        Assert the real property: 18 and 19 are dispatched, and what they
+        dispatch to is SUS_Invalid rather than any storage_readVxx call.
         """
-        self.assertNotIn("case StorageVersion_18:", self.c,
-                         "18 is a burned format; a reader would misparse blobs "
-                         "written by pre-revert alpha builds")
-        self.assertNotIn("case StorageVersion_19:", self.c,
-                         "19 is a burned format; a reader would misparse blobs "
-                         "written by pre-revert alpha builds")
+        for burned in (18, 19):
+            label = "case StorageVersion_%d:" % burned
+            self.assertIn(
+                label, self.c,
+                "%s must be listed; storage_fromFlash has no default case, so "
+                "an unlisted version breaks the -Werror=switch build" % label)
+
+        # The two labels must sit together and return SUS_Invalid before any
+        # other case begins. Slice from the first burned label to the next
+        # `case ` that is not one of the burned ones.
+        i = self.c.index("case StorageVersion_18:")
+        rest = self.c[i:]
+        j = len(rest)
+        for m in re.finditer(r"\n\s*case StorageVersion_(\w+):", rest):
+            if m.group(1) not in ("18", "19"):
+                j = m.start()
+                break
+        arm = rest[:j]
+
+        self.assertIn(
+            "SUS_Invalid", arm,
+            "the burned versions must return SUS_Invalid (the wipe path); "
+            "arm was:\n%s" % arm)
+        self.assertNotIn(
+            "storage_read", arm,
+            "a reader behind a burned version would misparse blobs written by "
+            "pre-revert alpha builds; arm was:\n%s" % arm)
 
     def test_version_never_drops_below_a_shipped_release(self):
         """Lowering STORAGE_VERSION wipes every device upgrading FROM a shipped

@@ -139,6 +139,43 @@ class KeepKeyTest(unittest.TestCase):
         if not getattr(self.client.features, 'supports_taproot', False):
             self.skipTest("Firmware does not report supports_taproot")
 
+    def requires_structured_eip712(self):
+        """Skip unless the FIRMWARE drives the structured EIP-712 walk.
+
+        requires_message() cannot answer this. It asks whether
+        python-keepkey's own bindings define a message, which is a property of
+        the pinned submodule and not of the firmware under test -- so it passes
+        on every branch regardless, and a branch without eip712_stream.c fails
+        these tests as though the feature were broken rather than absent.
+
+        Probes the device instead: firmware that does not implement the walk
+        answers the opening message with Failure_UnexpectedMessage. A firmware
+        that DOES implement it answers with a struct request, and we cancel.
+        Anything else is left to fail the test, because "the feature is present
+        but misbehaving" must never be mistaken for "the feature is absent".
+        """
+        from keepkeylib import messages_ethereum_pb2 as _eth
+        from keepkeylib import messages_pb2 as _proto
+
+        probe = _eth.EthereumSignTypedData()
+        for n in (0x8000002C, 0x8000003C, 0x80000000, 0, 0):
+            probe.address_n.append(n)
+        probe.primary_type = "EIP712Domain"
+        probe.metamask_v4_compat = True
+
+        resp = self.client.call_raw(probe)
+        if isinstance(resp, _proto.Failure):
+            self.client.init_device()
+            if resp.code == _proto.Failure_UnexpectedMessage:
+                self.skipTest(
+                    "Firmware does not implement structured EIP-712 "
+                    "(EthereumSignTypedData is not handled)")
+            # Any other Failure is a real problem; let the test run and report it.
+            return
+        # Feature is present -- put the device back before the test starts.
+        self.client.call_raw(_proto.Cancel())
+        self.client.init_device()
+
     def requires_message(self, msg_name):
         """Skip if firmware does not handle this message type.
         Use alongside requires_firmware for per-feature gating:
