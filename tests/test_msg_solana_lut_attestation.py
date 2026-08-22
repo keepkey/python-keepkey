@@ -169,6 +169,11 @@ class TestSolanaLutAttestation(common.KeepKeyTest):
         accounts = [b'\x51' * 32]
 
         base_codes, _ = self._screens(raw_tx=raw)
+        # Same reload as the attested case above: a completed signing tears the
+        # RAM-only session down, so without this the second run would find no
+        # signer, verify nothing, and pass vacuously by comparing two identical
+        # baseline flows -- which is exactly what this test must not do.
+        self._load_signer()
         bad_codes, resp = self._screens(
             raw_tx=raw, lut_account=accounts,
             lut_signature=b'\x00' * 64, lut_signer_key_id=SLOT)
@@ -190,6 +195,11 @@ class TestSolanaLutAttestation(common.KeepKeyTest):
         sig_for_a = self._attest(raw_a, accounts)
 
         base_codes, _ = self._screens(raw_tx=raw_b)
+        # Same reload as the attested case above: a completed signing tears the
+        # RAM-only session down, so without this the second run would find no
+        # signer, verify nothing, and pass vacuously by comparing two identical
+        # baseline flows -- which is exactly what this test must not do.
+        self._load_signer()
         replay_codes, _ = self._screens(
             raw_tx=raw_b, lut_account=accounts,
             lut_signature=sig_for_a, lut_signer_key_id=SLOT)

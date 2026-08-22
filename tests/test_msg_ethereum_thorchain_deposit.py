@@ -126,7 +126,7 @@ class TestMsgEthereumThorchainDeposit(common.KeepKeyTest):
         import keepkeylib.types_pb2 as types
 
         # No AdvancedMode, random contract address — should be rejected
-        with self.assertRaises((CallException, Exception)):
+        with self.assertRaises(CallException):
             self.client.ethereum_sign_tx(
                 n=parse_path("m/44'/60'/0'/0/0"),
                 nonce=3,
@@ -195,7 +195,7 @@ class TestMsgEthereumThorchainDeposit(common.KeepKeyTest):
         memo = "=:ETH.ETH:0xabcdef1234567890abcdef1234567890abcdef12:0:t:0"
         data = _build_deposit_with_expiry_calldata(memo)
 
-        with self.assertRaises((CallException, Exception)):
+        with self.assertRaises(CallException):
             self.client.ethereum_sign_tx(
                 n=parse_path("m/44'/60'/0'/0/0"),
                 nonce=5,

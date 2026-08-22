@@ -7,6 +7,24 @@ from binascii import hexlify, unhexlify
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.tools import parse_path
+from keepkeylib.signed_metadata import eth_sighash_legacy, keccak256
+
+
+def recover_eth_signer(sig_r, sig_s, sig_v, digest, chain_id):
+    """Recover the 20-byte Ethereum signer from a legacy (EIP-155) signature.
+
+    Same helper as test_msg_mayachain_signtx.py. Recovering the signer -- rather
+    than asserting r/s lengths -- means a wrong digest, wrong calldata, wrong
+    key or wrong curve fails the test, and it stays correct across router
+    changes without re-freezing vectors, which a frozen (r,s) pair does not.
+    """
+    from ecdsa import VerifyingKey, SECP256k1, util
+    rec = sig_v - (35 + 2 * chain_id) if chain_id else sig_v - 27
+    keys = VerifyingKey.from_public_key_recovery_with_digest(
+        sig_r + sig_s, digest, SECP256k1, hashfunc=None,
+        sigdecode=util.sigdecode_string,
+    )
+    return keccak256(keys[rec].to_string())[-20:]
 
 DEFAULT_BIP32_PATH = "m/44h/931h/0h/0/0"
 
@@ -72,16 +90,13 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.requires_firmware("7.1.0")
         self.setup_mnemonic_nopin_nopassphrase()
-        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
-            n=[2147483692,2147483708,2147483648,0,0],
-            nonce=0x0,
-            gas_price=0x5FB9ACA00,
-            gas_limit=0x186A0,
-            value=0x00,
-            to=unhexlify('d37bbe5744d730a1d98d8dc97c42f0ca46ad7146'),  # THORChain router v4.1.1 (firmware-pinned)
-            address_type=0,
-            chain_id=1,
-            data=unhexlify('1fece7b4' +
+        address_n = [2147483692,2147483708,2147483648,0,0]
+        nonce = 0x0
+        gas_price = 0x5FB9ACA00
+        gas_limit = 0x186A0
+        value = 0x00
+        to = unhexlify('d37bbe5744d730a1d98d8dc97c42f0ca46ad7146')  # THORChain router v4.1.1
+        data = unhexlify('1fece7b4' +
             '000000000000000000000000345b297ec83add7ff74d2f7933651bffa037d956' +    # asgard vault address
             '0000000000000000000000000000000000000000000000000000000000000000' +    # asset ETH
             '000000000000000000000000000000000000000000000065945acd2b867ef000' +    # amount
@@ -90,13 +105,20 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             # SWAP:BTC.BTC:0x41e5560054824ea6b0732e656e3ad64e20e94e45:420
             '535741503a4254432e4254433a30783431653535363030353438323465613662' +    # thorchain transaction memo
             '30373332653635366533616436346532306539346534353a3432300000000000')
-        )   
-        # `to` updated to the firmware-pinned THORChain router; exact r/s
-        # change with it, so assert structure here and regenerate exact vectors
-        # on-device.
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=address_n, nonce=nonce, gas_price=gas_price, gas_limit=gas_limit,
+            value=value, to=to, address_type=0, chain_id=1, data=data)
+        # Verify the signature is over the EXACT transaction above and by
+        # THIS device's key. Length checks alone would also pass for a wrong
+        # router, wrong calldata or wrong sighash; recovery would not.
         self.assertIn(sig_v, [37, 38])  # EIP-155 chain_id=1
         self.assertEqual(len(sig_r), 32)
         self.assertEqual(len(sig_s), 32)
+        digest = eth_sighash_legacy(nonce, gas_price, gas_limit, to, value,
+                                    data, 1)
+        signer = recover_eth_signer(sig_r, sig_s, sig_v, digest, 1)
+        # NB: KeepKeyTest's assertEqual override takes no msg argument.
+        self.assertEqual(signer, self.client.ethereum_get_address(address_n))
 
 
     def test_sign_btc_add_liquidity(self):
@@ -123,16 +145,13 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.requires_firmware("7.0.2")
         self.setup_mnemonic_nopin_nopassphrase()
-        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
-                        n=[2147483692,2147483708,2147483648,0,0],
-            nonce=0x0,
-            gas_price=0x5FB9ACA00,
-            gas_limit=0x186A0,
-            value=0x00,
-            to=unhexlify('d37bbe5744d730a1d98d8dc97c42f0ca46ad7146'),  # THORChain router v4.1.1 (firmware-pinned)
-            address_type=0,
-            chain_id=1,
-            data=unhexlify('1fece7b4' +
+        address_n = [2147483692,2147483708,2147483648,0,0]
+        nonce = 0x0
+        gas_price = 0x5FB9ACA00
+        gas_limit = 0x186A0
+        value = 0x00
+        to = unhexlify('d37bbe5744d730a1d98d8dc97c42f0ca46ad7146')  # THORChain router v4.1.1
+        data = unhexlify('1fece7b4' +
             '0000000000000000000000000000000000000000000000000000000000000000' +
             '0000000000000000000000000000000000000000000000000000000000000000' +
             '0000000000000000000000000000000000000000000000000000000000000000' +
@@ -141,22 +160,28 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             # ADD:ETH.ETH:0xc5b2608927ea95ed43f842f553e3a27b09c050e8:420
             '4144443a4554482e4554483a3078633562323630383932376561393565643433' +
             '663834326635353365336132376230396330353065383a343230000000000000')
-
-        )
-        # `to` updated to the firmware-pinned THORChain router; exact r/s
-        # change with it, so assert structure here and regenerate exact vectors
-        # on-device.
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=address_n, nonce=nonce, gas_price=gas_price, gas_limit=gas_limit,
+            value=value, to=to, address_type=0, chain_id=1, data=data)
+        # Verify the signature is over the EXACT transaction above and by
+        # THIS device's key. Length checks alone would also pass for a wrong
+        # router, wrong calldata or wrong sighash; recovery would not.
         #
-        # 7.14.2 regenerated exact vectors for this calldata, but against the
-        # OLD `to` (0x41e5560054824ea6b0732e656e3ad64e20e94e45). `to` is an RLP
-        # field of the sighash, so they do not describe the tx signed above.
-        # Retained as the oracle for that superseded fixture:
+        # 7.14.2 froze exact vectors for this calldata against the OLD `to`
+        # (0x41e5560054824ea6b0732e656e3ad64e20e94e45). `to` is an RLP field of
+        # the sighash, so they describe a different transaction. Kept as the
+        # oracle for that superseded fixture:
         #   sig_v 37
         #   r 7adc5bda6e66b37a81962557c844509c4bfaa1e9217fc6d05968286d60b67dbf
         #   s 613479150c4cfbcdc8243055aa5137afc89826c4176c420a60409f139171831b
         self.assertIn(sig_v, [37, 38])  # EIP-155 chain_id=1
         self.assertEqual(len(sig_r), 32)
         self.assertEqual(len(sig_s), 32)
+        digest = eth_sighash_legacy(nonce, gas_price, gas_limit, to, value,
+                                    data, 1)
+        signer = recover_eth_signer(sig_r, sig_s, sig_v, digest, 1)
+        # NB: KeepKeyTest's assertEqual override takes no msg argument.
+        self.assertEqual(signer, self.client.ethereum_get_address(address_n))
 
     def test_thorchain_remove_liquidity(self):
         self.requires_fullFeature()

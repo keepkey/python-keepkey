@@ -54,12 +54,27 @@ def encode_static_args(types, values):
     for typ, val in zip(types, values):
         if typ == 'address':
             out += _addr_word(val)
-        elif typ.startswith('uint') or typ.startswith('int'):
-            digits = typ[4:] if typ.startswith('uint') else typ[3:]
+        elif typ.startswith('uint'):
+            digits = typ[4:]
             bits = int(digits) if digits else 256
             n = int(val)
-            assert 0 <= n < (1 << bits), 'value %r out of range for %s' % (val, typ)
+            assert 0 <= n < (1 << bits), (
+                'value %r out of range for %s' % (val, typ))
             out += n.to_bytes(32, 'big')
+        elif typ.startswith('int'):
+            # Signed types are NOT unsigned ones with a wider range. intN holds
+            # [-2^(N-1), 2^(N-1)-1] and is encoded two's-complement, sign-
+            # extended to the full word. Treating it as unsigned both rejected
+            # every negative value and silently accepted values at or above
+            # 2^(N-1), which the EVM reads back as NEGATIVE -- calldata that
+            # does not mean what the declared type says.
+            digits = typ[3:]
+            bits = int(digits) if digits else 256
+            n = int(val)
+            lo, hi = -(1 << (bits - 1)), (1 << (bits - 1)) - 1
+            assert lo <= n <= hi, (
+                'value %r out of range for %s (%d..%d)' % (val, typ, lo, hi))
+            out += n.to_bytes(32, 'big', signed=True)
         elif typ == 'bool':
             out += (1 if val else 0).to_bytes(32, 'big')
         elif typ.startswith('bytes') and typ != 'bytes' and not typ.endswith('[]'):

@@ -1204,6 +1204,17 @@ class ProtocolMixin(object):
                     raise CallException("Thorchain.MsgSend", "Multiple amounts per send msg not supported")
 
                 denom = msg['value']['amount'][0]['denom']
+                # Fail CLOSED on any other denomination, deliberately.
+                #
+                # ThorchainMsgSend carries a `denom` field, but the firmware
+                # this talks to builds its amino sign-doc with the string
+                # "rune" HARDCODED (lib/firmware/thorchain.c) -- only 7.15+
+                # reads a denom and validates it. nanopb SKIPS unknown fields
+                # rather than rejecting them, so forwarding `denom` to older
+                # firmware would be silently ignored and the device would sign
+                # a rune transfer while the host believed it had sent another
+                # asset. Refusing is the only safe answer until the capability
+                # can be detected; do not "fix" this by passing denom through.
                 if denom != 'rune':
                     raise CallException("Thorchain.MsgSend", "Unsupported denomination: " + denom)
 

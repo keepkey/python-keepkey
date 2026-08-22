@@ -40,6 +40,17 @@ class Eip712Error(Exception):
     pass
 
 
+def _dimension(levels, used):
+    """The declared size of the array level being entered.
+
+    Solidity nests right-to-left: in `T[k][j]` the OUTER array has j elements,
+    so `int16[2][][4]` parses to [2, 0, 4] but the first list a walker meets
+    holds 4. Levels are therefore consumed from the END. With a single
+    dimension both ends coincide, which is why this went unnoticed.
+    """
+    return levels[len(levels) - 1 - used]
+
+
 def parse_solidity_type(type_str):
     """"uint256", "bytes32", "Person[3]", "int16[2][][4]" -> field descriptor.
 
@@ -243,7 +254,7 @@ def resolve_member_path(typed_data, path):
     for i in range(1, len(path)):
         index = path[i]
         if levels_used < len(field['array_levels']):
-            declared = field['array_levels'][levels_used]
+            declared = _dimension(field['array_levels'], levels_used)
             if not isinstance(value, list):
                 raise Eip712Error('Expected an array at %r' % (path[:i],))
             if declared and len(value) != declared:
@@ -269,7 +280,7 @@ def resolve_member_path(typed_data, path):
         value = value[member['name']]
 
     if levels_used < len(field['array_levels']):
-        declared = field['array_levels'][levels_used]
+        declared = _dimension(field['array_levels'], levels_used)
         if not isinstance(value, list):
             raise Eip712Error('Expected an array for a length request')
         if declared and len(value) != declared:
