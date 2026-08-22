@@ -75,7 +75,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
-        self.client.apply_policy('AdvancedMode', True)
+        # 7.14.2 gates TonSignTx behind AdvancedMode: the device cannot parse
+        # raw_tx, so every TonSignTx is a blind signature and must be disclosed
+        # as one. This test exercises signing correctness, so it opts in
+        # explicitly rather than the firmware relaxing the gate.
+        self.client.apply_policy("AdvancedMode", 1)
 
         dest_addr = make_ton_address()
 
@@ -101,7 +105,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """Test TON transfer with a text memo (blind-sign path)."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
-        self.client.apply_policy('AdvancedMode', True)
+        # 7.14.2 gates TonSignTx behind AdvancedMode: the device cannot parse
+        # raw_tx, so every TonSignTx is a blind signature and must be disclosed
+        # as one. This test exercises signing correctness, so it opts in
+        # explicitly rather than the firmware relaxing the gate.
+        self.client.apply_policy("AdvancedMode", 1)
 
         dest_addr = make_ton_address()
 
@@ -125,7 +133,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """Test legacy blind-sign with raw_tx field."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
-        self.client.apply_policy('AdvancedMode', True)
+        # 7.14.2 gates TonSignTx behind AdvancedMode: the device cannot parse
+        # raw_tx, so every TonSignTx is a blind signature and must be disclosed
+        # as one. This test exercises signing correctness, so it opts in
+        # explicitly rather than the firmware relaxing the gate.
+        self.client.apply_policy("AdvancedMode", 1)
 
         raw_tx = b'\x00' * 64
 
@@ -141,7 +153,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """Test that incomplete structured fields are rejected."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
-        self.client.apply_policy('AdvancedMode', True)
+        # Same 7.14.2 AdvancedMode gate as the signing tests above, but this is
+        # a reject-path test: with the gate CLOSED the firmware refuses every
+        # TonSignTx, so the assertion below would pass without the parser ever
+        # validating anything. Opt in so the rejection proves what it claims.
+        self.client.apply_policy("AdvancedMode", 1)
 
         msg = ton_messages.TonSignTx(
             address_n=parse_path(TON_PATH),
@@ -155,7 +171,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """Test that signing the same message produces same signature."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
-        self.client.apply_policy('AdvancedMode', True)
+        # 7.14.2 gates TonSignTx behind AdvancedMode: the device cannot parse
+        # raw_tx, so every TonSignTx is a blind signature and must be disclosed
+        # as one. This test exercises signing correctness, so it opts in
+        # explicitly rather than the firmware relaxing the gate.
+        self.client.apply_policy("AdvancedMode", 1)
 
         dest_addr = make_ton_address()
         raw_tx = hashlib.sha256(b'test-ton-deterministic').digest() * 2  # 64 bytes
@@ -186,7 +206,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """Empty raw_tx (0 bytes) should be rejected by firmware."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
-        self.client.apply_policy('AdvancedMode', True)
+        # Same 7.14.2 AdvancedMode gate as the signing tests above, but this is
+        # a reject-path test: with the gate CLOSED the firmware refuses every
+        # TonSignTx, so the assertion below would pass without the parser ever
+        # validating anything. Opt in so the rejection proves what it claims.
+        self.client.apply_policy("AdvancedMode", 1)
 
         msg = ton_messages.TonSignTx(
             address_n=parse_path(TON_PATH),
@@ -200,7 +224,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """raw_tx of 1025 bytes exceeds proto max (1024) and should be rejected."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
-        self.client.apply_policy('AdvancedMode', True)
+        # Same 7.14.2 AdvancedMode gate as the signing tests above, but this is
+        # a reject-path test: with the gate CLOSED the firmware refuses every
+        # TonSignTx, so the assertion below would pass without the parser ever
+        # validating anything. Opt in so the rejection proves what it claims.
+        self.client.apply_policy("AdvancedMode", 1)
 
         raw_tx = b'\xAB' * 1025
 
@@ -216,7 +244,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """Empty memo string should be accepted (memo is optional text)."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
-        self.client.apply_policy('AdvancedMode', True)
+        # 7.14.2 gates TonSignTx behind AdvancedMode: the device cannot parse
+        # raw_tx, so every TonSignTx is a blind signature and must be disclosed
+        # as one. This test exercises signing correctness, so it opts in
+        # explicitly rather than the firmware relaxing the gate.
+        self.client.apply_policy("AdvancedMode", 1)
 
         dest_addr = make_ton_address()
         raw_tx = hashlib.sha256(b'test-ton-empty-memo').digest() * 2  # 64 bytes
@@ -238,7 +270,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """Memo of 120 characters (near max_size 121) should be accepted."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
-        self.client.apply_policy('AdvancedMode', True)
+        # 7.14.2 gates TonSignTx behind AdvancedMode: the device cannot parse
+        # raw_tx, so every TonSignTx is a blind signature and must be disclosed
+        # as one. This test exercises signing correctness, so it opts in
+        # explicitly rather than the firmware relaxing the gate.
+        self.client.apply_policy("AdvancedMode", 1)
 
         dest_addr = make_ton_address()
         raw_tx = hashlib.sha256(b'test-ton-long-memo').digest() * 2  # 64 bytes
@@ -261,7 +297,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """Explicit workchain=0 (basechain) in TonSignTx."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
-        self.client.apply_policy('AdvancedMode', True)
+        # 7.14.2 gates TonSignTx behind AdvancedMode: the device cannot parse
+        # raw_tx, so every TonSignTx is a blind signature and must be disclosed
+        # as one. This test exercises signing correctness, so it opts in
+        # explicitly rather than the firmware relaxing the gate.
+        self.client.apply_policy("AdvancedMode", 1)
 
         dest_addr = make_ton_address()
         raw_tx = hashlib.sha256(b'test-ton-workchain-zero').digest() * 2  # 64 bytes
@@ -289,7 +329,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
-        self.client.apply_policy('AdvancedMode', True)
+        # 7.14.2 gates TonSignTx behind AdvancedMode: the device cannot parse
+        # raw_tx, so every TonSignTx is a blind signature and must be disclosed
+        # as one. This test exercises signing correctness, so it opts in
+        # explicitly rather than the firmware relaxing the gate.
+        self.client.apply_policy("AdvancedMode", 1)
 
         dest_addr = make_ton_address()
         raw_tx = hashlib.sha256(b'test-ton-workchain-default').digest() * 2  # 64 bytes
@@ -326,7 +370,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """Signing with different account paths must produce different signatures."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
-        self.client.apply_policy('AdvancedMode', True)
+        # 7.14.2 gates TonSignTx behind AdvancedMode: the device cannot parse
+        # raw_tx, so every TonSignTx is a blind signature and must be disclosed
+        # as one. This test exercises signing correctness, so it opts in
+        # explicitly rather than the firmware relaxing the gate.
+        self.client.apply_policy("AdvancedMode", 1)
 
         dest_addr = make_ton_address()
         raw_tx = hashlib.sha256(b'test-ton-different-accounts').digest() * 2  # 64 bytes

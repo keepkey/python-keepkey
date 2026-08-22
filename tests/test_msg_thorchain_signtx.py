@@ -137,7 +137,7 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
             '0000000000000000000000000000000000000000000000000000000000000000' +
             '0000000000000000000000000000000000000000000000000000000000000000' +
             '0000000000000000000000000000000000000000000000000000000000000080' +  # offset of memo string from 4
-            '000000000000000000000000000000000000000000000000000000000000003a' +  # length of memo string in bytes (58, not 59: the 59th byte is ABI padding)
+            '000000000000000000000000000000000000000000000000000000000000003a' +  # length of memo string in bytes (58: ADD:ETH.ETH:<addr>:420; the 59th byte the old 0x3b counted was ABI padding)
             # ADD:ETH.ETH:0xc5b2608927ea95ed43f842f553e3a27b09c050e8:420
             '4144443a4554482e4554483a3078633562323630383932376561393565643433' +
             '663834326635353365336132376230396330353065383a343230000000000000')
@@ -146,6 +146,14 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         # `to` updated to the firmware-pinned THORChain router; exact r/s
         # change with it, so assert structure here and regenerate exact vectors
         # on-device.
+        #
+        # 7.14.2 regenerated exact vectors for this calldata, but against the
+        # OLD `to` (0x41e5560054824ea6b0732e656e3ad64e20e94e45). `to` is an RLP
+        # field of the sighash, so they do not describe the tx signed above.
+        # Retained as the oracle for that superseded fixture:
+        #   sig_v 37
+        #   r 7adc5bda6e66b37a81962557c844509c4bfaa1e9217fc6d05968286d60b67dbf
+        #   s 613479150c4cfbcdc8243055aa5137afc89826c4176c420a60409f139171831b
         self.assertIn(sig_v, [37, 38])  # EIP-155 chain_id=1
         self.assertEqual(len(sig_r), 32)
         self.assertEqual(len(sig_s), 32)

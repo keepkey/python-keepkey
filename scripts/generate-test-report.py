@@ -579,7 +579,7 @@ SECTIONS = [
           ['Numbered page screens covering the whole body']),
          ('J13', 'test_msg_ping', 'test_ping_short_body_is_not_paged',
           'A body that fits is not paged',
-          'The control for S12. A fitting body must still take exactly one screen with an '
+          'The control for J12. A fitting body must still take exactly one screen with an '
           'unnumbered title - otherwise a pager that numbered every confirmation, making '
           'ordinary approvals cost extra presses, would pass unnoticed.',
           ['Single unnumbered confirmation screen']),
