@@ -398,30 +398,68 @@ class TestStorageVersionGateSource(unittest.TestCase):
         self.version = _define(self.h, "STORAGE_VERSION")
         self.last_shipped = _define(self.h, "STORAGE_VERSION_LAST_SHIPPED")
 
-    def test_active_flash_format_is_v17(self):
-        """alpha writes V17, the same format shipped v7.14.1.
+    def test_active_flash_format_is_v20(self):
+        """7.16 writes V20. The bump is argued here, which is the point of the
+        test: it asserts a LITERAL so that raising a header constant cannot
+        quietly satisfy it.
 
-        This literal is an INDEPENDENT witness, on purpose. The compile-time
-        assert in storage.c compares STORAGE_VERSION against
+        The compile-time assert in storage.c compares STORAGE_VERSION against
         STORAGE_VERSION_LAST_SHIPPED -- two numbers in the same header, both
-        editable in one commit, and raising LAST_SHIPPED to make a build
-        compile is the exact edit docs/StorageVersionGate.md calls the highest
-        severity review item in the file.
+        editable in one commit -- so raising LAST_SHIPPED to make a build
+        compile is the edit docs/StorageVersionGate.md calls the highest
+        severity review item in the file. An independent witness is the only
+        thing that catches it.
 
-        7.15 reverted the flash format from V19 back to V17 (6bebde7b2). V19
-        migrated 17 -> 19 on the first boot, with no prompt, after which no
-        downgrade was possible without a wipe; V18's clear-sign identity block
-        is dead. The V19 serializer is still in the tree behind
-        STORAGE_PIN_KDF_V19 == 0. If a release re-lands it, this test must
-        fail and the bump must be argued for, not discovered in the field.
+        WHY 20 AND NOT 18. 18 was the clear-sign identity block and 19 the
+        PIN-KDF migration. Both were ACTIVE, not merely drafted: e109404ee made
+        19 live and 6bebde7b2 reverted the format to V17 for 7.15. Any device
+        that ran an alpha build in that window carries a blob stamped 18 or 19
+        whose layout has nothing to do with passkeys, and reading one as CTAP2
+        state would misparse it rather than refuse it. 20 is unburned.
+
+        THE READER CHAIN. V17 blobs are read by storage_readV17 and restamped
+        to STORAGE_VERSION; V20 blobs by storage_readV20. There is deliberately
+        NO reader for 18 or 19: they remain in the ladder because the enum is
+        positional and removing an entry renumbers everything after it, but a
+        blob stamped with either falls through to the default and the device
+        wipes. That is the documented behaviour for an unrecognised format and
+        is strictly better than misparsing one.
+
+        ANTI-ROLLBACK. Once a device writes V20, installing 7.15 -- which knows
+        only up to V17 -- maps the blob to StorageVersion_NONE and storage_init
+        resets it. The device wipes. That is normal downgrade behaviour and is
+        stated here so it is a known consequence rather than a field report.
+        A signed UPGRADE never wipes; only going backwards does.
+
+        RELEASE NOTE. "7.16 changes the on-device storage format to hold
+        passkey credentials. Upgrading preserves your wallet. Downgrading to
+        7.15 or earlier will ERASE it -- back up your recovery phrase before
+        downgrading."
         """
         self.assertEqual(
-            17, self.version,
-            "STORAGE_VERSION is %d, not the V17 format 7.15 reverted to. A bump "
+            20, self.version,
+            "STORAGE_VERSION is %d, not the V20 format 7.16 introduces. A bump "
             "is a deliberate release act (docs/StorageVersionGate.md): confirm "
             "the reader chain, the anti-rollback story, and the release notes, "
             "then update this test." % self.version)
-        self.assertEqual(17, self.last_shipped)
+        self.assertEqual(20, self.last_shipped)
+
+    def test_burned_versions_have_no_reader(self):
+        """18 and 19 must never be parsed by 7.16.
+
+        They were real formats in alpha builds before the 7.15 revert, so
+        devices carrying them exist. A reader for either would parse a
+        clear-sign identity block or a PIN-KDF blob as passkey state. The
+        absence of a case in the dispatch is what sends them to the wipe path,
+        and this test is what stops one being added back by someone tidying up
+        the switch.
+        """
+        self.assertNotIn("case StorageVersion_18:", self.c,
+                         "18 is a burned format; a reader would misparse blobs "
+                         "written by pre-revert alpha builds")
+        self.assertNotIn("case StorageVersion_19:", self.c,
+                         "19 is a burned format; a reader would misparse blobs "
+                         "written by pre-revert alpha builds")
 
     def test_version_never_drops_below_a_shipped_release(self):
         """Lowering STORAGE_VERSION wipes every device upgrading FROM a shipped
