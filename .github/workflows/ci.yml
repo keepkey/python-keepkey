@@ -95,8 +95,21 @@ jobs:
         with:
           repository: BitHighlander/keepkey-firmware
           ref: alpha
-          submodules: recursive
           path: keepkey-firmware
+
+      # NOT `submodules: recursive`. trezor-firmware carries a micropython
+      # vendor tree whose lib/lwip lives on git.savannah.gnu.org, which serves
+      # dumb HTTP and cannot do the shallow clone actions/checkout requests --
+      # it fails the whole job. The firmware repo's own CI inits exactly these
+      # paths, non-recursively, for the same reason.
+      - name: Init the submodules the emulator build needs
+        working-directory: keepkey-firmware
+        run: |
+          git submodule update --init --depth 1 deps/crypto/trezor-firmware
+          git submodule update --init --depth 1 deps/device-protocol
+          git submodule update --init --depth 1 deps/googletest
+          git submodule update --init --depth 1 deps/qrenc/QR-Code-generator
+          git submodule update --init --depth 1 deps/sca-hardening/SecAESSTM32
 
       # Test THIS checkout of python-keepkey, not the one the firmware pins.
       - name: Overlay this python-keepkey onto the firmware tree
