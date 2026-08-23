@@ -10,8 +10,8 @@
 #   ├─ integration      full pytest suite against the regular emulator (7.16)
 #   ├─ integration-btc  bitcoin-only product boundary against a
 #   │                   -DKK_BITCOIN_ONLY=ON emulator (7.16)
-#   └─ integration-rc18 the same suite against RC18/7.15.0, NON-BLOCKING --
-#                       reports the release-target result without gating
+#   └─ integration-rc18 the same suite against RC18/7.15.0, a blocking
+#                       release-target compatibility gate
 
 name: CI
 
@@ -328,25 +328,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
-    # NON-BLOCKING BY DESIGN, and that is a statement about evidence, not a
-    # way to hide failures.
-    #
     # The other two integration jobs pin firmware 7.16.0, because parts of
     # this suite need firmware that postdates RC18: variant_getName()
     # returning "EmulatorBTC", and the Ironwood known-answer vectors. A green
     # run there says nothing about the release this PR targets.
     #
     # This job closes that gap by actually running the suite against
-    # RC18/7.15.0. It does not gate the merge yet: the 7.15-vs-7.16 delta has
-    # never been measured at current head, so a first red run is information,
-    # not a verdict. Promote to blocking (delete continue-on-error) once it is
-    # green, and treat a regression from green as a real failure.
+    # RC18/7.15.0. The current-head suite is green against that exact image, so
+    # this is a blocking release gate: a regression from green is a real
+    # failure.
     #
     # Tests that need post-RC18 firmware skip themselves here rather than
-    # failing: the bitcoin-only module gates on requires_bitcoinOnly(), which
-    # keys on a variant name RC18 does not report, and the Ironwood tests gate
-    # on 7.16.0 explicitly.
-    continue-on-error: true
+    # failing. Their gates are tied to the implementation history, so RC18 is
+    # not credited with behavior it never shipped.
 
     steps:
       - uses: actions/checkout@v4
@@ -461,9 +455,9 @@ jobs:
         if: always()
         run: |
           XML="keepkey-firmware/deps/python-keepkey/tests/junit-rc18.xml"
-          echo "## 🔑 python-keepkey — RC18 / 7.15.0 (non-blocking)" >> "$GITHUB_STEP_SUMMARY"
+          echo "## 🔑 python-keepkey — RC18 / 7.15.0" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Release-target result. Does not gate the merge; see the job comment." >> "$GITHUB_STEP_SUMMARY"
+          echo "Blocking release-target compatibility gate." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if [ ! -f "$XML" ]; then
             echo "❌ **No test results** — the suite crashed before completion." >> "$GITHUB_STEP_SUMMARY"
@@ -483,9 +477,9 @@ jobs:
             echo "| 💥 Errors | $ERRORS |" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
             if [ "$FAILED" -eq 0 ] && [ "$ERRORS" -eq 0 ]; then
-              echo "RC18 is green at current head — this job can be promoted to blocking by deleting \`continue-on-error\`." >> "$GITHUB_STEP_SUMMARY"
+              echo "RC18 is green at current head." >> "$GITHUB_STEP_SUMMARY"
             else
-              echo "RC18 differs from 7.16 at current head. Each failure is either a real RC18 regression or a test that needs a version gate." >> "$GITHUB_STEP_SUMMARY"
+              echo "RC18 compatibility failed at current head." >> "$GITHUB_STEP_SUMMARY"
             fi
           fi
 
@@ -499,10 +493,8 @@ jobs:
           fail_on_failure: false
 
       # `pytest | tee` makes the run step exit with tee's status, so without
-      # this the job reports success no matter what RC18 did -- non-blocking
-      # would have meant invisible. This step fails on a real pytest failure;
-      # continue-on-error above keeps that from gating the workflow, so the
-      # job shows RED while the run stays green.
+      # this the job reports success no matter what RC18 did. This step makes a
+      # real pytest failure fail the blocking release gate.
       - name: Report the RC18 result
         if: always()
         run: |
@@ -510,7 +502,7 @@ jobs:
           if [ "$STATUS" = "0" ]; then
             echo "RC18 suite passed."
           else
-            echo "::warning::RC18 (7.15.0) differs from the pinned 7.16 build. This job is non-blocking; see the summary."
+            echo "::error::RC18 (7.15.0) compatibility failed; see the summary."
             exit 1
           fi
 
