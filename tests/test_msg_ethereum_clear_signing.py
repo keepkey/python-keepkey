@@ -74,7 +74,9 @@ CI_SIGNER_ALIAS = 'CI Test'
 
 # ─── Test constants ────────────────────────────────────────────────────
 
-AAVE_V3_POOL = bytes.fromhex('7d2768de32b0b80b7a3454c06bdac94a69ddc7a9')
+# Aave V3 Pool proxy, matching AAVE_SUPPLY_SELECTOR below. Was the V2
+# LendingPool address, which exposes deposit() (e8eda9df), not supply().
+AAVE_V3_POOL = bytes.fromhex('87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2')
 AAVE_SUPPLY_SELECTOR = bytes.fromhex('617ba037')
 DAI_ADDRESS = bytes.fromhex('6b175474e89094c44da98b954eedeac495271d0f')
 UNISWAP_ROUTER = bytes.fromhex('68b3465833fb72a70ecdf485e0e4c7bd8665fc45')

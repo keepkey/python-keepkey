@@ -159,7 +159,13 @@ def _addr_word(a):
 
 
 # ── Common addresses (mainnet, verified against Etherscan) ────────────────
-AAVE_V3_POOL = '0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9'
+# Aave V3 Pool proxy on Ethereum mainnet. This used to hold
+# 0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9, which is the Aave **V2**
+# LendingPool -- pairing it with V3's supply() selector (617ba037; V2
+# exposes deposit(), e8eda9df) described a call that would revert, so the
+# fixture attested a transaction that cannot exist. The `source` field on
+# every entry using this constant already named the correct proxy.
+AAVE_V3_POOL = '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2'
 DAI = '0x6b175474e89094c44da98b954eedeac495271d0f'
 USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
 WETH = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'

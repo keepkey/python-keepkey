@@ -424,7 +424,9 @@ def build_test_metadata(
     TEST_PRIVATE_KEY, whose pubkey == firmware METADATA_PUBKEYS[3].
     """
     if contract_address is None:
-        contract_address = bytes.fromhex('7d2768de32b0b80b7a3454c06bdac94a69ddc7a9')
+        # Aave V3 Pool proxy. Was the V2 LendingPool, which does not
+        # expose the supply() selector defaulted below.
+        contract_address = bytes.fromhex('87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2')
     if selector is None:
         selector = bytes.fromhex('617ba037')
     if tx_hash is None:
