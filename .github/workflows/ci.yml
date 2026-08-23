@@ -7,9 +7,11 @@
 #   └─ lint        Python syntax + deterministic protocol contract tests
 #
 # Stage 2: TEST (gated by Stage 1)
-#   ├─ integration     full pytest suite against the regular emulator
-#   └─ integration-btc bitcoin-only product boundary against a
-#                      -DKK_BITCOIN_ONLY=ON emulator
+#   ├─ integration      full pytest suite against the regular emulator (7.16)
+#   ├─ integration-btc  bitcoin-only product boundary against a
+#   │                   -DKK_BITCOIN_ONLY=ON emulator (7.16)
+#   └─ integration-rc18 the same suite against RC18/7.15.0, NON-BLOCKING --
+#                       reports the release-target result without gating
 
 name: CI
 
@@ -311,6 +313,185 @@ jobs:
         run: |
           STATUS=$(cat keepkey-firmware/deps/python-keepkey/tests/status 2>/dev/null || echo "1")
           [ "$STATUS" = "0" ] || exit 1
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 2c: TEST — the RELEASE TARGET (RC18 / 7.15.0)
+  # ═══════════════════════════════════════════════════════════
+
+  integration-rc18:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # NON-BLOCKING BY DESIGN, and that is a statement about evidence, not a
+    # way to hide failures.
+    #
+    # The other two integration jobs pin firmware 7.16.0, because parts of
+    # this suite need firmware that postdates RC18: variant_getName()
+    # returning "EmulatorBTC", and the Ironwood known-answer vectors. A green
+    # run there says nothing about the release this PR targets.
+    #
+    # This job closes that gap by actually running the suite against
+    # RC18/7.15.0. It does not gate the merge yet: the 7.15-vs-7.16 delta has
+    # never been measured at current head, so a first red run is information,
+    # not a verdict. Promote to blocking (delete continue-on-error) once it is
+    # green, and treat a regression from green as a real failure.
+    #
+    # Tests that need post-RC18 firmware skip themselves here rather than
+    # failing: the bitcoin-only module gates on requires_bitcoinOnly(), which
+    # keys on a variant name RC18 does not report, and the Ironwood tests gate
+    # on 7.16.0 explicitly.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          path: python-keepkey
+
+      - name: Checkout firmware (RC18)
+        uses: actions/checkout@v4
+        with:
+          repository: BitHighlander/keepkey-firmware
+          # v7.15.0-rc18 final audit candidate -- the head of
+          # audit/7.15.0-rc18-final, merged as firmware PR #320. This is the
+          # release this PR is cut against.
+          ref: fd1012c5adbacf88e2ca521a95b335a2849d528f
+          path: keepkey-firmware
+
+      - name: Init the submodules the emulator build needs
+        working-directory: keepkey-firmware
+        run: |
+          git submodule update --init --depth 1 deps/crypto/trezor-firmware
+          git submodule update --init --depth 1 deps/device-protocol
+          git submodule update --init --depth 1 deps/googletest
+          git submodule update --init --depth 1 deps/qrenc/QR-Code-generator
+          git submodule update --init --depth 1 deps/sca-hardening/SecAESSTM32
+
+      - name: Overlay this python-keepkey onto the firmware tree
+        run: |
+          rm -rf keepkey-firmware/deps/python-keepkey
+          cp -a python-keepkey keepkey-firmware/deps/python-keepkey
+
+      - name: Build the RC18 emulator
+        timeout-minutes: 20
+        working-directory: keepkey-firmware
+        run: |
+          docker build -t kkemu-rc18-ci -f scripts/emulator/Dockerfile .
+
+      - name: Start the emulator
+        run: |
+          docker run -d --name kkemu-rc18 \
+            -p 11044:11044/udp -p 11045:11045/udp -p 5000:5000 kkemu-rc18-ci
+          sleep 3
+          docker logs kkemu-rc18 | head -5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: python-keepkey
+        run: |
+          pip install --upgrade pip
+          pip install "protobuf>=3.20,<4"
+          pip install -e .
+          pip install pytest semver rlp requests eth-keys pycryptodome
+
+      - name: Wait for emulator
+        run: |
+          echo "Waiting for emulator bridge on port 5000..."
+          for i in $(seq 1 30); do
+            if curl -sf -X POST http://localhost:5000/exchange/main \
+                 -H 'Content-Type: application/json' \
+                 -d '{"data":""}' > /dev/null 2>&1; then
+              echo "Emulator ready after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+
+      # Assert this really is 7.15.0. A silently-wrong ref would make this job
+      # a duplicate of `integration` and quietly retire the gap it exists to
+      # measure.
+      - name: Assert the emulator is RC18
+        timeout-minutes: 2
+        env:
+          KK_TRANSPORT_MAIN: "127.0.0.1:11044"
+          KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
+          KK_UDP_TIMEOUT: "20"
+        working-directory: keepkey-firmware/deps/python-keepkey/tests
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, '..')
+          import config
+          from keepkeylib.client import KeepKeyDebuglinkClient
+          c = KeepKeyDebuglinkClient(config.TRANSPORT(*config.TRANSPORT_ARGS,
+                                                      **config.TRANSPORT_KWARGS))
+          c.set_debuglink(config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS,
+                                                 **config.DEBUG_TRANSPORT_KWARGS))
+          c.init_device()
+          f = c.features
+          got = (f.major_version, f.minor_version, f.patch_version)
+          print('emulator firmware %d.%d.%d, variant %r' % (got + (f.firmware_variant,)))
+          if got != (7, 15, 0):
+              sys.exit('FATAL: expected RC18 (7.15.0), got %d.%d.%d -- the pinned '
+                       'firmware ref is not the release target.' % got)
+          PY
+
+      - name: Run the suite against RC18
+        timeout-minutes: 10
+        env:
+          KK_TRANSPORT_MAIN: "127.0.0.1:11044"
+          KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
+          PYTHONPATH: "${{ github.workspace }}/keepkey-firmware/deps/python-keepkey"
+          KK_UDP_TIMEOUT: "45"
+        run: |
+          cd keepkey-firmware/deps/python-keepkey/tests
+          pytest -v --junitxml=junit-rc18.xml 2>&1 | tee pytest-rc18-output.txt
+          echo "${PIPESTATUS[0]}" > status-rc18
+
+      - name: RC18 summary
+        if: always()
+        run: |
+          XML="keepkey-firmware/deps/python-keepkey/tests/junit-rc18.xml"
+          echo "## 🔑 python-keepkey — RC18 / 7.15.0 (non-blocking)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Release-target result. Does not gate the merge; see the job comment." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ ! -f "$XML" ]; then
+            echo "❌ **No test results** — the suite crashed before completion." >> "$GITHUB_STEP_SUMMARY"
+          else
+            TOTAL=$(grep -oP 'tests="\K[0-9]+' "$XML" | head -1)
+            FAILED=$(grep -oP 'failures="\K[0-9]+' "$XML" | head -1)
+            ERRORS=$(grep -oP 'errors="\K[0-9]+' "$XML" | head -1)
+            SKIPPED=$(grep -oP 'skipped="\K[0-9]+' "$XML" | head -1)
+            TOTAL=${TOTAL:-0}; FAILED=${FAILED:-0}; ERRORS=${ERRORS:-0}; SKIPPED=${SKIPPED:-0}
+            PASSED=$((TOTAL - FAILED - ERRORS - SKIPPED))
+            echo "| Metric | Count |" >> "$GITHUB_STEP_SUMMARY"
+            echo "|--------|-------|" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Total | $TOTAL |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| ✅ Passed | $PASSED |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| ⏭️ Skipped | $SKIPPED |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| ❌ Failed | $FAILED |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| 💥 Errors | $ERRORS |" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            if [ "$FAILED" -eq 0 ] && [ "$ERRORS" -eq 0 ]; then
+              echo "RC18 is green at current head — this job can be promoted to blocking by deleting \`continue-on-error\`." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "RC18 differs from 7.16 at current head. Each failure is either a real RC18 regression or a test that needs a version gate." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+      - name: Annotate RC18 results
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: keepkey-firmware/deps/python-keepkey/tests/junit-rc18.xml
+          annotate_only: true
+          require_tests: true
+          fail_on_failure: false
 
   # ═══════════════════════════════════════════════════════════
   # STAGE 2b: TEST — the OTHER shipping product
