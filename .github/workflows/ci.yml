@@ -493,6 +493,22 @@ jobs:
           require_tests: true
           fail_on_failure: false
 
+      # `pytest | tee` makes the run step exit with tee's status, so without
+      # this the job reports success no matter what RC18 did -- non-blocking
+      # would have meant invisible. This step fails on a real pytest failure;
+      # continue-on-error above keeps that from gating the workflow, so the
+      # job shows RED while the run stays green.
+      - name: Report the RC18 result
+        if: always()
+        run: |
+          STATUS=$(cat keepkey-firmware/deps/python-keepkey/tests/status-rc18 2>/dev/null || echo "1")
+          if [ "$STATUS" = "0" ]; then
+            echo "RC18 suite passed."
+          else
+            echo "::warning::RC18 (7.15.0) differs from the pinned 7.16 build. This job is non-blocking; see the summary."
+            exit 1
+          fi
+
   # ═══════════════════════════════════════════════════════════
   # STAGE 2b: TEST — the OTHER shipping product
   # ═══════════════════════════════════════════════════════════
