@@ -19,6 +19,18 @@ from .transport import Transport
 # override for unattended runs with KK_UDP_TIMEOUT (seconds, 0 disables).
 DEFAULT_TIMEOUT = float(os.environ.get('KK_UDP_TIMEOUT', '60'))
 
+class EmulatorNotResponding(Exception):
+    """The emulator stopped answering.
+
+    Deliberately NOT an IOError/OSError. On Python 3, IOError, OSError and
+    socket.error are the same class, so the detailed timeout this transport
+    raises was caught by _read()'s own `except socket.error`, printed as
+    "Failed to read from device" and turned into None -- the caller never saw
+    the actionable message. Raising outside that hierarchy is what lets it
+    reach the caller.
+    """
+
+
 class FakeRead(object):
     # Let's pretend we have a file-like interface
     def __init__(self, func):
@@ -66,6 +78,12 @@ class UDPTransport(Transport):
         try:
             (msg_type, datalen) = self._read_headers(FakeRead(self._raw_read))
             return (msg_type, self._raw_read(datalen))
+        except EmulatorNotResponding:
+            # Actionable and already explained -- let it reach the caller
+            # instead of collapsing it to None. Listed first because on
+            # Python 3 the handler below would otherwise catch it: IOError,
+            # OSError and socket.error are one class.
+            raise
         except socket.error:
             print("Failed to read from device")
             return None
@@ -77,14 +95,14 @@ class UDPTransport(Transport):
             except socket.timeout:
                 # Name the cause. "timed out" alone sends people looking at the
                 # test; the device is what stopped answering.
-                raise IOError(
+                raise EmulatorNotResponding(
                     'No response from the emulator at %s:%d after %gs -- it is '
                     'not running, has crashed, or is wedged on a confirm screen '
                     'nothing acknowledged. Set KK_UDP_TIMEOUT to change or 0 to '
                     'disable.' % (self.device[0], self.device[1],
                                   DEFAULT_TIMEOUT))
             if not data:
-                raise IOError('Emulator closed the connection')
+                raise EmulatorNotResponding('Emulator closed the connection')
             self.buffer += data[1:]
 
         ret = self.buffer[:length]
