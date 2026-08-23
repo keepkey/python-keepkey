@@ -113,7 +113,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: BitHighlander/keepkey-firmware
-          ref: alpha
+          # PINNED, not `alpha`. A moving branch means a firmware push can
+          # change this PR's result with no Python commit, which makes a green
+          # run unciteable. This SHA is alpha at the time of pinning.
+          #
+          # NOTE: this is 7.16.0, NOT 7.15.0/RC18. The suite needs firmware
+          # that only exists after RC18 -- variant_getName() returning
+          # "EmulatorBTC" (required by requires_bitcoinOnly, so by the whole
+          # integration-btc job) and the Ironwood known-answer vectors. So this
+          # job validates 7.16.0; it does not validate the RC18 dependency
+          # graph. Bump deliberately, and re-read that claim when you do.
+          ref: a710bb5777f3ad888bb489b383dbafab800d55c6
           path: keepkey-firmware
 
       # NOT `submodules: recursive`. trezor-firmware carries a micropython
@@ -334,7 +344,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: BitHighlander/keepkey-firmware
-          ref: alpha
+          # PINNED, not `alpha`. A moving branch means a firmware push can
+          # change this PR's result with no Python commit, which makes a green
+          # run unciteable. This SHA is alpha at the time of pinning.
+          #
+          # NOTE: this is 7.16.0, NOT 7.15.0/RC18. The suite needs firmware
+          # that only exists after RC18 -- variant_getName() returning
+          # "EmulatorBTC" (required by requires_bitcoinOnly, so by the whole
+          # integration-btc job) and the Ironwood known-answer vectors. So this
+          # job validates 7.16.0; it does not validate the RC18 dependency
+          # graph. Bump deliberately, and re-read that claim when you do.
+          ref: a710bb5777f3ad888bb489b383dbafab800d55c6
           path: keepkey-firmware
 
       # Same non-recursive init as the regular job: trezor-firmware's

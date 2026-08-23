@@ -280,6 +280,20 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
             self.client.zcash_sign_pczt(**sign_kwargs(actions))
         self.assertIn('commitment mismatch', str(caught.exception))
 
+    # The Ironwood pool is NOT part of the 7.15/RC18 product. The note
+    # fixtures below come from unittests/firmware/zcash.cpp, and
+    # IronwoodNoteCommitment_V3KnownVector does not exist on the RC18 branch
+    # (audit/7.15.0-rc18-final) -- it arrives with 7.16. The class-level
+    # requires_firmware("7.15.0") is a FLOOR, so without this these two would
+    # run against RC18 and fail. Gate them to the release that implements the
+    # pool, so RC18 skips instead.
+    #
+    # NB: this is about firmware support, not the wire contract.
+    # messages-zcash.proto marks only `sapling_digest` as reserved and
+    # currently rejected; `shielded_pool` and `ironwood_digest` are ordinary
+    # v6 fields there.
+    IRONWOOD_FIRMWARE = "7.16.0"
+
     def test_pool_selection_is_honoured(self):
         """The same note commits differently in each pool.
 
@@ -287,6 +301,7 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         offering the Orchard commitment while declaring the Ironwood pool must
         be rejected. If the device ignored shielded_pool this would pass.
         """
+        self.requires_firmware(self.IRONWOOD_FIRMWARE)
         actions = [note_action(CMX_ORCHARD)]
 
         with self.assertRaises(Exception) as caught:
@@ -299,6 +314,7 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         The positive half of the pool test -- together they prove the branch is
         selected by shielded_pool rather than one path serving both.
         """
+        self.requires_firmware(self.IRONWOOD_FIRMWARE)
         actions = [note_action(CMX_IRONWOOD)]
         screens = self._capture_button_screens()
 
