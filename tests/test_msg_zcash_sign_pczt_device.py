@@ -168,10 +168,11 @@ def sign_kwargs(actions, ironwood=False, **overrides):
         # victim's note, reusing an approved action's alpha so the one emitted
         # RedPallas signature verified in both bundles.
         #
-        # ZIP-244 empty-bundle digest: BLAKE2b-256 of the empty string
-        # personalized "ZTxIdOrchardHash". The device now requires exactly this.
+        # ZIP-229 v6 empty-bundle digest: BLAKE2b-256 of the empty string
+        # personalized "ZTxIdOrchardH_v6". The v5/ZIP-244
+        # "ZTxIdOrchardHash" value is a different digest.
         kwargs['orchard_digest'] = bytes.fromhex(
-            '9fbe4ed13b0c08e671c11a3407d84e1117cd45028a2eee1b9feae78b48a6e2c1')
+            'a3367d2fdea2910159fc5026e9bf1fccd3e28ce5e6de46bfb71587230eea9515')
     kwargs.update(overrides)
     return kwargs
 
@@ -319,7 +320,7 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         """
         actions = [note_action(CMX_IRONWOOD)]
         kwargs = sign_kwargs(actions, ironwood=True)
-        # Anything but the ZIP-244 empty-bundle digest must be refused.
+        # Anything but the ZIP-229 v6 empty-bundle digest must be refused.
         kwargs['orchard_digest'] = bytes([0x11]) * 32
 
         with self.assertRaises(Exception) as caught:

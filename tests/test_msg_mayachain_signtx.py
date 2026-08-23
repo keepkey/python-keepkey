@@ -9,7 +9,9 @@ from ecdsa import VerifyingKey, SECP256k1
 from ecdsa.util import sigdecode_string
 
 import keepkeylib.messages_pb2 as proto
+import keepkeylib.messages_mayachain_pb2 as mayachain_proto
 import keepkeylib.types_pb2 as proto_types
+from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
 from keepkeylib.signed_metadata import eth_sighash_legacy, keccak256
 
@@ -53,6 +55,28 @@ def recover_eth_signer(sig_r, sig_s, sig_v, digest, chain_id):
 
 
 class TestMsgMayaChainSignTx(common.KeepKeyTest):
+
+    def test_ack_rejects_send_and_deposit_together(self):
+        """An unused deposit submessage must not suppress the signed tx memo."""
+        self.requires_firmware("7.15.0")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        response = self.client.call(mayachain_proto.MayachainSignTx(
+            address_n=parse_path(DEFAULT_BIP32_PATH), account_number=92,
+            chain_id="mayachain", fee_amount=3000, gas=200000,
+            memo="SWAP:BTC.BTC:bc1qreviewthismemo", sequence=3,
+            msg_count=1, testnet=False))
+        self.assertIsInstance(response, mayachain_proto.MayachainMsgRequest)
+
+        with self.assertRaises(CallException):
+            self.client.call(mayachain_proto.MayachainMsgAck(
+                send=mayachain_proto.MayachainMsgSend(
+                    to_address="maya1jvt443rvhq5h8yrna55yjysvhtju0el7mdujp3",
+                    amount=10000, denom="cacao"),
+                deposit=mayachain_proto.MayachainMsgDeposit(
+                    asset="MAYA.CACAO", amount=1, memo="unused",
+                    signer="maya1ls33ayg26kmltw7jjy55p32ghjna09zp7z4etj")))
 
     def _maya_send_digest(self, account_number, chain_id, fee, gas, memo,
                           amount, from_address, to_address, sequence):
