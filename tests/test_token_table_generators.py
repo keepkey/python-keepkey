@@ -35,7 +35,15 @@ _PYKEEPKEY = os.path.dirname(_HERE)
 _ETH = os.path.join(_PYKEEPKEY, 'keepkeylib', 'eth')
 
 # X(chain_id, "<20 escaped bytes>", " SYMBOL", decimals) // comment
-_ROW = re.compile(r'^X\((\d+),\s*"((?:[^"\\]|\\.)*)",\s*"\s*([^"]+)",\s*(\d+)\)')
+#
+# END-ANCHORED. Without the trailing anchor a row like
+#   X(1, "...", " AAA", 18) ;;; garbage
+# matches on its valid prefix, so this gate would pass a line the firmware
+# preprocessor cannot consume -- which is the one thing it exists to catch.
+# Only whitespace and a // comment may follow the closing paren.
+_ROW = re.compile(
+    r'^X\((\d+),\s*"((?:[^"\\]|\\.)*)",\s*"\s*([^"]+)",\s*(\d+)\)'
+    r'\s*(?://.*)?$')
 
 GENERATORS = (
     ('ethereum_tokens.py', 'BUDGET_ETHEREUM_LISTS'),
