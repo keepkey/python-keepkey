@@ -1204,27 +1204,36 @@ class ProtocolMixin(object):
                     raise CallException("Thorchain.MsgSend", "Multiple amounts per send msg not supported")
 
                 denom = msg['value']['amount'][0]['denom']
-                # Fail CLOSED on any other denomination, deliberately.
-                #
-                # ThorchainMsgSend carries a `denom` field, but the firmware
-                # this talks to builds its amino sign-doc with the string
-                # "rune" HARDCODED (lib/firmware/thorchain.c) -- only 7.15+
-                # reads a denom and validates it. nanopb SKIPS unknown fields
-                # rather than rejecting them, so forwarding `denom` to older
-                # firmware would be silently ignored and the device would sign
-                # a rune transfer while the host believed it had sent another
-                # asset. Refusing is the only safe answer until the capability
-                # can be detected; do not "fix" this by passing denom through.
-                if denom != 'rune':
-                    raise CallException("Thorchain.MsgSend", "Unsupported denomination: " + denom)
+                firmware_version = (
+                    self.features.major_version,
+                    self.features.minor_version,
+                    self.features.patch_version,
+                )
+                supports_denom = firmware_version >= (7, 15, 0)
+
+                # Older firmware hardcodes "rune" in its amino sign-doc and
+                # nanopb skips the unknown denom field. Sending a non-RUNE denom
+                # there would therefore make the host and device disagree about
+                # what was signed. Preserve the fail-closed legacy behaviour,
+                # while exposing the protocol field on firmware that validates,
+                # displays and commits it to the signature.
+                if denom != 'rune' and not supports_denom:
+                    raise CallException(
+                        "Thorchain.MsgSend",
+                        "Unsupported denomination before firmware 7.15.0: " + denom,
+                    )
+
+                send = thorchain_proto.ThorchainMsgSend(
+                    from_address=msg['value']['from_address'],
+                    to_address=msg['value']['to_address'],
+                    amount=int(msg['value']['amount'][0]['amount']),
+                    address_type=types.SPEND,
+                )
+                if supports_denom:
+                    send.denom = denom
 
                 resp = self.call(thorchain_proto.ThorchainMsgAck(
-                    send=thorchain_proto.ThorchainMsgSend(
-                        from_address=msg['value']['from_address'],
-                        to_address=msg['value']['to_address'],
-                        amount=int(msg['value']['amount'][0]['amount']),
-                        address_type=types.SPEND,
-                    )
+                    send=send
                 ))
 
             elif msg['type'] == "thorchain/MsgDeposit":

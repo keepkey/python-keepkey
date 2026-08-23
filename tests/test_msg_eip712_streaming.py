@@ -50,6 +50,56 @@ SPEC_DOMAIN_SEPARATOR = "f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a65
 SPEC_MESSAGE_HASH = "c52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e"
 
 
+class TestEip712StreamHelpers(unittest.TestCase):
+
+    def test_multidimensional_arrays_are_walked_outermost_first(self):
+        doc = {
+            'types': {
+                'EIP712Domain': [],
+                'Matrix': [{'name': 'values', 'type': 'int16[2][][4]'}],
+            },
+            'primaryType': 'Matrix',
+            'domain': {},
+            'message': {
+                'values': [
+                    [[1, 2]],
+                    [[3, 4], [5, 6]],
+                    [[7, 8], [9, 10], [11, 12]],
+                    [[13, 14]],
+                ],
+            },
+        }
+
+        self.assertEqual(es.resolve_member_path(doc, [1, 0]), ('length', 4))
+        self.assertEqual(es.resolve_member_path(doc, [1, 0, 2]), ('length', 3))
+        self.assertEqual(es.resolve_member_path(doc, [1, 0, 2, 1]), ('length', 2))
+        result = es.resolve_member_path(doc, [1, 0, 2, 1, 0])
+        self.assertEqual(result[0], 'value')
+        self.assertEqual(result[2], 9)
+
+    def test_innermost_fixed_array_length_is_checked(self):
+        doc = {
+            'types': {
+                'EIP712Domain': [],
+                'Matrix': [{'name': 'values', 'type': 'int16[2][][4]'}],
+            },
+            'primaryType': 'Matrix',
+            'domain': {},
+            'message': {
+                'values': [
+                    [[1, 2]],
+                    [[3, 4]],
+                    [[5]],
+                    [[6, 7]],
+                ],
+            },
+        }
+
+        with self.assertRaises(es.Eip712Error) as ctx:
+            es.resolve_member_path(doc, [1, 0, 2, 0])
+        self.assertIn('declares 2 elements', str(ctx.exception))
+
+
 class TestMsgEip712Streaming(common.KeepKeyTest):
 
     def _walk(self, doc, max_steps=400):
