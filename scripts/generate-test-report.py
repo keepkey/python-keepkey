@@ -2281,6 +2281,16 @@ SECTIONS = [
           'they prove the pool branch is selected by shielded_pool rather than one path serving '
           'both.',
           []),
+         ('Z26', 'test_msg_zcash_sign_pczt_device',
+          'test_ironwood_rejects_a_non_empty_orchard_bundle',
+          'v6 refuses an unverified Orchard bundle (ON DEVICE)',
+          'A v6 transaction streams and verifies only its Ironwood actions, so its Orchard '
+          'bundle must be the ZIP-244 empty-bundle digest. Any other value describes a bundle '
+          'the device never inspected but still commits to in the sighash it signs. That was '
+          'exploitable: point orchard_digest at a real bundle spending one of this seed '
+          'notes, reuse an approved action alpha so rk is byte-identical, and the single '
+          'RedPallas signature the device emits verifies in BOTH bundles.',
+          []),
      ]),
 
     ('D', 'BIP-85 Child Derivation', '7.14.0',
