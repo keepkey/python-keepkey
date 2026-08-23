@@ -33,6 +33,18 @@ ARG_FORMAT_TOKEN_AMOUNT = 5
 METADATA_MAX_ARG_VALUE_LEN = 44
 
 
+def _require(condition, message):
+    """Precondition check that survives `python -O`.
+
+    These serializers build the bytes that get SIGNED. `assert` is stripped
+    under -O, so an optimized process would serialize and sign an over-long
+    method name, a 19-byte address or a 9th argument instead of refusing it.
+    A signing precondition must not be an assertion.
+    """
+    if not condition:
+        raise ValueError(message)
+
+
 def token_amount_value(amount, decimals, symbol):
     """Build an ARG_FORMAT_TOKEN_AMOUNT value: decimals + symbol + amount.
 
@@ -40,11 +52,12 @@ def token_amount_value(amount, decimals, symbol):
     symbol: short ticker, [A-Za-z0-9], <=10 chars.
     """
     sym = symbol.encode('ascii')
-    assert 0 < len(sym) <= 10 and sym.isalnum()
-    assert 0 <= decimals <= 36
+    _require(0 < len(sym) <= 10 and sym.isalnum(),
+             'symbol must be 1-10 alphanumeric characters, got %r' % symbol)
+    _require(0 <= decimals <= 36, 'decimals must be 0..36, got %r' % decimals)
     # Minimal big-endian amount, at least 1 byte, at most 32.
     n = amount.to_bytes(32, 'big').lstrip(b'\x00') or b'\x00'
-    assert len(n) <= 32
+    _require(len(n) <= 32, 'amount does not fit in 32 bytes')
     return bytes([decimals, len(sym)]) + sym + n
 
 CLASSIFICATION_OPAQUE = 0
@@ -186,11 +199,14 @@ def serialize_metadata(
     if timestamp is None:
         timestamp = int(time.time())
 
-    assert len(contract_address) == 20
-    assert len(selector) == 4
-    assert len(tx_hash) == 32
-    assert len(method_name.encode('utf-8')) <= 64
-    assert len(args) <= 8
+    _require(len(contract_address) == 20,
+             'contract_address must be 20 bytes, got %d' % len(contract_address))
+    _require(len(selector) == 4, 'selector must be 4 bytes, got %d' % len(selector))
+    _require(len(tx_hash) == 32, 'tx_hash must be 32 bytes, got %d' % len(tx_hash))
+    _require(len(method_name.encode('utf-8')) <= 64,
+             'method_name must be <=64 UTF-8 bytes, got %d'
+             % len(method_name.encode('utf-8')))
+    _require(len(args) <= 8, 'at most 8 args, got %d' % len(args))
 
     buf = bytearray()
 
@@ -221,7 +237,8 @@ def serialize_metadata(
     for arg in args:
         # name (1-byte length prefix + UTF-8)
         arg_name = arg['name'].encode('utf-8')
-        assert len(arg_name) <= 32
+        _require(len(arg_name) <= 32,
+                 'arg name must be <=32 UTF-8 bytes, got %d' % len(arg_name))
         buf.append(len(arg_name))
         buf.extend(arg_name)
 
@@ -230,7 +247,9 @@ def serialize_metadata(
 
         # value (2-byte length prefix + raw bytes)
         val = arg['value']
-        assert len(val) <= METADATA_MAX_ARG_VALUE_LEN
+        _require(len(val) <= METADATA_MAX_ARG_VALUE_LEN,
+                 'arg value must be <=%d bytes, got %d'
+                 % (METADATA_MAX_ARG_VALUE_LEN, len(val)))
         buf.extend(struct.pack('>H', len(val)))
         buf.extend(val)
 
@@ -286,10 +305,13 @@ def serialize_schema_metadata(
     if timestamp is None:
         timestamp = int(time.time())
 
-    assert len(contract_address) == 20
-    assert len(selector) == 4
-    assert len(method_name.encode('utf-8')) <= 64
-    assert len(args) <= 8
+    _require(len(contract_address) == 20,
+             'contract_address must be 20 bytes, got %d' % len(contract_address))
+    _require(len(selector) == 4, 'selector must be 4 bytes, got %d' % len(selector))
+    _require(len(method_name.encode('utf-8')) <= 64,
+             'method_name must be <=64 UTF-8 bytes, got %d'
+             % len(method_name.encode('utf-8')))
+    _require(len(args) <= 8, 'at most 8 args, got %d' % len(args))
 
     buf = bytearray()
     buf.append(METADATA_VERSION_SCHEMA)
@@ -304,19 +326,24 @@ def serialize_schema_metadata(
     buf.append(len(args))
     for arg in args:
         arg_name = arg['name'].encode('utf-8')
-        assert len(arg_name) <= 32
+        _require(len(arg_name) <= 32,
+                 'arg name must be <=32 UTF-8 bytes, got %d' % len(arg_name))
         buf.append(len(arg_name))
         buf.extend(arg_name)
 
         fmt = arg['format']
-        assert fmt in (ARG_FORMAT_ADDRESS, ARG_FORMAT_AMOUNT,
-                       ARG_FORMAT_TOKEN_AMOUNT), \
-            'v2 supports only fixed-word ADDRESS/AMOUNT/TOKEN_AMOUNT'
+        _require(fmt in (ARG_FORMAT_ADDRESS, ARG_FORMAT_AMOUNT,
+                         ARG_FORMAT_TOKEN_AMOUNT),
+                 'v2 supports only fixed-word ADDRESS/AMOUNT/TOKEN_AMOUNT, '
+                 'got %r' % fmt)
         buf.append(fmt)
         if fmt == ARG_FORMAT_TOKEN_AMOUNT:
             sym = arg['symbol'].encode('ascii')
-            assert 0 < len(sym) <= 10 and sym.isalnum()
-            assert 0 <= arg['decimals'] <= 36
+            _require(0 < len(sym) <= 10 and sym.isalnum(),
+                     'symbol must be 1-10 alphanumeric characters, got %r'
+                     % arg['symbol'])
+            _require(0 <= arg['decimals'] <= 36,
+                     'decimals must be 0..36, got %r' % arg['decimals'])
             buf.append(arg['decimals'])
             buf.append(len(sym))
             buf.extend(sym)
@@ -342,12 +369,13 @@ def schema_calldata(selector: bytes, args: list) -> bytes:
         fmt = arg['format']
         if fmt == ARG_FORMAT_ADDRESS:
             addr = arg['address']
-            assert len(addr) == 20
+            _require(len(addr) == 20,
+                     'ADDRESS arg must be 20 bytes, got %d' % len(addr))
             data.extend(b'\x00' * 12 + addr)
         elif fmt in (ARG_FORMAT_AMOUNT, ARG_FORMAT_TOKEN_AMOUNT):
             data.extend(int(arg['amount']).to_bytes(32, 'big'))
         else:
-            raise AssertionError('unsupported v2 arg format %r' % fmt)
+            raise ValueError('unsupported v2 arg format %r' % fmt)
     return bytes(data)
 
 
