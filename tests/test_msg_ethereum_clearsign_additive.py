@@ -87,6 +87,11 @@ from test_msg_ethereum_clear_signing import (
 # METADATA_MAX_KEYS in include/keepkey/firmware/signed_metadata.h.
 METADATA_MAX_KEYS = 4
 
+# RC18 verifies runtime metadata, but the successful-decode path did not yet
+# guarantee that the ordinary raw review survived byte-for-byte. That security
+# invariant landed after RC18 and first ships on the 7.16 line.
+ADDITIVE_REVIEW_FIRMWARE = "7.16.0"
+
 # The Aave V3 supply() transaction every additive test signs. Real ABI
 # calldata (selector + 4 x 32-byte words), so the metadata below binds a
 # genuine transaction rather than a toy payload.
@@ -220,6 +225,7 @@ class TestClearSignAdditiveInvariant(common.KeepKeyTest):
         byte-for-byte. 3 + num_args is the structural minimum from
         signed_metadata_confirm_screens(); pagination can only raise it.
         """
+        self.requires_firmware(ADDITIVE_REVIEW_FIRMWARE)
         self._load_signer()
         self._drop_setup_screenshots()
 
@@ -277,6 +283,7 @@ class TestClearSignAdditiveInvariant(common.KeepKeyTest):
         at runtime and each one still shows the full baseline review after its
         decode. A slot that suppressed would be caught as a missing tail frame.
         """
+        self.requires_firmware(ADDITIVE_REVIEW_FIRMWARE)
         for key_id in range(METADATA_MAX_KEYS):
             self._load_signer(key_id=key_id, alias='CI Slot %d' % key_id)
         self._drop_setup_screenshots()
@@ -329,6 +336,7 @@ class TestClearSignAdditiveInvariant(common.KeepKeyTest):
         screen in its own baseline (the token path already skips it), so it
         could not show that the raw review survives.
         """
+        self.requires_firmware(ADDITIVE_REVIEW_FIRMWARE)
         self._load_signer()
         self._drop_setup_screenshots()
 

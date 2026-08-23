@@ -36,7 +36,9 @@ class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
         recipient and value embedded in the signed EIP-712 message.
         """
         self.requires_fullFeature()
-        self.requires_firmware("7.15.0")
+        # RC18 still exposes the legacy JSON endpoint. Its fail-closed
+        # retirement and the replacement streamed implementation land on 7.16.
+        self.requires_firmware("7.16.0")
         self.requires_message("Ethereum712TypesValues")
         self.setup_mnemonic_allallall()
 
@@ -75,7 +77,8 @@ class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
             },
         }
 
-        # 7.14.2 DISABLED structured EIP-712 outright, pending canonical
+        # Hardened firmware disables legacy structured EIP-712 outright,
+        # pending canonical
         # display hardening: the device could not prove that what it rendered
         # was what it hashed. This vector is the x402 EIP-3009
         # TransferWithAuthorization payment flow, and it is currently REFUSED
@@ -129,8 +132,11 @@ class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
             sign(txtests['tests'][0])
         # The firmware names the remedy rather than just the refusal:
         # "Enable AdvancedMode to blind-sign typed hashes".
-        self.assertIn('Enable AdvancedMode to blind-sign typed hashes',
-                      str(ctx.exception))
+        message = str(ctx.exception)
+        self.assertTrue(
+            'Enable AdvancedMode to blind-sign typed hashes' in message
+            or 'Typed-hash signing disabled by policy' in message,
+            'unexpected typed-hash refusal: %s' % message)
 
         self.client.apply_policy('AdvancedMode', True)
         try:

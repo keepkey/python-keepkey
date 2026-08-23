@@ -21,6 +21,11 @@ on:
   pull_request:
     branches: [master, develop, reconcile/upstream-sync]
 
+# Every job only checks out source and emits runner-native annotations. Keep
+# the workflow token read-only even when the repository default is broader.
+permissions:
+  contents: read
+
 # One run per ref: a new push supersedes the old instead of both burning a
 # runner to completion.
 concurrency:

@@ -30,7 +30,7 @@ from keepkeylib import tools
 class TestMsgE712Verify(common.KeepKeyTest):
   
     def test_structured_eip712_is_refused(self):
-        """7.14.2 disables structured EIP-712 outright.
+        """Post-RC18 firmware disables legacy structured EIP-712 outright.
 
         ethereum_structured_eip712_enabled() returns false
         (lib/firmware/ethereum.c), so fsm_msgEthereum712TypesValues fails closed
@@ -44,7 +44,7 @@ class TestMsgE712Verify(common.KeepKeyTest):
         replaced by test_verify below, not simply deleted.
         """
         self.requires_fullFeature()
-        self.requires_firmware("7.14.2")
+        self.requires_firmware("7.16.0")
         self.setup_mnemonic_allallall()
 
         try:
@@ -55,7 +55,7 @@ class TestMsgE712Verify(common.KeepKeyTest):
                 value_prop='{"domain": {}}',
                 typevals=1,
             )
-            self.fail("Expected Failure -- structured EIP-712 is disabled in 7.14.2")
+            self.fail("Expected Failure -- legacy structured EIP-712 is disabled")
         except CallException as e:
             self.assertIn("Structured EIP-712 disabled", str(e))
 

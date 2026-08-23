@@ -1,7 +1,7 @@
 """
 Session and Trust Lifetime — provider trust must die on its own.
 
-Two claims in the 7.15 clear-sign design have never been tested end to end:
+Two post-RC18 clear-sign lifetime claims have never been tested end to end:
 
   1. AdvancedMode is SESSION state, never a flash bit.  storage.c writes bit 12
      of the storage flags word as zero and ignores it on read (four sites:
@@ -198,7 +198,9 @@ def _resolve_executable(pid, comm, cwd):
 
 class TestSessionTrustLifetime(common.KeepKeyTest):
 
-    MIN_FIRMWARE = "7.15.0"
+    # RC18 still persisted AdvancedMode and retained runtime signers across
+    # session teardown. The session-lifetime fixes first ship in 7.16.
+    MIN_FIRMWARE = "7.16.0"
 
     def setUp(self):
         super(TestSessionTrustLifetime, self).setUp()

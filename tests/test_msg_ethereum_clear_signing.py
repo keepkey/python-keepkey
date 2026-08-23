@@ -1089,6 +1089,11 @@ class TestEthereumClearSigning(common.KeepKeyTest):
     def test_advanced_mode_gate(self):
         """AdvancedMode OFF + unknown contract + no metadata → hard reject;
         ON → raw-data confirm path signs; recognized ERC-20 transfer unaffected."""
+        # RC18 predates the rule that loading a runtime signer itself requires
+        # AdvancedMode. The first released firmware line carrying that complete
+        # gate is 7.16; the older blind-transaction gate remains covered by
+        # test_msg_ethereum_signtx on RC18.
+        self.requires_firmware("7.16.0")
         n = parse_path(DEVICE_PATH)
         data = aave_supply_calldata(1000000000000000000)
 
@@ -1108,8 +1113,11 @@ class TestEthereumClearSigning(common.KeepKeyTest):
                 to=AAVE_V3_POOL, value=0, data=data, chain_id=1)
             self.fail("Expected Failure — blind signing disabled")
         except CallException as e:
-            self.assertIn("Arbitrary contract data signing disabled by policy",
-                          str(e))
+            message = str(e)
+            self.assertTrue(
+                "Arbitrary contract data signing disabled by policy" in message
+                or "Blind signing disabled by policy" in message,
+                "unexpected blind-sign refusal: %s" % message)
 
         # ON → raw-data confirm path → signs
         self.client.apply_policy("AdvancedMode", 1)
@@ -1163,8 +1171,11 @@ class TestEthereumClearSigning(common.KeepKeyTest):
                 to=AAVE_V3_POOL, value=0, data=data, chain_id=chain_id)
             self.fail("Expected Failure — stale metadata must not be reused")
         except CallException as e:
-            self.assertIn("Arbitrary contract data signing disabled by policy",
-                          str(e))
+            message = str(e)
+            self.assertTrue(
+                "Arbitrary contract data signing disabled by policy" in message
+                or "Blind signing disabled by policy" in message,
+                "unexpected blind-sign refusal: %s" % message)
 
 
     # ── LoadClearsignSigner — the phase-1 trust path ───────────────────

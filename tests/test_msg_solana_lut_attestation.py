@@ -39,7 +39,10 @@ class TestSolanaLutAttestation(common.KeepKeyTest):
 
     def setUp(self):
         super(TestSolanaLutAttestation, self).setUp()
-        self.requires_firmware("7.15.0")
+        # KKSOLSW1 landed after the RC18 candidate and first ships in 7.16.
+        # RC18 ignores the forward-compatible attestation fields, which makes
+        # all negative-path tests pass vacuously unless the whole class gates.
+        self.requires_firmware("7.16.0")
         self.requires_fullFeature()
         self.requires_message("LoadClearsignSigner")
         self.setup_mnemonic_allallall()

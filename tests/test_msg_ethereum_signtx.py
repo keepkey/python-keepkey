@@ -124,8 +124,11 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             )
             self.fail("Expected Failure -- blind signing should be blocked")
         except CallException as e:
-            self.assertIn("Arbitrary contract data signing disabled by policy",
-                          str(e))
+            message = str(e)
+            self.assertTrue(
+                "Arbitrary contract data signing disabled by policy" in message
+                or "Blind signing disabled by policy" in message,
+                "unexpected blind-sign refusal: %s" % message)
 
     def test_ethereum_blind_sign_allowed(self):
         """AdvancedMode ON + contract data = device shows BLIND SIGNATURE warning (7.15+).
@@ -270,7 +273,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
     def test_ethereum_signtx_omitted_chain_id_rejected(self):
         """An omitted chain_id must be refused, not silently signed pre-EIP-155.
 
-        Before 7.14.2 the `chain_id < 1` bounds check lived inside
+        Before the post-RC18 hardening the `chain_id < 1` bounds check lived inside
         `if (msg->has_chain_id)`, so a host that simply left the field out
         reached chain_id == 0 without tripping it. Two things followed:
 
@@ -286,7 +289,9 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         sibling tests in this file all now pass chain_id explicitly so they
         keep exercising their own subject rather than this one.
         """
-        self.requires_firmware("7.14.2")
+        # Explicit zero was already rejected on RC18, but an omitted field was
+        # not. The absent-field fix landed after RC18 and first ships in 7.16.
+        self.requires_firmware("7.16.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)

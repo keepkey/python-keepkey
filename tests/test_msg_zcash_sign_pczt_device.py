@@ -234,6 +234,10 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         matters: one screen cannot hold both, and collapsing them back into one
         reintroduces exactly the defect.
         """
+        # RC18 has the Orchard flow but predates the repair that separates the
+        # amount and 106-character unified address. That UI fix first ships in
+        # 7.16, so do not mislabel it as an RC18 regression in this host suite.
+        self.requires_firmware("7.16.0")
         actions = [note_action(CMX_ORCHARD)]
         screens = self._capture_button_screens()
 
