@@ -1054,27 +1054,33 @@ class ProtocolMixin(object):
                 # OsmosisMsgSend.amount, which is a string field and would have
                 # raised even for uatom.
                 #
-                # This restriction is a HOST policy, not a firmware invariant.
+                # Version-gated exactly like thorchain_sign_tx above, and for
+                # the same reason.
+                #
                 # Firmware does not reject a non-uosmo denom on the
-                # OsmosisMsgAck path: since 7.14.2 (firmware c9dccf68),
+                # OsmosisMsgAck path. Since 7.14.2 (firmware c9dccf68)
                 # osmosis_signTxUpdateMsgSend escapes the host-supplied denom
-                # straight into the signed Amino document, which is what
+                # straight into the signed Amino document -- which is what
                 # test_osmosis_send_denom_is_committed_to_the_signature proves
-                # over the raw wire, and the only strcmp against "uosmo" left
+                # over the raw wire -- and the only strcmp against "uosmo" left
                 # in firmware picks the display exponent.
                 #
-                # The check stays because this helper is not version-gated and
-                # firmware older than 7.14.2 hardcoded "uosmo" in the
-                # serializer: it would ignore the denom sent here and sign a
-                # uosmo transfer the caller never asked for. Fail closed rather
-                # than silently mis-sign. A caller that needs an IBC or factory
-                # denom on 7.15 can drive OsmosisMsgAck directly, or this
-                # helper can grow the same version gate thorchain_sign_tx uses.
+                # BEFORE 7.14.2 the serializer hardcoded "uosmo": it would
+                # ignore the denom sent here and sign a uosmo transfer the
+                # caller never asked for. So fail closed there, and expose the
+                # field on firmware that actually commits it. An unconditional
+                # rejection made the supported IBC and factory-denom cases
+                # unreachable through this helper.
                 coin = msg['value']['amount'][0]
-                if coin['denom'] != 'uosmo':
+                firmware_version = (
+                    self.features.major_version,
+                    self.features.minor_version,
+                    self.features.patch_version,
+                )
+                if coin['denom'] != 'uosmo' and firmware_version < (7, 14, 2):
                     raise CallException(
                         "Osmosis.MsgSend",
-                        "Only uosmo is signable by Osmosis MsgSend (got %s)" %
+                        "Unsupported denomination before firmware 7.14.2: %s" %
                         coin['denom'])
                 resp = self.call(osmosis_proto.OsmosisMsgAck(
                     send=osmosis_proto.OsmosisMsgSend(
@@ -1900,7 +1906,7 @@ class ProtocolMixin(object):
 
     # ── Zcash Address Display ─────────────────────────────────
     @expect(zcash_proto.ZcashAddress)
-    def zcash_display_address(self, address_n, account=None,
+    def zcash_display_address(self, address_n=None, account=None,
                               expected_seed_fingerprint=None):
         """Display a Zcash unified address on the device for user confirmation.
 
@@ -1910,7 +1916,9 @@ class ProtocolMixin(object):
         are reserved on ZcashDisplayAddress).
 
         Args:
-            address_n: ZIP-32 derivation path [32', 133', account']
+            address_n: ZIP-32 derivation path [32', 133', account'].
+                Optional -- messages-zcash.proto marks it "required if account
+                omitted", so either form is valid and exactly one is needed.
             account: account index (alternative to full path)
             expected_seed_fingerprint: optional 32-byte ZIP-32 §6.1 seed
                 fingerprint. If provided, device verifies the match before
@@ -1920,7 +1928,16 @@ class ProtocolMixin(object):
             ZcashAddress with .address and .seed_fingerprint of the
             attesting device.
         """
-        kwargs = dict(address_n=address_n)
+        # The protocol accepts EITHER form. Sending address_n unconditionally
+        # made the documented account-only call impossible: it failed in Python
+        # before a request was built.
+        if address_n is None and account is None:
+            raise ValueError(
+                "zcash_display_address needs address_n or account "
+                "(messages-zcash.proto: each is required if the other is omitted)")
+        kwargs = {}
+        if address_n is not None:
+            kwargs['address_n'] = address_n
         if account is not None:
             kwargs['account'] = account
         if expected_seed_fingerprint is not None:

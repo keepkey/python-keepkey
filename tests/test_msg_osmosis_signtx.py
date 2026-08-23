@@ -31,8 +31,9 @@ import common
 
 from binascii import hexlify
 
+from keepkeylib import messages_pb2 as base_proto
 from keepkeylib import messages_osmosis_pb2 as osmosis_proto
-from keepkeylib.client import CallException
+from keepkeylib.client import CallException, ProtocolMixin
 from keepkeylib.tools import parse_path
 
 # Osmosis uses the Cosmos coin type (118), not one of its own.
@@ -230,6 +231,112 @@ class TestMsgOsmosisSignTx(common.KeepKeyTest):
         first = self._sign(1500000)
         second = self._sign(1500000)
         self.assertEqual(hexlify(first.signature), hexlify(second.signature))
+
+
+class _SessionTransport(object):
+    def session_begin(self):
+        pass
+
+    def session_end(self):
+        pass
+
+
+class _ScriptedOsmosisClient(object):
+    """Offline driver for the public osmosis_sign_tx helper.
+
+    Mirrors _ScriptedThorchainClient in test_msg_thorchain_signtx.py: no
+    device, so the version gate can be exercised at both firmware versions in
+    a run that does not need an emulator.
+    """
+
+    osmosis_sign_tx = ProtocolMixin.osmosis_sign_tx
+
+    def __init__(self, version):
+        self.features = base_proto.Features(
+            major_version=version[0],
+            minor_version=version[1],
+            patch_version=version[2],
+        )
+        self.transport = _SessionTransport()
+        self.responses = [
+            osmosis_proto.OsmosisMsgRequest(),
+            osmosis_proto.OsmosisSignedTx(
+                public_key=b'\x02' + b'\x11' * 32,
+                signature=b'\x22' * 64,
+            ),
+        ]
+        self.sent = []
+
+    def call(self, message):
+        self.sent.append(message)
+        if not self.responses:
+            raise AssertionError('unexpected device call: %s' % type(message))
+        return self.responses.pop(0)
+
+
+class TestOsmosisClientDenom(unittest.TestCase):
+    """The public helper must reach the denominations firmware supports.
+
+    Firmware commits the host-supplied denom to the signed Amino document from
+    7.14.2 on (osmosis_signTxUpdateMsgSend escapes it verbatim), so an
+    unconditional uosmo-only check in the helper made every supported IBC and
+    factory denom unreachable except by driving OsmosisMsgAck by hand.
+    Before 7.14.2 the serializer hardcoded uosmo, so a non-uosmo send there
+    would sign a uosmo transfer the caller never asked for -- fail closed.
+    """
+
+    ADDRESS_N = [0x8000002C, 0x80000076, 0x80000000, 0, 0]
+    ADDR = 'osmo1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8'
+    IBC_DENOM = 'ibc/' + ('A' * 64)
+
+    def _sign(self, client, denom):
+        return client.osmosis_sign_tx(
+            address_n=self.ADDRESS_N,
+            account_number=92,
+            chain_id='osmosis-1',
+            fee=3000,
+            gas=200000,
+            msgs=[{
+                'type': 'osmosis-sdk/MsgSend',
+                'value': {
+                    'amount': [{'denom': denom, 'amount': '1500000'}],
+                    'from_address': self.ADDR,
+                    'to_address': self.ADDR,
+                },
+            }],
+            memo='client denom test',
+            sequence=3,
+        )
+
+    def test_ibc_denom_is_forwarded_on_7_15(self):
+        client = _ScriptedOsmosisClient((7, 15, 0))
+        response = self._sign(client, self.IBC_DENOM)
+
+        self.assertIsInstance(response, osmosis_proto.OsmosisSignedTx)
+        self.assertEqual(client.sent[1].send.denom, self.IBC_DENOM)
+
+    def test_ibc_denom_is_forwarded_on_7_14_2(self):
+        """7.14.2 is the first release whose serializer commits the denom."""
+        client = _ScriptedOsmosisClient((7, 14, 2))
+        response = self._sign(client, self.IBC_DENOM)
+
+        self.assertIsInstance(response, osmosis_proto.OsmosisSignedTx)
+        self.assertEqual(client.sent[1].send.denom, self.IBC_DENOM)
+
+    def test_non_uosmo_denom_is_rejected_before_7_14_2(self):
+        client = _ScriptedOsmosisClient((7, 14, 1))
+
+        with self.assertRaises(CallException) as ctx:
+            self._sign(client, self.IBC_DENOM)
+        self.assertIn('Unsupported denomination before firmware 7.14.2',
+                      str(ctx.exception))
+
+    def test_uosmo_still_signs_on_legacy_firmware(self):
+        client = _ScriptedOsmosisClient((7, 14, 1))
+        response = self._sign(client, 'uosmo')
+
+        self.assertIsInstance(response, osmosis_proto.OsmosisSignedTx)
+        self.assertEqual(client.sent[1].send.denom, 'uosmo')
 
 
 if __name__ == '__main__':
