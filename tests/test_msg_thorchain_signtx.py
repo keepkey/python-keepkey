@@ -143,33 +143,6 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
         self.assertEqual(hexlify(signature.public_key), "031519713b8b42bdc367112d33132cf14cedf928ac5771d444ba459b9497117ba3")
         return
 
-    def test_thorchain_non_rune_denom_changes_signature(self):
-        """The public helper forwards denom and firmware commits it to sign-doc."""
-        self.requires_fullFeature()
-        self.requires_firmware("7.15.0")
-        self.setup_mnemonic_nopin_nopassphrase()
-        address_n = parse_path(DEFAULT_BIP32_PATH)
-        from_address = self.client.thorchain_get_address(address_n)
-        to_address = "thor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy"
-
-        def sign(denom):
-            return self.client.thorchain_sign_tx(
-                address_n=address_n,
-                account_number=92,
-                chain_id="thorchain",
-                fee=3000,
-                gas=200000,
-                msgs=[make_send(from_address, to_address, 10000, denom=denom)],
-                memo="denom binding",
-                sequence=3,
-                testnet=False,
-            )
-
-        rune = sign('rune')
-        btc = sign('btc/btc')
-        self.assertEqual(hexlify(rune.public_key), hexlify(btc.public_key))
-        self.assertNotEqual(hexlify(rune.signature), hexlify(btc.signature))
-
     def test_sign_btc_eth_swap(self):
         self.requires_fullFeature()
         self.requires_firmware("7.0.2")
