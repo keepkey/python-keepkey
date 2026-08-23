@@ -56,7 +56,8 @@ class TestTokenTableGenerators(unittest.TestCase):
             out = os.path.join(tmp, 'out.def')
             proc = subprocess.run(
                 [sys.executable, os.path.join(_ETH, script), out],
-                capture_output=True, text=True, cwd=_PYKEEPKEY)
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                universal_newlines=True, cwd=_PYKEEPKEY)
             self.assertEqual(
                 proc.returncode, 0,
                 '%s exited %d -- the firmware build runs this exact command '
