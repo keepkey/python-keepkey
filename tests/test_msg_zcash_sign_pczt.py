@@ -236,6 +236,88 @@ class TestZcashSignPCZTClient(unittest.TestCase):
         with self.assertRaisesRegex(Exception, "0 Orchard signatures for 1 real spends"):
             client.zcash_sign_pczt(**sign_kwargs(actions))
 
+    def _transparent_kwargs(self, actions, n_inputs):
+        """One transparent output plus n_inputs transparent inputs."""
+        kwargs = sign_kwargs(actions)
+        kwargs.update({
+            'transparent_outputs': [{
+                'amount': 10000,
+                'script_pubkey': b'\x76\xa9\x14' + b'\x21' * 20 + b'\x88\xac',
+            }],
+            'transparent_inputs': [{
+                'address_n': T_ADDRESS_N,
+                'amount': 75000 + i,
+                'prevout_txid': bytes([0x22 + i]) * 32,
+                'prevout_index': i,
+                'sequence': 0xFFFFFFFF,
+                'script_pubkey': b'\x76\xa9\x14' + b'\x23' * 20 + b'\x88\xac',
+            } for i in range(n_inputs)],
+            'return_transparent_signatures': True,
+        })
+        return kwargs
+
+    def _transparent_acks(self, n_inputs):
+        return ([zcash_proto.ZcashTransparentAck(next_output_index=0)] +
+                [zcash_proto.ZcashTransparentAck(next_input_index=i)
+                 for i in range(n_inputs)] +
+                [zcash_proto.ZcashPCZTActionAck(next_index=0)])
+
+    def test_short_transparent_signature_list_is_rejected(self):
+        """Two transparent inputs, one signature back.
+
+        The unsignable input would otherwise reach the caller as success.
+        """
+        actions = [action(0, False)]
+        responses = self._transparent_acks(2) + [
+            zcash_proto.ZcashTransparentSigned(signatures=[b'\x30\x01']),
+        ]
+        client = ScriptedClient(
+            responses, reads=[zcash_proto.ZcashSignedPCZT(signatures=[])])
+
+        with self.assertRaisesRegex(
+                Exception, "1 transparent signatures for 2 transparent inputs"):
+            client.zcash_sign_pczt(**self._transparent_kwargs(actions, 2))
+
+    def test_omitted_transparent_signed_message_is_rejected(self):
+        """The device jumps straight to ZcashSignedPCZT with inputs pending."""
+        actions = [action(0, False)]
+        responses = self._transparent_acks(1) + [
+            zcash_proto.ZcashSignedPCZT(signatures=[]),
+        ]
+        client = ScriptedClient(responses)
+
+        with self.assertRaisesRegex(
+                Exception, "0 transparent signatures for 1 transparent inputs"):
+            client.zcash_sign_pczt(**self._transparent_kwargs(actions, 1))
+
+    def test_empty_transparent_signature_is_rejected(self):
+        """A present-but-empty entry is a missing signature, not a signature."""
+        actions = [action(0, False)]
+        responses = self._transparent_acks(1) + [
+            zcash_proto.ZcashTransparentSigned(signatures=[b'']),
+        ]
+        client = ScriptedClient(
+            responses, reads=[zcash_proto.ZcashSignedPCZT(signatures=[])])
+
+        with self.assertRaisesRegex(Exception, "empty transparent signature"):
+            client.zcash_sign_pczt(**self._transparent_kwargs(actions, 1))
+
+    def test_transparent_signature_per_input_is_accepted(self):
+        """The matching-count case still succeeds, in device order."""
+        actions = [action(0, False)]
+        sigs = [b'\x30\x01', b'\x30\x02']
+        responses = self._transparent_acks(2) + [
+            zcash_proto.ZcashTransparentSigned(signatures=sigs),
+        ]
+        final = zcash_proto.ZcashSignedPCZT(signatures=[])
+        client = ScriptedClient(responses, reads=[final])
+
+        signed, transparent_sigs = client.zcash_sign_pczt(
+            **self._transparent_kwargs(actions, 2))
+
+        self.assertIs(signed, final)
+        self.assertEqual(transparent_sigs, sigs)
+
     def test_duplicate_action_request_is_rejected(self):
         actions = [action(0, True), action(1, False)]
         client = ScriptedClient([

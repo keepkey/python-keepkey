@@ -2126,6 +2126,23 @@ class ProtocolMixin(object):
         if not isinstance(resp, zcash_proto.ZcashSignedPCZT):
             raise Exception("Unexpected response type: %s" % type(resp))
 
+        # Count the transparent signatures the same way the Orchard signatures
+        # are counted below. Without this, a device that skips
+        # ZcashTransparentSigned entirely, or returns a short list, reaches the
+        # caller as success and hands back a transaction whose transparent
+        # inputs can never be spent. Checked after the Failure and response-type
+        # arms above so a device-reported error still surfaces its own message.
+        if len(transparent_sigs) != len(transparent_inputs):
+            raise Exception(
+                "Device returned %d transparent signatures for %d transparent inputs"
+                % (len(transparent_sigs), len(transparent_inputs)))
+        # Transparent signatures are DER ECDSA, so their length is not fixed the
+        # way a 64-byte RedPallas signature is; an empty entry is still a missing
+        # signature dressed up as a present one.
+        for signature in transparent_sigs:
+            if not signature:
+                raise Exception("Device returned an empty transparent signature")
+
         expected_signatures = sum(1 for action in actions if action['is_spend'])
         if len(resp.signatures) != expected_signatures:
             raise Exception(
