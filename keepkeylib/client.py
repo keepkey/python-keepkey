@@ -1054,10 +1054,22 @@ class ProtocolMixin(object):
                 # OsmosisMsgSend.amount, which is a string field and would have
                 # raised even for uatom.
                 #
-                # The legacy Amino MsgSend serializer is uosmo-only. Firmware
-                # now enforces the same rule on direct OsmosisMsgAck traffic;
-                # retain the host check as early feedback, never as the trust
-                # boundary.
+                # This restriction is a HOST policy, not a firmware invariant.
+                # Firmware does not reject a non-uosmo denom on the
+                # OsmosisMsgAck path: since 7.14.2 (firmware c9dccf68),
+                # osmosis_signTxUpdateMsgSend escapes the host-supplied denom
+                # straight into the signed Amino document, which is what
+                # test_osmosis_send_denom_is_committed_to_the_signature proves
+                # over the raw wire, and the only strcmp against "uosmo" left
+                # in firmware picks the display exponent.
+                #
+                # The check stays because this helper is not version-gated and
+                # firmware older than 7.14.2 hardcoded "uosmo" in the
+                # serializer: it would ignore the denom sent here and sign a
+                # uosmo transfer the caller never asked for. Fail closed rather
+                # than silently mis-sign. A caller that needs an IBC or factory
+                # denom on 7.15 can drive OsmosisMsgAck directly, or this
+                # helper can grow the same version gate thorchain_sign_tx uses.
                 coin = msg['value']['amount'][0]
                 if coin['denom'] != 'uosmo':
                     raise CallException(
