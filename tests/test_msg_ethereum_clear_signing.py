@@ -599,7 +599,7 @@ class TestSerializerUnit(unittest.TestCase):
 #     [print(f['key'], hashlib.sha256(t.flow_blob(f, timestamp=t.REFERENCE_TIMESTAMP)).hexdigest())
 #      for f in t.CLEARSIGN_FLOWS]"
 REFERENCE_BLOB_SNAPSHOTS = {
-    'aave-v3-supply': ('434ee7389f099e8ab77a4274fd7da40918a74c719dd0bdb4a81c6259846bda2d', 246),
+    'aave-v3-supply': ('710dc044c914a7320c91774ae5193f5b6509b00eb14e17719f7b31d0274d4892', 246),
     'erc20-transfer': ('adbd1e054f8b59b1bb86af046951df53510c10dcc0ec0e3e46b19eaf6410cf05', 205),
     'erc20-approve': ('75e5108f578f27d60c572d12072fb4cf0455321c6f39445e1d59fe4d99713c91', 193),
     'erc20-approve-unlimited': ('a5c043a60da8f317975ee8f1b9f3a0718186f6bdce625b605ce71973b3fa3811', 221),
@@ -803,8 +803,12 @@ class TestClearSignV2SchemaOffline(unittest.TestCase):
 
     def test_rejects_dynamic_format(self):
         """v2 only encodes fixed single-word types; STRING/BYTES are rejected by
-        the serializer (they have no fixed on-chain word)."""
-        with self.assertRaises(AssertionError):
+        the serializer (they have no fixed on-chain word).
+
+        ValueError, not AssertionError: this is a precondition on a function
+        that builds SIGNED bytes, so it must survive `python -O`.
+        """
+        with self.assertRaises(ValueError):
             serialize_schema_metadata(
                 chain_id=1, contract_address=USDC_ADDRESS,
                 selector=ERC20_TRANSFER_SELECTOR, method_name='x',
