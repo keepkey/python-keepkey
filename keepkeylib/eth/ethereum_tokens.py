@@ -55,7 +55,8 @@ class ETHTokenTable(object):
             self.tokens,
             token_policy.BUDGET_ETHEREUM_LISTS,
             symbol_of=lambda t: t.token.get('symbol', ''),
-            address_of=lambda t: t.token['address'].lower())
+            address_of=lambda t: t.token['address'].lower(),
+            chain_of=lambda t: t.network['chain_id'])
         print('ethereum_tokens: %d of %d kept (budget %d)'
               % (len(chosen), len(self.tokens),
                  token_policy.BUDGET_ETHEREUM_LISTS), file=sys.stderr)

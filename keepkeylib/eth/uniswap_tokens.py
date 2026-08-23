@@ -38,7 +38,10 @@ class USETHTokenTable(object):
             self.ustoks,
             token_policy.BUDGET_UNISWAP_LIST,
             symbol_of=lambda t: t.token.get('symbol', ''),
-            address_of=lambda t: t.token['contractAddress'].lower())
+            address_of=lambda t: t.token['contractAddress'].lower(),
+            # This list is mainnet-only (serialize_c hardcodes chain_id 1),
+            # so the chain component is constant rather than absent.
+            chain_of=lambda t: 1)
         print('uniswap_tokens: %d of %d kept (budget %d)'
               % (len(chosen), len(self.ustoks),
                  token_policy.BUDGET_UNISWAP_LIST), file=_sys.stderr)

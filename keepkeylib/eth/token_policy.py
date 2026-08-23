@@ -87,14 +87,27 @@ PRIORITY_SYMBOLS = (REQUIRED_BY_COINS + REQUIRED_BY_TESTS
                     + STABLECOINS + MAJORS)
 
 
-def select(records, budget, symbol_of, address_of):
+def select(records, budget, symbol_of, address_of, chain_of=None):
     """Return `records` trimmed to `budget`, priority symbols first.
 
     `records` is any iterable; `symbol_of`/`address_of` pull the two fields.
     Priority symbols with more than one address in `records` are DROPPED from
     the priority pass -- see rule 3 -- though they may still be picked up by
     the deterministic fill, where they carry no special standing.
+
+    `chain_of` supplies the chain id. A token's identity is (chain_id,
+    address), NOT address alone: the vetted source carries the same address on
+    several chains -- 0x0000..0000 is listed as BURNER under EXP (2), OP (10)
+    and MATIC (137) -- and deduplicating on address alone silently dropped
+    every chain after the first from the generated firmware table. Left as
+    None the key falls back to address alone, which is only correct for a
+    single-chain source.
     """
+    if chain_of is None:
+        chain_of = lambda r: None
+
+    def key_of(r):
+        return (chain_of(r), address_of(r))
     records = list(records)
     by_symbol = {}
     for r in records:
@@ -108,7 +121,7 @@ def select(records, budget, symbol_of, address_of):
             ambiguous.append(sym)
             continue
         for r in hits:
-            key = address_of(r)
+            key = key_of(r)
             if key not in seen:
                 seen.add(key)
                 chosen.append(r)
@@ -116,7 +129,7 @@ def select(records, budget, symbol_of, address_of):
     for r in sorted(records, key=address_of):
         if len(chosen) >= budget:
             break
-        key = address_of(r)
+        key = key_of(r)
         if key not in seen:
             seen.add(key)
             chosen.append(r)
