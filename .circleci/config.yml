@@ -58,11 +58,24 @@ jobs:
             # Fail the job on this repo's OWN result.
             #
             # The firmware's C++ firmware-unit suite used to run here and gated
-            # this job. No change in THIS repository can affect firmware C++, and
-            # the firmware repo already runs that suite in its own CI, so all it
-            # did was fail python-keepkey for reasons no python change caused: a
-            # token-table change cannot go green here until the matching firmware
-            # change reaches the branch this clones, which is a release away.
+            # this job. It was dropped because it failed python-keepkey for
+            # reasons no python change caused: a token-table change cannot go
+            # green here until the matching firmware change reaches the branch
+            # this clones, which is a release away. The firmware repo runs that
+            # suite in its own CI.
+            #
+            # This repo IS in the firmware's build graph, though, so dropping
+            # the suite is not free. keepkey-firmware's lib/firmware/CMakeLists.txt
+            # generates ethereum_tokens.def and uniswap_tokens.def by running
+            # deps/python-keepkey/keepkeylib/eth/{ethereum,uniswap}_tokens.py,
+            # and kkfirmware depends on that target -- so a change here can
+            # break the firmware C++ BUILD, and tokens[] is what
+            # unittests/firmware/coins.cpp reads.
+            #
+            # tests/test_token_table_generators.py is the replacement gate for
+            # exactly that coupling: it runs both generators and asserts the
+            # emitted table is well-formed, budget-conforming and
+            # deterministic. Do not remove it without restoring firmware-unit.
             #
             # Read the status file defensively -- it is written by the container,
             # and a crash before it exists must FAIL rather than silently pass an

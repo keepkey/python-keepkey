@@ -34,6 +34,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - uses: actions/setup-python@v5
         with:
@@ -44,7 +46,7 @@ jobs:
 
       - name: Install contract-test dependencies
         run: |
-          pip install "protobuf>=3.20,<4" mnemonic ecdsa pytest
+          pip install "protobuf>=3.20,<4" mnemonic ecdsa pytest requests
 
       - name: Run deterministic Zcash PCZT contract tests
         env:
@@ -54,6 +56,19 @@ jobs:
             tests/test_msg_zcash_sign_pczt.py \
             tests/test_zcash_seed_fingerprint_helper.py
 
+      # keepkey-firmware GENERATES its token table by running this repo's
+      # generators (lib/firmware/CMakeLists.txt -> ethereum_tokens.def), so a
+      # change here can break the firmware C++ build. .circleci/config.yml no
+      # longer runs the firmware's own unit suite; this is the gate that
+      # replaced it.
+      - name: Run ABI encoder and token-table generator contract tests
+        env:
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python
+        run: |
+          python -m pytest -q \
+            tests/test_clearsign_abi.py \
+            tests/test_token_table_generators.py
+
       - name: Lint summary
         run: |
           echo "## 🔑 KeepKey python-keepkey — Lint" >> "$GITHUB_STEP_SUMMARY"
@@ -62,6 +77,8 @@ jobs:
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Syntax | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Zcash PCZT contract | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| ABI encoder | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Token-table generators | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
 
   # ═══════════════════════════════════════════════════════════
   # STAGE 2: TEST — pull published emulator, run pytest
