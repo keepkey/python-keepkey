@@ -2281,6 +2281,25 @@ SECTIONS = [
           'they prove the pool branch is selected by shielded_pool rather than one path serving '
           'both.',
           []),
+         ('Z26', 'test_msg_zcash_sign_pczt_device',
+          'test_ironwood_rejects_a_non_empty_orchard_bundle',
+          'v6 refuses an unverified Orchard bundle (ON DEVICE)',
+          'A v6 transaction streams and verifies only its Ironwood actions, so its Orchard '
+          'bundle must be the ZIP-244 empty-bundle digest. Any other value describes a bundle '
+          'the device never inspected but still commits to in the sighash it signs. That was '
+          'exploitable: point orchard_digest at a real bundle spending one of this seed '
+          'notes, reuse an approved action alpha so rk is byte-identical, and the single '
+          'RedPallas signature the device emits verifies in BOTH bundles.',
+          []),
+         ('Z27', 'test_multisig',
+          'test_oversized_signature_is_rejected',
+          'Oversized multisig signature refused (ON DEVICE)',
+          'MultisigRedeemScriptType.signatures is declared max_size:73 but a DER ECDSA signature '
+          'is at most 72. The witness serializer appended the sighash byte AT signatures[i].size, '
+          'so 73 wrote one past the end of bytes[73] -- onto signatures[i+1].size for i < 14, '
+          'which can revive a slot the host left empty and change the witness stack after the '
+          'user reviewed it. A declared max_size is a decoder bound, not a runtime one.',
+          []),
      ]),
 
     ('D', 'BIP-85 Child Derivation', '7.14.0',

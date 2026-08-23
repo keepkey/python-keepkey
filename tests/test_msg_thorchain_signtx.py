@@ -120,6 +120,28 @@ class TestThorchainClientDenom(unittest.TestCase):
 
 class TestMsgThorChainSignTx(common.KeepKeyTest):
 
+    def test_ack_rejects_send_and_deposit_together(self):
+        """An unused deposit submessage must not alter the send review flow."""
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        response = self.client.call(thorchain_proto.ThorchainSignTx(
+            address_n=parse_path(DEFAULT_BIP32_PATH), account_number=92,
+            chain_id="thorchain", fee_amount=3000, gas=200000,
+            memo="SWAP:BTC.BTC:bc1qreviewthismemo", sequence=3,
+            msg_count=1, testnet=False))
+        self.assertIsInstance(response, thorchain_proto.ThorchainMsgRequest)
+
+        with self.assertRaises(CallException):
+            self.client.call(thorchain_proto.ThorchainMsgAck(
+                send=thorchain_proto.ThorchainMsgSend(
+                    to_address="thor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
+                    amount=10000, denom="rune"),
+                deposit=thorchain_proto.ThorchainMsgDeposit(
+                    asset="THOR.RUNE", amount=1, memo="unused",
+                    signer="thor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8")))
+
     def test_thorchain_sign_tx(self):
         self.requires_fullFeature()
         self.requires_firmware("7.0.2")

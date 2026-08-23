@@ -240,5 +240,49 @@ class TestMultisig(common.KeepKeyTest):
             self.assertRaises(CallException, self.client.sign_tx, 'Bitcoin', [inp1, ], [out1, ])
 
 
+    def test_oversized_signature_is_rejected(self):
+        """A multisig signature longer than a DER ECDSA signature is refused.
+
+        MultisigRedeemScriptType.signatures is declared max_size:73, so the
+        decoder accepts 73 bytes -- but a DER-encoded ECDSA signature is at
+        most 72 (0x30 len, then two 0x02-tagged integers of at most 33 bytes).
+        The witness serializer used to append the sighash byte AT
+        signatures[i].size, so a 73-byte value wrote one past the end of
+        bytes[73]: onto signatures[i+1].size for i < 14, which can revive a
+        slot the host left empty and change the witness stack after the user
+        reviewed it, or onto has_m at i == 14.
+
+        The declared max_size is a decoder bound, never a runtime one. This
+        asserts the device applies the real one.
+        """
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        node = ckd_public.deserialize('xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy')
+
+        multisig = proto_types.MultisigRedeemScriptType(
+                            pubkeys=[proto_types.HDNodePathType(node=node, address_n=[1]),
+                                     proto_types.HDNodePathType(node=node, address_n=[2]),
+                                     proto_types.HDNodePathType(node=node, address_n=[3])],
+                            # 73 bytes: one more than any real DER signature,
+                            # and exactly the value that overflowed the write.
+                            signatures=[b'\x30' * 73, b'', b''],
+                            m=2,
+                            )
+
+        inp1 = proto_types.TxInputType(address_n=[1],
+                             prev_hash=binascii.unhexlify('c6091adf4c0c23982a35899a6e58ae11e703eacd7954f588ed4b9cdefc4dba52'),
+                             prev_index=1,
+                             script_type=proto_types.SPENDMULTISIG,
+                             multisig=multisig,
+                             )
+
+        out1 = proto_types.TxOutputType(address='12iyMbUb4R2K3gre4dHSrbu5azG5KaqVss',
+                              amount=100000,
+                              script_type=proto_types.PAYTOADDRESS)
+
+        with self.client:
+            self.assertRaises(CallException, self.client.sign_tx, 'Bitcoin', [inp1, ], [out1, ])
+
+
 if __name__ == '__main__':
     unittest.main()
