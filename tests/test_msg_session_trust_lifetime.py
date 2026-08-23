@@ -40,6 +40,7 @@ about how loaded trust DIES.
 from __future__ import print_function
 
 import os
+import shutil
 import subprocess
 import time
 import unittest
@@ -66,7 +67,9 @@ from keepkeylib.signed_metadata import (
 TEST_KEY_ID = 3
 CI_SIGNER_ALIAS = 'CI Test'
 
-AAVE_V3_POOL = bytes.fromhex('7d2768de32b0b80b7a3454c06bdac94a69ddc7a9')
+# Aave V3 Pool proxy, matching AAVE_SUPPLY_SELECTOR below. Was the V2
+# LendingPool address, which does not expose supply().
+AAVE_V3_POOL = bytes.fromhex('87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2')
 AAVE_SUPPLY_SELECTOR = bytes.fromhex('617ba037')
 PROBE_ARGS = [
     {'name': 'protocol', 'format': ARG_FORMAT_STRING, 'value': b'Aave V3'},
@@ -151,7 +154,45 @@ def _emulator_process(port):
             for cwd_line in cwd_out.splitlines():
                 if cwd_line.startswith('n'):
                     cwd = cwd_line[1:]
-            return pid, exe, cwd
+
+            # Resolve a RUNNABLE path before returning, because the caller
+            # kills this pid and then re-execs what we hand back.
+            #
+            # `ps -o comm=` gives the bare command name on Linux (`kkemu`,
+            # truncated to 15 chars), not a path -- only macOS returns an
+            # absolute one. Popen([name]) searches PATH, never cwd, and the
+            # emulator build directory is not on PATH. So on Linux the old
+            # code killed the emulator and then failed to restart it, leaving
+            # every later test in the run talking to a dead port.
+            #
+            # If no runnable path can be found, report "not found" so
+            # _power_cycle() takes its documented skip instead of killing an
+            # emulator it cannot bring back.
+            exe_path = _resolve_executable(pid, exe, cwd)
+            if exe_path is None:
+                continue
+            return pid, exe_path, cwd
+    return None
+
+
+def _resolve_executable(pid, comm, cwd):
+    """An absolute, runnable path for `comm`, or None."""
+    # Linux: the kernel knows exactly what is running.
+    try:
+        link = os.readlink('/proc/%d/exe' % pid)
+        if os.path.isfile(link) and os.access(link, os.X_OK):
+            return link
+    except (OSError, AttributeError):
+        pass
+    if os.path.isabs(comm) and os.access(comm, os.X_OK):
+        return comm
+    if cwd:
+        candidate = os.path.join(cwd, comm)
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+    found = shutil.which(comm)
+    if found:
+        return found
     return None
 
 
