@@ -3243,6 +3243,15 @@ MUST_RUN_MODULES = {
     'test_msg_solana_lut_attestation': '7.15.0',
 }
 
+# A module can be mandatory for the regular product while being intentionally
+# absent from KK_BITCOIN_ONLY. Keep this narrower than MUST_RUN_MODULES: Taproot
+# remains mandatory in both products, and the expected build variant comes from
+# CI rather than the firmware identity being tested.
+FULL_FEATURE_ONLY_MUST_RUN_MODULES = {
+    'test_msg_solana_lut_attestation',
+}
+
+
 def screenshot_audit(fw_version, screenshot_root, junit_path=None):
     """Which SECTIONS tests DECLARED screens but captured none?
 
@@ -3283,7 +3292,7 @@ def screenshot_audit(fw_version, screenshot_root, junit_path=None):
     return (len(missing) == 0, missing)
 
 
-def validate_junit(fw_version, results):
+def validate_junit(fw_version, results, build_variant='full'):
     """Check SECTIONS tests against JUnit results. Returns (passed, failed_list).
 
     A test is considered failed if it appears in SECTIONS for this firmware version
@@ -3299,7 +3308,10 @@ def validate_junit(fw_version, results):
             status = _lookup(results, mod, meth)
             if status in ('fail', 'error'):
                 failures.append((tid, mod, meth, status))
-            elif status == 'skip' and ver_ge(fw_version, MUST_RUN_MODULES.get(mod, '99.0.0')):
+            elif (status == 'skip'
+                  and ver_ge(fw_version, MUST_RUN_MODULES.get(mod, '99.0.0'))
+                  and not (build_variant == 'bitcoin-only'
+                           and mod in FULL_FEATURE_ONLY_MUST_RUN_MODULES)):
                 failures.append((tid, mod, meth, 'skipped-but-required'))
             elif not status:
                 failures.append((tid, mod, meth, 'missing'))
@@ -3320,6 +3332,8 @@ def main():
                    help='Print pytest -k expression for tests needing screenshots, then exit')
     p.add_argument('--validate-junit', action='store_true',
                    help='Validate JUnit results against SECTIONS, exit non-zero on failures')
+    p.add_argument('--build-variant', choices=('full', 'bitcoin-only'), default='full',
+                   help='Expected CI product; controls only explicit build-flag waivers')
     args = p.parse_args()
 
     fw = args.fw_version
@@ -3347,7 +3361,7 @@ def main():
             print('ERROR: --validate-junit requires --junit=<path>', file=sys.stderr)
             sys.exit(2)
         results = parse_junit(args.junit)
-        ok, failures = validate_junit(fw, results)
+        ok, failures = validate_junit(fw, results, args.build_variant)
         if ok:
             print(f'SECTIONS validation passed: all tests for fw {fw} are pass or skip')
             sys.exit(0)
