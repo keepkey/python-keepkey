@@ -32,6 +32,30 @@ class TestMessageSigningProtocolBindings(unittest.TestCase):
         decoded = solana_proto.SolanaSignTx.FromString(encoded)
         self.assertEqual(list(decoded.token_recipient_owner), [owner])
 
+    def test_solana_clearsign_certificate_is_additive_field_13(self):
+        field = solana_proto.SolanaSignTx.DESCRIPTOR.fields_by_name[
+            'clearsign_certificate'
+        ]
+        self.assertEqual(field.number, 13)
+        if hasattr(field, 'label'):
+            self.assertEqual(field.label, field.LABEL_OPTIONAL)
+        else:
+            self.assertFalse(field.is_repeated)
+        self.assertEqual(field.type, field.TYPE_BYTES)
+
+        certificate = bytes(range(139))
+        encoded = solana_proto.SolanaSignTx(
+            address_n=[0x8000002c, 0x800001f5, 0x80000000, 0x80000000],
+            raw_tx=b'\x80relay',
+            schema_payload=b'\x01schema',
+            schema_signature=bytes(range(64)),
+            schema_signer_key_id=0x80,
+            clearsign_certificate=certificate,
+        ).SerializeToString()
+        decoded = solana_proto.SolanaSignTx.FromString(encoded)
+        self.assertEqual(decoded.clearsign_certificate, certificate)
+        self.assertEqual(decoded.schema_signer_key_id, 0x80)
+
     def test_solana_offchain_messages_are_mapped(self):
         self.assertEqual(proto.MessageType_SolanaSignOffchainMessage, 756)
         self.assertEqual(proto.MessageType_SolanaOffchainMessageSignature, 757)
