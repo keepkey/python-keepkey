@@ -75,6 +75,11 @@ class TestDylibConfirmFlow(unittest.TestCase):
         self.client.init_device()
         f = self.client.features
         self.assertGreaterEqual(f.major_version, 7)
+        revision = f.revision.decode("ascii")
+        self.assertRegex(revision, r"^[0-9a-f]{40}$")
+        expected_revision = os.environ.get("GITHUB_SHA")
+        if expected_revision:
+            self.assertEqual(revision, expected_revision)
 
     @unittest.skip(
         "Pending firmware fix — confirm_helper busy-loops on a ButtonAck "
