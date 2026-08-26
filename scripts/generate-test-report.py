@@ -3243,6 +3243,13 @@ MUST_RUN_MODULES = {
     'test_msg_solana_lut_attestation': '7.15.0',
 }
 
+# These modules are mandatory only on the multi-chain product. Their handlers
+# are intentionally absent from KK_BITCOIN_ONLY, so a capability-gated skip is
+# evidence of the product boundary there, not missing release coverage.
+FULL_FEATURE_ONLY_MUST_RUN_MODULES = {
+    'test_msg_solana_lut_attestation',
+}
+
 def screenshot_audit(fw_version, screenshot_root, junit_path=None):
     """Which SECTIONS tests DECLARED screens but captured none?
 
@@ -3283,7 +3290,7 @@ def screenshot_audit(fw_version, screenshot_root, junit_path=None):
     return (len(missing) == 0, missing)
 
 
-def validate_junit(fw_version, results):
+def validate_junit(fw_version, results, variant='full'):
     """Check SECTIONS tests against JUnit results. Returns (passed, failed_list).
 
     A test is considered failed if it appears in SECTIONS for this firmware version
@@ -3299,7 +3306,12 @@ def validate_junit(fw_version, results):
             status = _lookup(results, mod, meth)
             if status in ('fail', 'error'):
                 failures.append((tid, mod, meth, status))
-            elif status == 'skip' and ver_ge(fw_version, MUST_RUN_MODULES.get(mod, '99.0.0')):
+            must_run = not (
+                variant == 'bitcoin-only' and
+                mod in FULL_FEATURE_ONLY_MUST_RUN_MODULES
+            )
+            if (status == 'skip' and must_run and
+                    ver_ge(fw_version, MUST_RUN_MODULES.get(mod, '99.0.0'))):
                 failures.append((tid, mod, meth, 'skipped-but-required'))
             elif not status:
                 failures.append((tid, mod, meth, 'missing'))
@@ -3320,6 +3332,9 @@ def main():
                    help='Print pytest -k expression for tests needing screenshots, then exit')
     p.add_argument('--validate-junit', action='store_true',
                    help='Validate JUnit results against SECTIONS, exit non-zero on failures')
+    p.add_argument('--variant', choices=('full', 'bitcoin-only'),
+                   default=os.environ.get('KK_FIRMWARE_VARIANT', 'full'),
+                   help='Product variant whose required report coverage is validated')
     args = p.parse_args()
 
     fw = args.fw_version
@@ -3347,7 +3362,7 @@ def main():
             print('ERROR: --validate-junit requires --junit=<path>', file=sys.stderr)
             sys.exit(2)
         results = parse_junit(args.junit)
-        ok, failures = validate_junit(fw, results)
+        ok, failures = validate_junit(fw, results, args.variant)
         if ok:
             print(f'SECTIONS validation passed: all tests for fw {fw} are pass or skip')
             sys.exit(0)
