@@ -438,6 +438,36 @@ class TestDeviceRecovery(common.KeepKeyTest):
         for n in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
             check_n_words(n)
 
+    def test_unknown_word_count_failure_aborts_recovery(self):
+        """A terminal Failure must not leave the recovery stream live."""
+        self.requires_firmware("7.14.2")
+
+        ret = self.client.call_raw(proto.RecoveryDevice(
+            passphrase_protection=False,
+            pin_protection=False,
+            label='label',
+            language='english',
+            enforce_wordlist=True,
+            use_character_cipher=True,
+        ))
+
+        self.assertIsInstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
+        self.assertIsInstance(ret, proto.CharacterRequest)
+
+        ret = self.client.call_raw(proto.CharacterAck(done=True))
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertEqual(ret.code, proto_types.Failure_SyntaxError)
+        self.assertEndsWith(ret.message, "12, 18 or 24)")
+
+        # The Failure is a protocol boundary. A stale continuation from the
+        # old ceremony must be rejected rather than resuming seed entry.
+        ret = self.client.call_raw(proto.CharacterAck(character='a'))
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertEqual(ret.code, proto_types.Failure_UnexpectedMessage)
+        self.assertEndsWith(ret.message, "Not in Recovery mode")
+
 
 if __name__ == '__main__':
     unittest.main()

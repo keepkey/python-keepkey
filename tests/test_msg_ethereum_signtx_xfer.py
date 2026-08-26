@@ -27,8 +27,41 @@ import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
 from keepkeylib.tools import int_to_big_endian
+from test_msg_display_disclosure import ScreenRecorder
 
 class TestMsgEthereumSigntx(common.KeepKeyTest):
+    def test_transfer_review_uses_signing_chain_asset(self):
+        """The first transfer approval must change with the signed chain."""
+        self.requires_firmware("7.14.2")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy('ShapeShift', 1)
+
+        first_screens = {}
+        signatures = {}
+        for chain_id in (1, 56, 137):
+            with ScreenRecorder(self.client) as recorder:
+                result = self.client.ethereum_sign_tx(
+                    n=[0, 0],
+                    nonce=0,
+                    gas_price=20000000000,
+                    gas_limit=21000,
+                    value=1500000000000000000,
+                    to_n=[0x8000002c, 0x8000003c, 0x80000001, 0, 0],
+                    address_type=proto_types.TRANSFER,
+                    chain_id=chain_id,
+                )
+            self.assertGreaterEqual(len(recorder.screens), 2)
+            first_screens[chain_id] = recorder.screens[0]
+            signatures[chain_id] = result[:3]
+
+        self.assertNotEqual(first_screens[1], first_screens[56])
+        self.assertNotEqual(first_screens[56], first_screens[137])
+        self.assertNotEqual(signatures[1], signatures[56])
+        self.assertNotEqual(signatures[56], signatures[137])
+
+        self.client.apply_policy('ShapeShift', 0)
+
     def test_ethereum_tx_xfer_acc1(self):
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
