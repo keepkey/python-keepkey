@@ -99,7 +99,11 @@ class TestBitcoinOnlyVariant(common.KeepKeyTest):
 
     def setUp(self):
         super(TestBitcoinOnlyVariant, self).setUp()
-        self.requires_firmware("7.15.0")
+        # The Bitcoin-only product shipped on the 7.14.3 release fork before
+        # 7.15. The variant check below keeps these product assertions away
+        # from regular 7.14.x images, while this exact floor prevents the
+        # stripped 7.14.3 emulator from silently skipping its entire suite.
+        self.requires_firmware("7.14.3")
         # This whole file describes the BITCOIN-ONLY product. Several tests
         # assert screen sequences that differ on the multi-chain build -- the
         # OP_RETURN one decodes a THORChain memo there and draws more screens --
