@@ -32,11 +32,18 @@ jobs:
             # Move python-keepkey out of the way
             mv .pykk ../
 
-            # Clone firmware repository (expects $FIRMWARE_REPO env var)
-            git clone --depth 1 -b master "$FIRMWARE_REPO" .
+            # This companion branch gates firmware PR #604, not the default
+            # firmware branch. Keep the target explicit and fail if it moves.
+            git clone --depth 1 -b release/7.14.3-bitcoin-only \
+              https://github.com/BitHighlander/keepkey-firmware.git .
 
-            # Initialise firmware submodules
-            git submodule update --init --recursive
+            # Match firmware CI's build set. A recursive init reaches optional
+            # trezor-firmware vendors that do not support shallow HTTPS clones.
+            git submodule update --init --depth 1 deps/crypto/trezor-firmware
+            git submodule update --init --depth 1 deps/device-protocol
+            git submodule update --init --depth 1 deps/googletest
+            git submodule update --init --depth 1 deps/qrenc/QR-Code-generator
+            git submodule update --init --depth 1 deps/sca-hardening/SecAESSTM32
 
             # Replace the vendor copy with our PR branch python-keepkey
             rm -rf deps/python-keepkey

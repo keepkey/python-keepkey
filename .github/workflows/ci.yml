@@ -88,13 +88,14 @@ jobs:
           submodules: recursive
           path: python-keepkey
 
-      # python-keepkey is a SUBMODULE of the firmware repo, so the firmware is
-      # where the emulator lives. alpha is the fork's integration branch.
+      # This PR targets the 7.14.3 test line and is pinned by firmware PR #604.
+      # Build that product branch so the tests and firmware under review stay
+      # on the same compatibility surface.
       - name: Checkout firmware
         uses: actions/checkout@v4
         with:
           repository: BitHighlander/keepkey-firmware
-          ref: alpha
+          ref: release/7.14.3-bitcoin-only
           path: keepkey-firmware
 
       # NOT `submodules: recursive`. trezor-firmware carries a micropython
@@ -167,7 +168,7 @@ jobs:
         env:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
-          KK_MIN_FW: "7.15.0"
+          KK_MIN_FW: "7.14.3"
           KK_UDP_TIMEOUT: "20"
         working-directory: keepkey-firmware/deps/python-keepkey/tests
         run: |
