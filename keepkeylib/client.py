@@ -1549,6 +1549,9 @@ class ProtocolMixin(object):
                 else:
                     msg.outputs_cnt = len(current_tx.outputs)
                 msg.extra_data_len = len(current_tx.extra_data) if current_tx.extra_data else 0
+                if debug_processor is not None:
+                    from copy import deepcopy
+                    msg = debug_processor(res, deepcopy(msg))
                 res = self.call(proto.TxAck(tx=msg))
                 continue
 
@@ -1591,6 +1594,9 @@ class ProtocolMixin(object):
                 o, l = res.details.extra_data_offset, res.details.extra_data_len
                 msg = types.TransactionType()
                 msg.extra_data = current_tx.extra_data[o:o + l]
+                if debug_processor is not None:
+                    from copy import deepcopy
+                    msg = debug_processor(res, deepcopy(msg))
                 res = self.call(proto.TxAck(tx=msg))
                 continue
 
