@@ -112,7 +112,10 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertIsInstance(resp, proto.Success)
 
     def test_reset_device_dice(self):
-        self.requires_firmware("7.15.0")
+        # 7.14.3, not 7.15.0: the bitcoin-only 7.14.3 release line carries the
+        # dice backport, and no firmware between 7.14.3 and 7.15.0 exists
+        # without it, so the version gate is exact for the whole fleet.
+        self.requires_firmware("7.14.3")
 
         external_entropy = b'zlutoucky kun upel divoke ody' * 2
         strength = 256  # 99 rolls
@@ -208,7 +211,9 @@ class TestDeviceReset(common.KeepKeyTest):
         disarmed -- there is no second ceremony to leave armed. Both halves are
         asserted below: the refusal, and then the original property.
         """
-        self.requires_firmware("7.15.0")
+        # 7.14.3: the bitcoin-only release line carries the same single-armed
+        # ceremony and the dice backport; see test_reset_device_dice.
+        self.requires_firmware("7.14.3")
         self.client.wipe_device()
 
         # Arm a reset and walk away without acking the entropy request.

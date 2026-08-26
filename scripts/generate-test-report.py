@@ -791,7 +791,7 @@ SECTIONS = [
           ['Wordlist rejection warning']),
      ]),
 
-    ('K', 'Seed Generation Hardening (7.15)', '7.15.0',
+    ('K', 'Seed Generation Hardening (7.14.3+)', '7.14.3',
      'The 7.15 changes to how a seed comes into existence: user-supplied dice entropy folded in '
      'on-device, and the PIN key-derivation rewrap. These ran green from the first 7.15 RC but '
      'appeared nowhere in this report, because the catalog could not reference native firmware '
