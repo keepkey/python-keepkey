@@ -37,11 +37,13 @@ class TestDeviceRecovery(common.KeepKeyTest):
                                    use_character_cipher=True))
 
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
 
         # Enter PIN for first time
         pin_encoded = self.client.debug.encode_pin(self.pin6)
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
 
         # Enter PIN for second time
         pin_encoded = self.client.debug.encode_pin(self.pin6)
@@ -49,6 +51,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
         # Reminder UI
         assert isinstance(ret, proto.ButtonRequest)
+        self.client._capture_oled_after_animation(0.35, (76, 256, 0, 64))
         self.client.debug.press_yes()
         ret = self.client.call_raw(proto.ButtonAck())
 
@@ -57,6 +60,8 @@ class TestDeviceRecovery(common.KeepKeyTest):
         for index, word in enumerate(mnemonic_words):
             for character in word:
                 self.assertIsInstance(ret, proto.CharacterRequest)
+                self.client._capture_oled_after_animation(
+                    0.35, (76, 256, 0, 64))
                 cipher = self.client.debug.read_recovery_cipher()
 
                 encoded_character = cipher[ord(character) - 97]
@@ -107,6 +112,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
         # Reminder UI
         assert isinstance(ret, proto.ButtonRequest)
+        self.client._capture_oled_after_animation(0.35, (76, 256, 0, 64))
         self.client.debug.press_yes()
         ret = self.client.call_raw(proto.ButtonAck())
 
@@ -115,6 +121,8 @@ class TestDeviceRecovery(common.KeepKeyTest):
         for index, word in enumerate(mnemonic_words):
             for character in word:
                 self.assertIsInstance(ret, proto.CharacterRequest)
+                self.client._capture_oled_after_animation(
+                    0.35, (76, 256, 0, 64))
                 cipher = self.client.debug.read_recovery_cipher()
 
                 encoded_character = cipher[ord(character) - 97]

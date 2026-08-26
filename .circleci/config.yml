@@ -37,6 +37,15 @@ jobs:
             rm -rf deps/python-keepkey
             mv ../.pykk deps/python-keepkey
 
+            # This is python-keepkey's standalone compatibility lane. Release
+            # OLED/PDF evidence is generated only by the exact-head firmware
+            # workflow, where the firmware and Python SHAs are pinned together.
+            # Do not inherit the firmware checkout's report/screenshot phase:
+            # it can describe a different (published/master) emulator and is
+            # therefore not release evidence for this Python PR.
+            cp deps/python-keepkey/.circleci/standalone-emulator-tests.sh \
+              scripts/emulator/python-keepkey-tests.sh
+
       # ────────────────────────────────────────────────────────────────
       # 3) Build the Docker-based emulator tests
       # ────────────────────────────────────────────────────────────────

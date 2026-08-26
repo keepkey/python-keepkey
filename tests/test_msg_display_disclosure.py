@@ -52,6 +52,9 @@ case.
 
 from __future__ import print_function
 
+import os
+import hashlib
+import json
 import unittest
 
 import common
@@ -69,38 +72,47 @@ class ScreenRecorder(object):
     displayed; reading it afterwards would only ever see the home screen.
     """
 
-    def __init__(self, client, answer=True):
+    def __init__(self, client, answer=True, screenshot_group=None):
         self.client = client
         self.answer = answer
+        self.screenshot_group = screenshot_group
         self.screens = []
         self._original = None
+        self._original_screenshot_dir = None
+        self._original_screenshot_id = None
+        self._group_dir = None
 
     def __enter__(self):
         client = self.client
         recorder = self
 
         self._original = client.callback_ButtonRequest
+        if self.screenshot_group and getattr(client, 'screenshot_dir', None):
+            self._original_screenshot_dir = client.screenshot_dir
+            self._original_screenshot_id = client.screenshot_id
+            client.screenshot_dir = os.path.join(
+                client.screenshot_dir, self.screenshot_group
+            )
+            os.makedirs(client.screenshot_dir, exist_ok=True)
+            self._group_dir = client.screenshot_dir
+            client.screenshot_id = 0
 
         def recording_callback(msg):
-            try:
-                layout = client.debug.read_layout()
-                if layout:
-                    recorder.screens.append(bytes(layout))
-            except Exception:
-                # A capture failure must not mask the behaviour under test;
-                # the assertions below check what was captured.
-                pass
-            try:
-                # Also emit the frame as a PNG through the normal capture path.
-                # This class answers ButtonRequests itself, which bypasses the
-                # client's own capture hook -- so under KEEPKEY_SCREENSHOT=1
-                # these tests were selected by the screenshot filter, passed,
-                # and produced NO images. The screens this suite exists to
-                # police were the ones nobody could look at.
-                if getattr(client, 'screenshot_dir', None):
-                    client._capture_oled()
-            except Exception:
-                pass
+            # ButtonRequest is written immediately before the firmware draws
+            # a paged confirmation's next OLED frame. Reading once here can
+            # therefore retain the previous page twice and omit the new one.
+            # Use the same settled framebuffer primitive as the production
+            # screenshot callback, then bind assertions and PNG output to
+            # that one byte sequence.
+            layout = client._read_oled_after_settle()
+            if not layout:
+                raise AssertionError("ButtonRequest produced no OLED layout")
+            recorder.screens.append(bytes(layout))
+            # Use the same framebuffer for the assertion and PNG. A second
+            # DebugLink read can race the button transition and make the PDF
+            # evidence disagree with the bytes the test actually compared.
+            if getattr(client, 'screenshot_dir', None):
+                client._capture_oled(layout=layout)
             if recorder.answer:
                 client.debug.press_yes()
             else:
@@ -112,6 +124,38 @@ class ScreenRecorder(object):
 
     def __exit__(self, exc_type, exc_value, tb):
         self.client.callback_ButtonRequest = self._original
+        try:
+            if exc_type is None and self._group_dir is not None:
+                expected = ["btn%05d.png" % i
+                            for i in range(len(self.screens))]
+                actual = sorted(
+                    name for name in os.listdir(self._group_dir)
+                    if name != "frames.json"
+                )
+                if actual != expected:
+                    raise AssertionError(
+                        "OLED group %s is incomplete: expected=%r actual=%r" %
+                        (self.screenshot_group, expected, actual))
+                frames = []
+                for name in expected:
+                    path = os.path.join(self._group_dir, name)
+                    with open(path, "rb") as handle:
+                        digest = hashlib.sha256(handle.read()).hexdigest()
+                    frames.append({"file": name, "sha256": digest})
+                manifest = {
+                    "schema": 1,
+                    "group": self.screenshot_group,
+                    "frame_count": len(frames),
+                    "frames": frames,
+                }
+                manifest_path = os.path.join(self._group_dir, "frames.json")
+                with open(manifest_path, "w") as handle:
+                    json.dump(manifest, handle, sort_keys=True, indent=2)
+                    handle.write("\n")
+        finally:
+            if self._original_screenshot_dir is not None:
+                self.client.screenshot_dir = self._original_screenshot_dir
+                self.client.screenshot_id = self._original_screenshot_id
         return False
 
     @property
@@ -131,6 +175,12 @@ class TestDisplayDisclosesSignedContent(common.KeepKeyTest):
     def setUp(self):
         super(TestDisplayDisclosesSignedContent, self).setUp()
         self.requires_firmware(self.MIN_FIRMWARE)
+        # These are positive display-binding controls, not refusal tests. A
+        # fresh emulator is uninitialized; without an explicit seed setup every
+        # request is rejected before its first ButtonRequest, the differential
+        # cases vacuously "pass", and the only non-vacuity control skips. Keep
+        # the fixture capable of reaching the confirmation path.
+        self.setup_mnemonic_allallall()
 
     # ── helpers ─────────────────────────────────────────────────────────
 
@@ -244,8 +294,11 @@ class TestDisplayDisclosesSignedContent(common.KeepKeyTest):
         empty tuples and the suite would pass while showing the user nothing.
         """
         screens = self._sign_message_screens(b"hello")
-        if screens is None:
-            self.skipTest("device refused to sign the control message")
+        self.assertIsNotNone(
+            screens,
+            "device refused the control request; the display-binding A/B "
+            "tests did not prove they can reach a confirmation path",
+        )
         self.assertGreater(
             len(screens), 0,
             "signing produced no ButtonRequest, so nothing was shown to the "
