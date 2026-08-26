@@ -11,7 +11,12 @@ jobs:
       - run:
           name: Clone python-keepkey (current branch)
           command: |
-            git clone --depth 1 -b "$CIRCLE_BRANCH" https://github.com/keepkey/python-keepkey.git .pykk
+            # Fork-only PR branches do not exist in keepkey/python-keepkey.
+            # Clone the repository that triggered this CircleCI project so the
+            # exact CIRCLE_SHA1 under review is available and verifiable.
+            git clone --depth 1 -b "$CIRCLE_BRANCH" \
+              "https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git" .pykk
+            test "$(git -C .pykk rev-parse HEAD)" = "$CIRCLE_SHA1"
             cd .pykk && git submodule update --init --recursive
 
       # ────────────────────────────────────────────────────────────────
