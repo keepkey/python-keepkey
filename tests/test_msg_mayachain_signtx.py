@@ -240,6 +240,7 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
         signs, and each signature is bound to its exact memo bytes — a memo
         substitution changes the sign-doc digest and fails verification."""
         self.requires_firmware("7.9.1")
+        self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
         memos = [
