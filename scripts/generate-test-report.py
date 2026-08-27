@@ -3355,6 +3355,16 @@ def main():
                    help='Print exact module::method screenshot selectors, then exit')
     p.add_argument('--validate-junit', action='store_true',
                    help='Validate JUnit results against SECTIONS, exit non-zero on failures')
+    p.add_argument('--firmware-sha', default=None,
+                   help='Exact firmware commit represented by this report')
+    p.add_argument('--python-sha', default=None,
+                   help='Exact python-keepkey commit represented by this report')
+    p.add_argument('--run-url', default=None,
+                   help='Exact CI run that produced the evidence')
+    p.add_argument('--generator-sha256', default=None,
+                   help='Combined wrapper/renderer digest')
+    p.add_argument('--arm-manifest-sha256', default=None,
+                   help='Digest binding the complete ARM manifest set')
     args = p.parse_args()
 
     fw = args.fw_version
@@ -3394,6 +3404,17 @@ def main():
             for tid, mod, meth, status in failures:
                 print(f'  {tid} {mod}::{meth} -> {status}')
             sys.exit(1)
+
+    provenance = [
+        ('firmware', args.firmware_sha),
+        ('python', args.python_sha),
+        ('run', args.run_url),
+        ('generator', args.generator_sha256),
+        ('arm-manifests', args.arm_manifest_sha256),
+    ]
+    supplied = ['%s=%s' % item for item in provenance if item[1]]
+    if supplied:
+        os.environ['KK_BUILD_LABEL'] = ' | '.join(supplied)
 
     results = parse_junit(args.junit) if args.junit else {}
     render(args.output, fw, results, args.screenshots)
