@@ -26,12 +26,12 @@ from keepkeylib.tx_api import TxApiBitcoin
 
 
 
-# Synthetic prev tx paying 100000 sat to the BIP-86 first receiving address of
-# the "abandon abandon ... about" mnemonic
-# (bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr).
-# The fixture lives in tests/txcache and was produced together with the
-# expected witness below by an independent Python implementation of
-# BIP-340/341, keyed from BIP-86's own published xprv.
+# Synthetic outpoint paying 100000 sat to the BIP-86 first receiving address
+# of the "abandon abandon ... about" mnemonic. Taproot signing receives the
+# amount and derives the prevout script from the path, so it does not request a
+# previous-transaction fixture. The outpoint and expected witness below were
+# produced together by an independent BIP-340/341 implementation keyed from
+# BIP-86's published xprv.
 PREV_TXID = "6e32033911982f7550ab1d26232adfd08711293e15085f77cd27628be0a6ee37"
 IN_AMOUNT = 100000
 OUT_AMOUNT = 90000
