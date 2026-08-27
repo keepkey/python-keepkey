@@ -27,9 +27,42 @@ import keepkeylib.messages_ethereum_pb2 as eth_proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
 from keepkeylib.tools import int_to_big_endian
+from test_msg_display_disclosure import ScreenRecorder
 
 
 class TestMsgEthereumSigntx(common.KeepKeyTest):
+    def test_ethereum_erc20_high_chain_id_does_not_alias_mainnet(self):
+        """Chain 257 must not borrow chain-1 token labels or decimals."""
+        self.requires_firmware("7.14.2")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 1)
+
+        recipient = self.client.ethereum_get_address([0, 0])
+        erc20_data = (
+            binascii.unhexlify("a9059cbb" + "00" * 12) +
+            recipient + int_to_big_endian(1).rjust(32, b"\x00")
+        )
+        contract = binascii.unhexlify(
+            "d0d6d6c5fe4a677d343cc433536bb717bae167dd"
+        )
+
+        first_screens = {}
+        try:
+            for chain_id in (1, 257):
+                with ScreenRecorder(self.client) as recorder:
+                    self.client.ethereum_sign_tx(
+                        n=[0, 0], nonce=0, gas_price=20, gas_limit=60000,
+                        to=contract, value=0, chain_id=chain_id,
+                        data=erc20_data,
+                    )
+                self.assertGreaterEqual(len(recorder.screens), 2)
+                first_screens[chain_id] = recorder.screens[0]
+        finally:
+            self.client.apply_policy("AdvancedMode", 0)
+
+        self.assertNotEqual(first_screens[1], first_screens[257])
+
     def test_ethereum_unrenderable_amounts_are_rejected(self):
         """Neither a native nor ERC-20 amount may reach an approval blank."""
         self.requires_firmware("7.14.2")
