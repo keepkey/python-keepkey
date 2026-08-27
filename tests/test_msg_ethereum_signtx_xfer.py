@@ -21,14 +21,121 @@
 import unittest
 import common
 import binascii
+import hashlib
 import struct
 
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
 from keepkeylib.tools import int_to_big_endian
+from test_msg_display_disclosure import ScreenRecorder
+
 
 class TestMsgEthereumSigntx(common.KeepKeyTest):
+    def test_native_pseudo_address_transfer_is_unknown_off_mainnet(self):
+        """TRANSFER must show the exact unknown-token frame on chain 257."""
+        self.requires_firmware("7.14.2")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('AdvancedMode', 1)
+        common.reset_screenshot_capture(self.client)
+
+        destination_n = [0x8000002c, 0x8000003c, 0x80000001, 0, 0]
+        recipient = self.client.ethereum_get_address(destination_n)
+        erc20_data = (
+            binascii.unhexlify("a9059cbb" + "00" * 12) +
+            recipient + int_to_big_endian(1).rjust(32, b"\x00")
+        )
+
+        try:
+            with ScreenRecorder(
+                    self.client,
+                    screenshot_group="pseudo-transfer") as recorder:
+                self.client.ethereum_sign_tx(
+                    n=[0, 0], nonce=0, gas_price=20, gas_limit=60000,
+                    value=0, to=b"\xee" * 20, to_n=destination_n,
+                    address_type=proto_types.TRANSFER,
+                    data=erc20_data, chain_id=257,
+                )
+            self.assertGreaterEqual(len(recorder.screens), 2)
+            self.assertEqual(
+                hashlib.sha256(recorder.screens[0]).hexdigest(),
+                "b0a3026e7af1778ebd71a968ace25c03945cccf2d8abc951e5dd65abc04e914e",
+            )
+        finally:
+            self.client.apply_policy('AdvancedMode', 0)
+            self.client.apply_policy('ShapeShift', 0)
+            common.reset_screenshot_capture(self.client)
+
+    def test_transfer_review_uses_signing_chain_asset(self):
+        """The first transfer approval must change with the signed chain."""
+        self.requires_firmware("7.14.2")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy('ShapeShift', 1)
+
+        first_screens = {}
+        signatures = {}
+        for chain_id in (1, 56, 137):
+            with ScreenRecorder(self.client) as recorder:
+                result = self.client.ethereum_sign_tx(
+                    n=[0, 0],
+                    nonce=0,
+                    gas_price=20000000000,
+                    gas_limit=21000,
+                    value=1500000000000000000,
+                    to_n=[0x8000002c, 0x8000003c, 0x80000001, 0, 0],
+                    address_type=proto_types.TRANSFER,
+                    chain_id=chain_id,
+                )
+            self.assertGreaterEqual(len(recorder.screens), 2)
+            first_screens[chain_id] = recorder.screens[0]
+            signatures[chain_id] = result[:3]
+
+        self.assertNotEqual(first_screens[1], first_screens[56])
+        self.assertNotEqual(first_screens[56], first_screens[137])
+        self.assertNotEqual(signatures[1], signatures[56])
+        self.assertNotEqual(signatures[56], signatures[137])
+
+        self.client.apply_policy('ShapeShift', 0)
+
+    def test_erc20_transfer_high_chain_id_does_not_alias_mainnet(self):
+        """TRANSFER review must not borrow chain-1 token metadata."""
+        self.requires_firmware("7.14.2")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('AdvancedMode', 1)
+
+        destination_n = [0x8000002c, 0x8000003c, 0x80000001, 0, 0]
+        recipient = self.client.ethereum_get_address(destination_n)
+        erc20_data = (
+            binascii.unhexlify("a9059cbb" + "00" * 12) +
+            recipient + int_to_big_endian(1).rjust(32, b"\x00")
+        )
+        contract = binascii.unhexlify(
+            "d0d6d6c5fe4a677d343cc433536bb717bae167dd"
+        )
+
+        first_screens = {}
+        try:
+            for chain_id in (1, 257):
+                with ScreenRecorder(self.client) as recorder:
+                    self.client.ethereum_sign_tx(
+                        n=[0, 0], nonce=0, gas_price=20, gas_limit=60000,
+                        value=0, to=contract, to_n=destination_n,
+                        address_type=proto_types.TRANSFER,
+                        data=erc20_data, chain_id=chain_id,
+                    )
+                self.assertGreaterEqual(len(recorder.screens), 2)
+                first_screens[chain_id] = recorder.screens[0]
+        finally:
+            self.client.apply_policy('AdvancedMode', 0)
+            self.client.apply_policy('ShapeShift', 0)
+
+        self.assertNotEqual(first_screens[1], first_screens[257])
+
     def test_ethereum_tx_xfer_acc1(self):
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()

@@ -268,6 +268,29 @@ def parse_junit(path):
             results[name] = status
     return results
 
+
+def junit_cases(path):
+    """Return every executed JUnit case once, with its exact status."""
+    if not path or not os.path.exists(path):
+        return []
+    import xml.etree.ElementTree as ET
+    cases = []
+    for tc in ET.parse(path).iter('testcase'):
+        if tc.find('failure') is not None:
+            status = 'fail'
+        elif tc.find('error') is not None:
+            status = 'error'
+        elif tc.find('skipped') is not None:
+            status = 'skip'
+        else:
+            status = 'pass'
+        cases.append({
+            'classname': tc.get('classname', ''),
+            'name': tc.get('name', ''),
+            'status': status,
+        })
+    return cases
+
 # ---------------------------------------------------------------
 # Test catalog with full context per test
 # ---------------------------------------------------------------
@@ -315,22 +338,12 @@ SECTIONS = [
           'Calldata spanning multiple chunks must not silently lose its tail from the display '
           'while remaining inside the signature.',
           ['Contract data screen']),
-         ('S8', 'test_msg_ethereum_signing_guards',
-          'test_contract_handler_streamed_calldata_signs_full_data',
-          'Streamed calldata is fully covered',
-          'Calldata delivered across several chunks must be hashed in full and disclosed in full. '
-          'This is the positive control for the chunk-completeness gate. NOTE: every test in '
-          'test_msg_ethereum_signing_guards currently SKIPS in CI under requires_firmware, so no '
-          'screen can be captured for it yet - the screenshot list stays empty until the gate '
-          'opens, rather than declaring an expectation nothing can satisfy.',
-          []),
-         ('S9', 'test_msg_ethereum_signing_guards', 'test_eip1559_requires_chain_id',
-          'Omitted chain_id is refused before any screen',
-          'Without a chain_id the device cannot name the network, and a signature would be '
-          'pre-EIP-155 - replayable on every EVM chain. The refusal happens before the first '
-          'confirm(), so NO screen is drawn and no ButtonRequest is emitted. The empty '
-          'screenshot list below is the assertion.',
-          []),
+         ('S8', 'test_msg_ethereum_data_disclosure',
+          'test_streamed_tail_changes_data_hash_screen',
+          'Streamed calldata hash covers the tail',
+          'Two multi-chunk calls differing only in the streamed tail must produce different '
+          'signatures and different complete OLED approval sequences.',
+          ['Both complete A/B data-hash approval sequences']),
          ('S10', 'test_verify_typed_data', 'test_structured_eip712_is_refused',
           'Structured EIP-712 is closed by default',
           'The legacy JSON parser could not guarantee that every displayed value was the '
@@ -361,9 +374,9 @@ SECTIONS = [
     ('X', 'Device Specifications', '0.0.0',
      'The KeepKey is an open-source hardware wallet built on an ARM Cortex-M3 (STM32F205, 120MHz) '
      'with a 256x64 monochrome OLED, single confirmation button, and micro-USB interface. The '
-     'bootloader (v2.x) is flashed at manufacture and never updated - it is the immutable root of '
-     'trust. On every boot, the bootloader verifies the firmware signature using redundant F3 checks '
-     'before transferring control.',
+     'bootloader verifies firmware signatures before transferring control. Supported signed '
+     'bootloader-updater images can replace it, so release evidence treats bootloader and firmware '
+     'artifacts as separate binaries rather than calling either immutable.',
      [
          'BOOT SEQUENCE:',
          '1. USB connect -> bootloader executes (always first)',
@@ -407,10 +420,18 @@ SECTIONS = [
           ['Wipe confirmation screen']),
          ('C2', 'test_msg_resetdevice', 'test_reset_device',
           'Generate new seed',
-          'Device generates 256 bits of entropy from hardware RNG, converts to BIP-39 mnemonic, '
+          'Device generates 128 bits of entropy from hardware RNG, converts to a 12-word BIP-39 mnemonic, '
           'and displays words on OLED one page at a time. Words are NEVER sent to the host. '
           'User writes them down as their backup.',
           ['Seed word display']),
+         ('C2b', 'test_msg_resetdevice', 'test_reset_device_18_words',
+          'Generate 18-word seed',
+          'Uses 192-bit strength and retains every physical backup page.',
+          ['Complete 18-word seed page sequence']),
+         ('C2c', 'test_msg_resetdevice', 'test_reset_device_24_words',
+          'Generate 24-word seed',
+          'Uses 256-bit strength and retains every physical backup page.',
+          ['Complete 24-word seed page sequence']),
          ('C3', 'test_msg_resetdevice', 'test_reset_device_pin',
           'Generate seed with PIN',
           'Same as C2 but also sets a PIN. PIN is entered twice for confirmation via the '
@@ -437,7 +458,7 @@ SECTIONS = [
           []),
          ('C8', 'test_msg_loaddevice', 'test_load_device_3',
           'Load 24-word mnemonic (debug)',
-          'Tests 24-word BIP-39 mnemonic support (256 bits of entropy, maximum security).',
+          'Tests 24-word BIP-39 mnemonic support (256 bits of entropy).',
           []),
          ('C9', 'test_msg_loaddevice', 'test_load_device_utf',
           'Load with UTF-8 device label',
@@ -683,7 +704,7 @@ SECTIONS = [
          'MESSAGE: EIP-191 prefix -> show text on OLED -> sign with ETH key',
      ],
      [
-         ('E1', 'test_msg_ethereum_getaddress', 'test_ethereum_getaddress',
+         ('E1', 'test_msg_ethereum_getaddress', 'test_ethereum_show_address',
           'Derive ETH address', 'Standard m/44\'/60\'/0\'/0/0 derivation. EIP-55 checksum address.', ['ETH address']),
          ('E2', 'test_msg_ethereum_signtx', 'test_ethereum_signtx_nodata',
           'Sign ETH transfer',
@@ -691,9 +712,9 @@ SECTIONS = [
           ['ETH send confirmation']),
          ('E3', 'test_msg_ethereum_signtx', 'test_ethereum_signtx_data',
           'Sign ETH tx with contract data',
-          'Transaction with data field (contract call). Device shows data as hex since it cannot '
-          'decode arbitrary ABI without metadata.',
-          ['Contract data hex']),
+          'With AdvancedMode enabled, arbitrary calldata is committed by its complete Keccak-256 '
+          'hash and byte count; it is not represented as decoded ABI or complete raw hex.',
+          ['Contract destination, data hash and byte count']),
          ('E4', 'test_msg_ethereum_signtx', 'test_ethereum_signtx_nodata_eip155',
           'Sign ETH with EIP-155 replay protection',
           'Chain ID embedded in signature v value to prevent cross-chain replay attacks.', []),
@@ -728,8 +749,8 @@ SECTIONS = [
           ['Approval screen']),
          ('E11', 'test_msg_signtx_ethereum_erc20', 'test_approve_all',
           'ERC-20 approve unlimited',
-          'MAX_UINT256 approval. Device shows "UNLIMITED" warning since this grants infinite spending.',
-          ['Unlimited approval warning']),
+          'MAX_UINT256 approval is refused by the 7.14.2 default-deny boundary.',
+          []),
          ('E12', 'test_msg_ethereum_makerdao', 'test_generate',
           'MakerDAO generate DAI', 'Complex DeFi contract interaction (MakerDAO CDP).', []),
          ('E13', 'test_msg_ethereum_sablier', 'test_sign_salarywithdrawal',
@@ -752,7 +773,7 @@ SECTIONS = [
          'FEE: XRP requires a minimum fee (currently 10 drops). Device validates fee is within bounds.',
      ],
      [
-         ('R1', 'test_msg_ripple_get_address', 'test_ripple_get_address',
+         ('R1', 'test_msg_ripple_get_address', 'test_ripple_show_address',
           'Derive XRP address', 'Standard m/44\'/144\'/0\'/0/0 derivation.', ['XRP address']),
          ('R2', 'test_msg_ripple_sign_tx', 'test_sign',
           'Sign XRP payment', 'Payment with amount in drops (1 XRP = 1,000,000 drops).', ['XRP send']),
@@ -871,11 +892,11 @@ SECTIONS = [
     ('V', 'EVM Clear-Signing', '7.14.0',
      'NEW: Verified transaction metadata for EVM contracts. Host sends a signed blob with contract '
      'name, function, and decoded parameters. Device verifies blob signature against trusted key, '
-     'then shows human-readable details with VERIFIED icon. Blind-sign policy gating is deferred '
-     'to firmware 7.15+.',
+     'then shows human-readable details with VERIFIED icon. Firmware 7.14.2 defaults arbitrary '
+     'calldata to deny unless AdvancedMode is explicitly enabled.',
      [
          'CLEAR-SIGN: Signed metadata -> verify signature -> VERIFIED icon + method + decoded args',
-         'BLIND SIGN: No metadata + AdvancedMode on -> contract data signed (no gate until 7.15+)',
+         'BLIND SIGN: AdvancedMode off -> refuse; AdvancedMode on -> disclose hash and sign',
      ],
      [
          ('V1', 'test_msg_ethereum_clear_signing', 'test_valid_metadata_returns_verified',
@@ -899,8 +920,11 @@ SECTIONS = [
           'Tampered blob fails', 'Any byte change in the blob invalidates the signature.', []),
          ('V8', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_allowed',
           'Blind sign permitted (AdvancedMode ON)',
-          'Contract data with AdvancedMode enabled. Device allows signing. '
-          'Blind-sign blocking deferred to 7.15+.',
+          'Contract data with AdvancedMode enabled is committed by hash and allowed.',
+          ['Blind-sign warning and complete calldata hash']),
+         ('V9', 'test_msg_ethereum_signtx', 'test_ethereum_blind_sign_blocked',
+          'Blind sign refused by default (AdvancedMode OFF)',
+          'The policy-critical negative path must end in Failure without reaching approval.',
           []),
      ]),
 
@@ -915,7 +939,7 @@ SECTIONS = [
      ],
      [
          ('S1', 'test_msg_solana_getaddress', 'test_solana_get_address',
-          'Derive Solana address', 'Full 44-character base58 address displayed on OLED.', ['Full 44-char address']),
+          'Derive Solana address', 'Full 44-character base58 address returned without display.', []),
          ('S2', 'test_msg_solana_getaddress', 'test_solana_different_accounts',
           'Different account indices', 'Verifies different accounts produce different addresses.', []),
          ('S3', 'test_msg_solana_getaddress', 'test_solana_deterministic',
@@ -931,9 +955,9 @@ SECTIONS = [
          ('S7', 'test_msg_solana_signtx', 'test_solana_sign_deterministic',
           'Deterministic signing', 'Same tx always produces same signature.', []),
          ('S8', 'test_msg_solana_signtx', 'test_solana_sign_token_transfer',
-          'SPL Token transfer',
-          'Send SPL tokens to destination. OLED shows token amount and recipient address.',
-          ['Token amount + address']),
+          'Unchecked SPL Token transfer is refused',
+          'A transfer without a signed mint cannot be given verified token semantics.',
+          []),
          ('S9', 'test_msg_solana_signtx', 'test_solana_sign_stake_delegate',
           'Stake delegate',
           'Delegate SOL to a validator for staking rewards. OLED shows delegate confirmation.',
@@ -961,7 +985,7 @@ SECTIONS = [
      ],
      [
          ('T1', 'test_msg_tron_getaddress', 'test_tron_get_address',
-          'Derive TRON address', 'Full 34-character base58 address.', ['Full 34-char address']),
+          'Derive TRON address', 'Full 34-character base58 address returned without display.', []),
          ('T2', 'test_msg_tron_getaddress', 'test_tron_different_accounts',
           'Different accounts', 'Different indices produce different addresses.', []),
          ('T3', 'test_msg_tron_getaddress', 'test_tron_deterministic',
@@ -985,7 +1009,7 @@ SECTIONS = [
      ],
      [
          ('N1', 'test_msg_ton_getaddress', 'test_ton_get_address',
-          'Derive TON address', 'Full 48-character base64url address.', ['Full 48-char address']),
+          'Derive TON address', 'Full 48-character base64url address returned without display.', []),
          ('N2', 'test_msg_ton_getaddress', 'test_ton_different_accounts',
           'Different accounts', 'Different indices produce different addresses.', []),
          ('N2b', 'test_msg_ton_getaddress', 'test_ton_show_address',
@@ -1056,6 +1080,120 @@ SECTIONS = [
          ('D6', 'test_msg_bip85', 'test_bip85_invalid_word_count',
           'Invalid count rejected', 'Word counts other than 12/18/24 are refused.', []),
      ]),
+    ('R', '7.14.2 Presign Security Controls', '7.14.2',
+     'Release-specific controls for every display, validation, bounds and terminal-state defect '
+     'found during the presign review. Positive display cases retain every A/B framebuffer page; '
+     'negative cases prove refusal occurs before an approval screen.',
+     [
+         'A/B: mutate one signed semantic field and require a different complete review.',
+         'NEGATIVE: malformed or opaque operations must terminate without approval.',
+         'BOUNDARY: a Failure, Cancel or ClearSession ends the active workflow.',
+     ],
+     [
+         ('R1', 'test_msg_solana_display_disclosure',
+          'test_raw_message_tail_changes_oled_review',
+          'Solana raw-message tail A/B', 'Byte 96 must survive exact-byte paging.',
+          ['Both complete A/B sequences']),
+         ('R2', 'test_msg_solana_display_disclosure',
+          'test_offchain_message_tail_changes_oled_review',
+          'Solana off-chain tail A/B', 'Byte 96 must survive exact-byte paging.',
+          ['Both complete A/B sequences']),
+         ('R3', 'test_msg_solana_display_disclosure',
+          'test_offchain_format_changes_oled_review',
+          'Solana off-chain format A/B', 'The signed format/version domain is visible.',
+          ['ASCII and UTF-8 approval sequences']),
+         ('R4', 'test_msg_solana_display_disclosure',
+          'test_memo_tail_changes_oled_review',
+          'Solana memo tail A/B', 'The complete signed memo is visible.',
+          ['Both complete memo sequences']),
+         ('R5', 'test_msg_solana_instruction_disclosure',
+          'test_set_authority_roles_require_opaque_mode',
+          'SetAuthority defaults opaque', 'Undisclosed authority roles are refused.', []),
+         ('R6', 'test_msg_solana_instruction_disclosure',
+          'test_token_2022_transfer_checked_with_hook_accounts_is_opaque',
+          'Token-2022 defaults opaque', 'Extension and hook semantics are not clear-signed.', []),
+         ('R7', 'test_msg_solana_instruction_disclosure',
+          'test_close_account_destination_changes_oled_review',
+          'CloseAccount destination A/B', 'Closed account and balance destination are visible.',
+          ['Both destination sequences']),
+         ('R8', 'test_msg_solana_instruction_disclosure',
+          'test_priority_fee_payer_changes_oled_review',
+          'Priority-fee payer A/B', 'The maximum fee and payer are visible.',
+          ['Both fee-payer sequences']),
+         ('R9', 'test_msg_solana_instruction_disclosure',
+          'test_all_verified_instruction_fields_change_oled_review',
+          'All verified Solana fields A/B',
+          'Every field used by a verified instruction has an independent differential control.',
+          ['Every complete field-mutation sequence']),
+         ('R10', 'test_msg_ton_display_disclosure',
+          'test_raw_message_tail_changes_oled_review',
+          'TON raw-message tail A/B', 'Every signed raw Ed25519 byte is paged.',
+          ['Both complete A/B sequences']),
+         ('R11', 'test_msg_confirm_data_disclosure',
+          'test_binary_op_return_tail_changes_oled_review',
+          'Bitcoin OP_RETURN tail A/B', 'Binary output data is displayed exactly.',
+          ['Both complete A/B sequences']),
+         ('R12', 'test_msg_confirm_data_disclosure',
+          'test_non_ascii_eos_memo_tail_changes_oled_review',
+          'EOS memo tail A/B', 'Binary memo bytes are displayed exactly.',
+          ['Both complete A/B sequences']),
+         ('R13', 'test_msg_confirm_data_disclosure',
+          'test_unknown_omni_property_changes_oled_review',
+          'Unknown Omni property A/B', 'Opaque Omni fields remain distinguishable.',
+          ['Both complete A/B sequences']),
+         ('R14', 'test_msg_confirm_data_disclosure',
+          'test_unknown_omni_type_changes_oled_review',
+          'Unknown Omni type A/B', 'Opaque Omni types remain distinguishable.',
+          ['Both complete A/B sequences']),
+         ('R15', 'test_msg_ethereum_data_disclosure',
+          'test_initial_chunk_tail_changes_data_hash_screen',
+          'Ethereum initial-chunk hash A/B', 'The displayed hash binds the complete chunk.',
+          ['Both complete A/B sequences']),
+         ('R16', 'test_msg_ethereum_data_disclosure',
+          'test_streamed_tail_changes_data_hash_screen',
+          'Ethereum streamed-tail hash A/B', 'The displayed hash binds every streamed byte.',
+          ['Both complete A/B sequences']),
+         ('R17', 'test_msg_ethereum_signtx_xfer',
+          'test_transfer_review_uses_signing_chain_asset',
+          'Ethereum transfer chain/asset binding',
+          'The first asset approval changes between Ethereum, BNB Chain and Polygon.',
+          ['ETH, BNB and MATIC approval sequences']),
+         ('R18', 'test_msg_ethereum_signtx',
+          'test_ethereum_erc20_high_chain_id_does_not_alias_mainnet',
+          'ERC-20 chain-ID width binding',
+          'Chain 257 cannot borrow chain-1 token labels or decimals.',
+          ['Chain 1 and chain 257 approval sequences']),
+         ('R19', 'test_msg_ethereum_signtx_xfer',
+          'test_erc20_transfer_high_chain_id_does_not_alias_mainnet',
+          'ERC-20 transfer chain-ID width binding',
+          'TRANSFER review scopes token metadata to the complete chain ID.',
+          ['Chain 1 and chain 257 transfer sequences']),
+         ('R20', 'test_msg_ethereum_signtx',
+          'test_ethereum_native_pseudo_address_is_unknown_off_mainnet',
+          'ERC-20 native pseudo-address isolation',
+          'Chain 257 transfer and approve calls render the exact unknown-token frame.',
+          ['Transfer and approve unknown-token sequences']),
+         ('R21', 'test_msg_ethereum_signtx_xfer',
+          'test_native_pseudo_address_transfer_is_unknown_off_mainnet',
+          'ERC-20 TRANSFER pseudo-address isolation',
+          'TRANSFER review renders 0xeeee..eeee as unknown outside chain 1.',
+          ['Exact unknown-token transfer sequence']),
+         ('R22', 'test_msg_osmosis_validation',
+          'test_present_but_empty_amount_is_rejected_before_review',
+          'Osmosis empty amount refusal', 'Present-but-empty is not displayed as zero.', []),
+         ('R23', 'test_msg_osmosis_validation',
+          'test_ibc_omitted_amount_and_receiver_are_rejected_before_review',
+          'Osmosis IBC required fields', 'Omitted value and receiver are refused.', []),
+         ('R24', 'test_msg_recoverydevice_cipher',
+          'test_unknown_word_count_failure_aborts_recovery',
+          'Recovery Failure is terminal', 'A stale CharacterAck cannot resume the ceremony.', []),
+         ('R25', 'test_msg_signing_boundaries',
+          'test_multisig_signature_over_72_bytes_is_rejected',
+          'Multisig serialization bound', 'Oversized host signatures are refused.', []),
+         ('R26', 'test_msg_signing_boundaries',
+          'test_clear_session_aborts_active_bitcoin_signing',
+          'ClearSession ends signing', 'A stale TxAck cannot resume the signer.', []),
+     ]),
     ('D', 'Display Disclosure - What Is Shown Is What Is Signed', '7.14.2',
      'The single property behind every display/sign divergence found in the 7.14.2 audit: two '
      'requests whose SIGNED BYTES differ must not produce IDENTICAL screens. If two payloads render '
@@ -1114,9 +1252,27 @@ SECTIONS = [
 # ---------------------------------------------------------------
 # Render
 # ---------------------------------------------------------------
-def render(output_path, fw_version, results, screenshot_dir=None):
+def _test_frame_paths(screenshot_dir, mod, meth):
+    """Return every retained frame, including named A/B sub-sequences."""
+    test_dir = os.path.join(
+        screenshot_dir, mod.replace('test_', '', 1), meth)
+    if not os.path.isdir(test_dir):
+        return []
+    frames = []
+    for directory, subdirs, files in os.walk(test_dir):
+        subdirs.sort()
+        for name in sorted(files):
+            if name.startswith('btn') and name.endswith('.png'):
+                frames.append(os.path.join(directory, name))
+    return frames
+
+
+def render(output_path, fw_version, results, screenshot_dir=None,
+           cases=None, metadata=None):
     pdf = PDF(); pb = PB(pdf)
     ts = datetime.now().strftime('%Y-%m-%d %H:%M')
+    cases = cases or []
+    metadata = metadata or {}
     active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
     # Separate specs section (no tests) from test sections
     specs = [s for s in active if not s[5]]
@@ -1125,9 +1281,12 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     has_results = [s for s in active if s[5] and any(_lookup(results, t[1], t[2]) for t in s[5])]
     no_results = [s for s in active if s[5] and not any(_lookup(results, t[1], t[2]) for t in s[5])]
     test_sections = has_results + no_results
-    total = sum(len(s[5]) for s in test_sections)
-    passed = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) == 'pass')
-    failed = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) in ('fail','error'))
+    catalog_total = sum(len(s[5]) for s in test_sections)
+    catalog_passed = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) == 'pass')
+    catalog_failed = sum(1 for s in test_sections for t in s[5] if _lookup(results, t[1], t[2]) in ('fail','error'))
+    total = len(cases) if cases else catalog_total
+    passed = sum(1 for case in cases if case['status'] == 'pass') if cases else catalog_passed
+    failed = sum(1 for case in cases if case['status'] in ('fail', 'error')) if cases else catalog_failed
     skipped = total - passed - failed
 
     # Title
@@ -1138,9 +1297,22 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     elif failed > 0:
         pb.text(11, f'Firmware {fw_version}  |  {ts}  |  {failed} FAILED of {total} tests', bold=True, color=RED)
     else:
-        pb.text(10, f'Firmware {fw_version}  |  {ts}  |  {total} tests: {passed} passed, {skipped} pending')
+        status_label = 'skipped' if cases else 'pending'
+        pb.text(10, f'Firmware {fw_version}  |  {ts}  |  {total} tests: '
+                f'{passed} passed, {skipped} {status_label}')
+    for label, key in (
+            ('Firmware SHA', 'firmware_sha'),
+            ('Python SHA', 'python_sha'),
+            ('Workflow', 'run_url'),
+            ('Generator SHA-256', 'generator_sha256'),
+            ('ARM manifest SHA-256', 'arm_manifest_sha256')):
+        if metadata.get(key):
+            for line in _w('%s: %s' % (label, metadata[key]), 95):
+                pb.text(7, line)
     pb.gap(6)
-    pb.text(12, 'Sections', bold=True)
+    pb.text(12, 'Curated review sections', bold=True)
+    pb.text(7, '%d catalog entries; complete %d-case index follows.' %
+            (catalog_total, total), color=GRAY)
     _shown_tested = _shown_pending = False
     for letter, title, mf, _, _, tests in test_sections:
         has_any = any(_lookup(results, t[1], t[2]) for t in tests)
@@ -1186,35 +1358,37 @@ def render(output_path, fw_version, results, screenshot_dir=None):
             pb.check(9, f'{tid} {meth}', r)
             pb.text(7, f'{title}  ({mod}.py)')
             for cline in _w(ctx, 95): pb.text(7, cline)
-            # Embed OLED screenshots -- use _pick_best_frame for the primary image,
-            # then show up to 2 more frames for multi-screen flows (signing, swaps)
+            # Security evidence is never selected heuristically. Retain every
+            # frame of every named sequence in deterministic path order.
             if screenshot_dir:
-                test_dir = os.path.join(screenshot_dir, mod.replace('test_',''), meth)
-                btn_files = sorted(f for f in os.listdir(test_dir) if f.startswith('btn')) if os.path.isdir(test_dir) else []
-                best = _pick_best_frame(test_dir, btn_files)
-                if best:
-                    # Show the best frame (most representative)
-                    try:
-                        pb.need(55)
-                        pb.image(best, display_w=384, display_h=96)
-                    except Exception:
-                        pass
-                    # For multi-screen tests, show up to 2 additional frames
-                    test_frames = btn_files[2:] if len(btn_files) > 2 else []
-                    extra = [f for f in test_frames if os.path.join(test_dir, f) != best][:2]
-                    for frame in extra:
-                        try:
-                            pb.need(55)
-                            pb.image(os.path.join(test_dir, frame), display_w=384, display_h=96)
-                        except Exception:
-                            pass
-                    if len(btn_files) > 5:
-                        pb.text(6, f'({len(btn_files)} OLED frames captured, showing best {min(3, len(test_frames)+1)})', color=GRAY)
+                frames = _test_frame_paths(screenshot_dir, mod, meth)
+                if frames:
+                    for frame in frames:
+                        pb.need(62)
+                        pb.text(6, os.path.relpath(frame, screenshot_dir),
+                                color=GRAY)
+                        pb.image(frame, display_w=384, display_h=96)
                 elif scr:
                     pb.text(7, f'OLED needed: {", ".join(scr)}', color=GRAY)
             elif scr:
                 pb.text(7, f'OLED needed: {", ".join(scr)}', color=GRAY)
             pb.gap(3)
+
+    if cases:
+        pb.gap(15)
+        pb.text(14, 'Complete Executed Test Index', bold=True)
+        pb.text(7, '%d total: %d passed, %d skipped, %d failed/error.' %
+                (total, passed, skipped, failed))
+        pb.gap(3)
+        for case in sorted(cases,
+                           key=lambda x: (x['classname'], x['name'])):
+            pb.need(12)
+            color = GREEN if case['status'] == 'pass' else (
+                RED if case['status'] in ('fail', 'error') else GRAY)
+            text = '%s  %s.%s' % (
+                case['status'].upper(), case['classname'], case['name'])
+            for line in _w(text, 110):
+                pb.text(6, line, color=color)
 
     # Appendix: Device Specifications (after all test results)
     if specs:
@@ -1228,7 +1402,9 @@ def render(output_path, fw_version, results, screenshot_dir=None):
 
     pb.finish()
     pdf.write(output_path)
-    print(f'{output_path}: fw={fw_version}, {len(active)} sections, {total} tests ({passed} passed, {failed} failed, {skipped} pending)')
+    status_label = 'skipped' if cases else 'pending'
+    print(f'{output_path}: fw={fw_version}, {len(active)} sections, {total} tests '
+          f'({passed} passed, {failed} failed, {skipped} {status_label})')
 
 def screenshot_filter(fw_version):
     """Return pytest -k expression for tests with non-empty screenshot expectations.
@@ -1245,6 +1421,17 @@ def screenshot_filter(fw_version):
                 # Use (method and module) for unambiguous pytest -k matching
                 terms.append(f'({meth} and {mod})')
     return ' or '.join(terms)
+
+
+def screenshot_test_list(fw_version):
+    """Return exact module::method selectors consumed by conftest.py."""
+    active = [x for x in SECTIONS if ver_ge(fw_version, x[2])]
+    pairs = set()
+    for _letter, _title, _mf, _bg, _fl, tests in active:
+        for _tid, mod, meth, _ttl, _ctx, screens in tests:
+            if screens:
+                pairs.add('%s::%s' % (mod, meth))
+    return '\n'.join(sorted(pairs))
 
 
 def screenshot_audit(fw_version, screenshot_root, junit_path=None):
@@ -1281,8 +1468,8 @@ def screenshot_audit(fw_version, screenshot_root, junit_path=None):
                 continue
             if (mod, meth) in skipped:
                 continue
-            d = _os.path.join(screenshot_root, mod.replace('test_', '', 1), meth)
-            if not _os.path.isdir(d) or not [f for f in _os.listdir(d) if f.endswith('.png')]:
+            frames = _test_frame_paths(screenshot_root, mod, meth)
+            if not frames:
                 missing.append((mod, meth))
     return (len(missing) == 0, missing)
 
@@ -1319,8 +1506,15 @@ def main():
                    help='JUnit XML for --screenshot-audit, so skipped tests are not counted missing')
     p.add_argument('--screenshot-filter', action='store_true',
                    help='Print pytest -k expression for tests needing screenshots, then exit')
+    p.add_argument('--screenshot-test-list', action='store_true',
+                   help='Print exact module::method screenshot selectors, then exit')
     p.add_argument('--validate-junit', action='store_true',
                    help='Validate JUnit results against SECTIONS, exit non-zero on failures')
+    p.add_argument('--firmware-sha', default=None)
+    p.add_argument('--python-sha', default=None)
+    p.add_argument('--run-url', default=None)
+    p.add_argument('--generator-sha256', default=None)
+    p.add_argument('--arm-manifest-sha256', default=None)
     args = p.parse_args()
 
     fw = args.fw_version
@@ -1342,6 +1536,9 @@ def main():
     if args.screenshot_filter:
         print(screenshot_filter(fw))
         sys.exit(0)
+    if args.screenshot_test_list:
+        print(screenshot_test_list(fw))
+        sys.exit(0)
 
     if args.validate_junit:
         if not args.junit:
@@ -1359,7 +1556,15 @@ def main():
             sys.exit(1)
 
     results = parse_junit(args.junit) if args.junit else {}
-    render(args.output, fw, results, args.screenshots)
+    metadata = {
+        'firmware_sha': args.firmware_sha,
+        'python_sha': args.python_sha,
+        'run_url': args.run_url,
+        'generator_sha256': args.generator_sha256,
+        'arm_manifest_sha256': args.arm_manifest_sha256,
+    }
+    render(args.output, fw, results, args.screenshots,
+           junit_cases(args.junit), metadata)
 
 if __name__ == '__main__':
     main()

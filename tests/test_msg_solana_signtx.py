@@ -263,43 +263,53 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     # ================================================================
 
     def test_solana_sign_token_transfer(self):
-        """SPL Token transfer — OLED shows 'Send [amount] tokens to [address]'."""
+        """Unchecked SPL Transfer is opaque because no mint is signed."""
         self.requires_fullFeature()
+        self.requires_firmware("7.14.2")
         self.setup_mnemonic_allallall()
         from_pubkey = self._get_from_pubkey()
         to_account = b'\x33' * 32  # destination token account
-        owner = from_pubkey  # token owner = signer
         # SPL Token Transfer instruction: opcode=3 (u8) + amount (LE u64)
         instr_data = bytes([3]) + struct.pack('<Q', 50000000)  # 50M tokens
-        raw_tx = self._build_tx(from_pubkey, [to_account], self.TOKEN_PROGRAM, instr_data)
-        resp = self.client.call(messages.SolanaSignTx(
-            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
-        self.assertEqual(len(resp.signature), 64)
+        raw_tx = self._build_tx(
+            from_pubkey, [to_account, from_pubkey], self.TOKEN_PROGRAM, instr_data
+        )
+        with pytest.raises(CallException) as exc:
+            self.client.call(messages.SolanaSignTx(
+                address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
+        self.assertIn("policy", str(exc.value))
 
     def test_solana_sign_token_approve(self):
-        """SPL Token approve — OLED shows 'Approve [amount] tokens to [delegate]'."""
+        """Unchecked SPL Approve is opaque because no mint is signed."""
         self.requires_fullFeature()
+        self.requires_firmware("7.14.2")
         self.setup_mnemonic_allallall()
         from_pubkey = self._get_from_pubkey()
         delegate = b'\x44' * 32
         # SPL Token Approve: opcode=4 (u8) + amount (LE u64)
         instr_data = bytes([4]) + struct.pack('<Q', 100000000)
-        raw_tx = self._build_tx(from_pubkey, [delegate], self.TOKEN_PROGRAM, instr_data)
-        resp = self.client.call(messages.SolanaSignTx(
-            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
-        self.assertEqual(len(resp.signature), 64)
+        raw_tx = self._build_tx(
+            from_pubkey, [delegate, from_pubkey], self.TOKEN_PROGRAM, instr_data
+        )
+        with pytest.raises(CallException):
+            self.client.call(messages.SolanaSignTx(
+                address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
 
     def test_solana_sign_stake_delegate(self):
         """Stake delegate — OLED shows 'Delegate stake?'."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from_pubkey = self._get_from_pubkey()
-        stake_account = b'\x55' * 32
         vote_account = b'\x66' * 32
         # Stake Delegate: type=2 (LE u32)
         instr_data = struct.pack('<I', 2)
-        raw_tx = self._build_tx(from_pubkey, [stake_account, vote_account],
-                                self.STAKE_PROGRAM, instr_data)
+        raw_tx = self._build_tx(
+            from_pubkey,
+            [vote_account, b'\x77' * 32, b'\x88' * 32, b'\x99' * 32,
+             from_pubkey],
+            self.STAKE_PROGRAM,
+            instr_data,
+        )
         resp = self.client.call(messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
         self.assertEqual(len(resp.signature), 64)
@@ -309,10 +319,15 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from_pubkey = self._get_from_pubkey()
-        stake_account = b'\x55' * 32
+        destination = b'\x55' * 32
         # Stake Withdraw: type=4 (LE u32) + lamports (LE u64)
         instr_data = struct.pack('<I', 4) + struct.pack('<Q', 2000000000)  # 2 SOL
-        raw_tx = self._build_tx(from_pubkey, [stake_account], self.STAKE_PROGRAM, instr_data)
+        raw_tx = self._build_tx(
+            from_pubkey,
+            [destination, b'\x77' * 32, b'\x88' * 32, from_pubkey],
+            self.STAKE_PROGRAM,
+            instr_data,
+        )
         resp = self.client.call(messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
         self.assertEqual(len(resp.signature), 64)
@@ -322,10 +337,12 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from_pubkey = self._get_from_pubkey()
-        stake_account = b'\x55' * 32
         # Stake Deactivate: type=5 (LE u32)
         instr_data = struct.pack('<I', 5)
-        raw_tx = self._build_tx(from_pubkey, [stake_account], self.STAKE_PROGRAM, instr_data)
+        raw_tx = self._build_tx(
+            from_pubkey, [b'\x55' * 32, from_pubkey], self.STAKE_PROGRAM,
+            instr_data
+        )
         resp = self.client.call(messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
         self.assertEqual(len(resp.signature), 64)
@@ -557,9 +574,15 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
             0x7c, 0xa6, 0x02, 0x03, 0x45, 0x20, 0x23, 0x34,
         ])
 
-        # SPL Token Transfer instruction: opcode=3 (u8) + amount (LE u64)
-        instr_data = bytes([3]) + struct.pack('<Q', 1000000)  # 1.0 USDC (6 decimals)
-        raw_tx = self._build_tx(from_pubkey, [to_account], self.TOKEN_PROGRAM, instr_data)
+        # TransferChecked signs the mint and decimals. Unchecked Transfer is
+        # deliberately opaque because it carries neither.
+        instr_data = bytes([12]) + struct.pack('<Q', 1000000) + bytes([6])
+        raw_tx = self._build_tx(
+            from_pubkey,
+            [usdc_mint, to_account, from_pubkey],
+            self.TOKEN_PROGRAM,
+            instr_data,
+        )
 
         token_info = messages.SolanaTokenInfo(
             mint=usdc_mint,

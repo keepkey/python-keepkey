@@ -34,6 +34,9 @@ jobs:
       - name: Syntax check
         run: python -m py_compile keepkeylib/*.py
 
+      - name: Verify offline transaction fixture manifest
+        run: python tests/tx_fixture_manifest.py --check
+
       - name: Lint summary
         run: |
           echo "## 🔑 KeepKey python-keepkey — Lint" >> "$GITHUB_STEP_SUMMARY"
@@ -41,6 +44,10 @@ jobs:
           echo "| Check | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Syntax | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Offline fixture integrity | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
+          FIXTURE_SHA=$(sha256sum tests/txcache/manifest.json | cut -d' ' -f1)
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fixture manifest SHA-256: `$FIXTURE_SHA`" >> "$GITHUB_STEP_SUMMARY"
 
   # ═══════════════════════════════════════════════════════════
   # STAGE 2: TEST — pull published emulator, run pytest
@@ -95,6 +102,18 @@ jobs:
           PYTHONPATH: "${{ github.workspace }}/keepkeylib:${{ github.workspace }}"
         run: |
           cd tests
+          python tx_fixture_manifest.py --check
+          EMULATOR_IP=$(docker inspect -f \
+            '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' \
+            "${{ job.services.kkemu.id }}")
+          test -n "$EMULATOR_IP"
+          sudo iptables -I OUTPUT 1 -d "$EMULATOR_IP" -j ACCEPT
+          sudo iptables -I OUTPUT 2 ! -o lo -m conntrack --ctstate NEW -j REJECT
+          cleanup_network_gate() {
+            sudo iptables -D OUTPUT ! -o lo -m conntrack --ctstate NEW -j REJECT
+            sudo iptables -D OUTPUT -d "$EMULATOR_IP" -j ACCEPT
+          }
+          trap cleanup_network_gate EXIT
           pytest -v --junitxml=junit.xml 2>&1 | tee pytest-output.txt
           echo "${PIPESTATUS[0]}" > status
 
@@ -102,8 +121,14 @@ jobs:
         if: always()
         run: |
           XML="tests/junit.xml"
+          MANIFEST="tests/txcache/manifest.json"
           echo "## 🔑 KeepKey python-keepkey — Integration Tests" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$MANIFEST" ]; then
+            FIXTURE_SHA=$(sha256sum "$MANIFEST" | cut -d' ' -f1)
+            echo "Fixture manifest SHA-256: `$FIXTURE_SHA`" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
           if [ ! -f "$XML" ]; then
             echo "❌ **No test results found** — suite may have crashed before completion." >> "$GITHUB_STEP_SUMMARY"
