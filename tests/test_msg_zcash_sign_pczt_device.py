@@ -159,10 +159,20 @@ def sign_kwargs(actions, ironwood=False, **overrides):
     if ironwood:
         kwargs['shielded_pool'] = zcash_proto.ZCASH_SHIELDED_POOL_IRONWOOD
         kwargs['ironwood_digest'] = digest
-        # orchard_digest is still required to be present and 32 bytes, but for
-        # Ironwood it is the ironwood_digest that is verified against the
-        # actions; this one only feeds the locally derived sighash.
-        kwargs['orchard_digest'] = b'\x00' * 32
+        # A v6 transaction streams and verifies only its Ironwood actions, so
+        # its Orchard bundle must be EMPTY -- and provably so. This used to be
+        # b'\x00' * 32, arbitrary filler, with a comment noting that the field
+        # "only feeds the locally derived sighash". That was the bug: the
+        # device signed a sighash committing to an Orchard bundle it never
+        # inspected, and a host could point it at a real bundle spending the
+        # victim's note, reusing an approved action's alpha so the one emitted
+        # RedPallas signature verified in both bundles.
+        #
+        # ZIP-229 v6 empty-bundle digest: BLAKE2b-256 of the empty string
+        # personalized "ZTxIdOrchardH_v6". The v5/ZIP-244
+        # "ZTxIdOrchardHash" value is a different digest.
+        kwargs['orchard_digest'] = bytes.fromhex(
+            'a3367d2fdea2910159fc5026e9bf1fccd3e28ce5e6de46bfb71587230eea9515')
     kwargs.update(overrides)
     return kwargs
 
@@ -292,6 +302,30 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         with self.assertRaises(Exception) as caught:
             self.client.zcash_sign_pczt(**sign_kwargs(actions, ironwood=True))
         self.assertIn('commitment mismatch', str(caught.exception))
+
+    def test_ironwood_rejects_a_non_empty_orchard_bundle(self):
+        """A v6 transaction may not carry an unverified Orchard bundle.
+
+        The device streams and verifies only the ACTIVE pool's actions. On the
+        Ironwood path that is the Ironwood bundle, so an orchard_digest other
+        than the empty-bundle value describes a bundle the device never
+        inspected yet still commits to in the sighash it signs.
+
+        That was exploitable, not merely untidy: point orchard_digest at a real
+        Orchard bundle spending one of this seed's notes, reuse the alpha of an
+        approved Ironwood action so rk is byte-identical, and the single
+        RedPallas signature the device emits verifies in BOTH bundles, because
+        verification is [s]G = R + [H(R||rk||M)]rk and rk and M are shared. The
+        Orchard bundle's valueBalance never enters the device's fee check.
+        """
+        actions = [note_action(CMX_IRONWOOD)]
+        kwargs = sign_kwargs(actions, ironwood=True)
+        # Anything but the ZIP-229 v6 empty-bundle digest must be refused.
+        kwargs['orchard_digest'] = bytes([0x11]) * 32
+
+        with self.assertRaises(Exception) as caught:
+            self.client.zcash_sign_pczt(**kwargs)
+        self.assertIn('empty Orchard bundle', str(caught.exception))
 
     def test_ironwood_note_is_accepted(self):
         """The Ironwood commitment for that same note is accepted.

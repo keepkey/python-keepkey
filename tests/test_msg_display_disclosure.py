@@ -175,12 +175,13 @@ class TestDisplayDisclosesSignedContent(common.KeepKeyTest):
     def setUp(self):
         super(TestDisplayDisclosesSignedContent, self).setUp()
         self.requires_firmware(self.MIN_FIRMWARE)
-        # These are positive display-binding controls, not refusal tests. A
-        # fresh emulator is uninitialized; without an explicit seed setup every
-        # request is rejected before its first ButtonRequest, the differential
-        # cases vacuously "pass", and the only non-vacuity control skips. Keep
-        # the fixture capable of reaching the confirmation path.
-        self.setup_mnemonic_allallall()
+        # The inherited setUp wipes the device. Without a seed every
+        # SignMessage below is refused with Failure_NotInitialized before
+        # confirm_bytes() is ever reached, _sign_message_screens() returns
+        # None, and _assert_distinguishable() returns without asserting -- so
+        # the whole suite passed while exercising zero display logic. Load a
+        # seed so the device actually renders the screens under test.
+        self.setup_mnemonic_nopin_nopassphrase()
 
     # ── helpers ─────────────────────────────────────────────────────────
 
@@ -215,8 +216,22 @@ class TestDisplayDisclosesSignedContent(common.KeepKeyTest):
         b = self._sign_message_screens(b_msg)
 
         if a is None or b is None:
-            # Refusing to display something it cannot show honestly is a pass.
-            return
+            # A refusal is only meaningful from an initialized device that
+            # could have signed and chose not to. On an uninitialized device
+            # every call is refused for an unrelated reason, which is what let
+            # this suite pass vacuously -- so assert the device can sign at
+            # all before treating a refusal as the honest-refusal pass.
+            self.assertTrue(
+                self.client.features.initialized,
+                "device is not initialized, so this refusal says nothing "
+                "about display disclosure -- the assertion below never ran")
+            refused = a_label if a is None else b_label
+            raise AssertionError(
+                "device refused to sign %s. Refusing to display what it "
+                "cannot show honestly is defensible, but it must be an "
+                "explicit, reviewed decision rather than a silent pass: if "
+                "this is intended, assert the refusal here by name."
+                % refused)
 
         self.assertNotEqual(
             a, b,
@@ -294,11 +309,14 @@ class TestDisplayDisclosesSignedContent(common.KeepKeyTest):
         empty tuples and the suite would pass while showing the user nothing.
         """
         screens = self._sign_message_screens(b"hello")
+        # Do NOT skip here. This test exists to prove the rest of the file is
+        # not vacuous, so skipping itself when the device will not sign is the
+        # one failure mode it cannot be allowed to have -- that is exactly how
+        # the whole suite went green against an uninitialized device.
         self.assertIsNotNone(
             screens,
-            "device refused the control request; the display-binding A/B "
-            "tests did not prove they can reach a confirmation path",
-        )
+            "device refused to sign the control message, so every comparison "
+            "in this file compared None against None and asserted nothing")
         self.assertGreater(
             len(screens), 0,
             "signing produced no ButtonRequest, so nothing was shown to the "

@@ -1110,10 +1110,22 @@ class ProtocolMixin(object):
                 # OsmosisMsgSend.amount, which is a string field and would have
                 # raised even for uatom.
                 #
-                # The legacy Amino MsgSend serializer is uosmo-only. Firmware
-                # now enforces the same rule on direct OsmosisMsgAck traffic;
-                # retain the host check as early feedback, never as the trust
-                # boundary.
+                # This restriction is a HOST policy, not a firmware invariant.
+                # Firmware does not reject a non-uosmo denom on the
+                # OsmosisMsgAck path: since 7.14.2 (firmware c9dccf68),
+                # osmosis_signTxUpdateMsgSend escapes the host-supplied denom
+                # straight into the signed Amino document, which is what
+                # test_osmosis_send_denom_is_committed_to_the_signature proves
+                # over the raw wire, and the only strcmp against "uosmo" left
+                # in firmware picks the display exponent.
+                #
+                # The check stays because this helper is not version-gated and
+                # firmware older than 7.14.2 hardcoded "uosmo" in the
+                # serializer: it would ignore the denom sent here and sign a
+                # uosmo transfer the caller never asked for. Fail closed rather
+                # than silently mis-sign. A caller that needs an IBC or factory
+                # denom on 7.15 can drive OsmosisMsgAck directly, or this
+                # helper can grow the same version gate thorchain_sign_tx uses.
                 coin = msg['value']['amount'][0]
                 if coin['denom'] != 'uosmo':
                     raise CallException(
@@ -1260,27 +1272,36 @@ class ProtocolMixin(object):
                     raise CallException("Thorchain.MsgSend", "Multiple amounts per send msg not supported")
 
                 denom = msg['value']['amount'][0]['denom']
-                # Fail CLOSED on any other denomination, deliberately.
-                #
-                # ThorchainMsgSend carries a `denom` field, but the firmware
-                # this talks to builds its amino sign-doc with the string
-                # "rune" HARDCODED (lib/firmware/thorchain.c) -- only 7.15+
-                # reads a denom and validates it. nanopb SKIPS unknown fields
-                # rather than rejecting them, so forwarding `denom` to older
-                # firmware would be silently ignored and the device would sign
-                # a rune transfer while the host believed it had sent another
-                # asset. Refusing is the only safe answer until the capability
-                # can be detected; do not "fix" this by passing denom through.
-                if denom != 'rune':
-                    raise CallException("Thorchain.MsgSend", "Unsupported denomination: " + denom)
+                firmware_version = (
+                    self.features.major_version,
+                    self.features.minor_version,
+                    self.features.patch_version,
+                )
+                supports_denom = firmware_version >= (7, 15, 0)
+
+                # Older firmware hardcodes "rune" in its amino sign-doc and
+                # nanopb skips the unknown denom field. Sending a non-RUNE denom
+                # there would therefore make the host and device disagree about
+                # what was signed. Preserve the fail-closed legacy behaviour,
+                # while exposing the protocol field on firmware that validates,
+                # displays and commits it to the signature.
+                if denom != 'rune' and not supports_denom:
+                    raise CallException(
+                        "Thorchain.MsgSend",
+                        "Unsupported denomination before firmware 7.15.0: " + denom,
+                    )
+
+                send = thorchain_proto.ThorchainMsgSend(
+                    from_address=msg['value']['from_address'],
+                    to_address=msg['value']['to_address'],
+                    amount=int(msg['value']['amount'][0]['amount']),
+                    address_type=types.SPEND,
+                )
+                if supports_denom:
+                    send.denom = denom
 
                 resp = self.call(thorchain_proto.ThorchainMsgAck(
-                    send=thorchain_proto.ThorchainMsgSend(
-                        from_address=msg['value']['from_address'],
-                        to_address=msg['value']['to_address'],
-                        amount=int(msg['value']['amount'][0]['amount']),
-                        address_type=types.SPEND,
-                    )
+                    send=send
                 ))
 
             elif msg['type'] == "thorchain/MsgDeposit":
@@ -2166,6 +2187,23 @@ class ProtocolMixin(object):
 
         if not isinstance(resp, zcash_proto.ZcashSignedPCZT):
             raise Exception("Unexpected response type: %s" % type(resp))
+
+        # Count the transparent signatures the same way the Orchard signatures
+        # are counted below. Without this, a device that skips
+        # ZcashTransparentSigned entirely, or returns a short list, reaches the
+        # caller as success and hands back a transaction whose transparent
+        # inputs can never be spent. Checked after the Failure and response-type
+        # arms above so a device-reported error still surfaces its own message.
+        if len(transparent_sigs) != len(transparent_inputs):
+            raise Exception(
+                "Device returned %d transparent signatures for %d transparent inputs"
+                % (len(transparent_sigs), len(transparent_inputs)))
+        # Transparent signatures are DER ECDSA, so their length is not fixed the
+        # way a 64-byte RedPallas signature is; an empty entry is still a missing
+        # signature dressed up as a present one.
+        for signature in transparent_sigs:
+            if not signature:
+                raise Exception("Device returned an empty transparent signature")
 
         expected_signatures = sum(1 for action in actions if action['is_spend'])
         if len(resp.signatures) != expected_signatures:

@@ -7,13 +7,21 @@ OP_RETURN path that confirms raw bytes instead of decoding a THORChain memo.
 None of that had a test, and CI only ever ran the multi-chain emulator -- so
 the whole variant was unaudited.
 
-NOTHING HERE SKIPS. Each test asserts the behaviour that is correct for the
-variant it is talking to, so it is evidence on both builds: on the bitcoin-only
-image it proves the strip happened, and on the regular image it proves the
-strip did NOT happen (a guard that leaked into the multi-chain product would
-fail here just as loudly). `requires_fullFeature()` is deliberately not used --
-see test_firmware_variant_names_the_bitcoin_only_product for why it cannot
-work.
+SCOPE: THIS FILE RUNS ON THE BITCOIN-ONLY IMAGE ONLY. `setUp()` calls
+`requires_bitcoinOnly()`, so every test here SKIPS on the regular multi-chain
+build. That is deliberate and not symmetric coverage: several tests assert
+screen sequences that legitimately differ on the multi-chain build -- the
+OP_RETURN one decodes a THORChain memo there and draws more screens -- so
+running them against a full-feature device is a category error, not a finding.
+The regular image is covered by the rest of the suite, which asserts the
+altcoin handlers these tests assert are absent.
+
+Because of that gate, this file is only evidence when a bitcoin-only emulator
+is actually under test. `.github/workflows/ci.yml` runs the `integration-btc`
+job for exactly that reason: it builds the emulator with
+`-DKK_BITCOIN_ONLY=ON` and runs this module against it. If that job is ever
+dropped, these eleven tests go silently green-by-skip and the variant is
+unaudited again -- which is the state this file was written to end.
 
 The variant is identified by GetCoinTable, not by features.firmware_variant:
 the coin table comes from coins.def, which is a different mechanism from the

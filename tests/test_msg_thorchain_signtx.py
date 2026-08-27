@@ -5,7 +5,9 @@ from base64 import b64encode
 from binascii import hexlify, unhexlify
 
 import keepkeylib.messages_pb2 as proto
+import keepkeylib.messages_thorchain_pb2 as thorchain_proto
 import keepkeylib.types_pb2 as proto_types
+from keepkeylib.client import CallException, ProtocolMixin
 from keepkeylib.tools import parse_path
 from keepkeylib.signed_metadata import eth_sighash_legacy, keccak256
 
@@ -28,12 +30,12 @@ def recover_eth_signer(sig_r, sig_s, sig_v, digest, chain_id):
 
 DEFAULT_BIP32_PATH = "m/44h/931h/0h/0/0"
 
-def make_send(from_address, to_address, amount):
+def make_send(from_address, to_address, amount, denom='rune'):
     return {
         'type': 'thorchain/MsgSend',
         'value': {
             'amount': [{
-                'denom': 'rune',
+                'denom': denom,
                 'amount': str(amount),
             }],
             'from_address': from_address,
@@ -41,7 +43,104 @@ def make_send(from_address, to_address, amount):
         }
     }
 
+
+class _SessionTransport(object):
+    def session_begin(self):
+        pass
+
+    def session_end(self):
+        pass
+
+
+class _ScriptedThorchainClient(object):
+    thorchain_sign_tx = ProtocolMixin.thorchain_sign_tx
+
+    def __init__(self, version):
+        self.features = proto.Features(
+            major_version=version[0],
+            minor_version=version[1],
+            patch_version=version[2],
+        )
+        self.transport = _SessionTransport()
+        self.responses = [
+            thorchain_proto.ThorchainMsgRequest(),
+            thorchain_proto.ThorchainSignedTx(
+                public_key=b'\x02' + b'\x11' * 32,
+                signature=b'\x22' * 64,
+            ),
+        ]
+        self.sent = []
+
+    def call(self, message):
+        self.sent.append(message)
+        if not self.responses:
+            raise AssertionError('unexpected device call: %s' % type(message))
+        return self.responses.pop(0)
+
+
+class TestThorchainClientDenom(unittest.TestCase):
+    ADDRESS_N = [0x8000002C, 0x800003A3, 0x80000000, 0, 0]
+    FROM = 'thor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8'
+    TO = 'thor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy'
+
+    def _sign(self, client, denom):
+        return client.thorchain_sign_tx(
+            address_n=self.ADDRESS_N,
+            account_number=92,
+            chain_id='thorchain',
+            fee=3000,
+            gas=200000,
+            msgs=[make_send(self.FROM, self.TO, 10000, denom=denom)],
+            memo='client denom test',
+            sequence=3,
+            testnet=False,
+        )
+
+    def test_non_rune_denom_is_forwarded_on_7_15(self):
+        client = _ScriptedThorchainClient((7, 15, 0))
+        response = self._sign(client, 'btc/btc')
+
+        self.assertIsInstance(response, thorchain_proto.ThorchainSignedTx)
+        self.assertEqual(client.sent[1].send.denom, 'btc/btc')
+
+    def test_non_rune_denom_is_rejected_before_7_15(self):
+        client = _ScriptedThorchainClient((7, 14, 2))
+
+        with self.assertRaises(CallException) as ctx:
+            self._sign(client, 'btc/btc')
+
+        self.assertIn('before firmware 7.15.0', str(ctx.exception))
+        self.assertEqual(len(client.sent), 1)
+
+    def test_legacy_rune_does_not_send_unknown_field(self):
+        client = _ScriptedThorchainClient((7, 14, 2))
+        self._sign(client, 'rune')
+
+        self.assertFalse(client.sent[1].send.HasField('denom'))
+
 class TestMsgThorChainSignTx(common.KeepKeyTest):
+
+    def test_ack_rejects_send_and_deposit_together(self):
+        """An unused deposit submessage must not alter the send review flow."""
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        response = self.client.call(thorchain_proto.ThorchainSignTx(
+            address_n=parse_path(DEFAULT_BIP32_PATH), account_number=92,
+            chain_id="thorchain", fee_amount=3000, gas=200000,
+            memo="SWAP:BTC.BTC:bc1qreviewthismemo", sequence=3,
+            msg_count=1, testnet=False))
+        self.assertIsInstance(response, thorchain_proto.ThorchainMsgRequest)
+
+        with self.assertRaises(CallException):
+            self.client.call(thorchain_proto.ThorchainMsgAck(
+                send=thorchain_proto.ThorchainMsgSend(
+                    to_address="thor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
+                    amount=10000, denom="rune"),
+                deposit=thorchain_proto.ThorchainMsgDeposit(
+                    asset="THOR.RUNE", amount=1, memo="unused",
+                    signer="thor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8")))
 
     def test_thorchain_sign_tx(self):
         self.requires_fullFeature()
