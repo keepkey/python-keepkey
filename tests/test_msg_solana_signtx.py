@@ -277,7 +277,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         with pytest.raises(CallException) as exc:
             self.client.call(messages.SolanaSignTx(
                 address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
-        self.assertIn("policy", str(exc.value))
+        self.assertIn("AdvancedMode", str(exc.value))
 
     def test_solana_sign_token_approve(self):
         """Unchecked SPL Approve is opaque because no mint is signed."""
