@@ -2958,6 +2958,29 @@ SECTIONS = [
 
 ]
 
+# A section may span adjacent release lines even when individual native tests
+# landed later. Filter those rows before validation so a 7.14.3 report cannot
+# demand 7.15-only binaries, while 7.15 still requires the coverage.
+_TEST_MIN_VERSION = {
+    ('Storage', 'PinKdfRewrapsToActiveVersionAfterCorrectPin'): '7.15.0',
+    ('Storage', 'PinUnlocksAfterRebootUnderV17'): '7.15.0',
+    ('Storage', 'PinKdfV2FlagIsVersionedInV19'): '7.15.0',
+}
+
+
+def _active_sections(fw_version):
+    active = []
+    for letter, title, minimum, background, flow, tests in SECTIONS:
+        if not ver_ge(fw_version, minimum):
+            continue
+        filtered = [
+            test for test in tests
+            if ver_ge(fw_version,
+                      _TEST_MIN_VERSION.get((test[1], test[2]), minimum))
+        ]
+        active.append((letter, title, minimum, background, flow, filtered))
+    return active
+
 # ---------------------------------------------------------------
 # Render
 # ---------------------------------------------------------------
@@ -2989,7 +3012,7 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     _build_frame_census(screenshot_dir)
     ts = datetime.now().strftime('%Y-%m-%d %H:%M')
     build_label = os.environ.get('KK_BUILD_LABEL', '').strip()
-    active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
+    active = _active_sections(fw_version)
     # Separate specs section (no tests) from test sections
     specs = [s for s in active if not s[5]]
 
@@ -3211,7 +3234,7 @@ def screenshot_filter(fw_version):
     The shell script calls this instead of maintaining a hardcoded filter.
     Adding screenshots to a test in SECTIONS automatically includes it in CI Phase 1.
     """
-    active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
+    active = _active_sections(fw_version)
     terms = []
     for letter, title, mf, bg, fl, tests in active:
         for tid, mod, meth, ttl, ctx, scr in tests:
@@ -3223,7 +3246,7 @@ def screenshot_filter(fw_version):
 
 def screenshot_test_list(fw_version):
     """Return exact module::method selectors consumed by conftest.py."""
-    active = [x for x in SECTIONS if ver_ge(fw_version, x[2])]
+    active = _active_sections(fw_version)
     pairs = set()
     for _letter, _title, _mf, _bg, _fl, tests in active:
         for _tid, mod, meth, _ttl, _ctx, screens in tests:
@@ -3279,7 +3302,7 @@ def screenshot_audit(fw_version, screenshot_root, junit_path=None):
                     mod = next((p for p in cn.split('.') if p.startswith('test_')), '')
                     skipped.add((mod, tc.get('name')))
 
-    active = [x for x in SECTIONS if ver_ge(fw_version, x[2])]
+    active = _active_sections(fw_version)
     missing = []
     for letter, title, mf, bg, fl, tests in active:
         for tid, mod, meth, ttl, ctx, scr in tests:
@@ -3302,7 +3325,7 @@ def validate_junit(fw_version, results):
     Tests that were skipped (gated by requires_message/requires_firmware) are OK,
     unless their module is in MUST_RUN_MODULES.
     """
-    active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
+    active = _active_sections(fw_version)
     failures = []
     for letter, title, mf, bg, fl, tests in active:
         for tid, mod, meth, ttl, ctx, scr in tests:
