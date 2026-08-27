@@ -149,7 +149,7 @@ jobs:
           pip install --upgrade pip
           pip install "protobuf>=3.20,<4"
           pip install -e .
-          pip install pytest semver rlp requests eth-keys pycryptodome
+          pip install pytest pytest-timeout semver rlp requests eth-keys pycryptodome
 
       - name: Wait for emulator
         run: |
@@ -237,7 +237,7 @@ jobs:
             sudo iptables -D OUTPUT ! -o lo -m conntrack --ctstate NEW -j REJECT
           }
           trap cleanup_network_gate EXIT
-          pytest -v --junitxml=junit.xml 2>&1 | tee pytest-output.txt
+          pytest -vv -s --timeout=60 --timeout-method=signal --maxfail=1 --junitxml=junit.xml 2>&1 | tee pytest-output.txt
           echo "${PIPESTATUS[0]}" > status
 
       - name: Test summary
