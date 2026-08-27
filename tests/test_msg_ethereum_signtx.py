@@ -21,6 +21,7 @@
 import unittest
 import common
 import binascii
+import hashlib
 
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.messages_ethereum_pb2 as eth_proto
@@ -31,6 +32,49 @@ from test_msg_display_disclosure import ScreenRecorder
 
 
 class TestMsgEthereumSigntx(common.KeepKeyTest):
+    def test_ethereum_native_pseudo_address_is_unknown_off_mainnet(self):
+        """0xeeee..eeee must render as unknown for chain-257 token calls."""
+        self.requires_firmware("7.14.2")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 1)
+        common.reset_screenshot_capture(self.client)
+
+        recipient = self.client.ethereum_get_address([0, 0])
+        pseudo_address = b"\xee" * 20
+        calls = (
+            (
+                "transfer",
+                binascii.unhexlify("a9059cbb" + "00" * 12) +
+                recipient + int_to_big_endian(1).rjust(32, b"\x00"),
+                "85d9054ee56836c1784c90dd777fc89444bf82b840d0818a59c73aa5b57ee35d",
+            ),
+            (
+                "approve",
+                binascii.unhexlify("095ea7b3" + "00" * 12) +
+                recipient + int_to_big_endian(1).rjust(32, b"\x00"),
+                "ab30156ff400957ffa9146ea827318bf878614e6ab4ae7dd731824e285fa5da6",
+            ),
+        )
+
+        try:
+            for label, data, expected_frame_sha256 in calls:
+                with ScreenRecorder(
+                        self.client,
+                        screenshot_group="pseudo-%s" % label) as recorder:
+                    self.client.ethereum_sign_tx(
+                        n=[0, 0], nonce=0, gas_price=20, gas_limit=60000,
+                        to=pseudo_address, value=0, chain_id=257, data=data,
+                    )
+                self.assertGreaterEqual(len(recorder.screens), 2)
+                self.assertEqual(
+                    hashlib.sha256(recorder.screens[0]).hexdigest(),
+                    expected_frame_sha256,
+                )
+        finally:
+            self.client.apply_policy("AdvancedMode", 0)
+            common.reset_screenshot_capture(self.client)
+
     def test_ethereum_erc20_high_chain_id_does_not_alias_mainnet(self):
         """Chain 257 must not borrow chain-1 token labels or decimals."""
         self.requires_firmware("7.14.2")

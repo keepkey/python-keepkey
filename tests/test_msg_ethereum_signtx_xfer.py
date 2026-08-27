@@ -21,6 +21,7 @@
 import unittest
 import common
 import binascii
+import hashlib
 import struct
 
 import keepkeylib.messages_pb2 as proto
@@ -29,7 +30,44 @@ from keepkeylib.client import CallException
 from keepkeylib.tools import int_to_big_endian
 from test_msg_display_disclosure import ScreenRecorder
 
+
 class TestMsgEthereumSigntx(common.KeepKeyTest):
+    def test_native_pseudo_address_transfer_is_unknown_off_mainnet(self):
+        """TRANSFER must show the exact unknown-token frame on chain 257."""
+        self.requires_firmware("7.14.2")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy('ShapeShift', 1)
+        self.client.apply_policy('AdvancedMode', 1)
+        common.reset_screenshot_capture(self.client)
+
+        destination_n = [0x8000002c, 0x8000003c, 0x80000001, 0, 0]
+        recipient = self.client.ethereum_get_address(destination_n)
+        erc20_data = (
+            binascii.unhexlify("a9059cbb" + "00" * 12) +
+            recipient + int_to_big_endian(1).rjust(32, b"\x00")
+        )
+
+        try:
+            with ScreenRecorder(
+                    self.client,
+                    screenshot_group="pseudo-transfer") as recorder:
+                self.client.ethereum_sign_tx(
+                    n=[0, 0], nonce=0, gas_price=20, gas_limit=60000,
+                    value=0, to=b"\xee" * 20, to_n=destination_n,
+                    address_type=proto_types.TRANSFER,
+                    data=erc20_data, chain_id=257,
+                )
+            self.assertGreaterEqual(len(recorder.screens), 2)
+            self.assertEqual(
+                hashlib.sha256(recorder.screens[0]).hexdigest(),
+                "b0a3026e7af1778ebd71a968ace25c03945cccf2d8abc951e5dd65abc04e914e",
+            )
+        finally:
+            self.client.apply_policy('AdvancedMode', 0)
+            self.client.apply_policy('ShapeShift', 0)
+            common.reset_screenshot_capture(self.client)
+
     def test_transfer_review_uses_signing_chain_asset(self):
         """The first transfer approval must change with the signed chain."""
         self.requires_firmware("7.14.2")
