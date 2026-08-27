@@ -32,9 +32,10 @@ jobs:
             # Move python-keepkey out of the way
             mv .pykk ../
 
-            # This companion branch gates firmware PR #604, not the default
-            # firmware branch. Keep the target explicit and fail if it moves.
-            git clone --depth 1 -b release/7.14.3-bitcoin-only \
+            # This companion branch gates the fork's 7.15 firmware PR, not the
+            # default firmware branch. Keep the target explicit; the checkout
+            # then replaces its python-keepkey submodule with CIRCLE_SHA1 below.
+            git clone --depth 1 -b release/7.15 \
               https://github.com/BitHighlander/keepkey-firmware.git .
 
             # Match firmware CI's build set. A recursive init reaches optional
