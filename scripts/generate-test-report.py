@@ -3203,6 +3203,17 @@ def screenshot_filter(fw_version):
     return ' or '.join(terms)
 
 
+def screenshot_test_list(fw_version):
+    """Return exact module::method selectors consumed by conftest.py."""
+    active = [x for x in SECTIONS if ver_ge(fw_version, x[2])]
+    pairs = set()
+    for _letter, _title, _mf, _bg, _fl, tests in active:
+        for _tid, mod, meth, _ttl, _ctx, screens in tests:
+            if screens:
+                pairs.add('%s::%s' % (mod, meth))
+    return '\n'.join(sorted(pairs))
+
+
 # Modules whose tests must actually RUN once the firmware is new enough to be
 # catalogued for them -- a skip is a failure, not a waiver.
 #
@@ -3299,6 +3310,8 @@ def main():
                    help='JUnit XML for --screenshot-audit, so skipped tests are not counted missing')
     p.add_argument('--screenshot-filter', action='store_true',
                    help='Print pytest -k expression for tests needing screenshots, then exit')
+    p.add_argument('--screenshot-test-list', action='store_true',
+                   help='Print exact module::method screenshot selectors, then exit')
     p.add_argument('--validate-junit', action='store_true',
                    help='Validate JUnit results against SECTIONS, exit non-zero on failures')
     args = p.parse_args()
@@ -3321,6 +3334,9 @@ def main():
         sys.exit(1)
     if args.screenshot_filter:
         print(screenshot_filter(fw))
+        sys.exit(0)
+    if args.screenshot_test_list:
+        print(screenshot_test_list(fw))
         sys.exit(0)
 
     if args.validate_junit:
