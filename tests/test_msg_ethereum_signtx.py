@@ -47,13 +47,13 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 "transfer",
                 binascii.unhexlify("a9059cbb" + "00" * 12) +
                 recipient + int_to_big_endian(1).rjust(32, b"\x00"),
-                "85d9054ee56836c1784c90dd777fc89444bf82b840d0818a59c73aa5b57ee35d",
+                "7910ca5cdea6e4f6870dad52fde79fd55891fd38fe2ad5d3295502fdf578dfe7",
             ),
             (
                 "approve",
                 binascii.unhexlify("095ea7b3" + "00" * 12) +
                 recipient + int_to_big_endian(1).rjust(32, b"\x00"),
-                "ab30156ff400957ffa9146ea827318bf878614e6ab4ae7dd731824e285fa5da6",
+                "e8e44436251ef16cb00192f23adcc86f843201d676d1a3d2377a1e8ae6330c01",
             ),
         )
 

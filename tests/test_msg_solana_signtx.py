@@ -659,12 +659,13 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
             0x7c, 0xa6, 0x02, 0x03, 0x45, 0x2f, 0x5d, 0x61,
         ])
 
-        # TransferChecked signs the mint and decimals. Unchecked Transfer is
-        # deliberately opaque because it carries neither.
-        instr_data = bytes([12]) + struct.pack('<Q', 1000000) + bytes([6])
+        # Unchecked Transfer (op 3) signs source, destination and authority but
+        # carries neither mint nor decimals.  Host token_info must not promote
+        # that unauthenticated identity into a clear-signed transfer.
+        instr_data = bytes([3]) + struct.pack('<Q', 1000000)
         raw_tx = self._build_tx(
             from_pubkey,
-            [usdc_mint, to_account, from_pubkey],
+            [to_account, from_pubkey],
             self.TOKEN_PROGRAM,
             instr_data,
         )
