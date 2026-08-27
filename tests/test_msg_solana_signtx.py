@@ -364,11 +364,14 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from_pubkey = self._get_from_pubkey()
+        clock_sysvar = b'\x66' * 32
         current_auth = b'\x77' * 32
         new_auth = b'\x88' * 32
         # Authorize (type=1 LE u32) + new authority(32) + StakeAuthorize role (0=staker)
         instr_data = struct.pack('<I', 1) + new_auth + struct.pack('<I', 0)
-        raw_tx = self._build_tx(from_pubkey, [current_auth], self.STAKE_PROGRAM, instr_data)
+        # Canonical account order: stake, clock sysvar, current authority.
+        raw_tx = self._build_tx(
+            from_pubkey, [clock_sysvar, current_auth], self.STAKE_PROGRAM, instr_data)
         resp = self.client.call(messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
         self.assertEqual(len(resp.signature), 64)
