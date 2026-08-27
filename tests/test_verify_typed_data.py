@@ -69,7 +69,7 @@ class TestMsgE712Verify(common.KeepKeyTest):
         self.setup_mnemonic_allallall()
         fixture_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                     'eip712tests.json')
-        with open(fixture_path) as f:
+with open(fixture_path, encoding="utf-8") as f:
             txtests = json.load(f)
 
         for test in txtests['tests']:
