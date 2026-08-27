@@ -17,7 +17,9 @@ import keepkeylib.types_pb2 as proto_types
 
 
 class TestAuthenticatorBoundaries(common.KeepKeyTest):
-    ADD_ACCOUNT = '\x15initializeAuth:example:alice:JBSWY3DPEHPK3PXP'
+    # 7.15 enforces the RFC-recommended 128-bit minimum for TOTP secrets.
+    ADD_ACCOUNT = ('\x15initializeAuth:example:alice:'
+                   'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP')
     GET_ACCOUNT = '\x17getAccount:0'
     WIPE_ACCOUNTS = '\x19wipeAuthdata:'
 

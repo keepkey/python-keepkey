@@ -142,7 +142,8 @@ class TestPing(common.KeepKeyTest):
         # local cache. This is the precondition that made the stale-data path
         # reachable after ClearSession.
         self.client.ping('\x19wipeAuthdata:')
-        init_auth = '\x15initializeAuth:example.com:alice:JBSWY3DPEHPK3PXP'
+        init_auth = ('\x15initializeAuth:example.com:alice:'
+                     'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP')
         self.client.ping(init_auth)
         self.client.clear_session()
         # The wipe/add-account confirmations establish the stale-cache
