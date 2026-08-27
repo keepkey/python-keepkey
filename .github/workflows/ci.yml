@@ -234,8 +234,14 @@ jobs:
           # claiming the sources are missing.
           cd keepkey-firmware/deps/python-keepkey/tests
           python tx_fixture_manifest.py --check
+          # Docker DNATs localhost-published packets before the filter OUTPUT
+          # chain, so they no longer have `lo` as their output interface. Keep
+          # only the emulator's two UDP ports reachable through the offline
+          # gate; every other new non-loopback connection remains rejected.
           sudo iptables -I OUTPUT 1 ! -o lo -m conntrack --ctstate NEW -j REJECT
+          sudo iptables -I OUTPUT 1 -p udp -m multiport --dports 11044,11045 -j ACCEPT
           cleanup_network_gate() {
+            sudo iptables -D OUTPUT -p udp -m multiport --dports 11044,11045 -j ACCEPT
             sudo iptables -D OUTPUT ! -o lo -m conntrack --ctstate NEW -j REJECT
           }
           trap cleanup_network_gate EXIT
