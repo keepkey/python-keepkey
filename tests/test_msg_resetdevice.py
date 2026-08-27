@@ -164,6 +164,7 @@ class TestDeviceReset(common.KeepKeyTest):
         external_entropy = b'zlutoucky kun upel divoke ody' * 2
         strength = 256  # 99 rolls
 
+        previous_layout = self._current_layout_for_capture()
         ret = self.client.call_raw(proto.ResetDevice(display_random=False,
                                                strength=strength,
                                                passphrase_protection=False,
@@ -175,6 +176,7 @@ class TestDeviceReset(common.KeepKeyTest):
         # Device announces the on-device dice entry screen
         self.assertIsInstance(ret, proto.ButtonRequest)
         self.assertEqual(ret.code, proto_types.ButtonRequest_DiceRoll)
+        dice_entry_layout = self._capture_after_stable_transition(previous_layout)
 
         # Ack without blocking on the reply: the device only leaves the dice
         # screen once the rolls are complete, and input is ignored until the
@@ -207,6 +209,7 @@ class TestDeviceReset(common.KeepKeyTest):
         resp = self.client.transport.read_blocking()
         self.assertIsInstance(resp, proto.ButtonRequest)
         self.assertEqual(resp.code, proto_types.ButtonRequest_DiceRoll)
+        self._capture_after_stable_transition(dice_entry_layout)
 
         # The device-computed digest must cover exactly the injected rolls
         dice_digest = self.client.debug.read_dice_digest()

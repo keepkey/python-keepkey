@@ -216,6 +216,22 @@ def ver_t(s):
     parts = (s.split('.') + ['0', '0', '0'])[:3]
     return tuple(int(''.join(ch for ch in p if ch.isdigit()) or '0') for p in parts)
 def ver_ge(a, b): return ver_t(a) >= ver_t(b)
+
+# Tests whose newer fail-closed behavior deliberately returns before drawing a
+# confirmation screen. Keep their historical catalog text, but do not schedule
+# or audit an OLED capture once the refusal behavior is active.
+_NO_SCREEN_FROM = {
+    ('test_msg_signtx_ethereum_erc20', 'test_approve_all'): '7.14.2',
+}
+
+
+def _screens_for(fw_version, mod, meth, screens):
+    floor = _NO_SCREEN_FROM.get((mod, meth))
+    if floor and ver_ge(fw_version, floor):
+        return []
+    return screens
+
+
 def _w(text, n=95):
     words, lines, cur = text.split(), [], ''
     for w in words:
@@ -1101,7 +1117,8 @@ SECTIONS = [
           ['Approval screen']),
          ('E11', 'test_msg_signtx_ethereum_erc20', 'test_approve_all',
           'ERC-20 approve unlimited',
-          'MAX_UINT256 approval. Device shows "UNLIMITED" warning since this grants infinite spending.',
+          'MAX_UINT256 approval. Older firmware showed an "UNLIMITED" warning; 7.14.2 and later '
+          'refuse it before drawing a confirmation screen.',
           ['Unlimited approval warning']),
          ('E12', 'test_msg_ethereum_makerdao', 'test_generate',
           'MakerDAO generate DAI', 'Complex DeFi contract interaction (MakerDAO CDP).', []),
@@ -3101,6 +3118,7 @@ def render(output_path, fw_version, results, screenshot_dir=None):
             pb.text(9, f'Tests: {len(tests)}', bold=True)
         pb.gap(2)
         for tid, mod, meth, title, ctx, scr in tests:
+            scr = _screens_for(fw_version, mod, meth, scr)
             pb.need(50)
             r = _lookup(results, mod, meth)
             pb.check(9, f'{tid} {meth}', r)
@@ -3216,7 +3234,7 @@ def screenshot_filter(fw_version):
     terms = []
     for letter, title, mf, bg, fl, tests in active:
         for tid, mod, meth, ttl, ctx, scr in tests:
-            if scr:  # non-empty screenshot list = needs OLED capture
+            if _screens_for(fw_version, mod, meth, scr):
                 # Use (method and module) for unambiguous pytest -k matching
                 terms.append(f'({meth} and {mod})')
     return ' or '.join(terms)
@@ -3228,7 +3246,7 @@ def screenshot_test_list(fw_version):
     pairs = set()
     for _letter, _title, _mf, _bg, _fl, tests in active:
         for _tid, mod, meth, _ttl, _ctx, screens in tests:
-            if screens:
+            if _screens_for(fw_version, mod, meth, screens):
                 pairs.add('%s::%s' % (mod, meth))
     return '\n'.join(sorted(pairs))
 
@@ -3291,7 +3309,7 @@ def screenshot_audit(fw_version, screenshot_root, junit_path=None):
     missing = []
     for letter, title, mf, bg, fl, tests in active:
         for tid, mod, meth, ttl, ctx, scr in tests:
-            if not scr:
+            if not _screens_for(fw_version, mod, meth, scr):
                 continue
             if (mod, meth) in skipped:
                 continue
