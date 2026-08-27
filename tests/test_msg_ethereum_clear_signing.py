@@ -1012,14 +1012,25 @@ class TestEthereumClearSigning(common.KeepKeyTest):
     def _clearsign_flow(self, flow, chain_id=1):
         """Run one catalog flow END-TO-END with AdvancedMode ON: real tx,
         per-tx-bound metadata, who/what/why annotation plus the ordinary raw
-        review (auto-acked), sign, and assert the signature recovers to the
-        device signer over this exact digest."""
+        review (auto-acked), then either sign and recover the exact digest or
+        assert the release policy's explicit fail-closed rejection."""
         n = parse_path(DEVICE_PATH)
         tx_hash = flow_tx_hash(flow, chain_id)
         resp = self.client.ethereum_send_tx_metadata(
             signed_payload=flow_blob(flow, chain_id),
             metadata_version=1, key_id=TEST_KEY_ID)
         self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
+
+        if flow['key'] == 'erc20-approve-unlimited':
+            with self.assertRaises(CallException) as ctx:
+                self.client.ethereum_sign_tx(
+                    n=n, nonce=FLOW_NONCE, gas_price=FLOW_GAS_PRICE,
+                    gas_limit=FLOW_GAS_LIMIT, to=flow['to'],
+                    value=flow['value'], data=flow['data'],
+                    chain_id=chain_id)
+            self.assertIn('Unlimited ERC20 approval is disabled',
+                          str(ctx.exception))
+            return
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=n, nonce=FLOW_NONCE, gas_price=FLOW_GAS_PRICE,
