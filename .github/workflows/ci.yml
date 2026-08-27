@@ -52,6 +52,9 @@ jobs:
             tests/test_msg_zcash_sign_pczt.py \
             tests/test_zcash_seed_fingerprint_helper.py
 
+      - name: Verify offline transaction fixture manifest
+        run: python tests/tx_fixture_manifest.py --check
+
       - name: Lint summary
         run: |
           echo "## 🔑 KeepKey python-keepkey — Lint" >> "$GITHUB_STEP_SUMMARY"
@@ -60,6 +63,10 @@ jobs:
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Syntax | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Zcash PCZT contract | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Offline fixture integrity | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
+          FIXTURE_SHA=$(sha256sum tests/txcache/manifest.json | cut -d' ' -f1)
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fixture manifest SHA-256: `$FIXTURE_SHA`" >> "$GITHUB_STEP_SUMMARY"
 
   # ═══════════════════════════════════════════════════════════
   # STAGE 2: TEST — pull published emulator, run pytest
@@ -210,6 +217,12 @@ jobs:
           # firmware and they resolve; run them standalone and they fail
           # claiming the sources are missing.
           cd keepkey-firmware/deps/python-keepkey/tests
+          python tx_fixture_manifest.py --check
+          sudo iptables -I OUTPUT 1 ! -o lo -m conntrack --ctstate NEW -j REJECT
+          cleanup_network_gate() {
+            sudo iptables -D OUTPUT ! -o lo -m conntrack --ctstate NEW -j REJECT
+          }
+          trap cleanup_network_gate EXIT
           pytest -v --junitxml=junit.xml 2>&1 | tee pytest-output.txt
           echo "${PIPESTATUS[0]}" > status
 
@@ -217,8 +230,14 @@ jobs:
         if: always()
         run: |
           XML="keepkey-firmware/deps/python-keepkey/tests/junit.xml"
+          MANIFEST="keepkey-firmware/deps/python-keepkey/tests/txcache/manifest.json"
           echo "## 🔑 KeepKey python-keepkey — Integration Tests" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$MANIFEST" ]; then
+            FIXTURE_SHA=$(sha256sum "$MANIFEST" | cut -d' ' -f1)
+            echo "Fixture manifest SHA-256: `$FIXTURE_SHA`" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
           if [ ! -f "$XML" ]; then
             echo "❌ **No test results found** — suite may have crashed before completion." >> "$GITHUB_STEP_SUMMARY"

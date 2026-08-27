@@ -127,14 +127,28 @@ class TestProtectionLevels(common.KeepKeyTest):
         self.assertRaises(Exception, self.client.reset_device, False, 128, True, False, 'label', 'english')
 
     def test_sign_message(self):
+        authentication_first = self.firmware_at_least("7.14.2")
         with self.client:
             self.setup_mnemonic_pin_passphrase()
             self.client.clear_session()
-            self.client.set_expected_responses([proto.ButtonRequest(),
-                                      proto.PinMatrixRequest(),
-                                      proto.PassphraseRequest(),
-                                      proto.ButtonRequest(),
-                                      proto.MessageSignature()])
+            if authentication_first:
+                expected_responses = [
+                    proto.PinMatrixRequest(),
+                    proto.PassphraseRequest(),
+                    proto.ButtonRequest(),
+                    proto.ButtonRequest(
+                        code=proto_types.ButtonRequest_SignMessage),
+                    proto.MessageSignature(),
+                ]
+            else:
+                expected_responses = [
+                    proto.ButtonRequest(),
+                    proto.PinMatrixRequest(),
+                    proto.PassphraseRequest(),
+                    proto.ButtonRequest(),
+                    proto.MessageSignature(),
+                ]
+            self.client.set_expected_responses(expected_responses)
             self.client.sign_message('Bitcoin', [], 'testing message')
 
     def test_verify_message(self):

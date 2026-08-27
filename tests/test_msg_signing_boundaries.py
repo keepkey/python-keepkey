@@ -148,6 +148,56 @@ class TestSigningBoundaries(common.KeepKeyTest):
                 self.assertIsInstance(response, proto.Failure)
                 self.client.call_raw(proto.ClearSession())
 
+    def test_multisig_signature_over_72_bytes_is_rejected(self):
+        """A decoder-sized 74-byte signature must never reach serialization."""
+        self.requires_firmware("7.14.2")
+        self.setup_mnemonic_nopin_nopassphrase()
+        node = ckd_public.deserialize(self.XPUB)
+        multisig = proto_types.MultisigRedeemScriptType(
+            pubkeys=[
+                proto_types.HDNodePathType(node=node, address_n=[1]),
+                proto_types.HDNodePathType(node=node, address_n=[2]),
+                proto_types.HDNodePathType(node=node, address_n=[3]),
+            ],
+            signatures=[b"\x30" * 74, b"", b""],
+            m=2,
+        )
+        tx_input = proto_types.TxInputType(
+            address_n=[1],
+            prev_hash=binascii.unhexlify(
+                "c6091adf4c0c23982a35899a6e58ae11"
+                "e703eacd7954f588ed4b9cdefc4dba52"
+            ),
+            prev_index=1,
+            script_type=proto_types.SPENDMULTISIG,
+            multisig=multisig,
+        )
+
+        first = self.client.call_raw(proto.SignTx(
+            inputs_count=1, outputs_count=1, coin_name="Bitcoin"
+        ))
+        self.assertIsInstance(first, proto.TxRequest)
+        rejected = self.client.call_raw(proto.TxAck(
+            tx=proto_types.TransactionType(inputs=[tx_input])
+        ))
+        self.assertIsInstance(rejected, proto.Failure)
+        self.assertEqual(rejected.code, proto_types.Failure_SyntaxError)
+        self._assert_late_txack_rejected()
+
+    def test_clear_session_aborts_active_bitcoin_signing(self):
+        """Authorization loss destroys a signer before its first TxAck."""
+        self.requires_firmware("7.14.2")
+        self.setup_mnemonic_nopin_nopassphrase()
+        first = self.client.call_raw(proto.SignTx(
+            inputs_count=1, outputs_count=1, coin_name="Bitcoin"
+        ))
+        self.assertIsInstance(first, proto.TxRequest)
+        cleared = self.client.call_raw(proto.ClearSession())
+        self.assertIsInstance(cleared, proto.Success)
+        self._assert_late_txack_rejected()
+        features = self.client.call_raw(proto.Initialize())
+        self.assertIsInstance(features, proto.Features)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -18,6 +18,7 @@ import unittest
 import common
 import binascii
 import json
+import os
 
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.messages_ethereum_pb2 as eth_proto
@@ -107,7 +108,9 @@ class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
         # cannot bind the hash to any typed data it displayed. Opt in explicitly
         # rather than having the firmware relax the gate.
         self.client.apply_policy("AdvancedMode", 1)
-        with open('sign_typed_data.json') as f:
+        fixture_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                    'sign_typed_data.json')
+        with open(fixture_path, encoding="utf-8") as f:
             txtests = json.load(f)
 
         def sign(test):

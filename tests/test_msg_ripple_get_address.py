@@ -35,6 +35,15 @@ class TestMsgRippleGetAddress(KeepKeyTest):
         address = self.client.ripple_get_address(parse_path("m/44'/144'/1'/0/0"))
         self.assertEqual(address, "rJX2KwzaLJDyFhhtXKi3htaLfaUH2tptEX")
 
+    def test_ripple_show_address(self):
+        self.requires_fullFeature()
+        self.requires_firmware("6.4.0")
+        self.setup_mnemonic_allallall()
+        # The legacy display response is empty after the ButtonAck; address
+        # correctness is covered above. This case retains the actual OLED.
+        self.client.ripple_get_address(
+            parse_path("m/44'/144'/0'/0/0"), show_display=True)
+
     def test_ripple_get_address_other(self):
         self.requires_fullFeature()
         self.requires_firmware("6.4.0")
@@ -54,4 +63,3 @@ class TestMsgRippleGetAddress(KeepKeyTest):
 
 if __name__ == '__main__':
     unittest.main()
-

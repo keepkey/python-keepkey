@@ -21,11 +21,24 @@ import binascii
 from decimal import Decimal
 import requests
 import json
+import os
 import struct
 
 from . import types_pb2 as proto_types
 
 cache_dir = None
+offline_only = False
+
+
+class OfflineFixtureError(Exception):
+    """An authoritative transaction fixture is missing or malformed."""
+
+
+def configure_offline_fixtures(path):
+    """Make transaction lookup fail closed against a fixed fixture tree."""
+    global cache_dir, offline_only
+    cache_dir = os.path.abspath(path)
+    offline_only = True
 
 
 def pack_varint(n):
@@ -46,15 +59,38 @@ class TxApi(object):
         self.url = url
 
     def fetch_json(self, url, resource, resourceid):
-        global cache_dir
+        global cache_dir, offline_only
+        cache_file = None
         if cache_dir:
-            cache_file = '%s/%s_%s_%s.json' % (cache_dir, self.network, resource, resourceid)
-            try: # looking into cache first
+            fixture_name = '%s_%s_%s.json' % (
+                self.network, resource, resourceid)
+            if os.path.basename(fixture_name) != fixture_name:
+                raise OfflineFixtureError(
+                    'Invalid fixture key: network=%s resource=%s id=%s' %
+                    (self.network, resource, resourceid))
+            cache_file = os.path.join(cache_dir, fixture_name)
+            try:  # looking into cache first
                 with open(cache_file) as f:
-                    j = json.load(f)
-                    return j
-            except:
-                pass
+                    return json.load(f)
+            except OSError as exc:
+                if offline_only:
+                    raise OfflineFixtureError(
+                        'Missing offline transaction fixture: '
+                        'network=%s resource=%s id=%s path=%s' %
+                        (self.network, resource, resourceid, cache_file)
+                    ) from exc
+            except (TypeError, ValueError) as exc:
+                if offline_only:
+                    raise OfflineFixtureError(
+                        'Invalid offline transaction fixture: '
+                        'network=%s resource=%s id=%s path=%s' %
+                        (self.network, resource, resourceid, cache_file)
+                    ) from exc
+        if offline_only:
+            raise OfflineFixtureError(
+                'Offline transaction fixtures are enabled without a fixture '
+                'directory: network=%s resource=%s id=%s' %
+                (self.network, resource, resourceid))
         try:
             # print('request %s/%s/%s' % (self.url, resource, resourceid))
             r = requests.get('%s/%s/%s' % (self.url, resource, resourceid), headers={'User-agent': 'Mozilla/5.0'})

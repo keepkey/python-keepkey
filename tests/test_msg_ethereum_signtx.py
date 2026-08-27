@@ -21,15 +21,135 @@
 import unittest
 import common
 import binascii
+import hashlib
 
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.messages_ethereum_pb2 as eth_proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
 from keepkeylib.tools import int_to_big_endian
+from test_msg_display_disclosure import ScreenRecorder
 
 
 class TestMsgEthereumSigntx(common.KeepKeyTest):
+    def test_ethereum_native_pseudo_address_is_unknown_off_mainnet(self):
+        """0xeeee..eeee must render as unknown for chain-257 token calls."""
+        self.requires_firmware("7.14.2")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 1)
+        common.reset_screenshot_capture(self.client)
+
+        recipient = self.client.ethereum_get_address([0, 0])
+        pseudo_address = b"\xee" * 20
+        calls = (
+            (
+                "transfer",
+                binascii.unhexlify("a9059cbb" + "00" * 12) +
+                recipient + int_to_big_endian(1).rjust(32, b"\x00"),
+                "85d9054ee56836c1784c90dd777fc89444bf82b840d0818a59c73aa5b57ee35d",
+            ),
+            (
+                "approve",
+                binascii.unhexlify("095ea7b3" + "00" * 12) +
+                recipient + int_to_big_endian(1).rjust(32, b"\x00"),
+                "ab30156ff400957ffa9146ea827318bf878614e6ab4ae7dd731824e285fa5da6",
+            ),
+        )
+
+        try:
+            for label, data, expected_frame_sha256 in calls:
+                with ScreenRecorder(
+                        self.client,
+                        screenshot_group="pseudo-%s" % label) as recorder:
+                    self.client.ethereum_sign_tx(
+                        n=[0, 0], nonce=0, gas_price=20, gas_limit=60000,
+                        to=pseudo_address, value=0, chain_id=257, data=data,
+                    )
+                self.assertGreaterEqual(len(recorder.screens), 2)
+                self.assertEqual(
+                    hashlib.sha256(recorder.screens[0]).hexdigest(),
+                    expected_frame_sha256,
+                )
+        finally:
+            self.client.apply_policy("AdvancedMode", 0)
+            common.reset_screenshot_capture(self.client)
+
+    def test_ethereum_erc20_high_chain_id_does_not_alias_mainnet(self):
+        """Chain 257 must not borrow chain-1 token labels or decimals."""
+        self.requires_firmware("7.14.2")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 1)
+
+        recipient = self.client.ethereum_get_address([0, 0])
+        erc20_data = (
+            binascii.unhexlify("a9059cbb" + "00" * 12) +
+            recipient + int_to_big_endian(1).rjust(32, b"\x00")
+        )
+        contract = binascii.unhexlify(
+            "d0d6d6c5fe4a677d343cc433536bb717bae167dd"
+        )
+
+        first_screens = {}
+        try:
+            for chain_id in (1, 257):
+                with ScreenRecorder(self.client) as recorder:
+                    self.client.ethereum_sign_tx(
+                        n=[0, 0], nonce=0, gas_price=20, gas_limit=60000,
+                        to=contract, value=0, chain_id=chain_id,
+                        data=erc20_data,
+                    )
+                self.assertGreaterEqual(len(recorder.screens), 2)
+                first_screens[chain_id] = recorder.screens[0]
+        finally:
+            self.client.apply_policy("AdvancedMode", 0)
+
+        self.assertNotEqual(first_screens[1], first_screens[257])
+
+    def test_ethereum_unrenderable_amounts_are_rejected(self):
+        """Neither a native nor ERC-20 amount may reach an approval blank."""
+        self.requires_firmware("7.14.2")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        recipient = binascii.unhexlify(
+            "1d1c328764a41bda0492b66baa30c4a339ff85ef"
+        )
+        max_uint256 = (1 << 256) - 1
+
+        with self.client:
+            self.client.set_expected_responses([
+                proto.Failure(
+                    code=proto_types.Failure_SyntaxError,
+                    message="Ethereum amount too large"),
+            ])
+            with self.assertRaises(CallException):
+                self.client.ethereum_sign_tx(
+                    n=[0, 0], nonce=0, gas_price=20, gas_limit=21000,
+                    to=recipient, value=max_uint256, chain_id=1,
+                )
+
+        # Known mainnet ERC-20 transfer with the same unrenderable amount.
+        erc20_data = (
+            binascii.unhexlify("a9059cbb" + "00" * 12) +
+            recipient + int_to_big_endian(max_uint256).rjust(32, b"\x00")
+        )
+        with self.client:
+            self.client.set_expected_responses([
+                proto.Failure(
+                    code=proto_types.Failure_SyntaxError,
+                    message="Ethereum amount too large"),
+            ])
+            with self.assertRaises(CallException):
+                self.client.ethereum_sign_tx(
+                    n=[0, 0], nonce=0, gas_price=20, gas_limit=60000,
+                    to=binascii.unhexlify(
+                        "d0d6d6c5fe4a677d343cc433536bb717bae167dd"
+                    ),
+                    value=0, chain_id=1, data=erc20_data,
+                )
+
     def test_ethereum_signtx_data(self):
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
@@ -99,36 +219,55 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.client.apply_policy("AdvancedMode", 0)
 
     def test_ethereum_blind_sign_blocked(self):
-        """AdvancedMode OFF + contract data = device refuses to sign (7.15+).
+        """AdvancedMode OFF + contract data = device refuses to sign (7.14.2+).
 
         OLED shows the blind-sign refusal, then Failure. The wire message is
         7.14.2's "Arbitrary contract data signing disabled by policy", which
         replaced alpha's shorter "Blind signing disabled" -- it names WHICH
         policy refused and what it refused.
+        The device identifies the transaction destination, displays one
+        non-approving Blocked notice, then returns the policy failure. The
+        exact two-ButtonRequest -> Failure sequence proves the host cannot
+        advance from that notice into a signing approval.
         """
-        self.requires_firmware("7.15.0")
+        self.requires_firmware("7.14.2")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 0)
+        common.reset_screenshot_capture(self.client)
 
-        try:
-            self.client.ethereum_sign_tx(
-                n=[0, 0],
-                nonce=0,
-                gas_price=20,
-                gas_limit=20,
-                to=binascii.unhexlify("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
-                value=0,
-                data=b"abcdefghijklmnop" * 16,
-                chain_id=1,
-            )
-            self.fail("Expected Failure -- blind signing should be blocked")
-        except CallException as e:
-            self.assertIn("Arbitrary contract data signing disabled by policy",
-                          str(e))
+        with self.client:
+            self.client.set_expected_responses([
+                proto.ButtonRequest(
+                    code=proto_types.ButtonRequest_ConfirmOutput),
+                proto.ButtonRequest(
+                    code=proto_types.ButtonRequest_Other),
+                proto.Failure(
+                    code=proto_types.Failure_ActionCancelled,
+                    message=(
+                        "Arbitrary contract data signing disabled by policy")),
+            ])
+            try:
+                self.client.ethereum_sign_tx(
+                    n=[0, 0],
+                    nonce=0,
+                    gas_price=20,
+                    gas_limit=20,
+                    to=binascii.unhexlify(
+                        "1d1c328764a41bda0492b66baa30c4a339ff85ef"),
+                    value=0,
+                    data=b"abcdefghijklmnop" * 16,
+                    chain_id=1,
+                )
+                self.fail(
+                    "Expected Failure -- blind signing should be blocked")
+            except CallException as e:
+                self.assertIn(
+                    "Arbitrary contract data signing disabled by policy",
+                    str(e))
 
     def test_ethereum_blind_sign_allowed(self):
-        """AdvancedMode ON + contract data = device shows BLIND SIGNATURE warning (7.15+).
+        """AdvancedMode ON permits opaque contract-data signing (7.14.2+).
 
         OLED shows 'BLIND SIGNATURE' before signing.
         """
@@ -136,6 +275,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
+        common.reset_screenshot_capture(self.client)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[0, 0],
