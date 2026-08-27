@@ -38,7 +38,7 @@ class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
         self.client.apply_policy("AdvancedMode", 1)
         fixture_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                     'sign_typed_data.json')
-        with open(fixture_path) as f:
+with open(fixture_path, encoding="utf-8") as f:
             txtests = json.load(f)
 
         for test in txtests['tests']:
