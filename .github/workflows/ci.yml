@@ -1,7 +1,7 @@
 # KeepKey python-keepkey CI
 #
-# Pulls the published emulator image (kktech/kkemu) from DockerHub
-# and runs the full python integration test suite against it.
+# Builds the 7.14.3 Bitcoin-only emulator from the fork release branch and
+# runs the full Python integration suite against that exact product variant.
 #
 # Stage 1: GATE (seconds)
 #   └─ lint        Python syntax + deterministic protocol contract tests
@@ -66,10 +66,10 @@ jobs:
           echo "| Offline fixture integrity | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
           FIXTURE_SHA=$(sha256sum tests/txcache/manifest.json | cut -d' ' -f1)
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Fixture manifest SHA-256: `$FIXTURE_SHA`" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Fixture manifest SHA-256: `%s`\n' "$FIXTURE_SHA" >> "$GITHUB_STEP_SUMMARY"
 
   # ═══════════════════════════════════════════════════════════
-  # STAGE 2: TEST — pull published emulator, run pytest
+  # STAGE 2: TEST — build Bitcoin-only emulator, run pytest
   # ═══════════════════════════════════════════════════════════
 
   integration:
@@ -129,7 +129,8 @@ jobs:
         timeout-minutes: 20
         working-directory: keepkey-firmware
         run: |
-          docker build -t kkemu-ci -f scripts/emulator/Dockerfile .
+          docker build --build-arg coinsupport=-DKK_BITCOIN_ONLY=ON \
+            -t kkemu-ci -f scripts/emulator/Dockerfile .
 
       - name: Start the emulator
         run: |
@@ -153,15 +154,22 @@ jobs:
       - name: Wait for emulator
         run: |
           echo "Waiting for emulator bridge on port 5000..."
+          ready=false
           for i in $(seq 1 30); do
             if curl -sf -X POST http://localhost:5000/exchange/main \
                  -H 'Content-Type: application/json' \
                  -d '{"data":""}' > /dev/null 2>&1; then
               echo "Emulator ready after ${i}s"
+              ready=true
               break
             fi
             sleep 1
           done
+          [ "$ready" = true ] || {
+            docker logs kkemu
+            echo "FATAL: emulator bridge did not become ready" >&2
+            exit 1
+          }
 
       # "The emulator answered a ping" is not "the emulator is the right
       # firmware". CI ran a 7.16-era suite against a 7.10.0 image for five
@@ -177,6 +185,7 @@ jobs:
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
           KK_MIN_FW: "7.14.3"
           KK_UDP_TIMEOUT: "20"
+          KK_EXPECTED_VARIANT: "EmulatorBTC"
         working-directory: keepkey-firmware/deps/python-keepkey/tests
         run: |
           python - <<'PY'
@@ -198,6 +207,10 @@ jobs:
               sys.exit('FATAL: the emulator image predates the tests that run '
                        'against it. Republish kktech/kkemu from current '
                        'firmware and pin the new digest above.')
+          if f.firmware_variant != os.environ['KK_EXPECTED_VARIANT']:
+              sys.exit('FATAL: expected %s, got firmware variant %r' %
+                       (os.environ['KK_EXPECTED_VARIANT'],
+                        f.firmware_variant))
           PY
 
       # Step-level timeout, deliberately: a JOB-level timeout ends the job as
@@ -208,6 +221,7 @@ jobs:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
           PYTHONPATH: "${{ github.workspace }}/keepkey-firmware/deps/python-keepkey"
+          PYTHONUNBUFFERED: "1"
           # A crashed emulator now raises instead of blocking in recv() forever.
           KK_UDP_TIMEOUT: "45"
         run: |
@@ -235,7 +249,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if [ -f "$MANIFEST" ]; then
             FIXTURE_SHA=$(sha256sum "$MANIFEST" | cut -d' ' -f1)
-            echo "Fixture manifest SHA-256: `$FIXTURE_SHA`" >> "$GITHUB_STEP_SUMMARY"
+            printf 'Fixture manifest SHA-256: `%s`\n' "$FIXTURE_SHA" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
           fi
 
