@@ -2024,7 +2024,8 @@ SECTIONS = [
          # KKSOLSW1 -- the answer to S24. A v0 tx whose accounts live in a
          # lookup table cannot be resolved on-device, so today the device signs
          # accounts it never showed. These four are the additive invariant
-         # (section F) restated for Solana, and R-4.1 of SRS-7.15.
+         # (section F) restated for Solana, and R-4.1 of SRS-7.15. The
+         # protocol work first ships in firmware 7.16.
          ('S26', 'test_msg_solana_lut_attestation',
           'test_attested_accounts_are_shown_and_blind_sign_still_follows',
           'Attested lookup-table accounts are shown, and the blind-sign warning survives',
@@ -2060,7 +2061,7 @@ SECTIONS = [
           'With no signer loaded a well-formed attestation is inert',
           'Trust is opt-in and per-session. A perfectly valid attestation from a provider the '
           'user never loaded verifies against nothing and renders nothing, which is the '
-          'property that keeps 7.15 safe without any key-management programme.',
+          'property that keeps sessions without a loaded provider safe.',
           []),
      ]),
 
@@ -3292,7 +3293,7 @@ MUST_RUN_MODULES = {
     # R-4.1. Gated on requires_message('LoadClearsignSigner'), so if provider
     # loading regressed, all four would skip and the report would certify a
     # feature it never exercised.
-    'test_msg_solana_lut_attestation': '7.15.0',
+    'test_msg_solana_lut_attestation': '7.16.0',
 }
 
 # These modules are mandatory only on the multi-chain product. Their handlers
