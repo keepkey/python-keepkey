@@ -18,6 +18,7 @@ import unittest
 import common
 import binascii
 import json
+import os
 import sys
 
 import keepkeylib.messages_pb2 as proto
@@ -66,9 +67,10 @@ class TestMsgE712Verify(common.KeepKeyTest):
         self.requires_fullFeature()
         self.requires_firmware("7.5.1")
         self.setup_mnemonic_allallall()
-        f = open('eip712tests.json')
-        txtests = json.load(f)
-        f.close()
+        fixture_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                    'eip712tests.json')
+        with open(fixture_path, encoding="utf-8") as f:
+            txtests = json.load(f)
 
         for test in txtests['tests']:
             print("test: ", json.dumps(test['results']['test_data']))

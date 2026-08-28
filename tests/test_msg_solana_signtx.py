@@ -266,15 +266,17 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         """Unchecked SPL Transfer has no signed mint (the token being moved is
         not provable), so it now requires AdvancedMode (blind-sign); only the
         TransferChecked variant clear-signs."""
-        self.requires_firmware("7.15.0")  # unchecked-SPL AdvancedMode gating landed in 7.15
         self.requires_fullFeature()
+        self.requires_firmware("7.14.2")
         self.setup_mnemonic_allallall()
         from keepkeylib.client import CallException
         from_pubkey = self._get_from_pubkey()
         to_account = b'\x33' * 32  # destination token account
         # SPL Token Transfer instruction: opcode=3 (u8) + amount (LE u64)
         instr_data = bytes([3]) + struct.pack('<Q', 50000000)  # 50M tokens
-        raw_tx = self._build_tx(from_pubkey, [to_account], self.TOKEN_PROGRAM, instr_data)
+        raw_tx = self._build_tx(
+            from_pubkey, [to_account, from_pubkey], self.TOKEN_PROGRAM,
+            instr_data)
         tx = messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx)
 
@@ -290,15 +292,17 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     def test_solana_sign_token_approve(self):
         """Unchecked SPL Approve hides the delegated token's mint, so it now
         requires AdvancedMode (blind-sign)."""
-        self.requires_firmware("7.15.0")  # unchecked-SPL AdvancedMode gating landed in 7.15
         self.requires_fullFeature()
+        self.requires_firmware("7.14.2")
         self.setup_mnemonic_allallall()
         from keepkeylib.client import CallException
         from_pubkey = self._get_from_pubkey()
         delegate = b'\x44' * 32
         # SPL Token Approve: opcode=4 (u8) + amount (LE u64)
         instr_data = bytes([4]) + struct.pack('<Q', 100000000)
-        raw_tx = self._build_tx(from_pubkey, [delegate], self.TOKEN_PROGRAM, instr_data)
+        raw_tx = self._build_tx(
+            from_pubkey, [delegate, from_pubkey], self.TOKEN_PROGRAM,
+            instr_data)
         tx = messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx)
 
@@ -360,11 +364,14 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from_pubkey = self._get_from_pubkey()
+        clock_sysvar = b'\x66' * 32
         current_auth = b'\x77' * 32
         new_auth = b'\x88' * 32
         # Authorize (type=1 LE u32) + new authority(32) + StakeAuthorize role (0=staker)
         instr_data = struct.pack('<I', 1) + new_auth + struct.pack('<I', 0)
-        raw_tx = self._build_tx(from_pubkey, [current_auth], self.STAKE_PROGRAM, instr_data)
+        # Canonical account order: stake, clock sysvar, current authority.
+        raw_tx = self._build_tx(
+            from_pubkey, [clock_sysvar, current_auth], self.STAKE_PROGRAM, instr_data)
         resp = self.client.call(messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
         self.assertEqual(len(resp.signature), 64)
@@ -374,12 +381,16 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from_pubkey = self._get_from_pubkey()
-        stake_account = b'\x55' * 32
         vote_account = b'\x66' * 32
         # Stake Delegate: type=2 (LE u32)
         instr_data = struct.pack('<I', 2)
-        raw_tx = self._build_tx(from_pubkey, [stake_account, vote_account],
-                                self.STAKE_PROGRAM, instr_data)
+        raw_tx = self._build_tx(
+            from_pubkey,
+            [vote_account, b'\x77' * 32, b'\x88' * 32, b'\x99' * 32,
+             from_pubkey],
+            self.STAKE_PROGRAM,
+            instr_data,
+        )
         resp = self.client.call(messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
         self.assertEqual(len(resp.signature), 64)
@@ -389,10 +400,15 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from_pubkey = self._get_from_pubkey()
-        stake_account = b'\x55' * 32
+        destination = b'\x55' * 32
         # Stake Withdraw: type=4 (LE u32) + lamports (LE u64)
         instr_data = struct.pack('<I', 4) + struct.pack('<Q', 2000000000)  # 2 SOL
-        raw_tx = self._build_tx(from_pubkey, [stake_account], self.STAKE_PROGRAM, instr_data)
+        raw_tx = self._build_tx(
+            from_pubkey,
+            [destination, b'\x77' * 32, b'\x88' * 32, from_pubkey],
+            self.STAKE_PROGRAM,
+            instr_data,
+        )
         resp = self.client.call(messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
         self.assertEqual(len(resp.signature), 64)
@@ -402,10 +418,12 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         from_pubkey = self._get_from_pubkey()
-        stake_account = b'\x55' * 32
         # Stake Deactivate: type=5 (LE u32)
         instr_data = struct.pack('<I', 5)
-        raw_tx = self._build_tx(from_pubkey, [stake_account], self.STAKE_PROGRAM, instr_data)
+        raw_tx = self._build_tx(
+            from_pubkey, [b'\x55' * 32, from_pubkey], self.STAKE_PROGRAM,
+            instr_data
+        )
         resp = self.client.call(messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
         self.assertEqual(len(resp.signature), 64)
@@ -641,9 +659,16 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
             0x7c, 0xa6, 0x02, 0x03, 0x45, 0x2f, 0x5d, 0x61,
         ])
 
-        # SPL Token Transfer instruction: opcode=3 (u8) + amount (LE u64)
-        instr_data = bytes([3]) + struct.pack('<Q', 1000000)  # 1.0 USDC (6 decimals)
-        raw_tx = self._build_tx(from_pubkey, [to_account], self.TOKEN_PROGRAM, instr_data)
+        # Unchecked Transfer (op 3) signs source, destination and authority but
+        # carries neither mint nor decimals.  Host token_info must not promote
+        # that unauthenticated identity into a clear-signed transfer.
+        instr_data = bytes([3]) + struct.pack('<Q', 1000000)
+        raw_tx = self._build_tx(
+            from_pubkey,
+            [to_account, from_pubkey],
+            self.TOKEN_PROGRAM,
+            instr_data,
+        )
 
         token_info = messages.SolanaTokenInfo(
             mint=usdc_mint,

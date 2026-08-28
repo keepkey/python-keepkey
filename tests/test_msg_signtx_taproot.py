@@ -26,25 +26,26 @@ from keepkeylib.tx_api import TxApiBitcoin
 
 
 
-# Synthetic prev tx paying 100000 sat to the BIP-86 first receiving address of
-# the "abandon abandon ... about" mnemonic
-# (bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr).
-# The fixture lives in tests/txcache and was produced together with the
-# expected witness below by an independent Python implementation of
-# BIP-340/341, keyed from BIP-86's own published xprv.
-PREV_TXID = "6e32033911982f7550ab1d26232adfd08711293e15085f77cd27628be0a6ee37"
+# Canonical fixture paying 100000 sat to the BIP-86 first receiving address of
+# the "abandon abandon ... about" mnemonic. The device requests the previous
+# transaction even though Taproot signing also receives the amount and derives
+# the prevout script from the path, so this must name a real, hash-consistent
+# transaction from txcache rather than a synthetic outpoint. The expected
+# witnesses below were independently checked against BIP-341 sighashes with a
+# BIP-340 verifier keyed from BIP-86's published xprv.
+PREV_TXID = "3e1fdf082678a8a2f378995ffc0e4f853942c55c4ddbc2771b348413eeeca9a4"
 IN_AMOUNT = 100000
 OUT_AMOUNT = 90000
 OUT_ADDRESS = "1BitcoinEaterAddressDontSendf59kuE"
 
 EXPECTED_WITNESS = (
-    "afe221b16d648a1ad7329f9765930732380cc67765bd73af7ce13b5991146851"
-    "2d9ee77e34af56fe1f59f98372011f7cb400ced614d808c690c5ba907fb62de9"
+    "e11beb22fd50225a4fa53a61738993cc742cc6a2361faea0313b0b456300669c"
+    "2d9ebd503e11855e5bc8018d7bfd5122d578470e1e4e65820705db595724f9eb"
 )
 
 EXPECTED_CHANGE_WITNESS = (
-    "e3c44408fe61256ad406733f100f1ee856eb31854335efa59e60a61ea5d41ab"
-    "341802f0cccb55f644042a1ab390f0a406b9d3efe3996d05442b4ee43d5355eab"
+    "ed37247c670b8b260f2c5a619c8f1443493ea6f1eb6230adce5fbafa4b3067e1"
+    "879a905d40db728c1771207843b2ec03a40484975653e29e583cfc0964d0c95c"
 )
 EXPECTED_CHANGE_SCRIPT = (
     "5120882d74e5d0572d5a816cef0041a96b6c1de832f6f9676d9605c44d5e9a97d3dc"
@@ -65,19 +66,19 @@ EXPECTED_MIXED_WITNESS = (
 # `signature` alone was populated correctly even while the witness and the
 # locktime footer were being dropped on the wire.
 EXPECTED_SERIALIZED_TX = (
-    "0100000000010137eea6e08b6227cd775f08153e291187d0df2a23261dab50752f98"
-    "113903326e0000000000ffffffff01905f0100000000001976a914759d6677091e97"
-    "3b9e9d99f19c68fbf43e3f05f988ac0140afe221b16d648a1ad7329f976593073238"
-    "0cc67765bd73af7ce13b59911468512d9ee77e34af56fe1f59f98372011f7cb400ce"
-    "d614d808c690c5ba907fb62de900000000"
+    "01000000000101a4a9ecee1384341b77c2db4d5cc54239854f0efc5f9978f3a2a878"
+    "2608df1f3e0000000000ffffffff01905f0100000000001976a914759d6677091e973b"
+    "9e9d99f19c68fbf43e3f05f988ac0140e11beb22fd50225a4fa53a61738993cc742c"
+    "c6a2361faea0313b0b456300669c2d9ebd503e11855e5bc8018d7bfd5122d578470e"
+    "1e4e65820705db595724f9eb00000000"
 )
 EXPECTED_SERIALIZED_TX_CHANGE = (
-    "0100000000010137eea6e08b6227cd775f08153e291187d0df2a23261dab50752f98"
-    "113903326e0000000000ffffffff0250c30000000000001976a914759d6677091e97"
-    "3b9e9d99f19c68fbf43e3f05f988ac409c000000000000225120882d74e5d0572d5a"
-    "816cef0041a96b6c1de832f6f9676d9605c44d5e9a97d3dc0140e3c44408fe61256a"
-    "d406733f100f1ee856eb31854335efa59e60a61ea5d41ab341802f0cccb55f644042"
-    "a1ab390f0a406b9d3efe3996d05442b4ee43d5355eab00000000"
+    "01000000000101a4a9ecee1384341b77c2db4d5cc54239854f0efc5f9978f3a2a878"
+    "2608df1f3e0000000000ffffffff0250c30000000000001976a914759d6677091e973b"
+    "9e9d99f19c68fbf43e3f05f988ac409c000000000000225120882d74e5d0572d5a81"
+    "6cef0041a96b6c1de832f6f9676d9605c44d5e9a97d3dc0140ed37247c670b8b260f"
+    "2c5a619c8f1443493ea6f1eb6230adce5fbafa4b3067e1879a905d40db728c177120"
+    "7843b2ec03a40484975653e29e583cfc0964d0c95c00000000"
 )
 EXPECTED_SERIALIZED_TX_MIXED = (
     "01000000000102a4a9ecee1384341b77c2db4d5cc54239854f0efc5f9978f3a2a878"

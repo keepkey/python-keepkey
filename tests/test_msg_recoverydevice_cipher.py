@@ -37,11 +37,13 @@ class TestDeviceRecovery(common.KeepKeyTest):
                                    use_character_cipher=True))
 
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
 
         # Enter PIN for first time
         pin_encoded = self.client.debug.encode_pin(self.pin6)
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
 
         # Enter PIN for second time
         pin_encoded = self.client.debug.encode_pin(self.pin6)
@@ -49,6 +51,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
         # Reminder UI
         assert isinstance(ret, proto.ButtonRequest)
+        self.client._capture_oled_after_animation(0.35, (76, 256, 0, 64))
         self.client.debug.press_yes()
         ret = self.client.call_raw(proto.ButtonAck())
 
@@ -57,6 +60,8 @@ class TestDeviceRecovery(common.KeepKeyTest):
         for index, word in enumerate(mnemonic_words):
             for character in word:
                 self.assertIsInstance(ret, proto.CharacterRequest)
+                self.client._capture_oled_after_animation(
+                    0.35, (76, 256, 0, 64))
                 cipher = self.client.debug.read_recovery_cipher()
 
                 encoded_character = cipher[ord(character) - 97]
@@ -107,6 +112,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
         # Reminder UI
         assert isinstance(ret, proto.ButtonRequest)
+        self.client._capture_oled_after_animation(0.35, (76, 256, 0, 64))
         self.client.debug.press_yes()
         ret = self.client.call_raw(proto.ButtonAck())
 
@@ -115,6 +121,8 @@ class TestDeviceRecovery(common.KeepKeyTest):
         for index, word in enumerate(mnemonic_words):
             for character in word:
                 self.assertIsInstance(ret, proto.CharacterRequest)
+                self.client._capture_oled_after_animation(
+                    0.35, (76, 256, 0, 64))
                 cipher = self.client.debug.read_recovery_cipher()
 
                 encoded_character = cipher[ord(character) - 97]
@@ -429,6 +437,36 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
         for n in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]:
             check_n_words(n)
+
+    def test_unknown_word_count_failure_aborts_recovery(self):
+        """A terminal Failure must not leave the recovery stream live."""
+        self.requires_firmware("7.14.2")
+
+        ret = self.client.call_raw(proto.RecoveryDevice(
+            passphrase_protection=False,
+            pin_protection=False,
+            label='label',
+            language='english',
+            enforce_wordlist=True,
+            use_character_cipher=True,
+        ))
+
+        self.assertIsInstance(ret, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        ret = self.client.call_raw(proto.ButtonAck())
+        self.assertIsInstance(ret, proto.CharacterRequest)
+
+        ret = self.client.call_raw(proto.CharacterAck(done=True))
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertEqual(ret.code, proto_types.Failure_SyntaxError)
+        self.assertEndsWith(ret.message, "12, 18 or 24)")
+
+        # The Failure is a protocol boundary. A stale continuation from the
+        # old ceremony must be rejected rather than resuming seed entry.
+        ret = self.client.call_raw(proto.CharacterAck(character='a'))
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertEqual(ret.code, proto_types.Failure_UnexpectedMessage)
+        self.assertEndsWith(ret.message, "Not in Recovery mode")
 
 
 if __name__ == '__main__':

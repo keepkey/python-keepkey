@@ -39,6 +39,7 @@ class TestMsgChangepin(common.KeepKeyTest):
         # Let's set new PIN
         ret = self.client.call_raw(proto.ChangePin())
         self.assertIsInstance(ret, proto.ButtonRequest)
+        self.client._capture_oled()
 
         # Press button
         self.client.debug.press_yes()
@@ -46,11 +47,13 @@ class TestMsgChangepin(common.KeepKeyTest):
 
         # Send the PIN for first time
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
         pin_encoded = self.client.debug.encode_pin(self.pin6)
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
 
         # Send the PIN for second time
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
         pin_encoded = self.client.debug.encode_pin(self.pin6)
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
 
@@ -87,6 +90,7 @@ class TestMsgChangepin(common.KeepKeyTest):
         # Let's change PIN
         ret = self.client.call_raw(proto.ChangePin())
         self.assertIsInstance(ret, proto.ButtonRequest)
+        self.client._capture_oled()
 
         # Press button
         self.client.debug.press_yes()
@@ -94,16 +98,19 @@ class TestMsgChangepin(common.KeepKeyTest):
 
         # Send current PIN
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
         pin_encoded = self.client.debug.read_pin_encoded()
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
 
         # Send new PIN for first time
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
         pin_encoded = self.client.debug.encode_pin(self.pin6)
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
 
         # Send the PIN for second time
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
         pin_encoded = self.client.debug.encode_pin(self.pin6)
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
 
@@ -137,6 +144,7 @@ class TestMsgChangepin(common.KeepKeyTest):
         # Let's remove PIN
         ret = self.client.call_raw(proto.ChangePin(remove=True))
         self.assertIsInstance(ret, proto.ButtonRequest)
+        self.client._capture_oled()
 
         # Press button
         self.client.debug.press_yes()
@@ -144,6 +152,7 @@ class TestMsgChangepin(common.KeepKeyTest):
 
         # Send current PIN
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
         pin_encoded = self.client.debug.read_pin_encoded()
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
 

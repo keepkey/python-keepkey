@@ -18,10 +18,11 @@
 #
 # The script has been modified for KeepKey Device.
 
-import time
 import unittest
 import common
 import hashlib
+import os
+import time
 
 from keepkeylib import messages_pb2 as proto
 from keepkeylib import types_pb2 as proto_types
@@ -56,13 +57,47 @@ def generate_entropy(strength, internal_entropy, external_entropy):
     return entropy_stripped
 
 class TestDeviceReset(common.KeepKeyTest):
-    POST_RC18_SETUP_FIRMWARE = "7.16.0"
+    def _current_layout_for_capture(self):
+        if os.environ.get('KEEPKEY_SCREENSHOT') != '1':
+            return None
+        return self.client.debug.read_layout()
 
-    def test_reset_device(self):
-        # No PIN, no passphrase
+    def _capture_after_stable_transition(self, previous_layout):
+        """Record the screen belonging to the response we just received.
+
+        ButtonRequest can arrive before the emulator has repainted the OLED.
+        Capturing immediately therefore retained the preceding screen and
+        silently omitted the final seed page. Polling DebugLink also advances
+        the emulator render loop, so require a changed layout to remain stable
+        for three reads before accepting it as evidence.
+        """
+        if os.environ.get('KEEPKEY_SCREENSHOT') != '1':
+            return None
+
+        deadline = time.monotonic() + 2.0
+        candidate = None
+        stable_reads = 0
+        while time.monotonic() < deadline:
+            layout = self.client.debug.read_layout()
+            if layout != previous_layout:
+                if layout == candidate:
+                    stable_reads += 1
+                else:
+                    candidate = layout
+                    stable_reads = 1
+                if stable_reads >= 3:
+                    self.client._capture_oled(layout)
+                    return layout
+            else:
+                candidate = None
+                stable_reads = 0
+            time.sleep(0.025)
+
+        raise RuntimeError(
+            'OLED did not reach a stable changed seed-ceremony screen')
+
+    def _reset_without_pin_and_capture(self, strength):
         external_entropy = b'zlutoucky kun upel divoke ody' * 2
-        strength = 128
-
         ret = self.client.call_raw(proto.ResetDevice(display_random=False,
                                                strength=strength,
                                                passphrase_protection=False,
@@ -73,6 +108,7 @@ class TestDeviceReset(common.KeepKeyTest):
         # Provide entropy
         self.assertIsInstance(ret, proto.EntropyRequest)
         internal_entropy = self.client.debug.read_reset_entropy()
+        previous_layout = self._current_layout_for_capture()
         resp = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
 
         # Generate mnemonic locally
@@ -81,27 +117,33 @@ class TestDeviceReset(common.KeepKeyTest):
 
         # Explainer Dialog
         self.assertIsInstance(resp, proto.ButtonRequest)
+        previous_layout = self._capture_after_stable_transition(previous_layout)
         self.client.debug.press_yes()
         resp = self.client.call_raw(proto.ButtonAck())
 
         mnemonic = []
         while isinstance(resp, proto.ButtonRequest):
-            mnemonic.append(self.client.debug.read_reset_word())
+            previous_layout = self._capture_after_stable_transition(
+                previous_layout)
+            words = self.client.debug.read_reset_word()
+            # 7.14.2's debug build exposes each physical subpage as a separate
+            # ButtonRequest for evidence capture. All subpages in one legacy
+            # word group intentionally report the same reset_word value.
+            if not mnemonic or mnemonic[-1] != words:
+                mnemonic.append(words)
             self.client.debug.press_yes()
             resp = self.client.call_raw(proto.ButtonAck())
 
         mnemonic = ' '.join(mnemonic)
 
-        # Compare that device generated proper mnemonic for given entropies
         self.assertEqual(mnemonic, expected_mnemonic)
-
         self.assertIsInstance(resp, proto.Success)
+        self.assertEqual(strength // 32 * 3, len(mnemonic.split()))
+        return self.client.call_raw(proto.Initialize())
 
-        # Compare that second pass printed out the same mnemonic once again
-        self.assertEqual(mnemonic, expected_mnemonic)
-
-        # Check if device is properly initialized
-        resp = self.client.call_raw(proto.Initialize())
+    def test_reset_device(self):
+        # 128-bit entropy produces the 12-word ceremony.
+        resp = self._reset_without_pin_and_capture(128)
         self.assertFalse(resp.pin_protection)
         self.assertFalse(resp.passphrase_protection)
 
@@ -114,13 +156,15 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertIsInstance(resp, proto.Success)
 
     def test_reset_device_dice(self):
-        # On-device dice entry landed after the RC18 candidate. RC18 accepts
-        # the forward-compatible field but follows the ordinary entropy flow.
-        self.requires_firmware(self.POST_RC18_SETUP_FIRMWARE)
+        # 7.14.3, not 7.15.0: the bitcoin-only 7.14.3 release line carries the
+        # dice backport, and no firmware between 7.14.3 and 7.15.0 exists
+        # without it, so the version gate is exact for the whole fleet.
+        self.requires_firmware("7.14.3")
 
         external_entropy = b'zlutoucky kun upel divoke ody' * 2
         strength = 256  # 99 rolls
 
+        previous_layout = self._current_layout_for_capture()
         ret = self.client.call_raw(proto.ResetDevice(display_random=False,
                                                strength=strength,
                                                passphrase_protection=False,
@@ -132,6 +176,7 @@ class TestDeviceReset(common.KeepKeyTest):
         # Device announces the on-device dice entry screen
         self.assertIsInstance(ret, proto.ButtonRequest)
         self.assertEqual(ret.code, proto_types.ButtonRequest_DiceRoll)
+        dice_entry_layout = self._capture_after_stable_transition(previous_layout)
 
         # Ack without blocking on the reply: the device only leaves the dice
         # screen once the rolls are complete, and input is ignored until the
@@ -164,6 +209,7 @@ class TestDeviceReset(common.KeepKeyTest):
         resp = self.client.transport.read_blocking()
         self.assertIsInstance(resp, proto.ButtonRequest)
         self.assertEqual(resp.code, proto_types.ButtonRequest_DiceRoll)
+        self._capture_after_stable_transition(dice_entry_layout)
 
         # The device-computed digest must cover exactly the injected rolls
         dice_digest = self.client.debug.read_dice_digest()
@@ -213,8 +259,9 @@ class TestDeviceReset(common.KeepKeyTest):
         disarmed -- there is no second ceremony to leave armed. Both halves are
         asserted below: the refusal, and then the original property.
         """
-        # The single armed-ceremony guard is the post-RC18 #429 behavior.
-        self.requires_firmware(self.POST_RC18_SETUP_FIRMWARE)
+        # 7.14.3: the bitcoin-only release line carries the same single-armed
+        # ceremony and the dice backport; see test_reset_device_dice.
+        self.requires_firmware("7.14.3")
         self.client.wipe_device()
 
         # Arm a reset and walk away without acking the entropy request.
@@ -252,9 +299,20 @@ class TestDeviceReset(common.KeepKeyTest):
         ret = self.client.call_raw(proto.Initialize())
         self.assertFalse(ret.initialized)
 
+    def test_reset_device_18_words(self):
+        resp = self._reset_without_pin_and_capture(192)
+        self.assertFalse(resp.pin_protection)
+        self.assertFalse(resp.passphrase_protection)
+
+    def test_reset_device_24_words(self):
+        resp = self._reset_without_pin_and_capture(256)
+        self.assertFalse(resp.pin_protection)
+        self.assertFalse(resp.passphrase_protection)
+
     def test_reset_device_pin(self):
         external_entropy = b'zlutoucky kun upel divoke ody' * 2
         strength = 128
+        hides_internal_entropy = self.firmware_at_least("7.14.2")
 
         ret = self.client.call_raw(proto.ResetDevice(display_random=True,
                                                strength=strength,
@@ -264,8 +322,8 @@ class TestDeviceReset(common.KeepKeyTest):
                                                label='test'))
 
         # display_random=True above is deliberate: the field stays in the wire
-        # schema for host compatibility. The post-RC18 setup hardening (fw
-        # 320f0eb5, "no entropy display"), first shipped on 7.16, stopped
+        # schema for host compatibility. Firmware 7.15.0 (fw 320f0eb5, "no
+        # entropy display") stopped
         # honouring it -- internal entropy is seed
         # pre-image material, and a host that sets the flag and reads that
         # screen once can compute SHA256(shown || ext) and derive the seed.
@@ -274,17 +332,19 @@ class TestDeviceReset(common.KeepKeyTest):
         # (PIN entry, EntropyRequest/Ack, mnemonic derivation) is version-
         # independent and must keep running on older firmware.
         f = self.client.features
-        if (f.major_version, f.minor_version, f.patch_version) < (7, 16, 0):
-            # RC18 and older: the Internal Entropy screen still exists.
+        if (f.major_version, f.minor_version, f.patch_version) < (7, 15, 0):
+            # Pre-7.15: the Internal Entropy screen still exists.
             self.assertIsInstance(ret, proto.ButtonRequest)
             self.client.debug.press_yes()
             ret = self.client.call_raw(proto.ButtonAck())
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
 
         # Enter PIN for first time
         pin_encoded = self.client.debug.encode_pin('654')
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
 
         # Enter PIN for second time
         pin_encoded = self.client.debug.encode_pin('654')
@@ -293,6 +353,7 @@ class TestDeviceReset(common.KeepKeyTest):
         # Provide entropy
         self.assertIsInstance(ret, proto.EntropyRequest)
         internal_entropy = self.client.debug.read_reset_entropy()
+        previous_layout = self._current_layout_for_capture()
         resp = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
 
         # Generate mnemonic locally
@@ -301,12 +362,17 @@ class TestDeviceReset(common.KeepKeyTest):
 
         # Explainer Dialog
         self.assertIsInstance(resp, proto.ButtonRequest)
+        previous_layout = self._capture_after_stable_transition(previous_layout)
         self.client.debug.press_yes()
         resp = self.client.call_raw(proto.ButtonAck())
 
         mnemonic = []
         while isinstance(resp, proto.ButtonRequest):
-            mnemonic.append(self.client.debug.read_reset_word())
+            previous_layout = self._capture_after_stable_transition(
+                previous_layout)
+            words = self.client.debug.read_reset_word()
+            if not mnemonic or mnemonic[-1] != words:
+                mnemonic.append(words)
             self.client.debug.press_yes()
             resp = self.client.call_raw(proto.ButtonAck())
 
@@ -340,6 +406,7 @@ class TestDeviceReset(common.KeepKeyTest):
     def test_failed_pin(self):
         external_entropy = 'zlutoucky kun upel divoke ody' * 2
         strength = 128
+        hides_internal_entropy = self.firmware_at_least("7.14.2")
 
         ret = self.client.call_raw(proto.ResetDevice(display_random=True,
                                                strength=strength,
@@ -349,8 +416,8 @@ class TestDeviceReset(common.KeepKeyTest):
                                                label='test'))
 
         # display_random=True above is deliberate: the field stays in the wire
-        # schema for host compatibility. The post-RC18 setup hardening (fw
-        # 320f0eb5, "no entropy display"), first shipped on 7.16, stopped
+        # schema for host compatibility. Firmware 7.15.0 (fw 320f0eb5, "no
+        # entropy display") stopped
         # honouring it -- internal entropy is seed
         # pre-image material, and a host that sets the flag and reads that
         # screen once can compute SHA256(shown || ext) and derive the seed.
@@ -359,17 +426,19 @@ class TestDeviceReset(common.KeepKeyTest):
         # (PIN entry, EntropyRequest/Ack, mnemonic derivation) is version-
         # independent and must keep running on older firmware.
         f = self.client.features
-        if (f.major_version, f.minor_version, f.patch_version) < (7, 16, 0):
-            # RC18 and older: the Internal Entropy screen still exists.
+        if (f.major_version, f.minor_version, f.patch_version) < (7, 15, 0):
+            # Pre-7.15: the Internal Entropy screen still exists.
             self.assertIsInstance(ret, proto.ButtonRequest)
             self.client.debug.press_yes()
             ret = self.client.call_raw(proto.ButtonAck())
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
 
         # Enter PIN for first time
         pin_encoded = self.client.debug.encode_pin(self.pin4)
         ret = self.client.call_raw(proto.PinMatrixAck(pin=pin_encoded))
         self.assertIsInstance(ret, proto.PinMatrixRequest)
+        self.client._capture_oled_after_animation(1.05, (192, 256, 0, 64))
 
         # Enter PIN for second time
         pin_encoded = self.client.debug.encode_pin(self.pin6)

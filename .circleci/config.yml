@@ -11,7 +11,12 @@ jobs:
       - run:
           name: Clone python-keepkey (current branch)
           command: |
-            git clone --depth 1 -b "$CIRCLE_BRANCH" https://github.com/keepkey/python-keepkey.git .pykk
+            # Fork-only PR branches do not exist in keepkey/python-keepkey.
+            # Clone the repository that triggered this CircleCI project so the
+            # exact CIRCLE_SHA1 under review is available and verifiable.
+            git clone --depth 1 -b "$CIRCLE_BRANCH" \
+              "https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git" .pykk
+            test "$(git -C .pykk rev-parse HEAD)" = "$CIRCLE_SHA1"
             cd .pykk && git submodule update --init --recursive
 
       # ────────────────────────────────────────────────────────────────
@@ -27,15 +32,37 @@ jobs:
             # Move python-keepkey out of the way
             mv .pykk ../
 
-            # Clone firmware repository (expects $FIRMWARE_REPO env var)
-            git clone --depth 1 -b master "$FIRMWARE_REPO" .
+            # Gate the immutable fork 7.15 candidate, then replace its pinned
+            # Python submodule with the exact CIRCLE_SHA1 under review.
+            git init .
+            git remote add origin \
+              https://github.com/BitHighlander/keepkey-firmware.git
+            git fetch --depth 1 origin \
+              d0a494a805533f02387f58d89dbb6f1fb09a621a
+            git checkout --detach FETCH_HEAD
+            test "$(git rev-parse HEAD)" = \
+              d0a494a805533f02387f58d89dbb6f1fb09a621a
 
-            # Initialise firmware submodules
-            git submodule update --init --recursive
+            # Match firmware CI's build set. A recursive init reaches optional
+            # trezor-firmware vendors that do not support shallow HTTPS clones.
+            git submodule update --init --depth 1 deps/crypto/trezor-firmware
+            git submodule update --init --depth 1 deps/device-protocol
+            git submodule update --init --depth 1 deps/googletest
+            git submodule update --init --depth 1 deps/qrenc/QR-Code-generator
+            git submodule update --init --depth 1 deps/sca-hardening/SecAESSTM32
 
             # Replace the vendor copy with our PR branch python-keepkey
             rm -rf deps/python-keepkey
             mv ../.pykk deps/python-keepkey
+
+            # This is python-keepkey's standalone compatibility lane. Release
+            # OLED/PDF evidence is generated only by the exact-head firmware
+            # workflow, where the firmware and Python SHAs are pinned together.
+            # Do not inherit the firmware checkout's report/screenshot phase:
+            # it can describe a different (published/master) emulator and is
+            # therefore not release evidence for this Python PR.
+            cp deps/python-keepkey/.circleci/standalone-emulator-tests.sh \
+              scripts/emulator/python-keepkey-tests.sh
 
       # ────────────────────────────────────────────────────────────────
       # 3) Build the Docker-based emulator tests

@@ -434,13 +434,13 @@ class DebugLinkMixin(object):
 
     def call_raw(self, msg):
 
-        # Screenshot capture disabled in call_raw (captures idle screens, adds latency).
-        # Real confirmation screenshots are captured in callback_ButtonRequest instead.
-        # Exception: capture on Failure (rejection screens like invalid BIP-39 word).
+        # Screenshot capture is disabled in call_raw: a wire Failure is often
+        # emitted after the UI has already returned to the lock/home screen.
+        # Treating that framebuffer as operation evidence created convincing
+        # but unrelated blank/lock frames. Tests that claim a visible rejection
+        # capture it explicitly at the point the firmware renders it.
 
         resp = super(DebugLinkMixin, self).call_raw(msg)
-        if isinstance(resp, proto.Failure):
-            self._capture_oled()
         self._check_request(resp)
         return resp
 
@@ -482,20 +482,19 @@ class DebugLinkMixin(object):
                     pass
         self.screenshot_id = 0
 
-    def _capture_oled(self):
+    def _capture_oled(self, layout=None):
         """Capture current OLED layout to screenshot directory."""
         if not SCREENSHOT:
             return
         if not self.debug:
-            import sys
-            print("[SCREENSHOT] SKIP: no debug link", file=sys.stderr)
-            return
+            raise RuntimeError("screenshot capture requested without debug link")
         try:
-            layout = self.debug.read_layout()
+            if layout is None:
+                layout = self.debug.read_layout()
             if not layout or len(layout) < 1024:
-                import sys
-                print("[SCREENSHOT] SKIP: layout too small (%d bytes)" % (len(layout) if layout else 0), file=sys.stderr)
-                return
+                raise RuntimeError(
+                    "layout too small (%d bytes)" %
+                    (len(layout) if layout else 0))
             layout_bytes = len(layout)
             height = 64 if layout_bytes >= 2048 else 32
             rows = []
@@ -522,19 +521,73 @@ class DebugLinkMixin(object):
             import sys, traceback
             print("[SCREENSHOT] ERROR: %s" % e, file=sys.stderr)
             traceback.print_exc(file=sys.stderr)
+            raise
+
+    def _capture_oled_after_animation(self, seconds, required_region=None):
+        """Capture the completed PIN/cipher frame, not its initial blank state."""
+        if not SCREENSHOT:
+            return
+        # The emulator's PIN/recovery loop blocks while waiting for host
+        # input. Wall-clock sleep alone therefore does not repaint: each
+        # DebugLink request wakes the loop for one 20 ms animation tick.
+        # Drive every required tick and retain the layout from the final poll.
+        layout = None
+        for _tick in range(int(seconds / 0.020) + 2):
+            time.sleep(0.025)
+            layout = self.debug.read_layout()
+        if required_region:
+            x0, x1, y0, y1 = required_region
+            lit = 0
+            for y in range(y0, y1):
+                for x in range(x0, x1):
+                    byte_index = x + (y // 8) * 256
+                    value = layout[byte_index]
+                    if not isinstance(value, int):
+                        value = ord(value)
+                    lit += (value >> (y % 8)) & 1
+            area = (x1 - x0) * (y1 - y0)
+            if lit < 32 or area - lit < 32:
+                raise RuntimeError(
+                    "animated OLED evidence lacks grid contrast "
+                    "(%d lit of %d pixels)" % (lit, area))
+        self._capture_oled(layout)
+
+    def _read_oled_after_settle(self):
+        """Return a stable confirmation frame after the render-loop handoff.
+
+        A ButtonRequest can reach the host one or more emulator ticks before
+        its OLED update. Sampling immediately duplicated the preceding prompt
+        and omitted the security-relevant next prompt while preserving the
+        expected file count. DebugLink reads advance the blocked render loop;
+        require at least five polls and three identical final layouts.
+        """
+        candidate = None
+        stable_reads = 0
+        for tick in range(20):
+            time.sleep(0.025)
+            layout = self.debug.read_layout()
+            if layout == candidate:
+                stable_reads += 1
+            else:
+                candidate = layout
+                stable_reads = 1
+            if tick >= 4 and stable_reads >= 3:
+                return layout
+        raise RuntimeError(
+            'OLED confirmation did not settle before evidence capture')
+
+    def _capture_oled_after_settle(self):
+        """Capture the settled frame used for confirmation evidence."""
+        if not SCREENSHOT:
+            return
+        self._capture_oled(self._read_oled_after_settle())
 
     def callback_ButtonRequest(self, msg):
         if self.verbose:
             log("ButtonRequest code: " + get_buttonrequest_value(msg.code))
 
-        # The firmware emits ButtonRequest immediately before drawing the
-        # confirmation. Allow the emulator's render transition to settle so
-        # regression evidence cannot capture a partially drawn OLED.
-        if SCREENSHOT:
-            time.sleep(SCREENSHOT_SETTLE_SECONDS)
-
-        # Capture OLED screenshot BEFORE pressing button (confirmation screen)
-        self._capture_oled()
+        # Capture the completed OLED frame BEFORE pressing the button.
+        self._capture_oled_after_settle()
 
         if self.auto_button:
             if self.verbose:
@@ -548,6 +601,9 @@ class DebugLinkMixin(object):
         return proto.ButtonAck()
 
     def callback_PinMatrixRequest(self, msg):
+        # Firmware animates the randomized grid for PIN_MAX_ANIMATION_MS
+        # (1000 ms). Sampling immediately captures only the prompt/blank mask.
+        self._capture_oled_after_animation(1.05, (192, 256, 0, 64))
         if self.pin_correct:
             pin = self.debug.read_pin_encoded()
         else:
@@ -1423,7 +1479,11 @@ class ProtocolMixin(object):
         apply_policies = proto.ApplyPolicies(policy=[policy])
 
         out = self.call(apply_policies)
-        self.init_device()  # Reload Features
+        # AdvancedMode is intentionally session-scoped on firmware 7.15+.
+        # Initialize is a session-boundary message, so issuing it here to
+        # refresh Features immediately revokes the policy this method just
+        # applied.  Callers that explicitly need fresh Features can initialize
+        # after they are done with the policy-gated operation.
         return out
 
     @field('message')
@@ -1576,6 +1636,9 @@ class ProtocolMixin(object):
                 else:
                     msg.outputs_cnt = len(current_tx.outputs)
                 msg.extra_data_len = len(current_tx.extra_data) if current_tx.extra_data else 0
+                if debug_processor is not None:
+                    from copy import deepcopy
+                    msg = debug_processor(res, deepcopy(msg))
                 res = self.call(proto.TxAck(tx=msg))
                 continue
 
@@ -1618,6 +1681,9 @@ class ProtocolMixin(object):
                 o, l = res.details.extra_data_offset, res.details.extra_data_len
                 msg = types.TransactionType()
                 msg.extra_data = current_tx.extra_data[o:o + l]
+                if debug_processor is not None:
+                    from copy import deepcopy
+                    msg = debug_processor(res, deepcopy(msg))
                 res = self.call(proto.TxAck(tx=msg))
                 continue
 

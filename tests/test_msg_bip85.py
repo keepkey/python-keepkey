@@ -20,6 +20,7 @@ class TestMsgBip85(common.KeepKeyTest):
     def setUp(self):
         super().setUp()
         self.requires_firmware("7.15.0")
+        self.requires_fullFeature()
 
     def test_bip85_12word_flow(self):
         """12-word derivation: verify device goes through display flow and returns Success."""
