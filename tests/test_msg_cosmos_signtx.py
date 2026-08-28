@@ -61,10 +61,10 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
                 "cosmos18vhdczjut44gpsy804crfhnd5nq003nz0nf20v",
                 8675309
             )],
-            memo="Epstein didn't kill himself.",
+            memo="test memo",
             sequence=3
         )
-        self.assertEqual(hexlify(signature.signature), "9f2434543bc4afd2fc7bb43db05facdd6d529aa7c467ef0d41e1c2954f68db9942b8eb431cf27b52d1b3d914bbde076960179b7f426bd1a182448bb9c245009c")
+        self.assertEqual(hexlify(signature.signature), "db0e8039f2cd0b7d06527074a7e9079b5cd3d973f3090e04a685cfef0f145a9262dd828faa421027e583dd58fa5c6942c1f7c82fd53e54fb668fe0ebe5f83a12")
         self.assertEqual(hexlify(signature.public_key), "03bee3af30e53a73f38abc5a2fcdac426d7b04eb72a8ebd3b01992e2d206e24ad8")
 
 

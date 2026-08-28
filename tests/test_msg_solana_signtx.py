@@ -263,37 +263,118 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     # ================================================================
 
     def test_solana_sign_token_transfer(self):
-        """Unchecked SPL Transfer is opaque because no mint is signed."""
+        """Unchecked SPL Transfer has no signed mint (the token being moved is
+        not provable), so it now requires AdvancedMode (blind-sign); only the
+        TransferChecked variant clear-signs."""
         self.requires_fullFeature()
         self.requires_firmware("7.14.2")
         self.setup_mnemonic_allallall()
+        from keepkeylib.client import CallException
         from_pubkey = self._get_from_pubkey()
         to_account = b'\x33' * 32  # destination token account
         # SPL Token Transfer instruction: opcode=3 (u8) + amount (LE u64)
         instr_data = bytes([3]) + struct.pack('<Q', 50000000)  # 50M tokens
         raw_tx = self._build_tx(
-            from_pubkey, [to_account, from_pubkey], self.TOKEN_PROGRAM, instr_data
-        )
-        with pytest.raises(CallException) as exc:
-            self.client.call(messages.SolanaSignTx(
-                address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
-        self.assertIn("AdvancedMode", str(exc.value))
+            from_pubkey, [to_account, from_pubkey], self.TOKEN_PROGRAM,
+            instr_data)
+        tx = messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx)
+
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException):
+            self.client.call(tx)
+
+        self.client.apply_policy('AdvancedMode', True)
+        resp = self.client.call(tx)
+        self.assertEqual(len(resp.signature), 64)
+        self.client.apply_policy('AdvancedMode', False)
 
     def test_solana_sign_token_approve(self):
-        """Unchecked SPL Approve is opaque because no mint is signed."""
+        """Unchecked SPL Approve hides the delegated token's mint, so it now
+        requires AdvancedMode (blind-sign)."""
         self.requires_fullFeature()
         self.requires_firmware("7.14.2")
         self.setup_mnemonic_allallall()
+        from keepkeylib.client import CallException
         from_pubkey = self._get_from_pubkey()
         delegate = b'\x44' * 32
         # SPL Token Approve: opcode=4 (u8) + amount (LE u64)
         instr_data = bytes([4]) + struct.pack('<Q', 100000000)
         raw_tx = self._build_tx(
-            from_pubkey, [delegate, from_pubkey], self.TOKEN_PROGRAM, instr_data
-        )
-        with pytest.raises(CallException):
-            self.client.call(messages.SolanaSignTx(
-                address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
+            from_pubkey, [delegate, from_pubkey], self.TOKEN_PROGRAM,
+            instr_data)
+        tx = messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx)
+
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException):
+            self.client.call(tx)
+
+        self.client.apply_policy('AdvancedMode', True)
+        resp = self.client.call(tx)
+        self.assertEqual(len(resp.signature), 64)
+        self.client.apply_policy('AdvancedMode', False)
+
+    def test_solana_sign_create_account_requires_advanced_mode(self):
+        """SystemProgram CreateAccount assigns the new account's owner program
+        and space (not shown on-screen), so it is gated behind AdvancedMode."""
+        self.requires_firmware("7.15.0")  # unchecked-SPL AdvancedMode gating landed in 7.15
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        from keepkeylib.client import CallException
+        from_pubkey = self._get_from_pubkey()
+        new_account = b'\x55' * 32
+        instr_data = struct.pack('<I', 0) + struct.pack('<Q', 1000000)  # create + lamports
+        raw_tx = self._build_tx(from_pubkey, [new_account], self.SYSTEM_PROGRAM, instr_data)
+        tx = messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx)
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException):
+            self.client.call(tx)
+        self.client.apply_policy('AdvancedMode', True)
+        resp = self.client.call(tx)
+        self.assertEqual(len(resp.signature), 64)
+        self.client.apply_policy('AdvancedMode', False)
+
+    def test_solana_sign_set_authority_requires_advanced_mode(self):
+        """SPL SetAuthority hands over control of a mint/account; the target and
+        the 'clear authority' (None) case are not fully disclosed, so it is
+        gated behind AdvancedMode."""
+        self.requires_firmware("7.15.0")  # unchecked-SPL AdvancedMode gating landed in 7.15
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        from keepkeylib.client import CallException
+        from_pubkey = self._get_from_pubkey()
+        authority = b'\x66' * 32
+        instr_data = bytes([6, 2])  # SetAuthority, authority_type=AccountOwner
+        raw_tx = self._build_tx(from_pubkey, [authority], self.TOKEN_PROGRAM, instr_data)
+        tx = messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx)
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException):
+            self.client.call(tx)
+        self.client.apply_policy('AdvancedMode', True)
+        resp = self.client.call(tx)
+        self.assertEqual(len(resp.signature), 64)
+        self.client.apply_policy('AdvancedMode', False)
+
+    def test_solana_sign_stake_authorize_clearsigns(self):
+        """StakeAuthorize clear-signs, showing the role (staker/withdrawer) and
+        the new authority."""
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        from_pubkey = self._get_from_pubkey()
+        clock_sysvar = b'\x66' * 32
+        current_auth = b'\x77' * 32
+        new_auth = b'\x88' * 32
+        # Authorize (type=1 LE u32) + new authority(32) + StakeAuthorize role (0=staker)
+        instr_data = struct.pack('<I', 1) + new_auth + struct.pack('<I', 0)
+        # Canonical account order: stake, clock sysvar, current authority.
+        raw_tx = self._build_tx(
+            from_pubkey, [clock_sysvar, current_auth], self.STAKE_PROGRAM, instr_data)
+        resp = self.client.call(messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=raw_tx))
+        self.assertEqual(len(resp.signature), 64)
 
     def test_solana_sign_stake_delegate(self):
         """Stake delegate — OLED shows 'Delegate stake?'."""
@@ -559,9 +640,13 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     # ================================================================
 
     def test_solana_sign_token_transfer_with_metadata(self):
-        """SPL Token transfer with SolanaTokenInfo for OLED display of symbol + decimals."""
+        """Host SolanaTokenInfo does NOT make an unchecked transfer clear-signable:
+        the mint is not signed, so the metadata is unauthenticated and the tx
+        still requires AdvancedMode. (TransferChecked binds the mint on-chain.)"""
+        self.requires_firmware("7.15.0")  # unchecked-SPL AdvancedMode gating landed in 7.15
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
+        from keepkeylib.client import CallException
 
         from_pubkey = self._get_from_pubkey()
         to_account = b'\x33' * 32  # destination token account
@@ -571,15 +656,16 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
             0xc6, 0xfa, 0x7a, 0xf3, 0xbe, 0xdb, 0xad, 0x3a,
             0x3d, 0x65, 0xf3, 0x6a, 0xab, 0xc9, 0x74, 0x31,
             0xb1, 0xbb, 0xe4, 0xc2, 0xd2, 0xf6, 0xe0, 0xe4,
-            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x20, 0x23, 0x34,
+            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x2f, 0x5d, 0x61,
         ])
 
-        # TransferChecked signs the mint and decimals. Unchecked Transfer is
-        # deliberately opaque because it carries neither.
-        instr_data = bytes([12]) + struct.pack('<Q', 1000000) + bytes([6])
+        # Unchecked Transfer (op 3) signs source, destination and authority but
+        # carries neither mint nor decimals.  Host token_info must not promote
+        # that unauthenticated identity into a clear-signed transfer.
+        instr_data = bytes([3]) + struct.pack('<Q', 1000000)
         raw_tx = self._build_tx(
             from_pubkey,
-            [usdc_mint, to_account, from_pubkey],
+            [to_account, from_pubkey],
             self.TOKEN_PROGRAM,
             instr_data,
         )
@@ -590,6 +676,132 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
             decimals=6,
         )
 
+        tx = messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            raw_tx=raw_tx,
+            token_info=[token_info],
+        )
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException):
+            self.client.call(tx)
+
+        self.client.apply_policy('AdvancedMode', True)
+        resp = self.client.call(tx)
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+        self.client.apply_policy('AdvancedMode', False)
+
+    def test_solana_sign_token_transfer_checked(self):
+        """TransferChecked (op 12) CLEAR-SIGNS with AdvancedMode OFF: the mint
+        is part of the signed instruction bytes, so the device shows it on its
+        own dedicated OLED screen ("Token mint <base58>") before the amount —
+        the authenticated token identity cannot be pushed off-view by a
+        host-controlled symbol. The (unattested) host token_info symbol is
+        shown next to the amount, and decimals come from the signed
+        instruction, never from the host."""
+        self.requires_firmware("7.15.0")
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        from_pubkey = self._get_from_pubkey()
+        to_account = b'\x33' * 32   # destination token account
+        authority = b'\x44' * 32    # transfer authority
+
+        # USDC mint (EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v)
+        usdc_mint = bytes([
+            0xc6, 0xfa, 0x7a, 0xf3, 0xbe, 0xdb, 0xad, 0x3a,
+            0x3d, 0x65, 0xf3, 0x6a, 0xab, 0xc9, 0x74, 0x31,
+            0xb1, 0xbb, 0xe4, 0xc2, 0xd2, 0xf6, 0xe0, 0xe4,
+            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x2f, 0x5d, 0x61,
+        ])
+
+        # TransferChecked: opcode=12 (u8) + amount (LE u64) + decimals (u8);
+        # accounts [source, mint, destination, authority]
+        instr_data = bytes([12]) + struct.pack('<Q', 1500000) + bytes([6])
+        raw_tx = self._build_tx(from_pubkey, [usdc_mint, to_account, authority],
+                                self.TOKEN_PROGRAM, instr_data)
+
+        token_info = messages.SolanaTokenInfo(
+            mint=usdc_mint,
+            symbol="USDC",
+            decimals=6,
+        )
+
+        self.client.apply_policy('AdvancedMode', False)
+        resp = self.client.call(messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            raw_tx=raw_tx,
+            token_info=[token_info],
+        ))
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+
+    def test_solana_sign_token_transfer_checked_attested_symbol(self):
+        """Signed token definition: the token_info carries a secp256k1
+        attestation over (mint, decimals, symbol) by a signer the user loaded
+        via LoadClearsignSigner — the same chain-agnostic trust anchor EVM
+        clear-sign metadata uses. The device verifies it and shows an extra
+        'Token "USDC" signed by <alias> <fingerprint>' screen; decimals must
+        also match the signed instruction bytes or the symbol is not trusted.
+        Runtime identities require AdvancedMode."""
+        self.requires_firmware("7.15.0")
+        self.requires_fullFeature()
+        self.requires_message("LoadClearsignSigner")
+        self.setup_mnemonic_allallall()
+        import hashlib
+        from ecdsa import SigningKey, SECP256k1
+        from ecdsa.util import sigencode_string
+        from keepkeylib.signed_metadata import (
+            TEST_PRIVATE_KEY, test_signer_compressed_pubkey,
+            assert_test_key_matches_slot3)
+
+        # Load the CI signer into slot 3 through the production trust path
+        # (device confirm auto-acked by debuglink) — phase 1 has no built-ins.
+        assert_test_key_matches_slot3()
+        self.client.apply_policy('AdvancedMode', True)
+        self.client.load_clearsign_signer(
+            key_id=3,
+            pubkey=test_signer_compressed_pubkey(),
+            alias="CI Test",
+        )
+
+        from_pubkey = self._get_from_pubkey()
+        to_account = b'\x33' * 32
+        authority = b'\x44' * 32
+        usdc_mint = bytes([
+            0xc6, 0xfa, 0x7a, 0xf3, 0xbe, 0xdb, 0xad, 0x3a,
+            0x3d, 0x65, 0xf3, 0x6a, 0xab, 0xc9, 0x74, 0x31,
+            0xb1, 0xbb, 0xe4, 0xc2, 0xd2, 0xf6, 0xe0, 0xe4,
+            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x2f, 0x5d, 0x61,
+        ])
+        decimals = 6
+        symbol = "USDC"
+
+        # TransferChecked with decimals matching the attested value.
+        instr_data = bytes([12]) + struct.pack('<Q', 1500000) + bytes([decimals])
+        raw_tx = self._build_tx(from_pubkey, [usdc_mint, to_account, authority],
+                                self.TOKEN_PROGRAM, instr_data)
+
+        # Attestation preimage exactly as solana_token_info_trusted() builds it:
+        # "KeepKeySolanaTokenDef/1" || mint(32) || decimals(le32) || symbol.
+        preimage = (b"KeepKeySolanaTokenDef/1" + usdc_mint +
+                    struct.pack('<I', decimals) + symbol.encode('ascii'))
+        digest = hashlib.sha256(preimage).digest()
+        sk = SigningKey.from_string(TEST_PRIVATE_KEY, curve=SECP256k1)
+        # RFC 6979 deterministic; 64-byte compact r||s, what
+        # signed_metadata_verify_attestation feeds ecdsa_verify_digest.
+        sig64 = sk.sign_digest_deterministic(
+            digest, hashfunc=hashlib.sha256, sigencode=sigencode_string)
+
+        token_info = messages.SolanaTokenInfo(
+            mint=usdc_mint,
+            symbol=symbol,
+            decimals=decimals,
+            signature=sig64,
+            signer_key_id=3,
+        )
+
+        self.client.apply_policy('AdvancedMode', True)
         resp = self.client.call(messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"),
             raw_tx=raw_tx,
@@ -648,9 +860,12 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     # Versioned transaction test
     # ================================================================
 
-    def test_solana_sign_versioned_v0_opaque(self):
-        """Versioned v0 transaction (first byte 0x80) — should require AdvancedMode
-        for blind/opaque signing since firmware cannot parse address lookup tables."""
+    def test_solana_sign_versioned_v0_static_verified(self):
+        """Versioned v0 transaction whose instructions only touch static
+        accounts (no address lookup table references) is exactly as
+        verifiable as a legacy message — it clear-signs without requiring
+        AdvancedMode."""
+        self.requires_firmware("7.15.0")  # Solana versioned (v0) parsing landed in 7.15
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
@@ -695,7 +910,136 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
 
         raw_tx = bytes(tx)
 
-        # Without AdvancedMode, versioned tx should be rejected
+        self.client.apply_policy('AdvancedMode', False)
+        resp = self.client.call(messages.SolanaSignTx(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            raw_tx=raw_tx,
+        ))
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+
+    def test_solana_sign_x402_zero_lut_usdc_payment(self):
+        """Official x402 SVM shape clear-signs without blind signing.
+
+        The sponsor is fee payer, the KeepKey key is the token authority, the
+        payment is TransferChecked, and payTo is supplied separately so the
+        device must derive and verify its associated token account itself.
+        """
+        self.requires_firmware("7.15.0")
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        authority = self._get_from_pubkey()
+        sponsor = b'\x10' * 32
+        source = b'\x30' * 32
+        pay_to = bytes([
+            0xea, 0x4a, 0x6c, 0x63, 0xe2, 0x9c, 0x52, 0x0a,
+            0xbe, 0xf5, 0x50, 0x7b, 0x13, 0x2e, 0xc5, 0xf9,
+            0x95, 0x47, 0x76, 0xae, 0xbe, 0xbe, 0x7b, 0x92,
+            0x42, 0x1e, 0xea, 0x69, 0x14, 0x46, 0xd2, 0x2c,
+        ])
+        destination_ata = bytes([
+            0x67, 0x30, 0x2e, 0x49, 0x18, 0x94, 0xd7, 0x49,
+            0x2e, 0xa6, 0xbe, 0x4f, 0x91, 0x4e, 0xa4, 0xf4,
+            0x5f, 0xa1, 0x42, 0xe6, 0x45, 0x86, 0x7c, 0x91,
+            0x64, 0xa2, 0x76, 0xd5, 0xdd, 0x76, 0xf0, 0x76,
+        ])
+        usdc_mint = bytes([
+            0xc6, 0xfa, 0x7a, 0xf3, 0xbe, 0xdb, 0xad, 0x3a,
+            0x3d, 0x65, 0xf3, 0x6a, 0xab, 0xc9, 0x74, 0x31,
+            0xb1, 0xbb, 0xe4, 0xc2, 0xd2, 0xf6, 0xe0, 0xe4,
+            0x7c, 0xa6, 0x02, 0x03, 0x45, 0x2f, 0x5d, 0x61,
+        ])
+
+        accounts = [
+            sponsor, authority, source, destination_ata, usdc_mint,
+            self.COMPUTE_BUDGET_PROGRAM, self.TOKEN_PROGRAM,
+            self.MEMO_PROGRAM,
+        ]
+        raw_tx = bytearray([0x80, 2, 0, 3, len(accounts)])
+        for account in accounts:
+            raw_tx.extend(account)
+        raw_tx.extend(b'\xbb' * 32)
+        raw_tx.append(4)
+
+        # ComputeBudget::SetComputeUnitLimit(120000)
+        raw_tx.extend(bytes([5, 0, 5, 2]))
+        raw_tx.extend(struct.pack('<I', 120000))
+        # ComputeBudget::SetComputeUnitPrice(1000 micro-lamports)
+        raw_tx.extend(bytes([5, 0, 9, 3]))
+        raw_tx.extend(struct.pack('<Q', 1000))
+        # SPL TransferChecked(source, mint, destination ATA, authority)
+        raw_tx.extend(bytes([6, 4, 2, 4, 3, 1, 10, 12]))
+        raw_tx.extend(struct.pack('<Q', 2000))
+        raw_tx.append(6)
+        # Required x402 uniqueness memo: a 16-byte nonce encoded as hex.
+        memo = b'00112233445566778899aabbccddeeff'
+        raw_tx.extend(bytes([7, 1, 1, len(memo)]))
+        raw_tx.extend(memo)
+        raw_tx.append(0)  # zero address-lookup tables
+
+        token_info = messages.SolanaTokenInfo(
+            mint=usdc_mint, symbol="USDC", decimals=6)
+        self.client.apply_policy('AdvancedMode', False)
+        response = self.client.solana_sign_tx(
+            parse_path("m/44'/501'/0'/0'"), bytes(raw_tx),
+            token_info=[token_info], token_recipient_owner=[pay_to])
+        self.assertEqual(len(response.signature), 64)
+        self.assertFalse(all(b == 0 for b in response.signature))
+
+    def test_solana_sign_versioned_v0_opaque(self):
+        """Versioned v0 transaction whose instruction reaches into an address
+        lookup table (an account index at or beyond the static account
+        count) cannot be verified on-device — requires AdvancedMode for
+        blind/opaque signing."""
+        self.requires_firmware("7.15.0")  # Solana versioned (v0) parsing landed in 7.15
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+
+        from_pubkey = self._get_from_pubkey()
+
+        system_program = self.SYSTEM_PROGRAM
+        blockhash = b'\xBB' * 32
+        lookup_table = b'\x33' * 32
+
+        tx = bytearray()
+        tx.append(0x80)  # version prefix: v0
+
+        # Header
+        tx.append(1)    # num_required_sigs
+        tx.append(0)    # num_readonly_signed
+        tx.append(1)    # num_readonly_unsigned
+
+        # 2 static accounts — the transfer destination is resolved via the
+        # address lookup table below, not listed here.
+        tx.append(2)
+        tx.extend(from_pubkey)
+        tx.extend(system_program)
+
+        # Recent blockhash
+        tx.extend(blockhash)
+
+        # 1 instruction referencing account index 2 — beyond the 2 static
+        # accounts, so it resolves via the address lookup table.
+        tx.append(1)
+        tx.append(1)    # program_id index (system_program)
+        tx.append(2)    # 2 account indices
+        tx.append(0)    # from (static)
+        tx.append(2)    # to (external — loaded from the ALT)
+        instr_data = struct.pack('<I', 2) + struct.pack('<Q', 1000000000)
+        tx.append(len(instr_data))
+        tx.extend(instr_data)
+
+        # Address table lookups: 1 entry, 1 writable index
+        tx.append(1)
+        tx.extend(lookup_table)
+        tx.append(1)    # writable_count
+        tx.append(0)    # writable index 0 (into the ALT)
+        tx.append(0)    # readonly_count
+
+        raw_tx = bytes(tx)
+
+        # Without AdvancedMode, an ALT-referencing versioned tx should be rejected
         self.client.apply_policy('AdvancedMode', False)
         with pytest.raises(CallException):
             self.client.call(messages.SolanaSignTx(

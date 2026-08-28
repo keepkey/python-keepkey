@@ -1,21 +1,34 @@
 # KeepKey python-keepkey CI
 #
-# Pulls the published emulator image (kktech/kkemu) from DockerHub
-# and runs the full python integration test suite against it.
+# Builds both fork release candidates from immutable commits and runs this
+# exact Python head against their regular and Bitcoin-only product surfaces.
 #
 # Stage 1: GATE (seconds)
-#   └─ lint        basic Python syntax check
+#   └─ lint        Python syntax + deterministic protocol contract tests
 #
 # Stage 2: TEST (gated by Stage 1)
-#   └─ integration full pytest suite against emulator
+#   ├─ integration       full suite against regular 7.15
+#   ├─ integration-7143  full suite against regular 7.14.3
+#   └─ integration-btc   Bitcoin-only boundary against both candidates
 
 name: CI
 
 on:
   push:
-    branches: [master, develop, 'feature/**', 'fix/**', 'hotfix/**']
+    branches: [master, develop, 'reconcile/**', 'feature/**', 'fix/**', 'hotfix/**']
   pull_request:
-    branches: [master, develop]
+    branches: [master, develop, reconcile/upstream-sync]
+
+# Every job only checks out source and emits runner-native annotations. Keep
+# the workflow token read-only even when the repository default is broader.
+permissions:
+  contents: read
+
+# One run per ref: a new push supersedes the old instead of both burning a
+# runner to completion.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # ═══════════════════════════════════════════════════════════
@@ -26,6 +39,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - uses: actions/setup-python@v5
         with:
@@ -33,6 +48,31 @@ jobs:
 
       - name: Syntax check
         run: python -m py_compile keepkeylib/*.py
+
+      - name: Install contract-test dependencies
+        run: |
+          pip install "protobuf>=3.20,<4" mnemonic ecdsa pytest requests
+
+      - name: Run deterministic Zcash PCZT contract tests
+        env:
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python
+        run: |
+          python -m pytest -q \
+            tests/test_msg_zcash_sign_pczt.py \
+            tests/test_zcash_seed_fingerprint_helper.py
+
+      # keepkey-firmware GENERATES its token table by running this repo's
+      # generators (lib/firmware/CMakeLists.txt -> ethereum_tokens.def), so a
+      # change here can break the firmware C++ build. .circleci/config.yml no
+      # longer runs the firmware's own unit suite; this is the gate that
+      # replaced it.
+      - name: Run ABI encoder and token-table generator contract tests
+        env:
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python
+        run: |
+          python -m pytest -q \
+            tests/test_clearsign_abi.py \
+            tests/test_token_table_generators.py
 
       - name: Verify offline transaction fixture manifest
         run: python tests/tx_fixture_manifest.py --check
@@ -44,89 +84,195 @@ jobs:
           echo "| Check | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Syntax | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Zcash PCZT contract | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| ABI encoder | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Token-table generators | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Offline fixture integrity | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
           FIXTURE_SHA=$(sha256sum tests/txcache/manifest.json | cut -d' ' -f1)
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Fixture manifest SHA-256: `$FIXTURE_SHA`" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Fixture manifest SHA-256: `%s`\n' "$FIXTURE_SHA" >> "$GITHUB_STEP_SUMMARY"
 
   # ═══════════════════════════════════════════════════════════
-  # STAGE 2: TEST — pull published emulator, run pytest
+  # STAGE 2: TEST — build exact candidate emulators, run pytest
   # ═══════════════════════════════════════════════════════════
 
   integration:
     needs: [lint]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
 
-    services:
-      kkemu:
-        image: kktech/kkemu:latest
-        ports:
-          - 11044:11044/udp
-          - 11045:11045/udp
-          - 5000:5000
+    # NO published emulator image. This job BUILDS one from current firmware.
+    #
+    # It used to pull kktech/kkemu:latest -- a floating tag whose image was
+    # five months and six minor versions stale. That single fact caused every
+    # symptom we chased: 80 tests gating on requires_firmware("7.15.0") skipped
+    # silently, and one unskipped test drove a ctime() path that segfaults on
+    # the old image and does not exist in current firmware.
+    #
+    # Publishing a fresher image would only reset that clock. Building from
+    # source removes the class: the emulator under test is, by construction,
+    # the firmware the tests were written against.
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          path: python-keepkey
+
+      # Immutable fork 7.15 candidate. Once canonical Python merges, the
+      # firmware branch is repinned to that one upstream commit and rerun.
+      - name: Checkout firmware
+        uses: actions/checkout@v4
+        with:
+          repository: BitHighlander/keepkey-firmware
+          ref: d0a494a805533f02387f58d89dbb6f1fb09a621a
+          path: keepkey-firmware
+
+      # NOT `submodules: recursive`. trezor-firmware carries a micropython
+      # vendor tree whose lib/lwip lives on git.savannah.gnu.org, which serves
+      # dumb HTTP and cannot do the shallow clone actions/checkout requests --
+      # it fails the whole job. The firmware repo's own CI inits exactly these
+      # paths, non-recursively, for the same reason.
+      - name: Init the submodules the emulator build needs
+        working-directory: keepkey-firmware
+        run: |
+          git submodule update --init --depth 1 deps/crypto/trezor-firmware
+          git submodule update --init --depth 1 deps/device-protocol
+          git submodule update --init --depth 1 deps/googletest
+          git submodule update --init --depth 1 deps/qrenc/QR-Code-generator
+          git submodule update --init --depth 1 deps/sca-hardening/SecAESSTM32
+
+      # Test THIS checkout of python-keepkey, not the one the firmware pins.
+      - name: Overlay this python-keepkey onto the firmware tree
+        run: |
+          rm -rf keepkey-firmware/deps/python-keepkey
+          cp -a python-keepkey keepkey-firmware/deps/python-keepkey
+
+      - name: Build the emulator
+        timeout-minutes: 20
+        working-directory: keepkey-firmware
+        run: |
+          docker build -t kkemu-ci -f scripts/emulator/Dockerfile .
+
+      - name: Start the emulator
+        run: |
+          docker run -d --name kkemu \
+            -p 11044:11044/udp -p 11045:11045/udp -p 5000:5000 kkemu-ci
+          sleep 3
+          docker logs kkemu | head -5
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dependencies
+        working-directory: python-keepkey
         run: |
           pip install --upgrade pip
           pip install "protobuf>=3.20,<4"
           pip install -e .
-          pip install pytest semver rlp requests eth-keys pycryptodome
+          pip install pytest pytest-timeout semver rlp requests eth-keys pycryptodome
 
       - name: Wait for emulator
         run: |
           echo "Waiting for emulator bridge on port 5000..."
+          ready=false
           for i in $(seq 1 30); do
             if curl -sf -X POST http://localhost:5000/exchange/main \
                  -H 'Content-Type: application/json' \
                  -d '{"data":""}' > /dev/null 2>&1; then
               echo "Emulator ready after ${i}s"
+              ready=true
               break
             fi
             sleep 1
           done
+          [ "$ready" = true ] || {
+            docker logs kkemu
+            echo "FATAL: emulator bridge did not become ready" >&2
+            exit 1
+          }
 
-      - name: Run integration tests
+      # "The emulator answered a ping" is not "the emulator is the right
+      # firmware". CI ran a 7.16-era suite against a 7.10.0 image for five
+      # months: 80 tests gate on requires_firmware("7.15.0") and silently
+      # SKIPPED, while one unskipped test drove a code path that segfaults in
+      # 7.10.0 and is already fixed in 7.15 -- which reads as a product failure
+      # but is only a stale image. A floating tag cannot tell you that. This
+      # can, and it fails closed.
+      - name: Assert the emulator is not older than the suite
+        timeout-minutes: 2
         env:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
-          PYTHONPATH: "${{ github.workspace }}/keepkeylib:${{ github.workspace }}"
+          KK_MIN_FW: "7.15.0"
+          KK_UDP_TIMEOUT: "20"
+        working-directory: keepkey-firmware/deps/python-keepkey/tests
         run: |
-          cd tests
+          python - <<'PY'
+          import os, sys
+          sys.path.insert(0, '..')
+          import config
+          from keepkeylib.client import KeepKeyDebuglinkClient
+          c = KeepKeyDebuglinkClient(config.TRANSPORT(*config.TRANSPORT_ARGS,
+                                                      **config.TRANSPORT_KWARGS))
+          c.set_debuglink(config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS,
+                                                 **config.DEBUG_TRANSPORT_KWARGS))
+          c.init_device()
+          f = c.features
+          got = (f.major_version, f.minor_version, f.patch_version)
+          floor = tuple(int(x) for x in os.environ['KK_MIN_FW'].split('.'))
+          print('emulator firmware %d.%d.%d, floor %s' %
+                (got + (os.environ['KK_MIN_FW'],)))
+          if got < floor:
+              sys.exit('FATAL: the emulator image predates the tests that run '
+                       'against it. Republish kktech/kkemu from current '
+                       'firmware and pin the new digest above.')
+          PY
+
+      # Step-level timeout, deliberately: a JOB-level timeout ends the job as
+      # "cancelled", which reads as an infra blip. A step timeout is a FAILURE.
+      - name: Run integration tests
+        timeout-minutes: 8
+        env:
+          KK_TRANSPORT_MAIN: "127.0.0.1:11044"
+          KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
+          PYTHONPATH: "${{ github.workspace }}/keepkey-firmware/deps/python-keepkey"
+          PYTHONUNBUFFERED: "1"
+          # A crashed emulator now raises instead of blocking in recv() forever.
+          KK_UDP_TIMEOUT: "45"
+        run: |
+          # From the OVERLAID copy, not the standalone checkout: the
+          # storage-version-gate tests assert against lib/firmware/storage.c,
+          # which they find by walking UP. Run them as a sibling of the
+          # firmware and they resolve; run them standalone and they fail
+          # claiming the sources are missing.
+          cd keepkey-firmware/deps/python-keepkey/tests
           python tx_fixture_manifest.py --check
-          EMULATOR_IP=$(docker inspect -f \
-            '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' \
-            "${{ job.services.kkemu.id }}")
-          test -n "$EMULATOR_IP"
-          sudo iptables -I OUTPUT 1 -d "$EMULATOR_IP" -j ACCEPT
-          sudo iptables -I OUTPUT 2 ! -o lo -m conntrack --ctstate NEW -j REJECT
+          # Docker DNATs localhost-published packets before the filter OUTPUT
+          # chain, so they no longer have `lo` as their output interface. Keep
+          # only the emulator's two UDP ports reachable through the offline
+          # gate; every other new non-loopback connection remains rejected.
+          sudo iptables -I OUTPUT 1 ! -o lo -m conntrack --ctstate NEW -j REJECT
+          sudo iptables -I OUTPUT 1 -p udp -m multiport --dports 11044,11045 -j ACCEPT
           cleanup_network_gate() {
+            sudo iptables -D OUTPUT -p udp -m multiport --dports 11044,11045 -j ACCEPT
             sudo iptables -D OUTPUT ! -o lo -m conntrack --ctstate NEW -j REJECT
-            sudo iptables -D OUTPUT -d "$EMULATOR_IP" -j ACCEPT
           }
           trap cleanup_network_gate EXIT
-          pytest -v --junitxml=junit.xml 2>&1 | tee pytest-output.txt
+          pytest -vv -s --timeout=60 --timeout-method=signal --maxfail=1 --junitxml=junit.xml 2>&1 | tee pytest-output.txt
           echo "${PIPESTATUS[0]}" > status
 
       - name: Test summary
         if: always()
         run: |
-          XML="tests/junit.xml"
-          MANIFEST="tests/txcache/manifest.json"
+          XML="keepkey-firmware/deps/python-keepkey/tests/junit.xml"
+          MANIFEST="keepkey-firmware/deps/python-keepkey/tests/txcache/manifest.json"
           echo "## 🔑 KeepKey python-keepkey — Integration Tests" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if [ -f "$MANIFEST" ]; then
             FIXTURE_SHA=$(sha256sum "$MANIFEST" | cut -d' ' -f1)
-            echo "Fixture manifest SHA-256: `$FIXTURE_SHA`" >> "$GITHUB_STEP_SUMMARY"
+            printf 'Fixture manifest SHA-256: `%s`\n' "$FIXTURE_SHA" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
           fi
 
@@ -173,15 +319,450 @@ jobs:
           echo "---" >> "$GITHUB_STEP_SUMMARY"
           echo "*KeepKey python-keepkey CI*" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload test results
+      # NO check_name. With one, this action publishes a SEPARATE check run
+      # via the Checks API, and its require_tests default of 'false' means an
+      # absent junit.xml -- which is exactly what a killed pytest leaves behind
+      # -- reports conclusion:success with zero duration. That green check sat
+      # on top of a job timing out at 30 minutes for at least six merges.
+      # annotate_only keeps the inline annotations without minting a check.
+      - name: Annotate test results
         uses: mikepenz/action-junit-report@v4
         if: always()
         with:
-          report_paths: tests/junit.xml
-          check_name: Integration Tests
+          report_paths: keepkey-firmware/deps/python-keepkey/tests/junit.xml
+          annotate_only: true
+          require_tests: true
+          fail_on_failure: true
 
       - name: Fail on test failure
         if: always()
         run: |
-          STATUS=$(cat tests/status 2>/dev/null || echo "1")
+          STATUS=$(cat keepkey-firmware/deps/python-keepkey/tests/status 2>/dev/null || echo "1")
+          [ "$STATUS" = "0" ] || exit 1
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 2c: TEST — the 7.14.3 release candidate
+  # ═══════════════════════════════════════════════════════════
+
+  integration-7143:
+    needs: [lint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Run the complete merged Python suite against the immutable fork 7.14.3
+    # candidate before canonical Python is merged upstream.
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          path: python-keepkey
+
+      - name: Checkout firmware (7.14.3)
+        uses: actions/checkout@v4
+        with:
+          repository: BitHighlander/keepkey-firmware
+          ref: e6a6711e5e4164d3b3840356dc301aa873f1fbf7
+          path: keepkey-firmware
+
+      - name: Init the submodules the emulator build needs
+        working-directory: keepkey-firmware
+        run: |
+          git submodule update --init --depth 1 deps/crypto/trezor-firmware
+          git submodule update --init --depth 1 deps/device-protocol
+          git submodule update --init --depth 1 deps/googletest
+          git submodule update --init --depth 1 deps/qrenc/QR-Code-generator
+          git submodule update --init --depth 1 deps/sca-hardening/SecAESSTM32
+
+      - name: Overlay this python-keepkey onto the firmware tree
+        run: |
+          rm -rf keepkey-firmware/deps/python-keepkey
+          cp -a python-keepkey keepkey-firmware/deps/python-keepkey
+
+      - name: Build the 7.14.3 emulator
+        timeout-minutes: 20
+        working-directory: keepkey-firmware
+        run: |
+          docker build -t kkemu-7143-ci -f scripts/emulator/Dockerfile .
+
+      - name: Start the emulator
+        run: |
+          docker run -d --name kkemu-7143 \
+            -p 11044:11044/udp -p 11045:11045/udp -p 5000:5000 kkemu-7143-ci
+          sleep 3
+          docker logs kkemu-7143 | head -5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: python-keepkey
+        run: |
+          pip install --upgrade pip
+          pip install "protobuf>=3.20,<4"
+          pip install -e .
+          pip install pytest pytest-timeout semver rlp requests eth-keys pycryptodome
+
+      - name: Wait for emulator
+        run: |
+          echo "Waiting for emulator bridge on port 5000..."
+          ready=false
+          for i in $(seq 1 30); do
+            if curl -sf -X POST http://localhost:5000/exchange/main \
+                 -H 'Content-Type: application/json' \
+                 -d '{"data":""}' > /dev/null 2>&1; then
+              echo "Emulator ready after ${i}s"
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          [ "$ready" = true ] || {
+            docker logs kkemu-7143
+            echo "FATAL: emulator bridge did not become ready" >&2
+            exit 1
+          }
+
+      # Assert this really is 7.14.3. A silently-wrong ref would make this job
+      # a duplicate of `integration` and quietly retire the gap it exists to
+      # measure.
+      - name: Assert the emulator is 7.14.3
+        timeout-minutes: 2
+        env:
+          KK_TRANSPORT_MAIN: "127.0.0.1:11044"
+          KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
+          KK_UDP_TIMEOUT: "20"
+        working-directory: keepkey-firmware/deps/python-keepkey/tests
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, '..')
+          import config
+          from keepkeylib.client import KeepKeyDebuglinkClient
+          c = KeepKeyDebuglinkClient(config.TRANSPORT(*config.TRANSPORT_ARGS,
+                                                      **config.TRANSPORT_KWARGS))
+          c.set_debuglink(config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS,
+                                                 **config.DEBUG_TRANSPORT_KWARGS))
+          c.init_device()
+          f = c.features
+          got = (f.major_version, f.minor_version, f.patch_version)
+          print('emulator firmware %d.%d.%d, variant %r' % (got + (f.firmware_variant,)))
+          if got != (7, 14, 3):
+              sys.exit('FATAL: expected 7.14.3, got %d.%d.%d -- the pinned '
+                       'firmware ref is not the release target.' % got)
+          PY
+
+      - name: Run the suite against 7.14.3
+        timeout-minutes: 10
+        env:
+          KK_TRANSPORT_MAIN: "127.0.0.1:11044"
+          KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
+          PYTHONPATH: "${{ github.workspace }}/keepkey-firmware/deps/python-keepkey"
+          KK_UDP_TIMEOUT: "45"
+        run: |
+          cd keepkey-firmware/deps/python-keepkey/tests
+          python tx_fixture_manifest.py --check
+          sudo iptables -I OUTPUT 1 ! -o lo -m conntrack --ctstate NEW -j REJECT
+          sudo iptables -I OUTPUT 1 -p udp -m multiport --dports 11044,11045 -j ACCEPT
+          cleanup_network_gate() {
+            sudo iptables -D OUTPUT -p udp -m multiport --dports 11044,11045 -j ACCEPT
+            sudo iptables -D OUTPUT ! -o lo -m conntrack --ctstate NEW -j REJECT
+          }
+          trap cleanup_network_gate EXIT
+          pytest -vv -s --timeout=60 --timeout-method=signal \
+            --junitxml=junit-7143.xml 2>&1 | tee pytest-7143-output.txt
+          echo "${PIPESTATUS[0]}" > status-7143
+
+      - name: 7.14.3 summary
+        if: always()
+        run: |
+          XML="keepkey-firmware/deps/python-keepkey/tests/junit-7143.xml"
+          echo "## 🔑 python-keepkey — 7.14.3" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Blocking release-target compatibility gate." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ ! -f "$XML" ]; then
+            echo "❌ **No test results** — the suite crashed before completion." >> "$GITHUB_STEP_SUMMARY"
+          else
+            TOTAL=$(grep -oP 'tests="\K[0-9]+' "$XML" | head -1)
+            FAILED=$(grep -oP 'failures="\K[0-9]+' "$XML" | head -1)
+            ERRORS=$(grep -oP 'errors="\K[0-9]+' "$XML" | head -1)
+            SKIPPED=$(grep -oP 'skipped="\K[0-9]+' "$XML" | head -1)
+            TOTAL=${TOTAL:-0}; FAILED=${FAILED:-0}; ERRORS=${ERRORS:-0}; SKIPPED=${SKIPPED:-0}
+            PASSED=$((TOTAL - FAILED - ERRORS - SKIPPED))
+            echo "| Metric | Count |" >> "$GITHUB_STEP_SUMMARY"
+            echo "|--------|-------|" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Total | $TOTAL |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| ✅ Passed | $PASSED |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| ⏭️ Skipped | $SKIPPED |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| ❌ Failed | $FAILED |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| 💥 Errors | $ERRORS |" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            if [ "$FAILED" -eq 0 ] && [ "$ERRORS" -eq 0 ]; then
+              echo "7.14.3 is green at current head." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "7.14.3 compatibility failed at current head." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+      - name: Annotate 7.14.3 results
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: keepkey-firmware/deps/python-keepkey/tests/junit-7143.xml
+          annotate_only: true
+          require_tests: true
+          fail_on_failure: false
+
+      # `pytest | tee` makes the run step exit with tee's status, so without
+      # this the job reports success no matter what 7.14.3 did. This step makes a
+      # real pytest failure fail the blocking release gate.
+      - name: Report the 7.14.3 result
+        if: always()
+        run: |
+          STATUS=$(cat keepkey-firmware/deps/python-keepkey/tests/status-7143 2>/dev/null || echo "1")
+          if [ "$STATUS" = "0" ]; then
+            echo "7.14.3 suite passed."
+          else
+            echo "::error::7.14.3 compatibility failed; see the summary."
+            exit 1
+          fi
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGE 2b: TEST — the OTHER shipping product
+  # ═══════════════════════════════════════════════════════════
+
+  integration-btc:
+    name: integration-btc (${{ matrix.release }})
+    needs: [lint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - release: "7.14.3"
+            firmware_ref: e6a6711e5e4164d3b3840356dc301aa873f1fbf7
+            min_fw: "7.14.3"
+          - release: "7.15"
+            firmware_ref: d0a494a805533f02387f58d89dbb6f1fb09a621a
+            min_fw: "7.15.0"
+
+    # KK_BITCOIN_ONLY=ON is a second shipping product, not a build flavour:
+    # coins.def keeps only Bitcoin and Testnet, messagemap.def drops every
+    # altcoin handler, ZCASH_PRIVACY is forced OFF, and transaction.c takes a
+    # BITCOIN_ONLY arm on the OP_RETURN path.
+    #
+    # tests/test_msg_bitcoin_only_variant.py asserts all of that, and its
+    # setUp() calls requires_bitcoinOnly() -- so against the regular emulator
+    # the `integration` job runs it as ELEVEN SKIPS. Skips are green. Without
+    # this job the advertised bitcoin-only coverage is never executed by any
+    # required check, which is the exact condition that file was written to
+    # end. The step below therefore fails closed on a skip, not just on a
+    # failure.
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          path: python-keepkey
+
+      - name: Checkout firmware
+        uses: actions/checkout@v4
+        with:
+          repository: BitHighlander/keepkey-firmware
+          ref: ${{ matrix.firmware_ref }}
+          path: keepkey-firmware
+
+      # Same non-recursive init as the regular job: trezor-firmware's
+      # micropython vendor tree pulls lib/lwip from git.savannah.gnu.org,
+      # which cannot serve the shallow clone actions/checkout asks for.
+      - name: Init the submodules the emulator build needs
+        working-directory: keepkey-firmware
+        run: |
+          git submodule update --init --depth 1 deps/crypto/trezor-firmware
+          git submodule update --init --depth 1 deps/device-protocol
+          git submodule update --init --depth 1 deps/googletest
+          git submodule update --init --depth 1 deps/qrenc/QR-Code-generator
+          git submodule update --init --depth 1 deps/sca-hardening/SecAESSTM32
+
+      - name: Overlay this python-keepkey onto the firmware tree
+        run: |
+          rm -rf keepkey-firmware/deps/python-keepkey
+          cp -a python-keepkey keepkey-firmware/deps/python-keepkey
+
+      # scripts/emulator/Dockerfile forwards ARG coinsupport into the cmake
+      # invocation, so this is the same emulator build with the product flag
+      # the shipping bitcoin-only image is built with.
+      - name: Build the bitcoin-only emulator
+        timeout-minutes: 20
+        working-directory: keepkey-firmware
+        run: |
+          docker build -t kkemu-btc-ci \
+            --build-arg coinsupport=-DKK_BITCOIN_ONLY=ON \
+            -f scripts/emulator/Dockerfile .
+
+      - name: Start the emulator
+        run: |
+          docker run -d --name kkemu-btc \
+            -p 11044:11044/udp -p 11045:11045/udp -p 5000:5000 kkemu-btc-ci
+          sleep 3
+          docker logs kkemu-btc | head -5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: python-keepkey
+        run: |
+          pip install --upgrade pip
+          pip install "protobuf>=3.20,<4"
+          pip install -e .
+          pip install pytest pytest-timeout semver rlp requests eth-keys pycryptodome
+
+      - name: Wait for emulator
+        run: |
+          echo "Waiting for emulator bridge on port 5000..."
+          ready=false
+          for i in $(seq 1 30); do
+            if curl -sf -X POST http://localhost:5000/exchange/main \
+                 -H 'Content-Type: application/json' \
+                 -d '{"data":""}' > /dev/null 2>&1; then
+              echo "Emulator ready after ${i}s"
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          [ "$ready" = true ] || {
+            docker logs kkemu-btc
+            echo "FATAL: emulator bridge did not become ready" >&2
+            exit 1
+          }
+
+      # A bitcoin-only emulator that reports "Emulator" instead of
+      # "EmulatorBTC" makes requires_bitcoinOnly() skip the whole file, and a
+      # regular emulator built by a broken --build-arg does the same. Assert
+      # the variant BEFORE pytest so that failure is named, not silent.
+      - name: Assert the emulator really is the bitcoin-only product
+        timeout-minutes: 2
+        env:
+          KK_TRANSPORT_MAIN: "127.0.0.1:11044"
+          KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
+          KK_MIN_FW: "${{ matrix.min_fw }}"
+          KK_UDP_TIMEOUT: "20"
+        working-directory: keepkey-firmware/deps/python-keepkey/tests
+        run: |
+          python - <<'PY'
+          import os, sys
+          sys.path.insert(0, '..')
+          import config
+          from keepkeylib.client import KeepKeyDebuglinkClient
+          c = KeepKeyDebuglinkClient(config.TRANSPORT(*config.TRANSPORT_ARGS,
+                                                      **config.TRANSPORT_KWARGS))
+          c.set_debuglink(config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS,
+                                                 **config.DEBUG_TRANSPORT_KWARGS))
+          c.init_device()
+          f = c.features
+          got = (f.major_version, f.minor_version, f.patch_version)
+          floor = tuple(int(x) for x in os.environ['KK_MIN_FW'].split('.'))
+          print('emulator firmware %d.%d.%d, variant %r' %
+                (got + (f.firmware_variant,)))
+          if got < floor:
+              sys.exit('FATAL: the emulator image predates the tests that run '
+                       'against it.')
+          if f.firmware_variant not in ('KeepKeyBTC', 'EmulatorBTC'):
+              sys.exit('FATAL: firmware_variant is %r, so requires_bitcoinOnly() '
+                       'would skip every test in this job. The -DKK_BITCOIN_ONLY=ON '
+                       'build arg did not take effect.' % (f.firmware_variant,))
+          PY
+
+      - name: Run the bitcoin-only product-boundary tests
+        timeout-minutes: 8
+        env:
+          KK_TRANSPORT_MAIN: "127.0.0.1:11044"
+          KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
+          PYTHONPATH: "${{ github.workspace }}/keepkey-firmware/deps/python-keepkey"
+          KK_UDP_TIMEOUT: "45"
+        run: |
+          cd keepkey-firmware/deps/python-keepkey/tests
+          sudo iptables -I OUTPUT 1 ! -o lo -m conntrack --ctstate NEW -j REJECT
+          sudo iptables -I OUTPUT 1 -p udp -m multiport --dports 11044,11045 -j ACCEPT
+          cleanup_network_gate() {
+            sudo iptables -D OUTPUT -p udp -m multiport --dports 11044,11045 -j ACCEPT
+            sudo iptables -D OUTPUT ! -o lo -m conntrack --ctstate NEW -j REJECT
+          }
+          trap cleanup_network_gate EXIT
+          pytest -vv -s --timeout=60 --timeout-method=signal --maxfail=1 \
+            --junitxml=junit-btc.xml test_msg_bitcoin_only_variant.py \
+            2>&1 | tee pytest-btc-output.txt
+          echo "${PIPESTATUS[0]}" > status-btc
+
+      # The whole reason this job exists. `pytest` exits 0 on a fully skipped
+      # module, so a green run proves nothing unless the skip count is zero.
+      - name: Fail if the product-boundary tests skipped
+        if: always()
+        run: |
+          XML="keepkey-firmware/deps/python-keepkey/tests/junit-btc.xml"
+          if [ ! -f "$XML" ]; then
+            echo "::error::no junit-btc.xml -- the suite crashed before completion"
+            exit 1
+          fi
+          python3 - "$XML" <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          tree = ET.parse(sys.argv[1])
+          cases = list(tree.iter('testcase'))
+          skipped = [c for c in cases if c.find('skipped') is not None]
+          print('bitcoin-only boundary: %d tests, %d skipped' %
+                (len(cases), len(skipped)))
+          if not cases:
+              sys.exit('FATAL: collected zero tests.')
+          for c in skipped:
+              print('::error::SKIPPED %s: %s' %
+                    (c.get('name'), c.find('skipped').get('message', '')))
+          if skipped:
+              sys.exit('FATAL: %d of %d bitcoin-only tests skipped. A skip here '
+                       'means the variant went unaudited, which is the failure '
+                       'this job exists to catch.' % (len(skipped), len(cases)))
+          PY
+
+      - name: Bitcoin-only summary
+        if: always()
+        run: |
+          XML="keepkey-firmware/deps/python-keepkey/tests/junit-btc.xml"
+          echo "## 🔑 KeepKey python-keepkey — Bitcoin-only ${{ matrix.release }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ ! -f "$XML" ]; then
+            echo "❌ **No test results found** — suite may have crashed." >> "$GITHUB_STEP_SUMMARY"
+          else
+            TOTAL=$(grep -oP 'tests="\K[0-9]+' "$XML" | head -1)
+            FAILED=$(grep -oP 'failures="\K[0-9]+' "$XML" | head -1)
+            ERRORS=$(grep -oP 'errors="\K[0-9]+' "$XML" | head -1)
+            SKIPPED=$(grep -oP 'skipped="\K[0-9]+' "$XML" | head -1)
+            TOTAL=${TOTAL:-0}; FAILED=${FAILED:-0}; ERRORS=${ERRORS:-0}; SKIPPED=${SKIPPED:-0}
+            PASSED=$((TOTAL - FAILED - ERRORS - SKIPPED))
+            echo "| Metric | Count |" >> "$GITHUB_STEP_SUMMARY"
+            echo "|--------|-------|" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Total | $TOTAL |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| ✅ Passed | $PASSED |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| ⏭️ Skipped (must be 0) | $SKIPPED |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| ❌ Failed | $FAILED |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| 💥 Errors | $ERRORS |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Annotate test results
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: keepkey-firmware/deps/python-keepkey/tests/junit-btc.xml
+          annotate_only: true
+          require_tests: true
+          fail_on_failure: true
+
+      - name: Fail on test failure
+        if: always()
+        run: |
+          STATUS=$(cat keepkey-firmware/deps/python-keepkey/tests/status-btc 2>/dev/null || echo "1")
           [ "$STATUS" = "0" ] || exit 1

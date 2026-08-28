@@ -32,6 +32,11 @@ class TestOsmosisValidation(common.KeepKeyTest):
         self.assertEndsWith(ret.message, "missing required parameters")
 
     def test_present_but_empty_amount_is_rejected_before_review(self):
+        # 7.14.3 treats a present-but-empty protobuf string as a missing
+        # required parameter. Keep that release control explicit even though
+        # 7.15 adds the stronger, syntax-specific rejection tested below.
+        if self.firmware_at_least("7.15.0"):
+            self.skipTest("7.15+ uses the syntax-specific empty amount gate")
         self._start_signing()
         send = osmosis_proto.OsmosisMsgSend(
             to_address="osmo1g9el7lzjwh9yun2c4jjzhy09j98vkhfx8tzcpt",
@@ -41,6 +46,23 @@ class TestOsmosisValidation(common.KeepKeyTest):
         self.assertTrue(send.HasField("amount"))
         self._assert_missing_parameter_failure(
             osmosis_proto.OsmosisMsgAck(send=send))
+
+    def test_present_but_empty_amount_is_rejected_as_invalid(self):
+        # The fail-closed empty-string validator is part of the 7.15 audit
+        # fixes; 7.14.3 predates that specific Osmosis hardening.
+        self.requires_firmware("7.15.0")
+        self._start_signing()
+        send = osmosis_proto.OsmosisMsgSend(
+            to_address="osmo1g9el7lzjwh9yun2c4jjzhy09j98vkhfx8tzcpt",
+            amount="",
+            denom="uosmo",
+        )
+        self.assertTrue(send.HasField("amount"))
+        ret = self.client.call_raw(osmosis_proto.OsmosisMsgAck(send=send))
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertEqual(ret.code, proto_types.Failure_SyntaxError)
+        self.assertEndsWith(ret.message,
+                            "Invalid Osmosis amount or denomination")
 
     def test_ibc_omitted_amount_and_receiver_are_rejected_before_review(self):
         self._start_signing()

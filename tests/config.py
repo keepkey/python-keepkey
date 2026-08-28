@@ -44,7 +44,12 @@ if _explicit_transport is not None and _explicit_transport not in _KNOWN_TRANSPO
         (_explicit_transport, sorted(_KNOWN_TRANSPORTS))
     )
 
-if _explicit_transport == "dylib":
+if os.getenv("KK_FORCE_UDP") == "1":
+    # Local-only escape hatch: skip HID/WebUSB autodetect so tests hit the
+    # UDP emulator even with a real KeepKey plugged in. NOT for CI.
+    hid_devices = []
+    webusb_devices = []
+elif _explicit_transport == "dylib":
     # Skip HID/WebUSB autodetect — dylib is opt-in by env var. Without
     # this skip, a connected real KeepKey would win over the explicit
     # request and the dylib regression suite would route to hardware.

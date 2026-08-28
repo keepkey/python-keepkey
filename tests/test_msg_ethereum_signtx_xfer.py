@@ -59,9 +59,14 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                     data=erc20_data, chain_id=257,
                 )
             self.assertGreaterEqual(len(recorder.screens), 2)
+            expected_frame = (
+                "3915d325da0a0e9842d7eb3eaa6e01ef0bbf7e010790af883ca1a7f30770ae8f"
+                if self.firmware_at_least("7.15.0") else
+                "b0a3026e7af1778ebd71a968ace25c03945cccf2d8abc951e5dd65abc04e914e"
+            )
             self.assertEqual(
                 hashlib.sha256(recorder.screens[0]).hexdigest(),
-                "b0a3026e7af1778ebd71a968ace25c03945cccf2d8abc951e5dd65abc04e914e",
+                expected_frame,
             )
         finally:
             self.client.apply_policy('AdvancedMode', 0)

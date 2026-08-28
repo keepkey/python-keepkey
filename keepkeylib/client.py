@@ -49,6 +49,7 @@ from . import messages_solana_pb2 as solana_proto
 from . import messages_tron_pb2 as tron_proto
 from . import messages_ton_pb2 as ton_proto
 from . import messages_zcash_pb2 as zcash_proto
+from . import messages_hive_pb2 as hive_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -59,6 +60,7 @@ import struct as _struct
 import zlib as _zlib
 
 SCREENSHOT = os.environ.get('KEEPKEY_SCREENSHOT', '') == '1'
+SCREENSHOT_SETTLE_SECONDS = 0.5
 
 
 def _write_png(path, width, height, pixels):
@@ -460,6 +462,26 @@ class DebugLinkMixin(object):
                     raise CallException(types.Failure_Other,
                             "Expected %s, got %s" % (pprint(expected), pprint(msg)))
 
+    def reset_screenshots(self):
+        """Drop screenshots captured so far this test and restart numbering.
+
+        Called at the end of the setup_mnemonic_* helpers so the wipe/load
+        "setUp noise" frames never get picked as a test's representative OLED
+        image. Lifecycle tests (wipe/reset/recovery) do not use those helpers,
+        so their setup screens — which ARE the content under test — are kept.
+        """
+        if not SCREENSHOT:
+            return
+        screenshot_dir = getattr(self, 'screenshot_dir', None)
+        if screenshot_dir and os.path.isdir(screenshot_dir):
+            import glob
+            for f in glob.glob(os.path.join(screenshot_dir, 'btn*.png')):
+                try:
+                    os.remove(f)
+                except OSError:
+                    pass
+        self.screenshot_id = 0
+
     def _capture_oled(self, layout=None):
         """Capture current OLED layout to screenshot directory."""
         if not SCREENSHOT:
@@ -723,6 +745,39 @@ class ProtocolMixin(object):
         response = self.call(msg)
         return response
 
+    def ethereum_sign_typed_data(self, n, typed_data):
+        """Clear-sign structured EIP-712 data on the device.
+
+        The firmware hashes the domain and message itself and displays every
+        typed value before signing. This is the safe path for EIP-3009 x402
+        payments; ``ethereum_sign_typed_data_hash`` remains the explicit
+        AdvancedMode-only fallback for callers that only have precomputed
+        hashes.
+        """
+        required = ('types', 'primaryType', 'domain')
+        missing = [name for name in required if name not in typed_data]
+        if missing:
+            raise ValueError('Missing EIP-712 property: %s' % ', '.join(missing))
+
+        # The legacy structured firmware endpoint expects the standard EIP-712
+        # root property names to remain present in each streamed JSON fragment.
+        types_prop = json.dumps(
+            {'types': typed_data['types']}, separators=(',', ':'))
+        ptype_prop = json.dumps(
+            {'primaryType': typed_data['primaryType']}, separators=(',', ':'))
+
+        # Firmware receives domain and message separately, and retains the
+        # independently-computed domain separator only until message signing.
+        self.e712_types_values(
+            n, types_prop, ptype_prop,
+            json.dumps({'domain': typed_data['domain']}, separators=(',', ':')),
+            1)
+        return self.e712_types_values(
+            n, types_prop, ptype_prop,
+            json.dumps(
+                {'message': typed_data.get('message', {})},
+                separators=(',', ':')), 2)
+
     @expect(eth_proto.EthereumMessageSignature)
     def ethereum_sign_message(self, n, message):
         n = self._convert_prime(n)
@@ -749,6 +804,65 @@ class ProtocolMixin(object):
             metadata_version=metadata_version,
             key_id=key_id,
         )
+        return self.call(msg)
+
+    @expect(proto.Success)
+    def load_clearsign_signer(self, key_id, pubkey, alias, icon=None,
+                              icon_width=None, icon_height=None, persist=None):
+        """Load a clearsign signer (compressed pubkey + alias) into a key slot.
+        Triggers a mandatory on-device confirmation. Metadata verified by a
+        loaded signer shows a warning screen naming the alias before every
+        clearsign page.
+
+        icon (optional, <= 384 bytes) is an identity logo shown on the trust
+        screen. It is RUN-LENGTH ENCODED with byte-valued pixels, NOT a packed
+        bitmap: draw_bitmap_mono_rle() in keepkey-firmware lib/board/draw.c is
+        the decoder of record, and it is what every bundled image already uses.
+
+        Grammar -- read n = int8(data[i++]):
+          n in [1, 127]    RUN     : one value byte follows; emit it n times.
+          n in [-127, -1]  LITERAL : (-n) value bytes follow; emit each once.
+          n == 0                   : invalid.
+          n == -128 (0x80)         : INVALID -- the device's run counter is
+                                     int8_t and cannot represent 128. Split a
+                                     128-byte literal into two packets.
+        The stream must decode EXACTLY: no run may straddle the end of the
+        image, exactly icon_width*icon_height pixels are emitted (row-major),
+        and the whole input must be consumed -- trailing packets are rejected.
+        The device validates this before showing or storing the icon. See
+        LoadClearsignSigner.icon in messages-ethereum.proto for the grammar and
+        a golden vector.
+
+        icon_width and icon_height are required with icon.
+          icon_width  : 1..40  -- the confirm screen's icon column
+                        (LEFT_MARGIN_WITH_ICON). Text begins at x=40 and the
+                        icon is drawn after it, so a wider icon would paint over
+                        the alias, fingerprint and the "NOT verified by KeepKey"
+                        warning. Capped, not clipped.
+          icon_height : 1..64  -- the icon column is 64px tall.
+        Omit all three for a text-only identity.
+
+        Signers are session-only and are cleared on reboot. ``persist`` remains
+        in the wire format for compatibility, but firmware 7.15 rejects true
+        until authenticated persistent storage is available."""
+        if persist:
+            raise ValueError(
+                "Persistent clearsign signers are disabled until authenticated "
+                "storage is available"
+            )
+        msg = eth_proto.LoadClearsignSigner(
+            key_id=key_id,
+            pubkey=pubkey,
+            alias=alias,
+        )
+        if icon is not None:
+            msg.icon = icon
+        if icon_width is not None:
+            msg.icon_width = icon_width
+        if icon_height is not None:
+            msg.icon_height = icon_height
+        if persist is not None:
+            msg.persist = persist
         return self.call(msg)
 
     @session
@@ -990,15 +1104,46 @@ class ProtocolMixin(object):
                 if len(msg['value']['amount']) != 1:
                     raise CallException("Osmosis.MsgSend", "Multiple amounts per msg not supported")
 
-                denom = msg['value']['amount'][0]['denom']
-                if denom != 'uatom':
-                    raise CallException("Osmosis.MsgSend", "Unsupported denomination: " + denom)
-
+                # This branch had never executed. It whitelisted 'uatom' — the
+                # COSMOS denom, so a native OSMO send was impossible — dropped
+                # the denom instead of forwarding it, and assigned an int to
+                # OsmosisMsgSend.amount, which is a string field and would have
+                # raised even for uatom.
+                #
+                # Version-gated exactly like thorchain_sign_tx above, and for
+                # the same reason.
+                #
+                # Firmware does not reject a non-uosmo denom on the
+                # OsmosisMsgAck path. Since 7.14.2 (firmware c9dccf68)
+                # osmosis_signTxUpdateMsgSend escapes the host-supplied denom
+                # straight into the signed Amino document -- which is what
+                # test_osmosis_send_denom_is_committed_to_the_signature proves
+                # over the raw wire -- and the only strcmp against "uosmo" left
+                # in firmware picks the display exponent.
+                #
+                # BEFORE 7.14.2 the serializer hardcoded "uosmo": it would
+                # ignore the denom sent here and sign a uosmo transfer the
+                # caller never asked for. So fail closed there, and expose the
+                # field on firmware that actually commits it. An unconditional
+                # rejection made the supported IBC and factory-denom cases
+                # unreachable through this helper.
+                coin = msg['value']['amount'][0]
+                firmware_version = (
+                    self.features.major_version,
+                    self.features.minor_version,
+                    self.features.patch_version,
+                )
+                if coin['denom'] != 'uosmo' and firmware_version < (7, 14, 2):
+                    raise CallException(
+                        "Osmosis.MsgSend",
+                        "Unsupported denomination before firmware 7.14.2: %s" %
+                        coin['denom'])
                 resp = self.call(osmosis_proto.OsmosisMsgAck(
                     send=osmosis_proto.OsmosisMsgSend(
                         from_address=msg['value']['from_address'],
                         to_address=msg['value']['to_address'],
-                        amount=int(msg['value']['amount'][0]['amount']),
+                        denom=coin['denom'],
+                        amount=str(coin['amount']),
                         address_type=types.SPEND,
                     )
                 ))
@@ -1133,16 +1278,36 @@ class ProtocolMixin(object):
                     raise CallException("Thorchain.MsgSend", "Multiple amounts per send msg not supported")
 
                 denom = msg['value']['amount'][0]['denom']
-                if denom != 'rune':
-                    raise CallException("Thorchain.MsgSend", "Unsupported denomination: " + denom)
+                firmware_version = (
+                    self.features.major_version,
+                    self.features.minor_version,
+                    self.features.patch_version,
+                )
+                supports_denom = firmware_version >= (7, 15, 0)
+
+                # Older firmware hardcodes "rune" in its amino sign-doc and
+                # nanopb skips the unknown denom field. Sending a non-RUNE denom
+                # there would therefore make the host and device disagree about
+                # what was signed. Preserve the fail-closed legacy behaviour,
+                # while exposing the protocol field on firmware that validates,
+                # displays and commits it to the signature.
+                if denom != 'rune' and not supports_denom:
+                    raise CallException(
+                        "Thorchain.MsgSend",
+                        "Unsupported denomination before firmware 7.15.0: " + denom,
+                    )
+
+                send = thorchain_proto.ThorchainMsgSend(
+                    from_address=msg['value']['from_address'],
+                    to_address=msg['value']['to_address'],
+                    amount=int(msg['value']['amount'][0]['amount']),
+                    address_type=types.SPEND,
+                )
+                if supports_denom:
+                    send.denom = denom
 
                 resp = self.call(thorchain_proto.ThorchainMsgAck(
-                    send=thorchain_proto.ThorchainMsgSend(
-                        from_address=msg['value']['from_address'],
-                        to_address=msg['value']['to_address'],
-                        amount=int(msg['value']['amount'][0]['amount']),
-                        address_type=types.SPEND,
-                    )
+                    send=send
                 ))
 
             elif msg['type'] == "thorchain/MsgDeposit":
@@ -1314,7 +1479,11 @@ class ProtocolMixin(object):
         apply_policies = proto.ApplyPolicies(policy=[policy])
 
         out = self.call(apply_policies)
-        self.init_device()  # Reload Features
+        # AdvancedMode is intentionally session-scoped on firmware 7.15+.
+        # Initialize is a session-boundary message, so issuing it here to
+        # refresh Features immediately revokes the policy this method just
+        # applied.  Callers that explicitly need fresh Features can initialize
+        # after they are done with the policy-gated operation.
         return out
 
     @field('message')
@@ -1467,6 +1636,9 @@ class ProtocolMixin(object):
                 else:
                     msg.outputs_cnt = len(current_tx.outputs)
                 msg.extra_data_len = len(current_tx.extra_data) if current_tx.extra_data else 0
+                if debug_processor is not None:
+                    from copy import deepcopy
+                    msg = debug_processor(res, deepcopy(msg))
                 res = self.call(proto.TxAck(tx=msg))
                 continue
 
@@ -1509,6 +1681,9 @@ class ProtocolMixin(object):
                 o, l = res.details.extra_data_offset, res.details.extra_data_len
                 msg = types.TransactionType()
                 msg.extra_data = current_tx.extra_data[o:o + l]
+                if debug_processor is not None:
+                    from copy import deepcopy
+                    msg = debug_processor(res, deepcopy(msg))
                 res = self.call(proto.TxAck(tx=msg))
                 continue
 
@@ -1688,10 +1863,21 @@ class ProtocolMixin(object):
         )
 
     @expect(solana_proto.SolanaSignedTx)
-    def solana_sign_tx(self, address_n, raw_tx):
-        return self.call(
-            solana_proto.SolanaSignTx(address_n=address_n, raw_tx=raw_tx)
-        )
+    def solana_sign_tx(self, address_n, raw_tx, token_info=None,
+                       token_recipient_owner=None):
+        """Sign a Solana transaction with optional display metadata.
+
+        ``token_recipient_owner`` contains candidate 32-byte SPL token-account
+        owners (for example an x402 ``payTo`` address). Firmware only displays
+        a candidate after deriving its associated token account and matching
+        the destination present in the signed TransferChecked instruction.
+        """
+        return self.call(solana_proto.SolanaSignTx(
+            address_n=address_n,
+            raw_tx=raw_tx,
+            token_info=token_info or [],
+            token_recipient_owner=token_recipient_owner or [],
+        ))
 
     @expect(solana_proto.SolanaMessageSignature)
     def solana_sign_message(self, address_n, message, show_display=False):
@@ -1786,10 +1972,42 @@ class ProtocolMixin(object):
 
     # ── Zcash Address Display ─────────────────────────────────
     @expect(zcash_proto.ZcashAddress)
-    def zcash_display_address(self, address_n, address, ak, nk, rivk, account=None):
-        kwargs = dict(address_n=address_n, address=address, ak=ak, nk=nk, rivk=rivk)
+    def zcash_display_address(self, address_n=None, account=None,
+                              expected_seed_fingerprint=None):
+        """Display a Zcash unified address on the device for user confirmation.
+
+        The device derives the unified address itself from its own seed — the
+        host does NOT supply the address or FVK components (that host-comparison
+        model was dropped; see messages-zcash.proto, where address/ak/nk/rivk
+        are reserved on ZcashDisplayAddress).
+
+        Args:
+            address_n: ZIP-32 derivation path [32', 133', account'].
+                Optional -- messages-zcash.proto marks it "required if account
+                omitted", so either form is valid and exactly one is needed.
+            account: account index (alternative to full path)
+            expected_seed_fingerprint: optional 32-byte ZIP-32 §6.1 seed
+                fingerprint. If provided, device verifies the match before
+                deriving/displaying and rejects with Failure on mismatch.
+
+        Returns:
+            ZcashAddress with .address and .seed_fingerprint of the
+            attesting device.
+        """
+        # The protocol accepts EITHER form. Sending address_n unconditionally
+        # made the documented account-only call impossible: it failed in Python
+        # before a request was built.
+        if address_n is None and account is None:
+            raise ValueError(
+                "zcash_display_address needs address_n or account "
+                "(messages-zcash.proto: each is required if the other is omitted)")
+        kwargs = {}
+        if address_n is not None:
+            kwargs['address_n'] = address_n
         if account is not None:
             kwargs['account'] = account
+        if expected_seed_fingerprint is not None:
+            kwargs['expected_seed_fingerprint'] = expected_seed_fingerprint
         return self.call(zcash_proto.ZcashDisplayAddress(**kwargs))
 
     # ── Zcash Orchard ──────────────────────────────────────────
@@ -1805,14 +2023,20 @@ class ProtocolMixin(object):
                         total_amount=0, fee=0, branch_id=0x37519621,
                         header_digest=None, transparent_digest=None,
                         sapling_digest=None, orchard_digest=None,
+                        shielded_pool=None, ironwood_digest=None,
                         orchard_flags=None, orchard_value_balance=None,
-                        orchard_anchor=None, transparent_inputs=None):
-        """Sign a Zcash Orchard shielded transaction via PCZT protocol.
+                        orchard_anchor=None, tx_version=None,
+                        version_group_id=None, lock_time=None,
+                        expiry_height=None, transparent_outputs=None,
+                        transparent_inputs=None,
+                        expected_seed_fingerprint=None,
+                        return_transparent_signatures=False):
+        """Sign a Zcash Orchard-family shielded transaction via PCZT protocol.
 
-        Phase 2: Sends ZcashSignPCZT, then loops on ZcashPCZTActionAck
-        feeding Orchard actions one at a time.
-        Phase 3: If transparent_inputs provided, handles ZcashTransparentSig
-        loop for transparent-to-shielded (shielding) transactions.
+        Streams transparent outputs, then transparent inputs, then shielded
+        actions in the exact order requested by firmware 7.15. Shielded
+        signatures are compact: the response contains one signature for each
+        action whose explicit ``is_spend`` value is true, in action order.
 
         Args:
             address_n: ZIP-32 derivation path [32', 133', account']
@@ -1825,16 +2049,40 @@ class ProtocolMixin(object):
             transparent_digest: 32-byte transparent digest
             sapling_digest: 32-byte sapling digest
             orchard_digest: 32-byte orchard digest
+            shielded_pool: ZcashShieldedPool value (Orchard by default)
+            ironwood_digest: 32-byte Ironwood digest for transaction v6
             orchard_flags: bundle flags byte (enables digest verification)
             orchard_value_balance: signed i64 value balance
             orchard_anchor: 32-byte anchor
+            tx_version: transaction version used to verify header_digest
+            version_group_id: transaction version group ID
+            lock_time: transaction lock time
+            expiry_height: transaction expiry height
+            transparent_outputs: output dicts matching ZcashTransparentOutput
+            transparent_inputs: input dicts matching ZcashTransparentInput;
+                host-provided per-input sighashes are rejected by RC18
+            return_transparent_signatures: when true, return a tuple of
+                (ZcashSignedPCZT, [DER transparent signatures])
 
         Returns:
-            ZcashSignedPCZT with .signatures list and optional .txid
+            ZcashSignedPCZT with compact Orchard signatures and optional txid,
+            or a tuple including transparent signatures when requested.
         """
         n_actions = len(actions)
         if n_actions == 0:
             raise ValueError("Must have at least one action")
+
+        for idx, action in enumerate(actions):
+            if 'is_spend' not in action or not isinstance(action['is_spend'], bool):
+                raise ValueError(
+                    "Orchard action %d must explicitly set boolean is_spend" % idx)
+
+        transparent_outputs = transparent_outputs or []
+        transparent_inputs = transparent_inputs or []
+        for inp in transparent_inputs:
+            if 'sighash' in inp:
+                raise ValueError(
+                    "Host-provided transparent sighash is rejected by firmware 7.15")
 
         # Build the initial signing request — only send address_n,
         # let firmware derive account from the path. Only set account
@@ -1856,39 +2104,104 @@ class ProtocolMixin(object):
             kwargs['sapling_digest'] = sapling_digest
         if orchard_digest is not None:
             kwargs['orchard_digest'] = orchard_digest
+        if shielded_pool is not None:
+            kwargs['shielded_pool'] = shielded_pool
+        if ironwood_digest is not None:
+            kwargs['ironwood_digest'] = ironwood_digest
         if orchard_flags is not None:
             kwargs['orchard_flags'] = orchard_flags
         if orchard_value_balance is not None:
             kwargs['orchard_value_balance'] = orchard_value_balance
         if orchard_anchor is not None:
             kwargs['orchard_anchor'] = orchard_anchor
+        if tx_version is not None:
+            kwargs['tx_version'] = tx_version
+        if version_group_id is not None:
+            kwargs['version_group_id'] = version_group_id
+        if lock_time is not None:
+            kwargs['lock_time'] = lock_time
+        if expiry_height is not None:
+            kwargs['expiry_height'] = expiry_height
+        if transparent_outputs:
+            kwargs['n_transparent_outputs'] = len(transparent_outputs)
+        if transparent_inputs:
+            kwargs['n_transparent_inputs'] = len(transparent_inputs)
+        if expected_seed_fingerprint is not None:
+            kwargs['expected_seed_fingerprint'] = expected_seed_fingerprint
 
         resp = self.call(zcash_proto.ZcashSignPCZT(**kwargs))
 
-        # Phase 2: Orchard action-ack loop — device asks for actions one at a time
+        # Transparent plaintext is streamed outputs-first. Firmware uses field
+        # presence to distinguish output and input acknowledgments, so never
+        # infer a missing index as zero.
+        sent_outputs = 0
+        while (sent_outputs < len(transparent_outputs) and
+               isinstance(resp, zcash_proto.ZcashTransparentAck)):
+            if not resp.HasField('next_output_index'):
+                raise Exception("Device did not request the next transparent output")
+            idx = resp.next_output_index
+            if idx != sent_outputs:
+                raise Exception(
+                    "Device requested transparent output %d after %d outputs"
+                    % (idx, sent_outputs))
+            if idx >= len(transparent_outputs):
+                raise Exception(
+                    "Device requested transparent output %d but only %d provided"
+                    % (idx, len(transparent_outputs)))
+            output = dict(transparent_outputs[idx])
+            output.pop('index', None)
+            resp = self.call(zcash_proto.ZcashTransparentOutput(index=idx, **output))
+            sent_outputs += 1
+
+        sent_inputs = 0
+        while (sent_inputs < len(transparent_inputs) and
+               isinstance(resp, zcash_proto.ZcashTransparentAck)):
+            if not resp.HasField('next_input_index'):
+                raise Exception("Device did not request the next transparent input")
+            idx = resp.next_input_index
+            if idx != sent_inputs:
+                raise Exception(
+                    "Device requested transparent input %d after %d inputs"
+                    % (idx, sent_inputs))
+            if idx >= len(transparent_inputs):
+                raise Exception(
+                    "Device requested transparent input %d but only %d provided"
+                    % (idx, len(transparent_inputs)))
+            inp = dict(transparent_inputs[idx])
+            inp.pop('index', None)
+            resp = self.call(zcash_proto.ZcashTransparentInput(index=idx, **inp))
+            sent_inputs += 1
+
+        if sent_outputs != len(transparent_outputs):
+            raise Exception("Device did not request every transparent output")
+        if sent_inputs != len(transparent_inputs):
+            raise Exception("Device did not request every transparent input")
+
+        # Orchard action-ack loop: the device chooses the next action index.
+        sent_actions = set()
         while isinstance(resp, zcash_proto.ZcashPCZTActionAck):
+            if not resp.HasField('next_index'):
+                raise Exception("Device did not identify the next Orchard action")
             idx = resp.next_index
             if idx >= n_actions:
                 raise Exception(
                     "Device requested action index %d but only %d actions provided"
                     % (idx, n_actions))
+            if idx in sent_actions:
+                raise Exception("Device requested Orchard action %d twice" % idx)
             action = actions[idx]
             resp = self.call(zcash_proto.ZcashPCZTAction(index=idx, **action))
+            sent_actions.add(idx)
 
-        # Phase 3: Transparent input signing — device sends back signatures
-        # and may request transparent inputs for shielding transactions
+        if sent_actions != set(range(n_actions)):
+            raise Exception("Device did not request every Orchard action")
+
+        # RC18 defers transparent signatures until every Orchard action, digest,
+        # and fee has passed. They are emitted immediately before SignedPCZT.
         transparent_sigs = []
-        while isinstance(resp, zcash_proto.ZcashTransparentSig):
-            transparent_sigs.append(resp)
-            if not transparent_inputs:
-                raise Exception(
-                    "Device sent ZcashTransparentSig but no transparent_inputs provided")
-            if resp.next_index >= len(transparent_inputs):
-                raise Exception(
-                    "Device requested transparent input %d but only %d provided"
-                    % (resp.next_index, len(transparent_inputs)))
-            inp = transparent_inputs[resp.next_index]
-            resp = self.call(zcash_proto.ZcashTransparentInput(**inp))
+        if isinstance(resp, zcash_proto.ZcashTransparentSigned):
+            transparent_sigs = list(resp.signatures)
+            resp = self.transport.read_blocking()
 
         if isinstance(resp, proto.Failure):
             raise Exception("Zcash signing failed: %s" % resp.message)
@@ -1896,7 +2209,103 @@ class ProtocolMixin(object):
         if not isinstance(resp, zcash_proto.ZcashSignedPCZT):
             raise Exception("Unexpected response type: %s" % type(resp))
 
+        # Count the transparent signatures the same way the Orchard signatures
+        # are counted below. Without this, a device that skips
+        # ZcashTransparentSigned entirely, or returns a short list, reaches the
+        # caller as success and hands back a transaction whose transparent
+        # inputs can never be spent. Checked after the Failure and response-type
+        # arms above so a device-reported error still surfaces its own message.
+        if len(transparent_sigs) != len(transparent_inputs):
+            raise Exception(
+                "Device returned %d transparent signatures for %d transparent inputs"
+                % (len(transparent_sigs), len(transparent_inputs)))
+        # Transparent signatures are DER ECDSA, so their length is not fixed the
+        # way a 64-byte RedPallas signature is; an empty entry is still a missing
+        # signature dressed up as a present one.
+        for signature in transparent_sigs:
+            if not signature:
+                raise Exception("Device returned an empty transparent signature")
+
+        expected_signatures = sum(1 for action in actions if action['is_spend'])
+        if len(resp.signatures) != expected_signatures:
+            raise Exception(
+                "Device returned %d Orchard signatures for %d real spends"
+                % (len(resp.signatures), expected_signatures))
+        for signature in resp.signatures:
+            if len(signature) != 64:
+                raise Exception("Device returned an invalid RedPallas signature")
+
+        if return_transparent_signatures:
+            return resp, transparent_sigs
         return resp
+
+    # ── Hive ────────────────────────────────────────────────────
+    @expect(hive_proto.HivePublicKey)
+    def hive_get_public_key(self, address_n, show_display=False, role=None):
+        kwargs = dict(address_n=address_n, show_display=show_display)
+        if role is not None:
+            kwargs['role'] = role
+        return self.call(hive_proto.HiveGetPublicKey(**kwargs))
+
+    @expect(hive_proto.HivePublicKeys)
+    def hive_get_public_keys(self, account_index=0, show_display=False):
+        return self.call(
+            hive_proto.HiveGetPublicKeys(account_index=account_index, show_display=show_display)
+        )
+
+    @expect(hive_proto.HiveSignedTx)
+    def hive_sign_tx(self, address_n, chain_id, ref_block_num, ref_block_prefix,
+                     expiration, sender, recipient, amount, decimals, asset_symbol, memo=''):
+        return self.call(hive_proto.HiveSignTx(**{
+            'address_n': address_n,
+            'chain_id': chain_id,
+            'ref_block_num': ref_block_num,
+            'ref_block_prefix': ref_block_prefix,
+            'expiration': expiration,
+            'from': sender,
+            'to': recipient,
+            'amount': amount,
+            'decimals': decimals,
+            'asset_symbol': asset_symbol,
+            'memo': memo,
+        }))
+
+    @expect(hive_proto.HiveSignedAccountCreate)
+    def hive_sign_account_create(self, address_n, chain_id, ref_block_num, ref_block_prefix,
+                                 expiration, creator, new_account_name, fee_amount=3000,
+                                 owner_key='', active_key='', posting_key='', memo_key=''):
+        return self.call(hive_proto.HiveSignAccountCreate(
+            address_n=address_n,
+            chain_id=chain_id,
+            ref_block_num=ref_block_num,
+            ref_block_prefix=ref_block_prefix,
+            expiration=expiration,
+            creator=creator,
+            new_account_name=new_account_name,
+            fee_amount=fee_amount,
+            owner_key=owner_key,
+            active_key=active_key,
+            posting_key=posting_key,
+            memo_key=memo_key,
+        ))
+
+    @expect(hive_proto.HiveSignedAccountUpdate)
+    def hive_sign_account_update(self, address_n, chain_id, ref_block_num, ref_block_prefix,
+                                 expiration, account,
+                                 new_owner_key='', new_active_key='',
+                                 new_posting_key='', new_memo_key=''):
+        return self.call(hive_proto.HiveSignAccountUpdate(
+            address_n=address_n,
+            chain_id=chain_id,
+            ref_block_num=ref_block_num,
+            ref_block_prefix=ref_block_prefix,
+            expiration=expiration,
+            account=account,
+            new_owner_key=new_owner_key,
+            new_active_key=new_active_key,
+            new_posting_key=new_posting_key,
+            new_memo_key=new_memo_key,
+        ))
 
 class KeepKeyClient(ProtocolMixin, TextUIMixin, BaseClient):
     pass

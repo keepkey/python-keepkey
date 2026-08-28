@@ -28,35 +28,130 @@ from keepkeylib.tools import int_to_big_endian
 from keepkeylib import tools
 
 class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
-  
+
+    def test_ethereum_sign_x402_eip3009(self):
+        """x402 EVM exact payments clear-sign the EIP-3009 authorization.
+
+        This fixture follows the official v2 EVM shape: Base Sepolia USDC,
+        ``TransferWithAuthorization``, facilitator-paid gas, and the exact
+        recipient and value embedded in the signed EIP-712 message.
+        """
+        self.requires_fullFeature()
+        # RC18 still exposes the legacy JSON endpoint. Its fail-closed
+        # retirement and the replacement streamed implementation land on 7.16.
+        self.requires_firmware("7.16.0")
+        self.requires_message("Ethereum712TypesValues")
+        self.setup_mnemonic_allallall()
+
+        typed_data = {
+            "types": {
+                "EIP712Domain": [
+                    {"name": "name", "type": "string"},
+                    {"name": "version", "type": "string"},
+                    {"name": "chainId", "type": "uint256"},
+                    {"name": "verifyingContract", "type": "address"},
+                ],
+                "TransferWithAuthorization": [
+                    {"name": "from", "type": "address"},
+                    {"name": "to", "type": "address"},
+                    {"name": "value", "type": "uint256"},
+                    {"name": "validAfter", "type": "uint256"},
+                    {"name": "validBefore", "type": "uint256"},
+                    {"name": "nonce", "type": "bytes32"},
+                ],
+            },
+            "primaryType": "TransferWithAuthorization",
+            "domain": {
+                "name": "USDC",
+                "version": "2",
+                "chainId": 84532,
+                "verifyingContract":
+                    "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            },
+            "message": {
+                "from": "0x73d0385F4d8E00C5e6504C6030F47BF6212736A8",
+                "to": "0x209693Bc6afc0C5328bA36FaF03C514EF312287C",
+                "value": "2000",
+                "validAfter": "0",
+                "validBefore": "2000000000",
+                "nonce": "0xf3746613c2d920b5fdabc0856f2aeb2d4f88ee6037b8cc5d04a71a4462f13480",
+            },
+        }
+
+        # Hardened firmware disables legacy structured EIP-712 outright,
+        # pending canonical
+        # display hardening: the device could not prove that what it rendered
+        # was what it hashed. This vector is the x402 EIP-3009
+        # TransferWithAuthorization payment flow, and it is currently REFUSED
+        # rather than signed.
+        #
+        # The expected hashes are retained below the refusal, unused, because
+        # they are independent reference values from the EIP-712 V4 encoder and
+        # are what this test should assert again the day the display hardening
+        # lands. Deleting them would lose the only checked-in oracle for this
+        # vector. See docs/security/ for the 7.16 structured-EIP-712 item.
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException) as ctx:
+            self.client.ethereum_sign_typed_data(
+                tools.parse_path("m/44'/60'/0'/0/0"), typed_data)
+        self.assertIn("Structured EIP-712 disabled", str(ctx.exception))
+
+        # Re-enable when structured EIP-712 returns:
+        #   domain_separator_hash
+        #     71f17a3b2ff373b803d70a5a07c046c1a2bc8e89c09ef722fcb047abe94c9818
+        #   message_hash
+        #     ccb8d59d2e8a63beafb02887b4c9dd2f79d3527df4167f8c6b36e3e43cf373be
+        #   address 0x73d0385F4d8E00C5e6504C6030F47BF6212736A8, 65-byte signature
+
     def test_ethereum_sign_typed_data_hash(self):
         self.requires_fullFeature()
-        self.requires_firmware("7.4.0")
+        self.requires_firmware("7.15.0")
         self.setup_mnemonic_allallall()
         # 7.14.2 gates precomputed typed hashes behind AdvancedMode: the device
-        # cannot bind the hash to any typed data it displayed. Opt in explicitly.
+        # cannot bind the hash to any typed data it displayed. Opt in explicitly
+        # rather than having the firmware relax the gate.
         self.client.apply_policy("AdvancedMode", 1)
         fixture_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                     'sign_typed_data.json')
         with open(fixture_path, encoding="utf-8") as f:
             txtests = json.load(f)
 
-        for test in txtests['tests']:
-            print("test: ", json.dumps(test['name']))
-            if test['parameters']['message_hash'] != None:
-                retval = self.client.ethereum_sign_typed_data_hash(
-                    n = tools.parse_path(test['parameters']['path']),
-                    ds_hash = binascii.unhexlify(test['parameters']['domain_separator_hash'][2:]),
-                    m_hash = binascii.unhexlify(test['parameters']['message_hash'][2:])
-                    )
-            else:
-                retval = self.client.ethereum_sign_typed_data_hash(
-                    n = tools.parse_path(test['parameters']['path']),
-                    ds_hash = binascii.unhexlify(test['parameters']['domain_separator_hash'][2:]),
-                    )
+        def sign(test):
+            parameters = test['parameters']
+            kwargs = {
+                'n': tools.parse_path(parameters['path']),
+                'ds_hash': binascii.unhexlify(
+                    parameters['domain_separator_hash'][2:]),
+            }
+            if parameters['message_hash'] is not None:
+                kwargs['m_hash'] = binascii.unhexlify(
+                    parameters['message_hash'][2:])
+            return self.client.ethereum_sign_typed_data_hash(**kwargs)
 
-            self.assertEqual(retval.address, test['result']['address'])
-            self.assertEqual(binascii.hexlify(retval.signature), test['result']['sig'][2:])
+        # This endpoint receives only precomputed hashes. It must fail closed
+        # unless the user explicitly opts in to blind signing.
+        self.client.apply_policy('AdvancedMode', False)
+        with self.assertRaises(CallException) as ctx:
+            sign(txtests['tests'][0])
+        # The firmware names the remedy rather than just the refusal:
+        # "Enable AdvancedMode to blind-sign typed hashes".
+        message = str(ctx.exception)
+        self.assertTrue(
+            'Enable AdvancedMode to blind-sign typed hashes' in message
+            or 'Typed-hash signing disabled by policy' in message,
+            'unexpected typed-hash refusal: %s' % message)
+
+        self.client.apply_policy('AdvancedMode', True)
+        try:
+            for test in txtests['tests']:
+                print("test: ", json.dumps(test['name']))
+                retval = sign(test)
+                self.assertEqual(retval.address, test['result']['address'])
+                self.assertEqual(
+                    binascii.hexlify(retval.signature),
+                    test['result']['sig'][2:])
+        finally:
+            self.client.apply_policy('AdvancedMode', False)
 
 if __name__ == '__main__':
     unittest.main()

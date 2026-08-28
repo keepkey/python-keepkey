@@ -42,18 +42,34 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
         recipient = self.client.ethereum_get_address([0, 0])
         pseudo_address = b"\xee" * 20
+        if self.firmware_at_least("7.15.0"):
+            expected_frames = {
+                "transfer": (
+                    "7910ca5cdea6e4f6870dad52fde79fd55891fd38fe2ad5d3295502fdf578dfe7"),
+                "approve": (
+                    "e8e44436251ef16cb00192f23adcc86f843201d676d1a3d2377a1e8ae6330c01"),
+            }
+        else:
+            # 7.14.3 uses the pre-7.15 review layout while proving the same
+            # off-mainnet unknown-token property.
+            expected_frames = {
+                "transfer": (
+                    "85d9054ee56836c1784c90dd777fc89444bf82b840d0818a59c73aa5b57ee35d"),
+                "approve": (
+                    "ab30156ff400957ffa9146ea827318bf878614e6ab4ae7dd731824e285fa5da6"),
+            }
         calls = (
             (
                 "transfer",
                 binascii.unhexlify("a9059cbb" + "00" * 12) +
                 recipient + int_to_big_endian(1).rjust(32, b"\x00"),
-                "85d9054ee56836c1784c90dd777fc89444bf82b840d0818a59c73aa5b57ee35d",
+                expected_frames["transfer"],
             ),
             (
                 "approve",
                 binascii.unhexlify("095ea7b3" + "00" * 12) +
                 recipient + int_to_big_endian(1).rjust(32, b"\x00"),
-                "ab30156ff400957ffa9146ea827318bf878614e6ab4ae7dd731824e285fa5da6",
+                expected_frames["approve"],
             ),
         )
 
@@ -221,6 +237,10 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
     def test_ethereum_blind_sign_blocked(self):
         """AdvancedMode OFF + contract data = device refuses to sign (7.14.2+).
 
+        OLED shows the blind-sign refusal, then Failure. The wire message is
+        7.14.2's "Arbitrary contract data signing disabled by policy", which
+        replaced alpha's shorter "Blind signing disabled" -- it names WHICH
+        policy refused and what it refused.
         The device identifies the transaction destination, displays one
         non-approving Blocked notice, then returns the policy failure. The
         exact two-ButtonRequest -> Failure sequence proves the host cannot
@@ -267,7 +287,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
         OLED shows 'BLIND SIGNATURE' before signing.
         """
-        self.requires_firmware("7.14.0")
+        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
@@ -406,7 +426,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
     def test_ethereum_signtx_omitted_chain_id_rejected(self):
         """An omitted chain_id must be refused, not silently signed pre-EIP-155.
 
-        Before 7.14.2 the `chain_id < 1` bounds check lived inside
+        Before the post-RC18 hardening the `chain_id < 1` bounds check lived inside
         `if (msg->has_chain_id)`, so a host that simply left the field out
         reached chain_id == 0 without tripping it. Two things followed:
 
@@ -422,7 +442,9 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         sibling tests in this file all now pass chain_id explicitly so they
         keep exercising their own subject rather than this one.
         """
-        self.requires_firmware("7.14.2")
+        # Explicit zero was already rejected on RC18, but an omitted field was
+        # not. The absent-field fix landed after RC18 and first ships in 7.16.
+        self.requires_firmware("7.16.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
@@ -621,6 +643,65 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertEqual(
             binascii.hexlify(sig_s),
             "67297089e0ba53c29dda1aafc23fce64a772c5433e127e5885edc03ece4670c9",
+        )
+
+    def test_ethereum_eip_1559_multibyte_chain_id(self):
+        """EIP-1559 must hash the WHOLE chain_id, not just its low byte.
+
+        Regression for the multi-byte chain_id bug (firmware ed6db167). The
+        EIP-1559 hash step used hash_rlp_field((uint8_t*)&chain_id, 1), which on
+        little-endian ARM fed only the least-significant byte into keccak. For
+        Base (8453 = 0x2105) that hashed 0x05, so the signature recovered to an
+        unrelated address with no funds. The RLP *length* was computed correctly
+        from the full value and the legacy EIP-155 path was always correct —
+        only the EIP-1559 hash was wrong. Affected: Base (8453), Arbitrum
+        (42161), Avalanche (43114). Unaffected: ETH (1), OP (10), BSC (56),
+        Polygon (137) — all single-byte.
+
+        Every other EIP-1559 case in this file uses chain_id 1 or 3, so the bug
+        had no coverage in the file that tests the feature.
+
+        A golden r/s would need a device run to produce, so this is a
+        differential. Sign one identical transaction under two chain ids the
+        BUGGY firmware cannot tell apart:
+
+            8453 = 0x2105   low byte 0x05, two-byte value
+            4357 = 0x1105   low byte 0x05, two-byte value
+
+        Same low byte AND same RLP length header, so the broken code hashes a
+        byte-identical pre-image for both. Signing is deterministic (RFC 6979),
+        so buggy firmware returns the SAME signature twice and this fails.
+        Correct firmware hashes 0x21 0x05 vs 0x11 0x05, which must differ.
+
+        Note a comparison against chain_id=5 would NOT work: the RLP length was
+        always derived from the full value, so the buggy pre-image for 8453 is
+        malformed rather than equal to a well-formed single-byte encoding. The
+        twin must match on both low byte and byte-width.
+        """
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        def sign(chain_id):
+            return self.client.ethereum_sign_tx(
+                n=[0x80000000 | 44, 0x80000000 | 60, 0x80000000, 0, 0],
+                nonce=0,
+                gas_limit=0x5ac3,
+                max_fee_per_gas=0x16854be509,
+                max_priority_fee_per_gas=0x540ae480,
+                to=binascii.unhexlify("fc0cc6e85dff3d75e3985e0cb83b090cfd498dd1"),
+                value=0x1550f7dca70000,
+                chain_id=chain_id,
+            )
+
+        _, base_r, base_s = sign(8453)
+        _, twin_r, twin_s = sign(4357)
+
+        self.assertNotEqual(
+            (binascii.hexlify(base_r), binascii.hexlify(base_s)),
+            (binascii.hexlify(twin_r), binascii.hexlify(twin_s)),
+            "chain_id 8453 and 4357 produced the same signature — only the low "
+            "byte of chain_id reached the EIP-1559 hash",
         )
 
     def test_ethereum_signtx_nodata_eip_1559(self):

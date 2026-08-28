@@ -1,6 +1,6 @@
 """BIP-85 display-only tests.
 
-Firmware >= 7.14.0 derives the BIP-85 child mnemonic, displays it on the
+Firmware >= 7.15.0 derives the BIP-85 child mnemonic, displays it on the
 device screen, and responds with Success (mnemonic is never sent over USB).
 
 Tests verify:
@@ -19,8 +19,8 @@ class TestMsgBip85(common.KeepKeyTest):
 
     def setUp(self):
         super().setUp()
-        self.requires_firmware("7.14.0")
-        self.requires_message("GetBip85Mnemonic")
+        self.requires_firmware("7.15.0")
+        self.requires_fullFeature()
 
     def test_bip85_12word_flow(self):
         """12-word derivation: verify device goes through display flow and returns Success."""
