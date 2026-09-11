@@ -359,7 +359,7 @@ def detect_fw():
 # Census of everything the merged JUnit actually contained, so the report can
 # state how much of the run it covers.  Without this the PDF silently implies
 # that its catalog IS the test suite -- an RC audit read "no dice in the report"
-# as "dice is untested" when test_reset_device_dice had in fact run green.
+# as "dice is untested" when the dice reset test had in fact run green.
 JUNIT_CENSUS = {'ran': 0, 'skipped': 0, 'native': 0}
 
 
@@ -824,14 +824,45 @@ SECTIONS = [
          'PIN KDF: a v16 storage blob must still unlock and then rewrap to v19, or the upgrade bricks.',
      ],
      [
-         ('K1', 'test_msg_resetdevice', 'test_reset_device_dice',
-          'Dice entropy end-to-end',
-          'Drives the full on-device dice flow over DebugLink: 99 rolls injected in chunks with undo '
-          'exercised, extras past the cap dropped. Asserts the device-computed digest equals '
-          'SHA256 of exactly the expected roll string, then derives the mnemonic from the post-mix '
-          'internal entropy and compares -- which is what proves the rolls actually reached the seed '
-          'rather than being collected and discarded.',
-          ['Dice entry screen', 'Digest confirmation']),
+         ('K1', 'test_msg_resetdevice', 'test_reset_device_dice_mixed_is_verifiable',
+          'Dice + device entropy, verified offline',
+          'Host selects MIXED (dice_entropy alone). The device shows the consent screen naming the '
+          'mode, then its own 32-byte draw as 24 BIP-39 words BEFORE any roll, then collects 99 rolls '
+          'over DebugLink with undo exercised. The test decodes the 24 words with its own '
+          'checksum-verified BIP-39 decoder, recomputes '
+          'seed = SHA256d(tag || draw || SHA256(tag || rolls)) from the published formula -- with the '
+          'host\'s EntropyAck bytes nowhere in it -- and requires the backup words to match. That is '
+          'the proof a user can repeat with tools/verify_dice_seed.py: the rolls reached the seed, '
+          'the device draw was the one it committed to, and the host contributed nothing.',
+          ['Mode consent', 'Dice entry screen', 'Digest confirmation']),
+         ('K1b', 'test_msg_resetdevice', 'test_reset_device_dice_only_is_verifiable',
+          'Dice only, verified offline',
+          'Host selects DICE ONLY (dice_entropy + dice_only), 50 rolls for a 12-word seed. No device '
+          'words are shown -- the rolls are the entire derivation -- and the test requires the backup '
+          'words to equal BIP39(SHA256(rolls)) while sending a nonzero EntropyAck that must be '
+          'ignored. Byte-identical to Coldcard\'s Dice-Rolls-Only.',
+          ['Mode consent', 'Dice entry screen', 'Digest confirmation']),
+         ('K1c', 'test_msg_resetdevice', 'test_reset_device_dice_rejects_biased_rolls',
+          'Loaded die is refused',
+          'Fifty ones -- one face on 100% of the rolls. Refused with SyntaxError before any digest '
+          'is drawn, per Coldcard\'s 30%-per-face rule, so a biased die never becomes a wallet.',
+          []),
+         ('K1d', 'test_msg_resetdevice', 'test_reset_device_dice_only_requires_dice_entropy',
+          'dice_only without dice_entropy is refused',
+          'The rolls-only derivation is a modifier of the dice ceremony, not a ceremony of its own; '
+          'the request is refused before any screen.',
+          []),
+         ('K1e', 'test_msg_resetdevice', 'test_reset_device_dice_refuses_no_backup',
+          'Dice with no_backup is refused',
+          'The dice modes exist to be checked against the backup words. A reset that never shows '
+          'them has nothing to verify and would put seed material on the screen under a WARNING '
+          'that recovery is impossible; refused before any screen.',
+          []),
+         ('K1f', 'test_msg_resetdevice', 'test_reset_device_dice_consent_cancel_aborts',
+          'Cancel at the consent screen aborts everything',
+          'The consent screen\'s only "no" is the host\'s Cancel. Asserts ActionCancelled, that a '
+          'subsequent EntropyAck finds no armed ceremony, and that the device is still uninitialized.',
+          []),
          ('K2', 'test_msg_resetdevice', 'test_reset_reentry_disarms_entropy_ack',
           'Aborted reset disarms EntropyAck',
           'Regression for a host-chosen-seed hole: reset_init aborts left awaiting_entropy set from '

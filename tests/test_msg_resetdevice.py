@@ -208,14 +208,22 @@ class TestDeviceReset(common.KeepKeyTest):
         ]
         expected = []
         for chunk in chunks:
+            # Mirror dice_input_collect() exactly: it stops consuming a chunk
+            # the moment the target is reached -- undo included -- and leaves
+            # the roll screen at that moment. A chunk sent after that would
+            # arrive at the digest confirm as a "no" decision, so stop too.
             for c in chunk:
+                if len(expected) >= target:
+                    break
                 if c == 'u':
                     if expected:
                         expected.pop()
-                elif len(expected) < target:
+                else:
                     expected.append(c)
             self.client.debug.press_input(chunk)
             time.sleep(0.2)
+            if len(expected) >= target:
+                break
         expected = ''.join(expected)
         self.assertEqual(len(expected), target)
         return expected
@@ -279,8 +287,15 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertEqual(self.client.debug.read_dice_digest(),
                          hashlib.sha256(rolls.encode('ascii')).digest())
 
-        self.client.debug.press_yes()
-        ret = self.client.call_raw(proto.ButtonAck())
+        # The full digest pages locally under one request on hardware, but
+        # under DEBUG_LINK every subpage after a debug decision raises its own
+        # ButtonRequest, exactly as the backup pager does. Hold through all of
+        # them; how many there are depends on the digest's glyph widths.
+        ret = resp
+        while isinstance(ret, proto.ButtonRequest):
+            self.assertEqual(ret.code, proto_types.ButtonRequest_DiceRoll)
+            self.client.debug.press_yes()
+            ret = self.client.call_raw(proto.ButtonAck())
 
         # The wire flow is unchanged: EntropyRequest is still sent and its ack
         # consumed. Its bytes must not reach the seed, which the callers prove
@@ -306,9 +321,7 @@ class TestDeviceReset(common.KeepKeyTest):
         return ' '.join(device_words), rolls, ' '.join(mnemonic), resp
 
     def test_reset_device_dice_mixed_is_verifiable(self):
-        # Dice exist from 7.14.3; the mode selector this drives ships with the
-        # verifiable-dice unit on both 7.14.3 and 7.15.
-        self.requires_firmware("7.14.3")
+        self.requires_dice_modes()
 
         external_entropy = b'zlutoucky kun upel divoke ody' * 2
         strength = 256  # 99 rolls, 24 words
@@ -332,7 +345,7 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertEqual(24, len(mnemonic.split()))
 
     def test_reset_device_dice_only_is_verifiable(self):
-        self.requires_firmware("7.14.3")
+        self.requires_dice_modes()
 
         # A nonzero, known host contribution, so a device that mixed it in
         # would produce a different sentence and fail below.
@@ -351,7 +364,7 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertEqual(12, len(mnemonic.split()))
 
     def test_reset_device_dice_rejects_biased_rolls(self):
-        self.requires_firmware("7.14.3")
+        self.requires_dice_modes()
 
         ret = self.client.call_raw(proto.ResetDevice(display_random=False,
                                                strength=128,
@@ -382,7 +395,7 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertEqual(resp.code, proto_types.Failure_SyntaxError)
 
     def test_reset_device_dice_only_requires_dice_entropy(self):
-        self.requires_firmware("7.14.3")
+        self.requires_dice_modes()
 
         # dice_only is a modifier of the dice ceremony, not a ceremony of its
         # own. Refused before any screen, so a host cannot reach the
@@ -397,6 +410,52 @@ class TestDeviceReset(common.KeepKeyTest):
                                                dice_only=True))
         self.assertIsInstance(ret, proto.Failure)
         self.assertEqual(ret.code, proto_types.Failure_SyntaxError)
+
+    def test_reset_device_dice_refuses_no_backup(self):
+        self.requires_dice_modes()
+
+        # The dice modes exist to be checked against the backup words; a reset
+        # that never shows them has nothing to verify and would put seed
+        # material on the screen under a WARNING that recovery is impossible.
+        ret = self.client.call_raw(proto.ResetDevice(display_random=False,
+                                               strength=128,
+                                               passphrase_protection=False,
+                                               pin_protection=False,
+                                               language='english',
+                                               label='dice',
+                                               no_backup=True,
+                                               dice_entropy=True))
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertEqual(ret.code, proto_types.Failure_SyntaxError)
+
+    def test_reset_device_dice_consent_cancel_aborts(self):
+        self.requires_dice_modes()
+
+        # The consent screen's only "no" is the host's Cancel. It must abort
+        # the whole ceremony: nothing armed, nothing staged, device still
+        # uninitialized.
+        ret = self.client.call_raw(proto.ResetDevice(display_random=False,
+                                               strength=128,
+                                               passphrase_protection=False,
+                                               pin_protection=False,
+                                               language='english',
+                                               label='dice',
+                                               dice_entropy=True,
+                                               dice_only=True))
+        self.assertIsInstance(ret, proto.ButtonRequest)
+        self.assertEqual(ret.code, proto_types.ButtonRequest_DiceRoll)
+
+        resp = self.client.call_raw(proto.Cancel())
+        self.assertIsInstance(resp, proto.Failure)
+        self.assertEqual(resp.code, proto_types.Failure_ActionCancelled)
+
+        # An EntropyAck after the abort finds no armed ceremony to consume it.
+        resp = self.client.call_raw(proto.EntropyAck(entropy=b'\x42' * 32))
+        self.assertIsInstance(resp, proto.Failure)
+
+        features = self.client.call_raw(proto.Initialize())
+        self.assertIsInstance(features, proto.Features)
+        self.assertFalse(features.initialized)
 
     def test_reset_reentry_disarms_entropy_ack(self):
         """An abandoned reset must never leave EntropyAck armed.
