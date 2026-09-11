@@ -875,24 +875,47 @@ SECTIONS = [
           'd6 carries log2(6)=2.585 bits, so 128/192/256-bit seeds need 50/75/99 rolls '
           '(the Coldcard convention). A short count would silently weaken the seed.',
           []),
-         ('K4', 'Dice', 'MixZeroEntropyVector',
-          'Mix known-answer vector (zero entropy)',
-          'SHA256(0x00*32 || "123456") against a hardcoded digest. Pins the mix construction so a '
-          'refactor cannot quietly change how dice enter the seed.',
+         ('K4', 'Dice', 'DeriveOnlyIsPlainSha256OfRolls',
+          'DICE ONLY known-answer vector',
+          'seed = SHA256("123456") against a digest computed in Python from the published formula, '
+          'not captured from this code. Pins the derivation to Coldcard\'s Dice-Rolls-Only byte '
+          'for byte, so a refactor cannot quietly change what a user must recompute offline.',
           []),
-         ('K5', 'Dice', 'MixNonZeroEntropyVector',
-          'Mix known-answer vector (non-zero entropy)',
-          'Same construction with a non-zero starting entropy buffer, pinned to a hardcoded digest.',
+         ('K5', 'Dice', 'DeriveMixedVector',
+          'MIXED known-answer vector',
+          'seed = SHA256d("KK\\x01SM" || 0x00..0x1f || SHA256("KK\\x01D" || "654321165243")) against a '
+          'Python-computed digest. Pins the tag bytes, hash order and double-SHA of the mixed '
+          'derivation -- the exact formula tools/verify_dice_seed.py implements.',
           []),
-         ('K6', 'Dice', 'MixDependsOnRolls',
-          'Different rolls produce different entropy',
-          'Two mixes differing only in the final roll must diverge. Catches a mix that ignores its '
-          'roll argument -- the failure mode where dice appear to work and contribute nothing.',
+         ('K5b', 'Dice', 'DeriveMixedZeroDeviceVector',
+          'MIXED known-answer vector (zero device draw)',
+          'Same construction with an all-zero device draw, pinned to a Python-computed digest.',
           []),
-         ('K7', 'Dice', 'MixUsesExactCount',
+         ('K5c', 'Dice', 'DeriveMixedAliasesInPlace',
+          'MIXED derives safely into its own input buffer',
+          'reset.c derives into the buffer the device draw lives in. In-place and separate-output '
+          'results must be identical, or the aliasing would corrupt the seed.',
+          []),
+         ('K6', 'Dice', 'DeriveMixedDiffersFromUntaggedMix',
+          'Tagged derivation cannot collide with the old formula',
+          'The MIXED seed for zero draw and "123456" must differ from SHA256(draw || rolls), the '
+          'derivation earlier firmware used, so a wallet is never silently re-derived under the '
+          'wrong formula.',
+          []),
+         ('K7', 'Dice', 'DeriveOnlyUsesExactCount',
           'Only the counted rolls contribute',
           'Bytes past the declared roll count must not affect the result, so uninitialized tail '
           'bytes of the roll buffer can never leak into seed material.',
+          []),
+         ('K7b', 'Dice', 'BiasGateIsThirtyPercentPerFace',
+          'Loaded-die gate threshold',
+          'Coldcard\'s rule: any face over 30% of the rolls is refused. 30/99 fails, 29/99 passes; '
+          '16/50 fails, 15/50 (exactly 30%) passes.',
+          []),
+         ('K7c', 'Dice', 'BiasGateRejectsNonDiceBytes',
+          'Non-d6 bytes are refused',
+          'A byte outside \'1\'-\'6\' anywhere inside the counted rolls is refused regardless of the '
+          'distribution of the rest.',
           []),
          ('K8', 'Storage', 'PinKdfRewrapsToActiveVersionAfterCorrectPin',
           'Correct PIN unlocks and rewraps to the ACTIVE KDF',
