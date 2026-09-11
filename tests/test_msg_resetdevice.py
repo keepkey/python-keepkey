@@ -220,11 +220,10 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertEqual(len(expected), target)
         return expected
 
-    def _dice_reset(self, mode_char, strength, external_entropy):
-        """Drive a dice ResetDevice through the on-device mode selector.
+    def _dice_reset(self, dice_only, strength, external_entropy):
+        """Drive a dice ResetDevice in the mode the host selects.
 
-        mode_char is '1' (MIXED) or '2' (ONLY), injected as a committed
-        selection exactly as a button hold would be. Returns
+        dice_entropy alone is MIXED; with dice_only it is ONLY. Returns
         (device_words, rolls, mnemonic, final_resp); device_words is the
         24-word device-entropy sentence MIXED shows before rolling, else ''.
         """
@@ -237,22 +236,22 @@ class TestDeviceReset(common.KeepKeyTest):
                                                pin_protection=False,
                                                language='english',
                                                label='dice',
-                                               dice_entropy=True))
+                                               dice_entropy=True,
+                                               dice_only=dice_only))
 
-        # The mode selector is the first dice screen. Every dice screen is
-        # acked without blocking: the device stays on it until the choice is
-        # committed, and input is ignored until the ack arrives.
+        # The consent screen names the mode the host asked for. It is a
+        # plain confirm: holding proceeds, and the only "no" is cancelling
+        # the reset, which is the right answer to a mode the user did not
+        # choose.
         self.assertIsInstance(ret, proto.ButtonRequest)
         self.assertEqual(ret.code, proto_types.ButtonRequest_DiceRoll)
-        selector_layout = self._capture_after_stable_transition(previous_layout)
-        self.client.transport.write(proto.ButtonAck())
-        time.sleep(0.3)
-        self.client.debug.press_input(mode_char)
+        consent_layout = self._capture_after_stable_transition(previous_layout)
+        self.client.debug.press_yes()
+        resp = self.client.call_raw(proto.ButtonAck())
 
         # MIXED shows the device-entropy words BEFORE the rolls, one DiceRoll
         # request per page, readable over DebugLink. The roll screen reads
         # back empty, which is how this loop knows the pages are over.
-        resp = self.client.transport.read_blocking()
         device_words = []
         while True:
             self.assertIsInstance(resp, proto.ButtonRequest)
@@ -264,7 +263,7 @@ class TestDeviceReset(common.KeepKeyTest):
                 device_words.append(words)
             self.client.debug.press_yes()
             resp = self.client.call_raw(proto.ButtonAck())
-        dice_entry_layout = self._capture_after_stable_transition(selector_layout)
+        dice_entry_layout = self._capture_after_stable_transition(consent_layout)
 
         self.client.transport.write(proto.ButtonAck())
         time.sleep(0.3)
@@ -315,7 +314,7 @@ class TestDeviceReset(common.KeepKeyTest):
         strength = 256  # 99 rolls, 24 words
 
         device_words, rolls, mnemonic, resp = self._dice_reset(
-            '1', strength, external_entropy)
+            False, strength, external_entropy)
         self.assertIsInstance(resp, proto.Success)
 
         # The device committed its 32-byte draw as 24 valid BIP-39 words
@@ -341,7 +340,7 @@ class TestDeviceReset(common.KeepKeyTest):
         strength = 128  # 50 rolls, 12 words: the shorter target too
 
         device_words, rolls, mnemonic, resp = self._dice_reset(
-            '2', strength, external_entropy)
+            True, strength, external_entropy)
         self.assertIsInstance(resp, proto.Success)
 
         # Nothing to copy down: the rolls are the entire derivation.
@@ -360,13 +359,11 @@ class TestDeviceReset(common.KeepKeyTest):
                                                pin_protection=False,
                                                language='english',
                                                label='dice',
-                                               dice_entropy=True))
+                                               dice_entropy=True,
+                                               dice_only=True))
         self.assertIsInstance(ret, proto.ButtonRequest)
-        self.client.transport.write(proto.ButtonAck())
-        time.sleep(0.3)
-        self.client.debug.press_input('2')
-
-        resp = self.client.transport.read_blocking()
+        self.client.debug.press_yes()
+        resp = self.client.call_raw(proto.ButtonAck())
         self.assertIsInstance(resp, proto.ButtonRequest)
         self.assertEqual(resp.code, proto_types.ButtonRequest_DiceRoll)
         self.client.transport.write(proto.ButtonAck())
@@ -383,6 +380,23 @@ class TestDeviceReset(common.KeepKeyTest):
         resp = self.client.transport.read_blocking()
         self.assertIsInstance(resp, proto.Failure)
         self.assertEqual(resp.code, proto_types.Failure_SyntaxError)
+
+    def test_reset_device_dice_only_requires_dice_entropy(self):
+        self.requires_firmware("7.14.3")
+
+        # dice_only is a modifier of the dice ceremony, not a ceremony of its
+        # own. Refused before any screen, so a host cannot reach the
+        # rolls-only derivation without also asking for the rolls.
+        ret = self.client.call_raw(proto.ResetDevice(display_random=False,
+                                               strength=128,
+                                               passphrase_protection=False,
+                                               pin_protection=False,
+                                               language='english',
+                                               label='dice',
+                                               dice_entropy=False,
+                                               dice_only=True))
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertEqual(ret.code, proto_types.Failure_SyntaxError)
 
     def test_reset_reentry_disarms_entropy_ack(self):
         """An abandoned reset must never leave EntropyAck armed.
