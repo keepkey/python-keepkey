@@ -125,7 +125,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: BitHighlander/keepkey-firmware
-          ref: d0a494a805533f02387f58d89dbb6f1fb09a621a
+          ref: d33f1711c3b2b205f64c5dc35fdec02926a6dc63
           path: keepkey-firmware
 
       # NOT `submodules: recursive`. trezor-firmware carries a micropython
@@ -362,7 +362,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: BitHighlander/keepkey-firmware
-          ref: e6a6711e5e4164d3b3840356dc301aa873f1fbf7
+          ref: 4125e1c7409b1cb7b08ba595bc408e3128fc24ca
           path: keepkey-firmware
 
       - name: Init the submodules the emulator build needs
@@ -543,10 +543,10 @@ jobs:
       matrix:
         include:
           - release: "7.14.3"
-            firmware_ref: e6a6711e5e4164d3b3840356dc301aa873f1fbf7
+            firmware_ref: 4125e1c7409b1cb7b08ba595bc408e3128fc24ca
             min_fw: "7.14.3"
           - release: "7.15"
-            firmware_ref: d0a494a805533f02387f58d89dbb6f1fb09a621a
+            firmware_ref: d33f1711c3b2b205f64c5dc35fdec02926a6dc63
             min_fw: "7.15.0"
 
     # KK_BITCOIN_ONLY=ON is a second shipping product, not a build flavour:
