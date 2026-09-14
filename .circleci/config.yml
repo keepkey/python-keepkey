@@ -38,10 +38,10 @@ jobs:
             git remote add origin \
               https://github.com/BitHighlander/keepkey-firmware.git
             git fetch --depth 1 origin \
-              d0a494a805533f02387f58d89dbb6f1fb09a621a
+              d33f1711c3b2b205f64c5dc35fdec02926a6dc63
             git checkout --detach FETCH_HEAD
             test "$(git rev-parse HEAD)" = \
-              d0a494a805533f02387f58d89dbb6f1fb09a621a
+              d33f1711c3b2b205f64c5dc35fdec02926a6dc63
 
             # Match firmware CI's build set. A recursive init reaches optional
             # trezor-firmware vendors that do not support shallow HTTPS clones.
