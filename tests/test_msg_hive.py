@@ -353,7 +353,11 @@ class TestMsgHive(common.KeepKeyTest):
         self.assertEqual((ref_num, ref_prefix, expiration), (12345, 67890, 1700000000))
         self.assertEqual(r.string(), b"kktester")     # from
         self.assertEqual(r.string(), b"kkrecipient")  # to
-        self.assertEqual(r.asset(), (1000, 3, "HIVE"))
+        # The WIRE spelling, per _WIRE_SYMBOL above: hived writes "STEEM" for
+        # HIVE, and this reads the bytes the device actually signed. Asserting
+        # the display name here passed only while the firmware serialized a
+        # symbol the chain does not use.
+        self.assertEqual(r.asset(), (1000, 3, _WIRE_SYMBOL["HIVE"]))
         self.assertEqual(r.string(), b"kktest")        # memo
         self.assertEqual(r.varint(), 0)                # extensions
         r.assert_end()
@@ -399,7 +403,7 @@ class TestMsgHive(common.KeepKeyTest):
         r = _Reader(resp.serialized_tx)
         ref_num, ref_prefix, expiration = _parse_header(r, HIVE_OP_ACCOUNT_CREATE)
         self.assertEqual((ref_num, ref_prefix, expiration), (12345, 67890, 1700000000))
-        self.assertEqual(r.asset(), (3000, 3, "HIVE"))     # fee
+        self.assertEqual(r.asset(), (3000, 3, _WIRE_SYMBOL["HIVE"]))  # fee
         self.assertEqual(r.string(), b"kksponsor")          # creator
         self.assertEqual(r.string(), b"kktestacct")         # new_account_name
         self.assertEqual(r.authority(), raw[ROLE_OWNER])

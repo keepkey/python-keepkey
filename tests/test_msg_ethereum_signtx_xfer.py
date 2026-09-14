@@ -59,8 +59,14 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                     data=erc20_data, chain_id=257,
                 )
             self.assertGreaterEqual(len(recorder.screens), 2)
+            # The 7.15 hash changed when the dylib's 1-bit serialiser stopped
+            # treating every nonzero shade as lit and adopted the ordered
+            # dithering the DebugLink layout and the capture ring already used
+            # (display_mono_pixel_is_lit). The frame this now hashes is the one
+            # the device's other evidence paths produce for the same screen;
+            # the old value came from the one serialiser that disagreed.
             expected_frame = (
-                "3915d325da0a0e9842d7eb3eaa6e01ef0bbf7e010790af883ca1a7f30770ae8f"
+                "beb98f914a77d933b458b625085cef4ea92a2a243bf56bee37abf95294d42497"
                 if self.firmware_at_least("7.15.0") else
                 "b0a3026e7af1778ebd71a968ace25c03945cccf2d8abc951e5dd65abc04e914e"
             )
