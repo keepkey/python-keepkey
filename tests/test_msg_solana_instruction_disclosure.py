@@ -62,6 +62,7 @@ def build_tx(account_keys, required_signatures, instructions,
 class TestSolanaInstructionDisclosure(common.KeepKeyTest):
     def setUp(self):
         super(TestSolanaInstructionDisclosure, self).setUp()
+        self.requires_fullFeature()
         self.requires_firmware("7.14.2")
         self.setup_mnemonic_allallall()
         response = self.client.call(solana.SolanaGetAddress(

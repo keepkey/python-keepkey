@@ -100,23 +100,9 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
         )
 
 
-    @unittest.skip(
-        "XRP memo is not a supported feature yet. A THORChain memo cannot "
-        "traverse hdwallet -> RippleSignTx: the protobuf has no memo field "
-        "(RippleSignTx carries 1-6, RipplePayment carries "
-        "amount/destination/destination_tag), and hdwallet's rippleSignTx "
-        "never reads tx.value.memo. The firmware therefore never receives it "
-        "and cannot serialize it. Tracked as keepkey/keepkey-vault#422.\n"
-        "\n"
-        "This assertion is CORRECT and is deliberately left intact: it "
-        "describes the behaviour the product needs. Do NOT make it pass by "
-        "asserting the memo is absent -- that would encode the bug as the "
-        "contract. Re-enable only when the signed serialization actually "
-        "preserves the memo."
-    )
     def test_sign_with_thorchain_memo(self):
         self.requires_fullFeature()
-        self.requires_firmware("7.14.2")
+        self.requires_firmware("7.15.0")
 
         self.setup_mnemonic_allallall()
 
@@ -164,6 +150,23 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
             b'\xf9\xea' in resp2.serialized_tx,
             "plain send must not contain Memos array (0xF9 0xEA marker sequence)"
         )
+
+    def test_unsupported_memo_is_rejected(self):
+        self.requires_fullFeature()
+        self.requires_firmware("7.14.3")
+        if self.firmware_at_least("7.15.0"):
+            self.skipTest("Ripple memos are implemented in 7.15")
+        self.setup_mnemonic_allallall()
+        msg = messages.RippleSignTx(
+            address_n=parse_path("m/44'/144'/0'/0/0"),
+            payment=messages.RipplePayment(
+                amount=100000000,
+                destination="rBKz5MC2iXdoS3XgnNSYmF69K1Yo4NS3Ws"),
+            flags=0x80000000, fee=100000, sequence=25,
+            memo="routing-memo")
+        with self.assertRaises(CallException) as caught:
+            self.client.call(msg)
+        self.assertEqual(caught.exception.args[0], types.Failure_SyntaxError)
 
     def test_ripple_sign_invalid_fee(self):
         self.requires_fullFeature()

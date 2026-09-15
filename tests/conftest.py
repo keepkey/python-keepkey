@@ -151,6 +151,8 @@ def _configured_emulator_endpoints(getaddrinfo):
 @pytest.fixture(autouse=True)
 def deny_external_network(monkeypatch, request):
     """Allow only local sockets and the harness's exact UDP emulator endpoints."""
+    from emulator_endpoints import is_owned_endpoint
+
     nodeid = request.node.nodeid
     original_getaddrinfo = socket.getaddrinfo
     original_connect = socket.socket.connect
@@ -166,7 +168,7 @@ def deny_external_network(monkeypatch, request):
 
     def guarded_getaddrinfo(host, *args, **kwargs):
         port = args[0] if args else kwargs.get('port')
-        if (host, port) not in emulator_names:
+        if (host, port) not in emulator_names and not is_owned_endpoint((host, port)):
             denied((host, port))
         return original_getaddrinfo(host, *args, **kwargs)
 
@@ -175,13 +177,14 @@ def deny_external_network(monkeypatch, request):
             return False
         # No Unix sockets, TCP loopback, or arbitrary localhost ports. The
         # authoritative suite may talk only to the two exact UDP transports
-        # configured for this emulator run.
+        # configured for this emulator run, plus explicit test-owned leases.
         if sock.family not in (socket.AF_INET, socket.AF_INET6):
             return False
         if (sock.type & 0x0f) != socket.SOCK_DGRAM:
             return False
         endpoint = (address[0], address[1])
-        return endpoint in emulator_names or endpoint in emulator_addresses
+        return (endpoint in emulator_names or endpoint in emulator_addresses
+                or is_owned_endpoint(endpoint))
 
     def guarded_connect(sock, address):
         if not allowed_socket_address(sock, address):
