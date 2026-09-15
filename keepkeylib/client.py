@@ -2189,7 +2189,12 @@ class ProtocolMixin(object):
                     % (idx, n_actions))
             if idx in sent_actions:
                 raise Exception("Device requested Orchard action %d twice" % idx)
-            action = actions[idx]
+            # The public action shape mirrors ZcashPCZTAction and may therefore
+            # include an index.  The device controls stream order, just as it
+            # does for transparent inputs and outputs above, so discard any
+            # caller copy before supplying the requested index.
+            action = dict(actions[idx])
+            action.pop('index', None)
             resp = self.call(zcash_proto.ZcashPCZTAction(index=idx, **action))
             sent_actions.add(idx)
 
