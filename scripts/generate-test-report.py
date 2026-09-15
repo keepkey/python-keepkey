@@ -359,7 +359,7 @@ def detect_fw():
 # Census of everything the merged JUnit actually contained, so the report can
 # state how much of the run it covers.  Without this the PDF silently implies
 # that its catalog IS the test suite -- an RC audit read "no dice in the report"
-# as "dice is untested" when test_reset_device_dice had in fact run green.
+# as "dice is untested" when the dice reset test had in fact run green.
 JUNIT_CENSUS = {'ran': 0, 'skipped': 0, 'native': 0}
 
 
@@ -824,14 +824,45 @@ SECTIONS = [
          'PIN KDF: a v16 storage blob must still unlock and then rewrap to v19, or the upgrade bricks.',
      ],
      [
-         ('K1', 'test_msg_resetdevice', 'test_reset_device_dice',
-          'Dice entropy end-to-end',
-          'Drives the full on-device dice flow over DebugLink: 99 rolls injected in chunks with undo '
-          'exercised, extras past the cap dropped. Asserts the device-computed digest equals '
-          'SHA256 of exactly the expected roll string, then derives the mnemonic from the post-mix '
-          'internal entropy and compares -- which is what proves the rolls actually reached the seed '
-          'rather than being collected and discarded.',
-          ['Dice entry screen', 'Digest confirmation']),
+         ('K1', 'test_msg_resetdevice', 'test_reset_device_dice_mixed_is_verifiable',
+          'Dice + device entropy, verified offline',
+          'Host selects MIXED (dice_entropy alone). The device shows the consent screen naming the '
+          'mode, then its own 32-byte draw as 24 BIP-39 words BEFORE any roll, then collects 99 rolls '
+          'over DebugLink with undo exercised. The test decodes the 24 words with its own '
+          'checksum-verified BIP-39 decoder, recomputes '
+          'seed = SHA256d(tag || draw || SHA256(tag || rolls)) from the published formula -- with the '
+          'host\'s EntropyAck bytes nowhere in it -- and requires the backup words to match. That is '
+          'the proof a user can repeat with tools/verify_dice_seed.py: the rolls reached the seed, '
+          'the device draw was the one it committed to, and the host contributed nothing.',
+          ['Mode consent', 'Dice entry screen', 'Digest confirmation']),
+         ('K1b', 'test_msg_resetdevice', 'test_reset_device_dice_only_is_verifiable',
+          'Dice only, verified offline',
+          'Host selects DICE ONLY (dice_entropy + dice_only), 50 rolls for a 12-word seed. No device '
+          'words are shown -- the rolls are the entire derivation -- and the test requires the backup '
+          'words to equal BIP39(SHA256(rolls)) while sending a nonzero EntropyAck that must be '
+          'ignored. Byte-identical to Coldcard\'s Dice-Rolls-Only.',
+          ['Mode consent', 'Dice entry screen', 'Digest confirmation']),
+         ('K1c', 'test_msg_resetdevice', 'test_reset_device_dice_rejects_biased_rolls',
+          'Loaded die is refused',
+          'Fifty ones -- one face on 100% of the rolls. Refused with SyntaxError before any digest '
+          'is drawn, per Coldcard\'s 30%-per-face rule, so a biased die never becomes a wallet.',
+          []),
+         ('K1d', 'test_msg_resetdevice', 'test_reset_device_dice_only_requires_dice_entropy',
+          'dice_only without dice_entropy is refused',
+          'The rolls-only derivation is a modifier of the dice ceremony, not a ceremony of its own; '
+          'the request is refused before any screen.',
+          []),
+         ('K1e', 'test_msg_resetdevice', 'test_reset_device_dice_refuses_no_backup',
+          'Dice with no_backup is refused',
+          'The dice modes exist to be checked against the backup words. A reset that never shows '
+          'them has nothing to verify and would put seed material on the screen under a WARNING '
+          'that recovery is impossible; refused before any screen.',
+          []),
+         ('K1f', 'test_msg_resetdevice', 'test_reset_device_dice_consent_cancel_aborts',
+          'Cancel at the consent screen aborts everything',
+          'The consent screen\'s only "no" is the host\'s Cancel. Asserts ActionCancelled, that a '
+          'subsequent EntropyAck finds no armed ceremony, and that the device is still uninitialized.',
+          []),
          ('K2', 'test_msg_resetdevice', 'test_reset_reentry_disarms_entropy_ack',
           'Aborted reset disarms EntropyAck',
           'Regression for a host-chosen-seed hole: reset_init aborts left awaiting_entropy set from '
@@ -844,24 +875,47 @@ SECTIONS = [
           'd6 carries log2(6)=2.585 bits, so 128/192/256-bit seeds need 50/75/99 rolls '
           '(the Coldcard convention). A short count would silently weaken the seed.',
           []),
-         ('K4', 'Dice', 'MixZeroEntropyVector',
-          'Mix known-answer vector (zero entropy)',
-          'SHA256(0x00*32 || "123456") against a hardcoded digest. Pins the mix construction so a '
-          'refactor cannot quietly change how dice enter the seed.',
+         ('K4', 'Dice', 'DeriveOnlyIsPlainSha256OfRolls',
+          'DICE ONLY known-answer vector',
+          'seed = SHA256("123456") against a digest computed in Python from the published formula, '
+          'not captured from this code. Pins the derivation to Coldcard\'s Dice-Rolls-Only byte '
+          'for byte, so a refactor cannot quietly change what a user must recompute offline.',
           []),
-         ('K5', 'Dice', 'MixNonZeroEntropyVector',
-          'Mix known-answer vector (non-zero entropy)',
-          'Same construction with a non-zero starting entropy buffer, pinned to a hardcoded digest.',
+         ('K5', 'Dice', 'DeriveMixedVector',
+          'MIXED known-answer vector',
+          'seed = SHA256d("KK\\x01SM" || 0x00..0x1f || SHA256("KK\\x01D" || "654321165243")) against a '
+          'Python-computed digest. Pins the tag bytes, hash order and double-SHA of the mixed '
+          'derivation -- the exact formula tools/verify_dice_seed.py implements.',
           []),
-         ('K6', 'Dice', 'MixDependsOnRolls',
-          'Different rolls produce different entropy',
-          'Two mixes differing only in the final roll must diverge. Catches a mix that ignores its '
-          'roll argument -- the failure mode where dice appear to work and contribute nothing.',
+         ('K5b', 'Dice', 'DeriveMixedZeroDeviceVector',
+          'MIXED known-answer vector (zero device draw)',
+          'Same construction with an all-zero device draw, pinned to a Python-computed digest.',
           []),
-         ('K7', 'Dice', 'MixUsesExactCount',
+         ('K5c', 'Dice', 'DeriveMixedAliasesInPlace',
+          'MIXED derives safely into its own input buffer',
+          'reset.c derives into the buffer the device draw lives in. In-place and separate-output '
+          'results must be identical, or the aliasing would corrupt the seed.',
+          []),
+         ('K6', 'Dice', 'DeriveMixedDiffersFromUntaggedMix',
+          'Tagged derivation cannot collide with the old formula',
+          'The MIXED seed for zero draw and "123456" must differ from SHA256(draw || rolls), the '
+          'derivation earlier firmware used, so a wallet is never silently re-derived under the '
+          'wrong formula.',
+          []),
+         ('K7', 'Dice', 'DeriveOnlyUsesExactCount',
           'Only the counted rolls contribute',
           'Bytes past the declared roll count must not affect the result, so uninitialized tail '
           'bytes of the roll buffer can never leak into seed material.',
+          []),
+         ('K7b', 'Dice', 'BiasGateIsThirtyPercentPerFace',
+          'Loaded-die gate threshold',
+          'Coldcard\'s rule: any face over 30% of the rolls is refused. 30/99 fails, 29/99 passes; '
+          '16/50 fails, 15/50 (exactly 30%) passes.',
+          []),
+         ('K7c', 'Dice', 'BiasGateRejectsNonDiceBytes',
+          'Non-d6 bytes are refused',
+          'A byte outside \'1\'-\'6\' anywhere inside the counted rolls is refused regardless of the '
+          'distribution of the rest.',
           []),
          ('K8', 'Storage', 'PinKdfRewrapsToActiveVersionAfterCorrectPin',
           'Correct PIN unlocks and rewraps to the ACTIVE KDF',

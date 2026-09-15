@@ -174,6 +174,19 @@ class KeepKeyTest(unittest.TestCase):
         if not getattr(self.client.features, 'supports_taproot', False):
             self.skipTest("Firmware does not report supports_taproot")
 
+    def requires_dice_modes(self):
+        """Skip unless the firmware reports the verifiable dice modes.
+
+        A capability, not a version. Firmware without the unit skips the
+        unknown ResetDevice.dice_only field and runs the older ceremony, so a
+        version gate would fail these tests red on such a build -- and a host
+        must refuse to offer the modes on exactly this same signal, because
+        that older firmware would derive a different wallet without complaint.
+        """
+        self.client.init_device()
+        if not getattr(self.client.features, 'supports_dice_modes', False):
+            self.skipTest("Firmware does not report supports_dice_modes")
+
     def requires_structured_eip712(self):
         """Skip unless the FIRMWARE drives the structured EIP-712 walk.
 
