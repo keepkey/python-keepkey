@@ -59,14 +59,10 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                     data=erc20_data, chain_id=257,
                 )
             self.assertGreaterEqual(len(recorder.screens), 2)
-            # The 7.15 hash changed when the dylib's 1-bit serialiser stopped
-            # treating every nonzero shade as lit and adopted the ordered
-            # dithering the DebugLink layout and the capture ring already used
-            # (display_mono_pixel_is_lit). The frame this now hashes is the one
-            # the device's other evidence paths produce for the same screen;
-            # the old value came from the one serialiser that disagreed.
+            # 7.15 explicitly labels the untrusted token value before the raw
+            # calldata review; pin that first warning frame exactly.
             expected_frame = (
-                "beb98f914a77d933b458b625085cef4ea92a2a243bf56bee37abf95294d42497"
+                "30bee167d675b595a277b622571d92cba8418cbf0664d7357dec121bc5d7ce2b"
                 if self.firmware_at_least("7.15.0") else
                 "b0a3026e7af1778ebd71a968ace25c03945cccf2d8abc951e5dd65abc04e914e"
             )
