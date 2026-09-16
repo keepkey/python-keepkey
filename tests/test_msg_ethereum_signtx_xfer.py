@@ -59,9 +59,16 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                     data=erc20_data, chain_id=257,
                 )
             self.assertGreaterEqual(len(recorder.screens), 2)
+            # 7.15 explicitly labels the untrusted token value before the raw
+            # calldata review; pin that first warning frame exactly.
+            expected_frame = (
+                "ec0dc4694860ccc6b3fdbb90efbb27b3b3bd4553d741ef03c89b60cd05097779"
+                if self.firmware_at_least("7.15.0") else
+                "b0a3026e7af1778ebd71a968ace25c03945cccf2d8abc951e5dd65abc04e914e"
+            )
             self.assertEqual(
                 hashlib.sha256(recorder.screens[0]).hexdigest(),
-                "b0a3026e7af1778ebd71a968ace25c03945cccf2d8abc951e5dd65abc04e914e",
+                expected_frame,
             )
         finally:
             self.client.apply_policy('AdvancedMode', 0)

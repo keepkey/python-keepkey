@@ -568,7 +568,8 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 num_actions=1),
             [self.action_updateauth(True)])
 
-        self.assertEqual(binascii.hexlify(res.hash), "fb936ef1be4bda680d93bd10b6d062357d8dd7272038a706dc0d61a91f39c5ee")
+        # One account and zero waits: do not serialize a phantom six-byte wait.
+        self.assertEqual(binascii.hexlify(res.hash), "5938294e65cf9e8b5dd5f2b204503b4825f277e6f4a2d5ab7a55a31065a23af1")
 
     def test_deleteauth(self):
         self.requires_fullFeature()

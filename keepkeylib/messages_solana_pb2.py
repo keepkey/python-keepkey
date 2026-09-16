@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-solana.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x15messages-solana.proto\"V\n\x10SolanaGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\" \n\rSolanaAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"A\n\x0fSolanaTokenInfo\x12\x0c\n\x04mint\x18\x01 \x01(\x0c\x12\x0e\n\x06symbol\x18\x02 \x01(\t\x12\x10\n\x08\x64\x65\x63imals\x18\x03 \x01(\r\"r\n\x0cSolanaSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x0e\n\x06raw_tx\x18\x03 \x01(\x0c\x12$\n\ntoken_info\x18\x04 \x03(\x0b\x32\x10.SolanaTokenInfo\"#\n\x0eSolanaSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\"h\n\x11SolanaSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x14\n\x0cshow_display\x18\x04 \x01(\x08\"?\n\x16SolanaMessageSignature\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"\x9c\x01\n\x19SolanaSignOffchainMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x12\n\x07version\x18\x03 \x01(\r:\x01\x30\x12\x16\n\x0emessage_format\x18\x04 \x01(\r\x12\x0f\n\x07message\x18\x05 \x01(\x0c\x12\x14\n\x0cshow_display\x18\x06 \x01(\x08\"G\n\x1eSolanaOffchainMessageSignature\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42\x32\n\x1a\x63om.keepkey.deviceprotocolB\x14KeepKeyMessageSolana')
+  serialized_pb=_b('\n\x15messages-solana.proto\"V\n\x10SolanaGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\" \n\rSolanaAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\"k\n\x0fSolanaTokenInfo\x12\x0c\n\x04mint\x18\x01 \x01(\x0c\x12\x0e\n\x06symbol\x18\x02 \x01(\t\x12\x10\n\x08\x64\x65\x63imals\x18\x03 \x01(\r\x12\x11\n\tsignature\x18\x04 \x01(\x0c\x12\x15\n\rsigner_key_id\x18\x05 \x01(\r\"\xae\x02\n\x0cSolanaSignTx\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x0e\n\x06raw_tx\x18\x03 \x01(\x0c\x12$\n\ntoken_info\x18\x04 \x03(\x0b\x32\x10.SolanaTokenInfo\x12\x13\n\x0blut_account\x18\x05 \x03(\x0c\x12\x15\n\rlut_signature\x18\x06 \x01(\x0c\x12\x19\n\x11lut_signer_key_id\x18\x07 \x01(\r\x12\x16\n\x0eschema_payload\x18\t \x01(\x0c\x12\x18\n\x10schema_signature\x18\n \x01(\x0c\x12\x1c\n\x14schema_signer_key_id\x18\x0b \x01(\r\x12\x1d\n\x15token_recipient_owner\x18\x0c \x03(\x0cJ\x04\x08\x08\x10\t\"#\n\x0eSolanaSignedTx\x12\x11\n\tsignature\x18\x01 \x01(\x0c\"h\n\x11SolanaSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x14\n\x0cshow_display\x18\x04 \x01(\x08\"?\n\x16SolanaMessageSignature\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"\x9c\x01\n\x19SolanaSignOffchainMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x19\n\tcoin_name\x18\x02 \x01(\t:\x06Solana\x12\x12\n\x07version\x18\x03 \x01(\r:\x01\x30\x12\x16\n\x0emessage_format\x18\x04 \x01(\r\x12\x0f\n\x07message\x18\x05 \x01(\x0c\x12\x14\n\x0cshow_display\x18\x06 \x01(\x08\"G\n\x1eSolanaOffchainMessageSignature\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x42\x32\n\x1a\x63om.keepkey.deviceprotocolB\x14KeepKeyMessageSolana')
 )
 
 
@@ -129,6 +129,20 @@ _SOLANATOKENINFO = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signature', full_name='SolanaTokenInfo.signature', index=3,
+      number=4, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='signer_key_id', full_name='SolanaTokenInfo.signer_key_id', index=4,
+      number=5, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -142,7 +156,7 @@ _SOLANATOKENINFO = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=147,
-  serialized_end=212,
+  serialized_end=254,
 )
 
 
@@ -181,6 +195,55 @@ _SOLANASIGNTX = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='lut_account', full_name='SolanaSignTx.lut_account', index=4,
+      number=5, type=12, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='lut_signature', full_name='SolanaSignTx.lut_signature', index=5,
+      number=6, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='lut_signer_key_id', full_name='SolanaSignTx.lut_signer_key_id', index=6,
+      number=7, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='schema_payload', full_name='SolanaSignTx.schema_payload', index=7,
+      number=9, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='schema_signature', full_name='SolanaSignTx.schema_signature', index=8,
+      number=10, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='schema_signer_key_id', full_name='SolanaSignTx.schema_signer_key_id', index=9,
+      number=11, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='token_recipient_owner', full_name='SolanaSignTx.token_recipient_owner', index=10,
+      number=12, type=12, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -193,8 +256,8 @@ _SOLANASIGNTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=214,
-  serialized_end=328,
+  serialized_start=257,
+  serialized_end=559,
 )
 
 
@@ -224,8 +287,8 @@ _SOLANASIGNEDTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=330,
-  serialized_end=365,
+  serialized_start=561,
+  serialized_end=596,
 )
 
 
@@ -276,8 +339,8 @@ _SOLANASIGNMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=367,
-  serialized_end=471,
+  serialized_start=598,
+  serialized_end=702,
 )
 
 
@@ -314,8 +377,8 @@ _SOLANAMESSAGESIGNATURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=473,
-  serialized_end=536,
+  serialized_start=704,
+  serialized_end=767,
 )
 
 
@@ -380,8 +443,8 @@ _SOLANASIGNOFFCHAINMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=539,
-  serialized_end=695,
+  serialized_start=770,
+  serialized_end=926,
 )
 
 
@@ -418,8 +481,8 @@ _SOLANAOFFCHAINMESSAGESIGNATURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=697,
-  serialized_end=768,
+  serialized_start=928,
+  serialized_end=999,
 )
 
 _SOLANASIGNTX.fields_by_name['token_info'].message_type = _SOLANATOKENINFO
