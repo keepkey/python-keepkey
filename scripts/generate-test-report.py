@@ -1875,11 +1875,11 @@ SECTIONS = [
           # visual proof and is not. The per-beneficiary confirm screens are
           # captured by G35, which actually signs a two-beneficiary payout.
           []),
-         ('G37', 'test_msg_hive', 'test_hive_sign_ops_account_update2_rejects_authority_change',
-          'account_update2 cannot rotate keys',
-          'Only the profile-metadata form is in the table. Any owner/active/posting/memo_key '
-          'field present is a hard reject — the op-9/10 device-derived-keys invariant applied '
-          'field-level.',
+         ('G37', 'test_msg_hive', 'test_hive_sign_ops_account_update2_is_rejected',
+          'account_update2 is refused',
+          'The operation always carries a memo key. Without trusted chain state the device '
+          'cannot prove that key is unchanged, so it refuses every account_update2 instead '
+          'of presenting a profile-only summary.',
           []),
          ('G38', 'test_msg_hive', 'test_hive_sign_ops_truncated_bodies_rejected',
           'Truncated op bodies refused',
