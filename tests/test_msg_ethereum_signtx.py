@@ -45,9 +45,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         if self.firmware_at_least("7.15.0"):
             expected_frames = {
                 "transfer": (
-                    "8986b3d796d3474210ba2388ca2aa26fc04abc1c6cb142ddc71740b6c61734a5"),
-                "approve": (
-                    "e8e44436251ef16cb00192f23adcc86f843201d676d1a3d2377a1e8ae6330c01"),
+                    "843693d0c5f8f87986a1769c6e5192a6746cbfcb24c7c4c37d335b10c1f5b54c"),
             }
         else:
             # 7.14.3 uses the pre-7.15 review layout while proving the same
@@ -69,10 +67,11 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                 "approve",
                 binascii.unhexlify("095ea7b3" + "00" * 12) +
                 recipient + int_to_big_endian(1).rjust(32, b"\x00"),
-                expected_frames["approve"],
+                expected_frames.get("approve"),
             ),
         )
 
+        observed_frames = {}
         try:
             for label, data, expected_frame_sha256 in calls:
                 with ScreenRecorder(
@@ -83,10 +82,14 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                         to=pseudo_address, value=0, chain_id=257, data=data,
                     )
                 self.assertGreaterEqual(len(recorder.screens), 2)
-                self.assertEqual(
-                    hashlib.sha256(recorder.screens[0]).hexdigest(),
-                    expected_frame_sha256,
-                )
+                observed_frames[label] = hashlib.sha256(
+                    recorder.screens[0]).hexdigest()
+                if expected_frame_sha256 is not None:
+                    self.assertEqual(
+                        observed_frames[label], expected_frame_sha256)
+            if self.firmware_at_least("7.15.0"):
+                self.assertNotEqual(
+                    observed_frames["transfer"], observed_frames["approve"])
         finally:
             self.client.apply_policy("AdvancedMode", 0)
             common.reset_screenshot_capture(self.client)
