@@ -818,8 +818,9 @@ class ProtocolMixin(object):
         return self.call(msg)
 
     @session
-    def ethereum_sign_tx(self, n, nonce, gas_limit,  value, gas_price=None, max_fee_per_gas=None, max_priority_fee_per_gas=None, to=None, to_n=None, address_type=None, data=None, chain_id=None):
+    def ethereum_sign_tx(self, n, nonce, gas_limit,  value, gas_price=None, max_fee_per_gas=None, max_priority_fee_per_gas=None, to=None, to_n=None, address_type=None, data=None, chain_id=None, erc7730_definition=None, erc7730_catalog=None):
         from keepkeylib.tools import int_to_big_endian
+        from keepkeylib import erc7730
 
         if gas_price is None and max_fee_per_gas is None:
             raise Exception("Either gas_price or max_fee_per_gas must be provided")
@@ -865,12 +866,31 @@ class ProtocolMixin(object):
         if chain_id is not None:
             msg.chain_id = chain_id
 
+        if erc7730_definition is not None:
+            if not isinstance(erc7730_definition, erc7730.Definition):
+                raise TypeError("erc7730_definition must be a Definition")
+            if erc7730_catalog is None:
+                erc7730_catalog = erc7730.Catalog((erc7730_definition,))
+            else:
+                erc7730_catalog.add(erc7730_definition)
+            erc7730.preload(self, erc7730_definition)
+
         response = self.call(msg)
 
-        while response.HasField('data_length'):
-            data_length = response.data_length
-            data, chunk = data[data_length:], data[:data_length]
-            response = self.call(eth_proto.EthereumTxAck(data_chunk=chunk))
+        while not (isinstance(response, eth_proto.EthereumTxRequest) and
+                   response.HasField('signature_v')):
+            if isinstance(response,
+                          eth_proto.EthereumClearSignDefinitionRequest):
+                if erc7730_catalog is None:
+                    raise RuntimeError("device requested an ERC-7730 definition without a catalog")
+                response = self.call(erc7730_catalog.chunk(response))
+            elif isinstance(response, eth_proto.EthereumTxRequest) and response.HasField('data_length'):
+                data_length = response.data_length
+                data, chunk = data[data_length:], data[:data_length]
+                response = self.call(eth_proto.EthereumTxAck(data_chunk=chunk))
+            else:
+                raise RuntimeError("unexpected Ethereum signing response: %s" %
+                                   type(response).__name__)
 
         if address_type:
             return response.signature_v, response.signature_r, response.signature_s, response.hash, response.signature_der
