@@ -133,5 +133,38 @@ class TestPing(common.KeepKeyTest):
             res = self.client.ping('random data', button_protection=True, pin_protection=True, passphrase_protection=True)
             self.assertEqual(res, 'random data')
 
+    def test_authenticator_passphrase_cancel_is_terminal(self):
+        """Cancelling auth unlock must not fall through to cached auth data."""
+        self.requires_firmware("7.14.2")
+        self.setup_mnemonic_pin_passphrase()
+
+        # Populate both persistent auth storage and the firmware's decrypted
+        # local cache. This is the precondition that made the stale-data path
+        # reachable after ClearSession.
+        self.client.ping('\x19wipeAuthdata:')
+        # Alpha rejects TOTP seeds below the 128-bit minimum. Use a 160-bit
+        # RFC 4648 Base32 fixture so this test reaches the cancellation path
+        # it is intended to exercise.
+        init_auth = (
+            '\x15initializeAuth:example.com:alice:'
+            'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP'
+        )
+        self.client.ping(init_auth)
+        self.client.clear_session()
+
+        resp = self.client.call_raw(proto.Ping(message='\x17getAccount:0'))
+        self.assertIsInstance(resp, proto.PinMatrixRequest)
+        resp = self.client.call_raw(self.client.callback_PinMatrixRequest(resp))
+        self.assertIsInstance(resp, proto.PassphraseRequest)
+        resp = self.client.call_raw(proto.Cancel())
+        self.assertIsInstance(resp, proto.Failure)
+        self.assertEqual(resp.code, proto_types.Failure_ActionCancelled)
+
+        # Before the fix fsm_msgPing continued after the Failure and queued a
+        # Success carrying the cached account. The next request would receive
+        # that stale Success instead of its own response.
+        resp = self.client.call_raw(proto.Initialize())
+        self.assertIsInstance(resp, proto.Features)
+
 if __name__ == '__main__':
     unittest.main()

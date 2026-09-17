@@ -1,3 +1,6 @@
+import os
+import subprocess
+import sys
 import unittest
 
 from keepkeylib.clearsign_abi import encode_static_args
@@ -18,7 +21,7 @@ class TestClearsignAbiSignedIntegers(unittest.TestCase):
             b'\x00' * 31 + b'\x7f',
         )
         for value in (-129, 128):
-            with self.assertRaises(AssertionError):
+            with self.assertRaises(ValueError):
                 encode_static_args(['int8'], [value])
 
     def test_uint8_keeps_unsigned_bounds(self):
@@ -27,8 +30,30 @@ class TestClearsignAbiSignedIntegers(unittest.TestCase):
             b'\x00' * 31 + b'\xff',
         )
         for value in (-1, 256):
-            with self.assertRaises(AssertionError):
+            with self.assertRaises(ValueError):
                 encode_static_args(['uint8'], [value])
+
+    def test_validation_survives_optimized_python(self):
+        """Interpreter optimization must not remove calldata validation."""
+        script = r'''
+from keepkeylib.clearsign_abi import encode_static_args
+
+invalid = (
+    (['address'], [b'\x11' * 19]),
+    (['uint8'], []),
+    (['uint8'], [256]),
+    (['int8'], [128]),
+    (['bytes2'], [b'\x11']),
+)
+for types, values in invalid:
+    try:
+        encode_static_args(types, values)
+    except ValueError:
+        continue
+    raise SystemExit('accepted invalid ABI value: %r %r' % (types, values))
+'''
+        repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        subprocess.check_call([sys.executable, '-O', '-c', script], cwd=repo_root)
 
 
 class TestClearsignAbiTypeValidation(unittest.TestCase):

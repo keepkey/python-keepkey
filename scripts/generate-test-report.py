@@ -2956,7 +2956,7 @@ SECTIONS = [
        'accept a different one and it signs a document whose type declares another, with nothing '
        'downstream able to notice.',
        []),
-      ('TD4', 'test_msg_eip712_streaming', 'test_advanced_mode_gates_the_endpoint',
+      ('TD4', 'test_msg_eip712_streaming', 'test_advanced_mode_is_not_required_for_structured_review',
        'The endpoint is gated behind AdvancedMode',
        'Structured display is strictly MORE information than the blind path it replaces, so the '
        'gate is not about the feature being dangerous. It is about new parser surface reachable '

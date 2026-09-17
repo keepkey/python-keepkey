@@ -30,6 +30,7 @@ STRUCT = DataType.STRUCT
 # EthereumTypedDataValueAck.value max_size in messages-ethereum.options, and
 # EIP712_MAX_LEAF on the device.
 MAX_LEAF_BYTES = 1024
+MAX_IDENTIFIER_BYTES = 31
 
 _ARRAY_GROUP = re.compile(r'\[([0-9]*)\]')
 _CANONICAL_DIGITS = re.compile(r'^[1-9][0-9]*$')
@@ -115,7 +116,7 @@ def parse_solidity_type(type_str):
             'array_levels': levels,
         }
 
-    if not _IDENTIFIER.match(base):
+    if not _IDENTIFIER.match(base) or len(base) > MAX_IDENTIFIER_BYTES:
         raise Eip712Error('Unparseable EIP-712 type: %s' % type_str)
     return {'data_type': STRUCT, 'struct_name': base, 'array_levels': levels}
 
@@ -226,10 +227,23 @@ def struct_members(typed_data, name):
     Order is part of the signature: it sets both encodeType and the order
     encodeData concatenates members.
     """
+    if not isinstance(name, str) or not _IDENTIFIER.match(name) or len(name) > MAX_IDENTIFIER_BYTES:
+        raise Eip712Error('Struct name is not a canonical EIP-712 identifier')
     members = typed_data['types'].get(name)
     if members is None:
         raise Eip712Error('Unknown struct: %s' % name)
-    return [{'name': m['name'], 'type': parse_solidity_type(m['type'])} for m in members]
+    result = []
+    seen = set()
+    for member in members:
+        member_name = member.get('name')
+        if (not isinstance(member_name, str) or not _IDENTIFIER.match(member_name)
+                or len(member_name) > MAX_IDENTIFIER_BYTES):
+            raise Eip712Error('Member name in %s is not a canonical EIP-712 identifier' % name)
+        if member_name in seen:
+            raise Eip712Error('Duplicate EIP-712 member %s.%s' % (name, member_name))
+        seen.add(member_name)
+        result.append({'name': member_name, 'type': parse_solidity_type(member['type'])})
+    return result
 
 
 def resolve_member_path(typed_data, path):

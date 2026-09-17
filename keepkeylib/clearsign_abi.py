@@ -41,7 +41,8 @@ def _word(value):
 def _addr_word(address):
     if isinstance(address, str):
         address = bytes.fromhex(address[2:] if address.startswith('0x') else address)
-    assert len(address) == 20, 'address must be 20 bytes, got %d' % len(address)
+    if len(address) != 20:
+        raise ValueError('address must be 20 bytes, got %d' % len(address))
     return b'\x00' * 12 + address
 
 
@@ -71,8 +72,9 @@ def _int_bits(digits, typ):
 def encode_static_args(types, values):
     """ABI-encode STATIC Solidity types into concatenated 32-byte words.
     Raises on any dynamic type (string/bytes/arrays) — build those by hand."""
-    assert len(types) == len(values), (
-        'arg count mismatch: %d types, %d values' % (len(types), len(values)))
+    if len(types) != len(values):
+        raise ValueError(
+            'arg count mismatch: %d types, %d values' % (len(types), len(values)))
     out = bytearray()
     for typ, val in zip(types, values):
         # Route arrays to the explicit dynamic-type error below rather than
@@ -86,8 +88,8 @@ def encode_static_args(types, values):
         elif typ.startswith('uint'):
             bits = _int_bits(typ[4:], typ)
             n = int(val)
-            assert 0 <= n < (1 << bits), (
-                'value %r out of range for %s' % (val, typ))
+            if not 0 <= n < (1 << bits):
+                raise ValueError('value %r out of range for %s' % (val, typ))
             out += n.to_bytes(32, 'big')
         elif typ.startswith('int'):
             # Signed types are NOT unsigned ones with a wider range. intN holds
@@ -99,8 +101,10 @@ def encode_static_args(types, values):
             bits = _int_bits(typ[3:], typ)
             n = int(val)
             lo, hi = -(1 << (bits - 1)), (1 << (bits - 1)) - 1
-            assert lo <= n <= hi, (
-                'value %r out of range for %s (%d..%d)' % (val, typ, lo, hi))
+            if not lo <= n <= hi:
+                raise ValueError(
+                    'value %r out of range for %s (%d..%d)'
+                    % (val, typ, lo, hi))
             out += n.to_bytes(32, 'big', signed=True)
         elif typ == 'bool':
             # Require an actual bool. Coercing truthiness here silently turns
@@ -124,7 +128,8 @@ def encode_static_args(types, values):
             n = int(digits)
             b = val if isinstance(val, (bytes, bytearray)) else bytes.fromhex(
                 val[2:] if val.startswith('0x') else val)
-            assert len(b) == n, 'bytes%d value has wrong length' % n
+            if len(b) != n:
+                raise ValueError('bytes%d value has wrong length' % n)
             out += b.ljust(32, b'\x00')  # bytesN is left-aligned per ABI spec
         else:
             raise ValueError(

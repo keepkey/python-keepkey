@@ -32,7 +32,7 @@ jobs:
             # Actions integration lane. Bump deliberately with that workflow.
             git init .
             git remote add origin https://github.com/BitHighlander/keepkey-firmware.git
-            git fetch --depth 1 origin 54b169a7036b29db22944d962fb666b50aef9083
+            git fetch --depth 1 origin e07a95e7d069553c273b24552c9bc436f60f5d91
             git checkout --detach FETCH_HEAD
 
             # Initialise firmware submodules
@@ -57,40 +57,22 @@ jobs:
 
             # Collect JUnit / pytest XML results
             mkdir -p ../../test-reports
+            docker cp "$(docker-compose ps -q firmware-unit)":/kkemu/test-reports/. ../../test-reports/
             docker cp "$(docker-compose ps -q python-keepkey)":/kkemu/test-reports/. ../../test-reports/
             popd
 
-            # Fail the job on this repo's OWN result.
-            #
-            # The firmware's C++ firmware-unit suite used to run here and gated
-            # this job. It was dropped because it failed python-keepkey for
-            # reasons no python change caused: a token-table change cannot go
-            # green here until the matching firmware change reaches the branch
-            # this clones, which is a release away. The firmware repo runs that
-            # suite in its own CI.
-            #
-            # This repo IS in the firmware's build graph, though, so dropping
-            # the suite is not free. keepkey-firmware's lib/firmware/CMakeLists.txt
-            # generates ethereum_tokens.def and uniswap_tokens.def by running
-            # deps/python-keepkey/keepkeylib/eth/{ethereum,uniswap}_tokens.py,
-            # and kkfirmware depends on that target -- so a change here can
-            # break the firmware C++ BUILD, and tokens[] is what
-            # unittests/firmware/coins.cpp reads.
-            #
-            # tests/test_token_table_generators.py is the replacement gate for
-            # exactly that coupling: it runs both generators and asserts the
-            # emitted table is well-formed, budget-conforming and
-            # deterministic. Do not remove it without restoring firmware-unit.
-            #
-            # Read the status file defensively -- it is written by the container,
-            # and a crash before it exists must FAIL rather than silently pass an
-            # empty-string comparison.
-            STATUS_FILE=test-reports/python-keepkey/status
-            if [ ! -f "$STATUS_FILE" ]; then
-              echo "no status file at $STATUS_FILE -- the suite did not finish"
-              exit 1
-            fi
-            [ "$(cat "$STATUS_FILE")" = "0" ] || exit 1
+            # python-keepkey depends on firmware-unit in the pinned firmware's
+            # compose graph, so both suites run and both results gate this job.
+            # Read each status file defensively: a container crash before the
+            # file exists must fail rather than silently pass an empty value.
+            for SUITE in python-keepkey firmware-unit; do
+              STATUS_FILE="test-reports/$SUITE/status"
+              if [ ! -f "$STATUS_FILE" ]; then
+                echo "no status file at $STATUS_FILE -- the suite did not finish"
+                exit 1
+              fi
+              [ "$(cat "$STATUS_FILE")" = "0" ] || exit 1
+            done
 
       - store_test_results:
           path: test-reports

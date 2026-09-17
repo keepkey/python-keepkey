@@ -52,6 +52,29 @@ SPEC_MESSAGE_HASH = "c52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274
 
 class TestEip712StreamHelpers(unittest.TestCase):
 
+    def test_review_identifiers_are_exact_and_unambiguous(self):
+        doc = {
+            'types': {
+                'Permit': [
+                    {'name': 'value', 'type': 'uint256'},
+                    {'name': 'value', 'type': 'uint256'},
+                ],
+            },
+        }
+        with self.assertRaises(es.Eip712Error) as duplicate:
+            es.struct_members(doc, 'Permit')
+        self.assertIn('Duplicate', str(duplicate.exception))
+
+        doc['types']['Permit'][1]['name'] = 'identifier_that_would_be_truncated'
+        with self.assertRaises(es.Eip712Error) as overlong:
+            es.struct_members(doc, 'Permit')
+        self.assertIn('canonical EIP-712 identifier', str(overlong.exception))
+
+        doc['types']['Permit'][1]['name'] = 'amount%08x'
+        with self.assertRaises(es.Eip712Error) as malformed:
+            es.struct_members(doc, 'Permit')
+        self.assertIn('canonical EIP-712 identifier', str(malformed.exception))
+
     def test_multidimensional_arrays_are_walked_outermost_first(self):
         doc = {
             'types': {
@@ -139,11 +162,14 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
 
     def setUp(self):
         super(TestMsgEip712Streaming, self).setUp()
-        self.requires_firmware("7.15.0")
+        self.requires_firmware("7.16.0")
         self.requires_fullFeature()
         self.requires_structured_eip712()
         self.setup_mnemonic_nopin_nopassphrase()
-        self.client.apply_policy('AdvancedMode', 1)
+        # The device-driven stream validates, displays and hashes the same
+        # bytes. It is not the blind precomputed-hash endpoint and must work
+        # with Advanced Mode disabled.
+        self.client.apply_policy('AdvancedMode', 0)
         # The report entries describe typed-data fields, not the policy prompt.
         self.client.reset_screenshots()
 
@@ -186,6 +212,84 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         self.assertIsInstance(resp, eth.EthereumTypedDataSignature)
         self.assertEqual(len(resp.signature), 65)
 
+    def test_multidimensional_arrays_walk_outermost_first_on_device(self):
+        """Host and device must traverse asymmetric Solidity dimensions alike."""
+        doc = {
+            'types': {
+                'EIP712Domain': [],
+                'Matrix': [{'name': 'values', 'type': 'int16[2][4]'}],
+            },
+            'primaryType': 'Matrix',
+            'domain': {},
+            'message': {
+                'values': [
+                    [1, 2],
+                    [3, 4],
+                    [5, 6],
+                    [7, 8],
+                ],
+            },
+        }
+
+        resp = self._walk(doc)
+        self.assertIsInstance(resp, eth.EthereumTypedDataSignature)
+        self.assertEqual(len(resp.signature), 65)
+
+    def test_permit2_batch_walks_realistic_nested_array(self):
+        """The production Permit2 Batch shape, including trailing root fields.
+
+        The smaller Basket fixture proves the array primitive, but does not
+        exercise a multi-field child struct followed by more members on the
+        parent.  That is the shape Uniswap and swap providers actually send.
+        """
+        doc = {
+            "types": {
+                "EIP712Domain": [
+                    {"name": "name", "type": "string"},
+                    {"name": "chainId", "type": "uint256"},
+                    {"name": "verifyingContract", "type": "address"},
+                ],
+                "PermitDetails": [
+                    {"name": "token", "type": "address"},
+                    {"name": "amount", "type": "uint160"},
+                    {"name": "expiration", "type": "uint48"},
+                    {"name": "nonce", "type": "uint48"},
+                ],
+                "PermitBatch": [
+                    {"name": "details", "type": "PermitDetails[]"},
+                    {"name": "spender", "type": "address"},
+                    {"name": "sigDeadline", "type": "uint256"},
+                ],
+            },
+            "primaryType": "PermitBatch",
+            "domain": {
+                "name": "Permit2",
+                "chainId": 1,
+                "verifyingContract": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+            },
+            "message": {
+                "details": [
+                    {
+                        "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                        "amount": "250000000",
+                        "expiration": "1893456000",
+                        "nonce": "1",
+                    },
+                    {
+                        "token": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+                        "amount": "500000000000000000000",
+                        "expiration": "1893456000",
+                        "nonce": "2",
+                    },
+                ],
+                "spender": "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD",
+                "sigDeadline": "1893456000",
+            },
+        }
+        resp = self._walk(doc)
+        self.assertIsInstance(resp, eth.EthereumTypedDataSignature)
+        self.assertEqual(len(resp.signature), 65)
+
     def test_fixed_array_length_must_match_the_declared_size(self):
         """A declared dimension is part of the type string and so of typeHash.
 
@@ -207,17 +311,13 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
             self._walk(doc)
         self.assertIn('declares 2 elements', str(ctx.exception))
 
-    def test_advanced_mode_gates_the_endpoint(self):
-        """New parser surface reachable from a website stays behind the gate
-        until there is hardware evidence for it."""
+    def test_advanced_mode_is_not_required_for_structured_review(self):
+        """Exact device-driven review is available with blind signing off."""
         self.client.apply_policy('AdvancedMode', 0)
-        msg = eth.EthereumSignTypedData()
-        for n in PATH:
-            msg.address_n.append(n)
-        msg.primary_type = 'Mail'
-        resp = self.client.call_raw(msg)
-        self.assertIsInstance(resp, proto.Failure)
-        self.assertIn('AdvancedMode', resp.message)
+        resp = self._walk(SPEC_MAIL)
+        self.assertIsInstance(resp, eth.EthereumTypedDataSignature)
+        self.assertEqual(resp.domain_separator_hash.hex(), SPEC_DOMAIN_SEPARATOR)
+        self.assertEqual(resp.message_hash.hex(), SPEC_MESSAGE_HASH)
 
 
 if __name__ == '__main__':
