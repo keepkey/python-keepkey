@@ -15,6 +15,71 @@ from . import messages_ethereum_pb2 as ethereum
 
 MAX_CHUNK = 1024
 MAX_RECURSION_DEPTH = 4
+MAX_PROGRAM = 16 * 1024
+MAX_PROOF_DEPTH = 16
+CERTIFICATE_LENGTH = 139
+CATALOG_DOMAIN = b"KEEPKEY:ERC7730:CATALOG\0"
+
+
+def _catalog_leaf(program):
+    return hashlib.sha256(b"\x00" + program).digest()
+
+
+def _catalog_parent(left, right):
+    first, second = sorted((bytes(left), bytes(right)))
+    if len(first) != 32 or len(second) != 32:
+        raise ValueError("ERC-7730 Merkle nodes must be 32 bytes")
+    return hashlib.sha256(b"\x01" + first + second).digest()
+
+
+def catalog_root(program, proof=()):
+    """Return the sorted-pair SHA-256 root committed by a catalog proof."""
+    program = bytes(program)
+    if len(program) < 179 or len(program) > MAX_PROGRAM:
+        raise ValueError("invalid ERC-7730 program length")
+    proof = tuple(bytes(item) for item in proof)
+    if len(proof) > MAX_PROOF_DEPTH:
+        raise ValueError("ERC-7730 proof exceeds device limit")
+    root = _catalog_leaf(program)
+    for sibling in proof:
+        root = _catalog_parent(root, sibling)
+    return root
+
+
+def sign_envelope(program, certificate, private_key, proof=()):
+    """Build a K773 envelope using a KeepKey-certified delegate."""
+    program = bytes(program)
+    certificate = bytes(certificate)
+    private_key = bytes(private_key)
+    proof = tuple(bytes(item) for item in proof)
+    if len(certificate) != CERTIFICATE_LENGTH:
+        raise ValueError("invalid KeepKey delegation certificate length")
+    if len(private_key) != 32:
+        raise ValueError("delegate private key must be 32 bytes")
+    if any(len(item) != 32 for item in proof):
+        raise ValueError("ERC-7730 proof siblings must be 32 bytes")
+    root = catalog_root(program, proof)
+    digest = hashlib.sha256(CATALOG_DOMAIN + root).digest()
+    try:
+        from ecdsa import SigningKey, SECP256k1, VerifyingKey, util
+    except ImportError as exc:
+        raise RuntimeError("The 'ecdsa' package is required to sign catalogs") from exc
+    key = SigningKey.from_string(private_key, curve=SECP256k1)
+    signature = key.sign_digest_deterministic(
+        digest, hashfunc=hashlib.sha256, sigencode=util.sigencode_string)
+    recovered = VerifyingKey.from_public_key_recovery_with_digest(
+        signature, digest, SECP256k1, hashfunc=hashlib.sha256)
+    recovery = None
+    for index, candidate in enumerate(recovered):
+        if candidate.to_string() == key.get_verifying_key().to_string():
+            recovery = index
+            break
+    if recovery is None or recovery > 1:
+        raise RuntimeError("unable to derive canonical catalog recovery id")
+    return (b"K773" + bytes([1, 1]) + len(program).to_bytes(4, "big") +
+            program + bytes([len(proof)]) + b"".join(proof) +
+            len(certificate).to_bytes(2, "big") + certificate + signature +
+            bytes([recovery]))
 
 
 class Definition(object):
@@ -136,4 +201,3 @@ def preload(client, definition):
                 response.complete != (expected == len(definition.envelope))):
             raise RuntimeError("invalid ERC-7730 preload acknowledgement")
         offset = expected
-
