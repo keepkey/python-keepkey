@@ -605,8 +605,12 @@ class CalldataCompiler(object):
                     arguments.append((2, 1, literal_path))
                 elif isinstance(token, str):
                     arguments.append((2, 1, intern_path(_resolve_path(root, token))))
-                else:
+                elif token is not None:
                     raise ValueError("tokenAmount requires token or tokenPath")
+                elif any(key in params for key in (
+                        "threshold", "message", "chainId", "chainIdPath")):
+                    raise ValueError(
+                        "unknown token amount cannot use token metadata parameters")
                 if "threshold" in params:
                     threshold = descriptor_value(params["threshold"])
                     if isinstance(threshold, str) and threshold.startswith("0x"):
@@ -627,7 +631,7 @@ class CalldataCompiler(object):
                         raise ValueError("invalid tokenAmount chainId")
                 aliases = params.get("nativeCurrencyAddress", ())
                 aliases = descriptor_value(aliases)
-                if aliases:
+                if aliases and token is not None:
                     if isinstance(aliases, str):
                         aliases = [aliases]
                     references = []

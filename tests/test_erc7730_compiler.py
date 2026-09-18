@@ -269,6 +269,28 @@ def test_compiles_recursive_array_iteration_frames():
             subprocess.check_call([validator, output.name])
 
 
+def test_token_amount_without_token_uses_firmware_raw_fallback():
+    descriptor = {"display": {"formats": {
+        "quote(uint256 amount)": {
+            "intent": "Review quote",
+            "fields": [{"path": "amount", "label": "Unknown token amount",
+                        "format": "tokenAmount"}],
+        }
+    }}}
+    compiled = compile_calldata(
+        descriptor, "quote(uint256 amount)", 1,
+        "0x1111111111111111111111111111111111111111")
+    formatter = _sections(compiled)[6]
+    assert formatter[2:5] == bytes([3, 0, 1])
+    assert formatter[5:9] == bytes([1, 1, 0, 0])
+    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
+    if validator:
+        with tempfile.NamedTemporaryFile() as output:
+            output.write(compiled)
+            output.flush()
+            subprocess.check_call([validator, output.name])
+
+
 def test_compiles_typed_if_not_in_and_must_match_conditions():
     descriptor = {"display": {"formats": {
         "guard(uint256 mode,address recipient)": {
