@@ -11,7 +11,7 @@ import pytest
 
 from keepkeylib.erc7730_compiler import (
     HEADER_SIZE, compile_calldata, compile_eip712, eip712_encode_type,
-    parse_function_signature,
+    load_descriptor, parse_function_signature,
 )
 from keepkeylib.signed_metadata import keccak256
 
@@ -389,6 +389,84 @@ def test_compiles_nested_field_group_with_balanced_links():
             output.write(compiled)
             output.flush()
             subprocess.check_call([validator, output.name])
+
+
+def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
+    shared = {
+        "display": {"definitions": {
+            "recipient": {"label": "Recipient", "format": "addressName"}
+        }}
+    }
+    descriptor = {
+        "includes": "shared.json",
+        "display": {"formats": {
+            "batch((address to,uint256 amount)[] items)": {
+                "intent": "Batch",
+                "fields": [{"path": "items.[]", "label": "Item",
+                            "fields": [
+                                {"path": "to",
+                                 "$ref": "$.display.definitions.recipient"},
+                                {"path": "amount", "label": "Amount",
+                                 "format": "raw"},
+                            ]}],
+            }
+        }}
+    }
+    (tmp_path / "shared.json").write_text(json.dumps(shared))
+    path = tmp_path / "descriptor.json"
+    path.write_text(json.dumps(descriptor))
+    loaded = load_descriptor(str(path), str(tmp_path))
+    compiled = compile_calldata(
+        loaded, "batch((address to,uint256 amount)[] items)", 1,
+        "0x1111111111111111111111111111111111111111")
+    display = _sections(compiled)[7]
+    count = int.from_bytes(display[:2], "big")
+    opcodes = [display[2 + i * 8] for i in range(count)]
+    assert opcodes == [1, 7, 5, 4, 4, 6, 8, 10]
+    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
+    if validator:
+        with tempfile.NamedTemporaryFile() as output:
+            output.write(compiled)
+            output.flush()
+            subprocess.check_call([validator, output.name])
+
+
+def test_official_registry_all_calldata_formats_reach_firmware():
+    registry = os.environ.get("ERC7730_REGISTRY")
+    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
+    if not registry or not validator:
+        pytest.skip("official registry and firmware validator are required")
+    import glob
+    failures = []
+    checked = 0
+    for path in glob.glob(os.path.join(
+            registry, "registry", "**", "calldata-*.json"), recursive=True):
+        descriptor = load_descriptor(path, registry)
+        deployments = descriptor.get("context", {}).get(
+            "contract", {}).get("deployments", [])
+        if not deployments:
+            continue
+        deployment = deployments[0]
+        if (not isinstance(deployment.get("chainId"), int) or
+                not isinstance(deployment.get("address"), str)):
+            continue
+        for signature in descriptor.get("display", {}).get("formats", {}):
+            checked += 1
+            try:
+                program = compile_calldata(
+                    descriptor, signature, deployment["chainId"],
+                    deployment["address"])
+                with tempfile.NamedTemporaryFile() as output:
+                    output.write(program)
+                    output.flush()
+                    subprocess.check_call(
+                        [validator, output.name], stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL)
+            except Exception as exc:
+                failures.append("%s :: %s :: %s" % (
+                    os.path.basename(path), signature, exc))
+    assert checked == 1450
+    assert failures == []
 
 
 def test_compiles_official_uniswap_eip712_fixture_through_firmware():
