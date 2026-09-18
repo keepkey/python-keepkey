@@ -395,7 +395,45 @@ class CalldataCompiler(object):
                 result["params"] = params
             return result
 
+        field_specs = []
+        group_ranges = []
+
+        def join_path(prefix, path):
+            if not prefix or (isinstance(path, str) and
+                              path.startswith(("#.", "@.", "$."))):
+                return path
+            if not path:
+                return prefix
+            return prefix + "." + path
+
+        def flatten_fields(items, prefix=None):
+            for item in items:
+                if "fields" not in item:
+                    field = dict(item)
+                    if "path" in field:
+                        field["path"] = join_path(prefix, field["path"])
+                    if prefix:
+                        field["_path_prefix"] = prefix
+                    field_specs.append(field)
+                    continue
+                group_path = join_path(prefix, item.get("path"))
+                if group_path and ".[]" in group_path:
+                    # Array-backed groups need an array instruction around the
+                    # group and are compiled by the dedicated nested pass.
+                    raise ValueError("nested array iteration requires a field group")
+                start = len(field_specs)
+                flatten_fields(item.get("fields", ()), group_path)
+                end = len(field_specs)
+                if end == start:
+                    raise ValueError("display group must contain a field")
+                group_ranges.append((start, end, item.get("label")))
+
+        flatten_fields(selected.get("fields", []))
+
         strings = set([selected.get("intent", selected.get("$id", function_name))])
+        for unused_start, unused_end, group_label in group_ranges:
+            if group_label:
+                strings.add(group_label)
         interpolation = selected.get("interpolatedIntent")
         interpolation_tokens = []
         if interpolation is not None:
@@ -420,7 +458,7 @@ class CalldataCompiler(object):
             if field in (1, 2):
                 strings.add(value)
         fields = []
-        for unresolved in selected.get("fields", []):
+        for unresolved in field_specs:
             field = resolve_field(unresolved)
             if field.get("visible") == "never":
                 continue
@@ -435,6 +473,15 @@ class CalldataCompiler(object):
             if isinstance(constant_value, str) and not constant_value.startswith("0x"):
                 strings.add(constant_value)
             params = field.get("params", {})
+            prefix = field.get("_path_prefix")
+            if prefix:
+                params = dict(params)
+                for key in ("tokenPath", "collectionPath", "chainIdPath",
+                            "calleePath", "selectorPath", "amountPath",
+                            "spenderPath"):
+                    if key in params:
+                        params[key] = join_path(prefix, params[key])
+                field["params"] = params
             if kind_name == "enum":
                 enum_ref = params.get("$ref")
                 prefix = "$.metadata.enums."
@@ -513,7 +560,20 @@ class CalldataCompiler(object):
             literals.append(literal)
             domain_records.append((2, bytes([field, 1]) +
                                    _u16(len(literals) - 1)))
-        for field, steps in fields:
+        groups_starting = {}
+        groups_ending = {}
+        for start, end, label in group_ranges:
+            groups_starting.setdefault(start, []).append((end, label))
+            groups_ending.setdefault(end, []).append((start, label))
+        active_group_pcs = []
+
+        for field_number, (field, steps) in enumerate(fields):
+            for unused_end, label in sorted(
+                    groups_starting.get(field_number, ()), reverse=True):
+                begin_pc = len(displays)
+                displays.append([5, string_index[label] if label else ABSENT,
+                                 ABSENT, 0])
+                active_group_pcs.append(begin_pc)
             if steps and steps[0][0] == "constant":
                 value = descriptor_value(steps[0][1])
                 if isinstance(value, bool):
@@ -572,6 +632,7 @@ class CalldataCompiler(object):
                         aliases = [aliases]
                     references = []
                     for alias in aliases:
+                        alias = descriptor_value(alias)
                         literals.append((5, _hex_address(alias)))
                         references.append(len(literals) - 1)
                     literals.append((9, _u16(len(references)) + b"".join(
@@ -661,6 +722,16 @@ class CalldataCompiler(object):
             else:
                 displays.append([4, string_index[field["label"]],
                                  formatter_index, condition])
+            for unused_start, unused_label in reversed(
+                    groups_ending.get(field_number + 1, ())):
+                if not active_group_pcs:
+                    raise ValueError("unbalanced display group")
+                begin_pc = active_group_pcs.pop()
+                end_pc = len(displays)
+                displays.append([6, begin_pc, ABSENT, ABSENT])
+                displays[begin_pc][3] = end_pc
+        if active_group_pcs:
+            raise ValueError("unbalanced display group")
         displays.append([10, ABSENT, ABSENT, ABSENT])
 
         if (len(paths) > 64 or len(formatters) > 64 or len(displays) > 64 or
@@ -738,13 +809,23 @@ class CalldataCompiler(object):
         payload = _u16(len(bindings)) + b"".join(
             bytes([kind]) + _u16(len(value)) + value for kind, value in bindings)
         sections.append((8, payload))
+        display_depth = 0
+        display_max_depth = 0
+        for instruction in displays:
+            if instruction[0] in (5, 7):
+                display_depth += 1
+                display_max_depth = max(display_max_depth, display_depth)
+            elif instruction[0] in (6, 8):
+                display_depth -= 1
+        if display_depth != 0:
+            raise ValueError("unbalanced display program")
         resource = [_u16(len(strings)), _u16(len(flat)), _u16(len(paths)),
                     _u16(len(literals)), _u16(len(conditions)), _u16(len(formatters)),
                     _u16(len(displays)), _u16(len(bindings)),
                     bytes([max_depth,
                            64 if any(step[0] == 2 for path in paths
                                      for step in path) else 0,
-                           1 if any(item[0] == 7 for item in displays) else 0,
+                           display_max_depth,
                            1 if any(kind == 13 for kind, _ in formatters) else 0]),
                     _u16(max([len(s) for s in strings] or [0]))]
         sections.append((9, b"".join(resource)))

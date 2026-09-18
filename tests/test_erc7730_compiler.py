@@ -314,6 +314,36 @@ def test_compiles_interpolated_intent_and_metadata_enum():
             subprocess.check_call([validator, output.name])
 
 
+def test_compiles_nested_field_group_with_balanced_links():
+    descriptor = {"display": {"formats": {
+        "act((address owner,uint256 amount) details)": {
+            "intent": "Grouped action",
+            "fields": [{
+                "path": "details", "label": "Details", "fields": [
+                    {"path": "owner", "label": "Owner",
+                     "format": "addressName"},
+                    {"path": "amount", "label": "Amount", "format": "raw"},
+                ],
+            }],
+        }
+    }}}
+    compiled = compile_calldata(
+        descriptor, "act((address owner,uint256 amount) details)", 1,
+        "0x1111111111111111111111111111111111111111")
+    display = _sections(compiled)[7]
+    count = int.from_bytes(display[:2], "big")
+    instructions = [display[2 + i * 8:10 + i * 8] for i in range(count)]
+    assert [item[0] for item in instructions] == [1, 5, 4, 4, 6, 10]
+    assert int.from_bytes(instructions[1][6:8], "big") == 4
+    assert int.from_bytes(instructions[4][2:4], "big") == 1
+    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
+    if validator:
+        with tempfile.NamedTemporaryFile() as output:
+            output.write(compiled)
+            output.flush()
+            subprocess.check_call([validator, output.name])
+
+
 def test_compiles_official_uniswap_eip712_fixture_through_firmware():
     registry = os.environ.get("ERC7730_REGISTRY")
     if not registry:
