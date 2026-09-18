@@ -306,7 +306,8 @@ class CalldataCompiler(object):
 
     def __init__(self, descriptor, signature, chain_id, address,
                  provider_id=1, issuance_epoch=0, revocation_epoch=0,
-                 token_records=(), network_records=()):
+                 token_records=(), network_records=(), definition_kind=1,
+                 primary_type_hash=None, domain_constraints=()):
         self.descriptor = descriptor
         self.signature = signature
         self.chain_id = int(chain_id)
@@ -318,6 +319,14 @@ class CalldataCompiler(object):
         self.revocation_epoch = revocation_epoch
         self.token_records = list(token_records)
         self.network_records = list(network_records)
+        self.definition_kind = definition_kind
+        self.primary_type_hash = primary_type_hash
+        self.domain_constraints = list(domain_constraints)
+        if definition_kind not in (1, 2):
+            raise ValueError("compiler supports calldata or EIP-712 programs")
+        if definition_kind == 2 and (primary_type_hash is None or
+                                     len(primary_type_hash) != 32):
+            raise ValueError("EIP-712 requires a primary type hash")
 
     def compile(self):
         function_name, root = parse_function_signature(self.signature)
@@ -363,6 +372,9 @@ class CalldataCompiler(object):
         for record in self.network_records:
             strings.add(record[1])
             strings.add(record[2])
+        for field, value in self.domain_constraints:
+            if field in (1, 2):
+                strings.add(value)
         fields = []
         for unresolved in selected.get("fields", []):
             field = resolve_field(unresolved)
@@ -382,6 +394,8 @@ class CalldataCompiler(object):
                 if not isinstance(base, str) or not base:
                     raise ValueError("unit requires base")
                 strings.add(base)
+            elif kind_name == "tokenAmount" and params.get("message"):
+                strings.add(params["message"])
             separator = field.get("separator")
             if separator:
                 strings.add(separator)
@@ -406,6 +420,25 @@ class CalldataCompiler(object):
         conditions = []
         optional_condition = None
         displays = [[1, string_index[selected.get("intent", selected.get("$id", function_name))], ABSENT, ABSENT]]
+
+        domain_records = []
+        for field, value in self.domain_constraints:
+            if field in (1, 2):
+                literal = (4, _u16(string_index[value]))
+            elif field == 3:
+                literal = (7, _unsigned_literal(value))
+            elif field == 4:
+                literal = (5, _hex_address(value) if isinstance(value, str)
+                           else bytes(value))
+            elif field == 5:
+                literal = (3, bytes.fromhex(value[2:])
+                           if isinstance(value, str) and value.startswith("0x")
+                           else bytes(value))
+            else:
+                raise ValueError("unknown EIP-712 domain field")
+            literals.append(literal)
+            domain_records.append((2, bytes([field, 1]) +
+                                   _u16(len(literals) - 1)))
         for field, steps in fields:
             value_path = intern_path(steps)
             kind = self.FORMAT_KIND[field.get("format", "raw")]
@@ -424,6 +457,33 @@ class CalldataCompiler(object):
                     arguments.append((2, 1, intern_path(_resolve_path(root, token))))
                 else:
                     raise ValueError("tokenAmount requires token or tokenPath")
+                if "threshold" in params:
+                    threshold = params["threshold"]
+                    if isinstance(threshold, str) and threshold.startswith("0x"):
+                        threshold = int(threshold, 16)
+                    literals.append((1, _unsigned_literal(threshold)))
+                    arguments.append((7, 2, len(literals) - 1))
+                if params.get("message"):
+                    arguments.append((8, 3, string_index[params["message"]]))
+                if "chainId" in params:
+                    chain = params["chainId"]
+                    if isinstance(chain, int):
+                        literals.append((7, _unsigned_literal(chain)))
+                        arguments.append((11, 2, len(literals) - 1))
+                    elif isinstance(chain, str):
+                        arguments.append((11, 1,
+                                          intern_path(_resolve_path(root, chain))))
+                    else:
+                        raise ValueError("invalid tokenAmount chainId")
+                aliases = params.get("nativeCurrencyAddress", ())
+                if aliases:
+                    references = []
+                    for alias in aliases:
+                        literals.append((5, _hex_address(alias)))
+                        references.append(len(literals) - 1)
+                    literals.append((9, _u16(len(references)) + b"".join(
+                        _u16(index) for index in references)))
+                    arguments.append((22, 2, len(literals) - 1))
             elif kind == 5:
                 encoding = params.get("encoding", "timestamp")
                 arguments.append((9, 3, string_index[encoding]))
@@ -543,7 +603,7 @@ class CalldataCompiler(object):
             bytes([op, 0]) + _u16(a) + _u16(b) + _u16(c)
             for op, a, b, c in displays)
         sections.append((7, payload))
-        bindings = [(1, _u64(self.chain_id) + self.address)]
+        bindings = [(1, _u64(self.chain_id) + self.address)] + domain_records
         for record in self.token_records:
             ticker = record[2]
             if ticker not in string_index:
@@ -574,8 +634,9 @@ class CalldataCompiler(object):
                             separators=(",", ":")).encode("utf-8")
         token_hash = hashlib.sha256(b"".join(value for _, value in bindings
                                              if _ != 1)).digest()
-        selector = keccak256(canonical_signature.encode("ascii"))[:4] + bytes(28)
-        header = (b"C773" + bytes([1, 2, 0, 1]) + _u16(0) +
+        selector = (keccak256(canonical_signature.encode("ascii"))[:4] + bytes(28)
+                    if self.definition_kind == 1 else self.primary_type_hash)
+        header = (b"C773" + bytes([1, 2, 0, self.definition_kind]) + _u16(0) +
                   _u64(self.chain_id) + self.address + selector +
                   hashlib.sha256(source).digest() + COMPILER_ID + token_hash +
                   _u32(self.provider_id) + _u32(self.issuance_epoch) +
@@ -589,3 +650,97 @@ class CalldataCompiler(object):
 def compile_calldata(descriptor, signature, chain_id, address, **kwargs):
     return CalldataCompiler(descriptor, signature, chain_id, address,
                             **kwargs).compile()
+
+
+def _typed_base(type_name, types, active):
+    array = re.match(r"^(.*)\[([0-9]*)\]$", type_name)
+    if array:
+        child = _typed_base(array.group(1), types, active)
+        length = ABSENT if array.group(2) == "" else int(array.group(2))
+        return AbiType(9, children=[child], array_length=length)
+    if type_name in types:
+        if type_name in active:
+            raise ValueError("recursive EIP-712 type")
+        children = []
+        for member in types[type_name]:
+            child = _typed_base(member["type"], types, active | {type_name})
+            child.name = member["name"]
+            children.append(child)
+        return AbiType(8, children=children)
+    parser = _SignatureParser(type_name)
+    node = parser.type()
+    parser._space()
+    if parser.pos != len(type_name):
+        raise ValueError("invalid EIP-712 member type")
+    return node
+
+
+def eip712_encode_type(primary_type, types):
+    if primary_type not in types:
+        raise ValueError("missing EIP-712 primary type")
+    dependencies = set()
+
+    def visit(name):
+        for member in types[name]:
+            base = re.sub(r"\[[0-9]*\]$", "", member["type"])
+            if base in types and base != primary_type and base not in dependencies:
+                dependencies.add(base)
+                visit(base)
+
+    visit(primary_type)
+    def declaration(name):
+        return name + "(" + ",".join(
+            member["type"] + " " + member["name"]
+            for member in types[name]) + ")"
+    return declaration(primary_type) + "".join(
+        declaration(name) for name in sorted(dependencies))
+
+
+def compile_eip712(descriptor, typed_data, chain_id=None, address=None,
+                   **kwargs):
+    """Compile one EIP-712 descriptor against its exact typed-data schema."""
+    types = typed_data["types"]
+    primary = typed_data["primaryType"]
+    root = _typed_base(primary, types, set())
+    def named(node):
+        if node.kind == 8:
+            value = "(" + ",".join(
+                named(child) + (" " + child.name if child.name else "")
+                for child in node.children) + ")"
+        elif node.kind == 9:
+            suffix = "" if node.array_length == ABSENT else str(node.array_length)
+            value = named(node.children[0]) + "[" + suffix + "]"
+        else:
+            value = _canonical_type(node)
+        return value
+    signature = primary + "(" + ",".join(
+        named(child) + (" " + child.name if child.name else "")
+        for child in root.children) + ")"
+    formats = descriptor.get("display", {}).get("formats", {})
+    selected = None
+    for key, value in formats.items():
+        if key.startswith(primary + "("):
+            selected = value
+            break
+    if selected is None:
+        raise KeyError("primary type is not described")
+    synthetic = dict(descriptor)
+    synthetic["display"] = dict(descriptor.get("display", {}))
+    synthetic["display"]["formats"] = {signature: selected}
+    domain = typed_data.get("domain", {})
+    if chain_id is None:
+        chain_id = domain.get("chainId")
+    if address is None:
+        address = domain.get("verifyingContract")
+    if not chain_id or not address:
+        raise ValueError("EIP-712 chain and verifying contract are required")
+    constraints = []
+    for name, field in (("name", 1), ("version", 2), ("chainId", 3),
+                        ("verifyingContract", 4), ("salt", 5)):
+        if name in domain:
+            constraints.append((field, domain[name]))
+    type_hash = keccak256(eip712_encode_type(primary, types).encode("ascii"))
+    return CalldataCompiler(
+        synthetic, signature, chain_id, address, definition_kind=2,
+        primary_type_hash=type_hash, domain_constraints=constraints,
+        **kwargs).compile()
