@@ -9,6 +9,7 @@ from __future__ import absolute_import
 
 import hashlib
 import json
+import os
 import re
 import struct
 
@@ -18,6 +19,45 @@ from .signed_metadata import keccak256
 ABSENT = 0xffff
 HEADER_SIZE = 179
 COMPILER_ID = hashlib.sha256(b"python-keepkey:erc7730-compiler:1").digest()
+
+
+def _merge_descriptor(base, overlay):
+    result = dict(base)
+    for key, value in overlay.items():
+        if (key in result and isinstance(result[key], dict) and
+                isinstance(value, dict)):
+            result[key] = _merge_descriptor(result[key], value)
+        else:
+            result[key] = value
+    return result
+
+
+def load_descriptor(path, root=None, _active=()):
+    """Load one descriptor and deterministically merge bounded includes."""
+    path = os.path.realpath(path)
+    root = os.path.realpath(root or os.path.dirname(path))
+    if os.path.commonpath((root, path)) != root:
+        raise ValueError("ERC-7730 include escapes registry root")
+    if path in _active:
+        raise ValueError("cyclic ERC-7730 include")
+    if len(_active) >= 16:
+        raise ValueError("ERC-7730 include depth exceeds limit")
+    with open(path, "r") as source:
+        descriptor = json.load(source)
+    includes = descriptor.pop("includes", [])
+    if isinstance(includes, str):
+        includes = [includes]
+    if not isinstance(includes, list):
+        raise ValueError("invalid ERC-7730 includes")
+    merged = {}
+    for include in includes:
+        if not isinstance(include, str) or not include:
+            raise ValueError("invalid ERC-7730 include path")
+        merged = _merge_descriptor(
+            merged, load_descriptor(
+                os.path.join(os.path.dirname(path), include), root,
+                _active + (path,)))
+    return _merge_descriptor(merged, descriptor)
 
 
 def _u16(value):
@@ -307,6 +347,8 @@ def _condition_literal(node, value):
         return 6, bytes([1 if value else 0])
     if node.kind in (5, 6) and isinstance(value, str) and value.startswith("0x"):
         return 3, bytes.fromhex(value[2:])
+    if node.kind in (5, 6) and isinstance(value, int) and value >= 0:
+        return 3, _unsigned_literal(value)
     raise ValueError("condition value does not match ABI leaf type")
 
 
@@ -417,25 +459,22 @@ class CalldataCompiler(object):
                     field_specs.append(field)
                     continue
                 group_path = join_path(prefix, item.get("path"))
-                if group_path and ".[]" in group_path:
-                    # Array-backed groups need an array instruction around the
-                    # group and are compiled by the dedicated nested pass.
-                    raise ValueError("nested array iteration requires a field group")
                 start = len(field_specs)
                 flatten_fields(item.get("fields", ()), group_path)
                 end = len(field_specs)
                 if end == start:
                     raise ValueError("display group must contain a field")
-                group_ranges.append((start, end, item.get("label")))
+                group_ranges.append((start, end, item.get("label"), group_path))
 
         flatten_fields(selected.get("fields", []))
 
         strings = set([selected.get("intent", selected.get("$id", function_name))])
-        for unused_start, unused_end, group_label in group_ranges:
+        for unused_start, unused_end, group_label, unused_path in group_ranges:
             if group_label:
                 strings.add(group_label)
         interpolation = selected.get("interpolatedIntent")
         interpolation_tokens = []
+        interpolation_values = set()
         if interpolation is not None:
             cursor = 0
             for match in re.finditer(r"\{([^{}]+)\}", interpolation):
@@ -444,6 +483,7 @@ class CalldataCompiler(object):
                     strings.add(text)
                     interpolation_tokens.append(("text", text))
                 interpolation_tokens.append(("value", match.group(1)))
+                interpolation_values.add(normalized_path(match.group(1)))
                 cursor = match.end()
             if cursor < len(interpolation):
                 text = interpolation[cursor:]
@@ -461,10 +501,18 @@ class CalldataCompiler(object):
         for unresolved in field_specs:
             field = resolve_field(unresolved)
             if field.get("visible") == "never":
-                continue
+                if normalized_path(field.get("path")) in interpolation_values:
+                    # The compiled protocol requires every interpolated value
+                    # to remain independently reviewable as an unconditional
+                    # field. Promote registry shorthand that marks the source
+                    # field hidden rather than weakening atomic interpolation.
+                    field["visible"] = "always"
+                else:
+                    continue
             label = field.get("label")
             path = field.get("path")
-            constant_value = field.get("value") if "value" in field else None
+            constant_value = (descriptor_value(field.get("value"))
+                              if "value" in field else None)
             kind_name = field.get("format", "raw")
             if (not label or (not path and "value" not in field) or
                     kind_name not in self.FORMAT_KIND):
@@ -562,18 +610,29 @@ class CalldataCompiler(object):
                                    _u16(len(literals) - 1)))
         groups_starting = {}
         groups_ending = {}
-        for start, end, label in group_ranges:
-            groups_starting.setdefault(start, []).append((end, label))
-            groups_ending.setdefault(end, []).append((start, label))
+        for start, end, label, group_path in group_ranges:
+            groups_starting.setdefault(start, []).append((end, label, group_path))
+            groups_ending.setdefault(end, []).append((start, label, group_path))
         active_group_pcs = []
 
         for field_number, (field, steps) in enumerate(fields):
-            for unused_end, label in sorted(
+            controlled_arrays = 0
+            for unused_end, label, group_path in sorted(
                     groups_starting.get(field_number, ()), reverse=True):
+                array_pc = None
+                if group_path and ".[]" in group_path:
+                    array_steps = _resolve_path(root, group_path)
+                    array_pc = len(displays)
+                    displays.append([7, intern_path(array_steps), ABSENT, 0])
+                    controlled_arrays += sum(
+                        1 for step in array_steps if step[0] == 2)
                 begin_pc = len(displays)
                 displays.append([5, string_index[label] if label else ABSENT,
                                  ABSENT, 0])
-                active_group_pcs.append(begin_pc)
+                active_group_pcs.append((begin_pc, array_pc))
+            for start, end, unused_label, group_path in group_ranges:
+                if start < field_number < end and group_path and ".[]" in group_path:
+                    controlled_arrays += group_path.split(".").count("[]")
             if steps and steps[0][0] == "constant":
                 value = descriptor_value(steps[0][1])
                 if isinstance(value, bool):
@@ -685,13 +744,17 @@ class CalldataCompiler(object):
                 pairs = []
                 for raw_key, label in sorted(enum_values.items()):
                     if node.kind == 4:
-                        if raw_key not in ("true", "false"):
+                        bool_key = raw_key.lower()
+                        if bool_key not in ("true", "false", "1", "0"):
                             raise ValueError("boolean enum key must be true or false")
-                        key = raw_key == "true"
+                        key = bool_key in ("true", "1")
                     elif node.kind in (1, 2):
                         key = int(raw_key, 0)
-                    elif node.kind in (3, 5, 6):
+                    elif node.kind == 3:
                         key = raw_key
+                    elif node.kind in (5, 6):
+                        key = (raw_key if raw_key.startswith("0x")
+                               else int(raw_key, 0))
                     else:
                         raise ValueError("enum requires a scalar ABI value")
                     literals.append(_condition_literal(node, key))
@@ -733,6 +796,7 @@ class CalldataCompiler(object):
                                    value_path, len(literals) - 1))
             all_positions = [i for i, step in enumerate(steps)
                              if step[0] == 2]
+            all_positions = all_positions[controlled_arrays:]
             if all_positions:
                 begins = []
                 for position in all_positions:
@@ -754,14 +818,18 @@ class CalldataCompiler(object):
             else:
                 displays.append([4, string_index[field["label"]],
                                  formatter_index, condition])
-            for unused_start, unused_label in reversed(
+            for unused_start, unused_label, unused_path in reversed(
                     groups_ending.get(field_number + 1, ())):
                 if not active_group_pcs:
                     raise ValueError("unbalanced display group")
-                begin_pc = active_group_pcs.pop()
+                begin_pc, array_pc = active_group_pcs.pop()
                 end_pc = len(displays)
                 displays.append([6, begin_pc, ABSENT, ABSENT])
                 displays[begin_pc][3] = end_pc
+                if array_pc is not None:
+                    array_end = len(displays)
+                    displays.append([8, array_pc, ABSENT, ABSENT])
+                    displays[array_pc][3] = array_end
         if active_group_pcs:
             raise ValueError("unbalanced display group")
         displays.append([10, ABSENT, ABSENT, ABSENT])

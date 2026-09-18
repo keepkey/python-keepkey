@@ -2897,6 +2897,109 @@ SECTIONS = [
           []),
      ]),
 
+    ('ER', 'ERC-7730 v2 Certified Clear-Signing Conformance', '7.16.0',
+     'ERC-7730 definitions are compiled into a bounded canonical program, authenticated by '
+     'KeepKey\'s certified delegation hierarchy, and interpreted against the exact calldata or '
+     'EIP-712 document being signed. The host supplies types, labels and formatting policy; it '
+     'never supplies authoritative decoded transaction values. A certified-definition failure '
+     'refuses signing and cannot silently downgrade to a less-specific certified display.',
+     [
+         'AUTHENTICATION AND REPLAY BOUNDARY:',
+         '- K773 envelope: version + purpose + canonical C773 program + sorted Merkle proof +',
+         '  139-byte KeepKey delegation certificate + compact secp256k1 signature.',
+         '- Purpose digest: SHA256("KEEPKEY:ERC7730:CATALOG\\0" || catalog_root).',
+         '- Definition id commits to the complete envelope; offset-zero replay is re-hashed before',
+         '  staged interpreter output becomes authoritative.',
+         '- Catalog lookup binds kind, chain, target and selector/typeHash. Unknown, ambiguous,',
+         '  reordered, oversized and recursively repeated definitions fail closed.',
+         '',
+         'CANONICAL PROGRAM AND DEVICE INTERPRETER:',
+         '- 179-byte header; sorted UTF-8 strings; canonical recursive ABI/EIP-712 node tree;',
+         '  typed structured/container/literal paths; typed literals and conditions;',
+         '  formatter, display, deployment/domain binding and resource sections.',
+         '- Recursive tuples and arrays through depth 12, 64 ABI nodes, 64 aggregate array',
+         '  elements, negative indices, half-open slices, nested array frames and separators.',
+         '- Display bytecode: intent, atomic interpolation fallback, fields, nested groups, arrays,',
+         '  embedded calls and explicit end; all forward/back links and depth are recomputed.',
+         '- Conditions: always, never, optional, empty/not-empty, in/not-in and must-match.',
+         '- Formatters: raw, native/token amounts, NFT, date, duration, unit, enum, chain, address',
+         '  name, ticker, ERC-7930 interoperable address, embedded calldata and encrypted fallback.',
+         '- Signed token/network records establish ticker, decimals and native currency. Live',
+         '  results may annotate but cannot replace a device-decoded value.',
+         '',
+         'REAL-WORLD AND EXHAUSTIVE EVIDENCE:',
+         '- Exact KeepKey SDK THORChain router deposit calldata, including vault, asset, amount and',
+         '  memo, is selector-bound and firmware-validated.',
+         '- Official Uniswap Router02 signed transaction and Permit2 typed-data fixtures bind the',
+         '  expected selector, target, chain, typeHash and domain constraints.',
+         '- Every one of 1,450 calldata formats exposed after bounded include expansion in the',
+         '  official ERC-7730 registry compiles and reaches the firmware catalog verifier.',
+         '- Deep ParaSwap Augustus multiSwap/megaSwap definitions exercise depths 9 and 11 while',
+         '  the compacted signing workflow remains exactly 4,096 bytes of fixed SRAM.',
+         '',
+         'LIMIT OF THIS SECTION: catalog-verifier success ends at the expected UNTRUSTED result',
+         'when tests use a synthetic certificate. A trusted-success emulator capture additionally',
+         'requires a certificate issued by the KeepKey root for the test delegate.',
+     ],
+     [
+         ('ER1', 'test_erc7730_compiler',
+          'test_official_registry_all_calldata_formats_reach_firmware',
+          'All 1,450 official calldata formats reach firmware',
+          'Recursively merges bounded includes, compiles every applicable registry format and '
+          'feeds each complete canonical program through the firmware catalog verifier.', []),
+         ('ER2', 'test_erc7730_compiler',
+          'test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap',
+          'Exact KeepKey SDK THORChain swap fixture',
+          'Checks selector, vault, asset, amount, dynamic memo and transaction value before '
+          'firmware validation.', []),
+         ('ER3', 'test_erc7730_compiler',
+          'test_compiles_official_uniswap_tuple_fixture_through_firmware',
+          'Official Uniswap signed transaction',
+          'Binds the real Router02 target, chain, selector and published transaction hash.', []),
+         ('ER4', 'test_erc7730_compiler',
+          'test_compiles_official_uniswap_eip712_fixture_through_firmware',
+          'Official Permit2 EIP-712 fixture',
+          'Proves canonical encodeType/typeHash, domain constraints and signed token/network '
+          'metadata reach the firmware parser.', []),
+         ('ER5', 'test_erc7730_compiler',
+          'test_loads_bounded_includes_and_compiles_array_backed_group',
+          'References, includes and grouped arrays',
+          'Exercises deterministic include merge, shared field references and a group executed '
+          'inside an authenticated array frame.', []),
+         ('ER6', 'test_erc7730_compiler',
+          'test_compiles_recursive_array_iteration_frames',
+          'Recursive ABI arrays and separators',
+          'Builds nested array begin/end links and validates their declared resource depth.', []),
+         ('ER7', 'test_erc7730_compiler',
+          'test_compiles_interpolated_intent_and_metadata_enum',
+          'Atomic interpolation and enum maps',
+          'Every interpolated operand is also an unconditional field; failure selects the '
+          'fallback intent atomically.', []),
+         ('ER8', 'test_erc7730_compiler',
+          'test_compiles_typed_if_not_in_and_must_match_conditions',
+          'Typed visibility and must-match conditions',
+          'Typed literal sets control visibility; must-match is a signing assertion.', []),
+         ('ER9', 'test_erc7730_catalog',
+          'test_signed_catalog_envelope_commits_program_proof_and_certificate',
+          'Certified Merkle catalog envelope',
+          'Verifies deterministic root construction, purpose digest, signature and exact wire '
+          'layout.', []),
+         ('ER10', 'test_erc7730_catalog',
+          'test_catalog_refuses_unknown_ambiguous_and_malformed_requests',
+          'Catalog lookup fails closed',
+          'Unknown selectors, oversized chunks, excessive recursion and ambiguous tuples are '
+          'rejected.', []),
+         ('ER11', 'test_erc7730_protocol_bindings',
+          'test_definition_chunk_round_trip_is_byte_exact',
+          'Canonical protocol transport is byte exact',
+          'Protobuf bindings preserve definition id, offsets, total length and envelope bytes.', []),
+         ('ER12', 'test_erc7730_compiler',
+          'test_token_amount_without_token_uses_firmware_raw_fallback',
+          'Unknown tokens never become trusted labels',
+          'A missing token reference displays the device-decoded raw integer and forbids '
+          'token-specific auxiliary metadata.', []),
+     ]),
+
     # Two-character id because all 26 letters were taken. The catalog keys on a
     # string, not a char, so this costs nothing.
     ('TD', 'Structured EIP-712 - The Device Reads The Document', '7.15.0',
@@ -3329,6 +3432,7 @@ def validate_junit(fw_version, results, build_variant='full'):
 
 
 def main():
+    global SECTIONS
     p = argparse.ArgumentParser(description='KeepKey Firmware Test Report')
     p.add_argument('--output', default='test-report.pdf')
     p.add_argument('--fw-version', default=None)
@@ -3344,7 +3448,16 @@ def main():
                    help='Validate JUnit results against SECTIONS, exit non-zero on failures')
     p.add_argument('--build-variant', choices=('full', 'bitcoin-only'), default='full',
                    help='Expected CI product; controls only explicit build-flag waivers')
+    p.add_argument('--section', action='append', default=[],
+                   help='Render only the named section id (repeatable)')
     args = p.parse_args()
+
+    if args.section:
+        wanted = set(args.section)
+        SECTIONS = [section for section in SECTIONS if section[0] in wanted]
+        missing = wanted.difference(section[0] for section in SECTIONS)
+        if missing:
+            p.error('unknown section(s): %s' % ', '.join(sorted(missing)))
 
     fw = args.fw_version
     if not fw:
