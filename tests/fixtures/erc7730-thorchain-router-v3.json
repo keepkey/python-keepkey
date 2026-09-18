@@ -1,0 +1,62 @@
+{
+  "source": "keepkey-sdk/packages/ts-keepkey-sdk/__tests__/sign-tx-eth-thorchain.js",
+  "description": "THORChain ETH to BCH swap",
+  "chainId": 1,
+  "to": "0x3624525075b88B24ecc29CE226b0CEc1fFcB6976",
+  "value": "0x5af3107a4000",
+  "signature": "deposit(address vault,address asset,uint256 amount,string memo)",
+  "data": "0x1fece7b4000000000000000000000000aff6edbf71badb2bc504c499ac8f344a5cd86008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005af3107a4000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000343d3a4243482e4243483a717a78703078633676736a3861706739796d346e346a6c3435707978746b70736875767239736d6a7033000000000000000000000000",
+  "expected": {
+    "selector": "1fece7b4",
+    "vault": "0xaff6edbf71badb2bc504c499ac8f344a5cd86008",
+    "asset": "0x0000000000000000000000000000000000000000",
+    "amount": "100000000000000",
+    "memo": "=:BCH.BCH:qzxp0xc6vsj8apg9ym4n4jl45pyxtkpshuvr9smjp3"
+  },
+  "descriptor": {
+    "$schema": "https://eips.ethereum.org/assets/eip-7730/erc7730-v2.schema.json",
+    "context": {
+      "$id": "THORChain Router v3.0.1",
+      "contract": {
+        "deployments": [
+          {
+            "chainId": 1,
+            "address": "0x3624525075b88B24ecc29CE226b0CEc1fFcB6976"
+          }
+        ]
+      }
+    },
+    "metadata": {
+      "owner": "THORChain",
+      "contractName": "THORChain Router v3.0.1"
+    },
+    "display": {
+      "formats": {
+        "deposit(address vault,address asset,uint256 amount,string memo)": {
+          "$id": "deposit",
+          "intent": "Swap via THORChain",
+          "fields": [
+            {
+              "path": "vault",
+              "label": "Inbound vault",
+              "format": "addressName",
+              "visible": "always"
+            },
+            {
+              "path": "amount",
+              "label": "Amount to send",
+              "format": "amount",
+              "visible": "always"
+            },
+            {
+              "path": "memo",
+              "label": "Swap memo",
+              "format": "raw",
+              "visible": "always"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

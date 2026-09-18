@@ -27,6 +27,47 @@ def _sections(program):
     return result
 
 
+def _rlp_item(data, offset=0):
+    prefix = data[offset]
+    if prefix <= 0x7f:
+        return bytes([prefix]), offset + 1
+    if prefix <= 0xb7:
+        length = prefix - 0x80
+        start = offset + 1
+        return data[start:start + length], start + length
+    if prefix <= 0xbf:
+        width = prefix - 0xb7
+        length = int.from_bytes(data[offset + 1:offset + 1 + width], "big")
+        start = offset + 1 + width
+        return data[start:start + length], start + length
+    if prefix <= 0xf7:
+        length = prefix - 0xc0
+        start = offset + 1
+    else:
+        width = prefix - 0xf7
+        length = int.from_bytes(data[offset + 1:offset + 1 + width], "big")
+        start = offset + 1 + width
+    end = start + length
+    values = []
+    while start < end:
+        value, start = _rlp_item(data, start)
+        values.append(value)
+    assert start == end
+    return values, end
+
+
+def _ethereum_transaction(raw_hex):
+    raw = bytes.fromhex(raw_hex[2:])
+    typed = raw[0] in (1, 2, 3, 4)
+    transaction, end = _rlp_item(raw, 1 if typed else 0)
+    assert end == len(raw)
+    if typed and raw[0] == 2:
+        return int.from_bytes(transaction[0], "big"), transaction[5], transaction[7]
+    if typed:
+        raise ValueError("unsupported typed fixture")
+    return None, transaction[3], transaction[5]
+
+
 def test_parses_recursive_tuple_and_array_signature():
     name, root = parse_function_signature(
         "route((address token,uint256 amount)[] legs,address recipient)")
@@ -100,6 +141,11 @@ def test_compiles_official_uniswap_tuple_fixture_through_firmware():
         registry, "registry", "uniswap", "calldata-UniswapV3Router02.json")
     with open(path, "r") as source:
         descriptor = json.load(source)
+    tests_path = os.path.join(
+        registry, "registry", "uniswap", "testsv2",
+        "calldata-UniswapV3Router02.tests.json")
+    with open(tests_path, "r") as source:
+        fixtures = json.load(source)["tests"]
     signature = (
         "exactInputSingle((address tokenIn, address tokenOut, uint24 fee, "
         "address recipient, uint256 amountIn, uint256 amountOutMinimum, "
@@ -114,6 +160,43 @@ def test_compiles_official_uniswap_tuple_fixture_through_firmware():
         network_records=[(1, "Ethereum", "ETH", 18)],
     )
     assert compiled[38:42].hex() == "04e45aaf"
+    chain_id, target, calldata = _ethereum_transaction(fixtures[1]["rawTx"])
+    assert chain_id == 1
+    assert target.hex() == "68b3465833fb72a70ecdf485e0e4c7bd8665fc45"
+    assert calldata[:4] == compiled[38:42]
+    assert fixtures[1]["txHash"] == (
+        "0xb25281abb3e6bbfe18c746187522c2e915aa02fdb8175082005340e00c1f0b30")
+    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
+    if validator:
+        with tempfile.NamedTemporaryFile() as output:
+            output.write(compiled)
+            output.flush()
+            subprocess.check_call([validator, output.name])
+
+
+def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
+    fixture_path = os.path.join(
+        os.path.dirname(__file__), "fixtures", "erc7730-thorchain-router-v3.json")
+    with open(fixture_path, "r") as source:
+        fixture = json.load(source)
+    calldata = bytes.fromhex(fixture["data"][2:])
+    expected = fixture["expected"]
+    assert calldata[:4].hex() == expected["selector"]
+    assert ("0x" + calldata[16:36].hex()) == expected["vault"]
+    assert ("0x" + calldata[48:68].hex()) == expected["asset"]
+    assert str(int.from_bytes(calldata[68:100], "big")) == expected["amount"]
+    dynamic_offset = int.from_bytes(calldata[100:132], "big")
+    memo_length = int.from_bytes(
+        calldata[4 + dynamic_offset:4 + dynamic_offset + 32], "big")
+    memo = calldata[4 + dynamic_offset + 32:
+                    4 + dynamic_offset + 32 + memo_length].decode("utf-8")
+    assert memo == expected["memo"]
+    assert int(fixture["value"], 16) == int(expected["amount"])
+
+    compiled = compile_calldata(
+        fixture["descriptor"], fixture["signature"], fixture["chainId"],
+        fixture["to"], network_records=[(1, "Ethereum", "ETH", 18)])
+    assert compiled[38:42].hex() == expected["selector"]
     validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
     if validator:
         with tempfile.NamedTemporaryFile() as output:
