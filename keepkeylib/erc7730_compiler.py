@@ -221,6 +221,17 @@ def _flatten_abi(root):
 def _resolve_path(root, expression):
     if not isinstance(expression, str) or not expression:
         raise ValueError("invalid ERC-7730 path")
+    if expression == "#":
+        return []
+    if expression.startswith("#."):
+        expression = expression[2:]
+    if expression.startswith("@."):
+        container = {"from": 1, "to": 2, "value": 3, "chainId": 4,
+                     "domain": 5, "primaryType": 6}
+        name = expression[2:]
+        if name not in container:
+            raise ValueError("unknown container path %s" % expression)
+        return [("container", container[name])]
     parts = expression.split(".")
     node = root
     steps = []
@@ -261,6 +272,11 @@ def _resolve_path(root, expression):
 
 
 def _path_node(root, steps):
+    if steps and steps[0][0] == "container":
+        # from/to are addresses; value/chainId are unsigned integers. Domain
+        # and primaryType are containers and cannot be formatted as leaves.
+        kind = 3 if steps[0][1] in (1, 2) else 1
+        return AbiType(kind)
     node = root
     for step in steps:
         if step[0] == 1:
@@ -345,6 +361,19 @@ class CalldataCompiler(object):
         if selected is None:
             raise KeyError("signature is not described")
 
+        def descriptor_value(reference):
+            if not isinstance(reference, str) or not reference.startswith("$."):
+                return reference
+            value = self.descriptor
+            for component in reference[2:].split("."):
+                if not isinstance(value, dict) or component not in value:
+                    raise ValueError("unresolved descriptor value %s" % reference)
+                value = value[component]
+            return value
+
+        def normalized_path(path):
+            return path[2:] if isinstance(path, str) and path.startswith("#.") else path
+
         def resolve_field(field):
             reference = field.get("$ref")
             if not reference:
@@ -367,6 +396,21 @@ class CalldataCompiler(object):
             return result
 
         strings = set([selected.get("intent", selected.get("$id", function_name))])
+        interpolation = selected.get("interpolatedIntent")
+        interpolation_tokens = []
+        if interpolation is not None:
+            cursor = 0
+            for match in re.finditer(r"\{([^{}]+)\}", interpolation):
+                if match.start() > cursor:
+                    text = interpolation[cursor:match.start()]
+                    strings.add(text)
+                    interpolation_tokens.append(("text", text))
+                interpolation_tokens.append(("value", match.group(1)))
+                cursor = match.end()
+            if cursor < len(interpolation):
+                text = interpolation[cursor:]
+                strings.add(text)
+                interpolation_tokens.append(("text", text))
         for record in self.token_records:
             strings.add(record[2])
         for record in self.network_records:
@@ -382,11 +426,26 @@ class CalldataCompiler(object):
                 continue
             label = field.get("label")
             path = field.get("path")
+            constant_value = field.get("value") if "value" in field else None
             kind_name = field.get("format", "raw")
-            if not label or not path or kind_name not in self.FORMAT_KIND:
+            if (not label or (not path and "value" not in field) or
+                    kind_name not in self.FORMAT_KIND):
                 raise ValueError("invalid display field")
             strings.add(label)
+            if isinstance(constant_value, str) and not constant_value.startswith("0x"):
+                strings.add(constant_value)
             params = field.get("params", {})
+            if kind_name == "enum":
+                enum_ref = params.get("$ref")
+                prefix = "$.metadata.enums."
+                if not isinstance(enum_ref, str) or not enum_ref.startswith(prefix):
+                    raise ValueError("enum requires a metadata enum reference")
+                enum_values = self.descriptor.get("metadata", {}).get(
+                    "enums", {}).get(enum_ref[len(prefix):])
+                if not isinstance(enum_values, dict) or not enum_values:
+                    raise ValueError("unresolved enum reference")
+                for enum_label in enum_values.values():
+                    strings.add(enum_label)
             if kind_name == "date":
                 strings.add(params.get("encoding", "timestamp"))
             elif kind_name == "unit":
@@ -399,7 +458,8 @@ class CalldataCompiler(object):
             separator = field.get("separator")
             if separator:
                 strings.add(separator)
-            fields.append((field, _resolve_path(root, path)))
+            fields.append((field, (("constant", constant_value),)
+                           if "value" in field else _resolve_path(root, path)))
         strings = sorted(s.encode("utf-8") for s in strings)
         if any(not value or len(value) > 128 for value in strings):
             raise ValueError("invalid string length")
@@ -420,6 +480,20 @@ class CalldataCompiler(object):
         conditions = []
         optional_condition = None
         displays = [[1, string_index[selected.get("intent", selected.get("$id", function_name))], ABSENT, ABSENT]]
+        if interpolation_tokens:
+            formatter_by_path = {}
+            for index, (field, unused_steps) in enumerate(fields):
+                if field.get("visible", "always") == "always":
+                    formatter_by_path[normalized_path(field.get("path"))] = index
+            for token_kind, token_value in interpolation_tokens:
+                if token_kind == "text":
+                    displays.append([2, string_index[token_value], ABSENT, ABSENT])
+                else:
+                    token_value = normalized_path(token_value)
+                    if token_value not in formatter_by_path:
+                        raise ValueError(
+                            "interpolated value must reference an always-visible field")
+                    displays.append([3, formatter_by_path[token_value], ABSENT, ABSENT])
 
         domain_records = []
         for field, value in self.domain_constraints:
@@ -440,6 +514,21 @@ class CalldataCompiler(object):
             domain_records.append((2, bytes([field, 1]) +
                                    _u16(len(literals) - 1)))
         for field, steps in fields:
+            if steps and steps[0][0] == "constant":
+                value = descriptor_value(steps[0][1])
+                if isinstance(value, bool):
+                    literal = (6, bytes([1 if value else 0]))
+                elif isinstance(value, int):
+                    literal = (1, _unsigned_literal(value))
+                elif isinstance(value, str) and value.startswith("0x"):
+                    raw = bytes.fromhex(value[2:])
+                    literal = (5 if len(raw) == 20 else 3, raw)
+                elif isinstance(value, str):
+                    literal = (4, _u16(string_index[value]))
+                else:
+                    raise ValueError("unsupported constant display value")
+                literals.append(literal)
+                steps = (("literal", len(literals) - 1),)
             value_path = intern_path(steps)
             kind = self.FORMAT_KIND[field.get("format", "raw")]
             arguments = [(1, 1, value_path)]
@@ -448,6 +537,7 @@ class CalldataCompiler(object):
                 token = params.get("tokenPath")
                 if token is None:
                     token = params.get("token")
+                token = descriptor_value(token)
                 if isinstance(token, str) and token.startswith("0x"):
                     raw = _hex_address(token)
                     literals.append((5, raw))
@@ -458,7 +548,7 @@ class CalldataCompiler(object):
                 else:
                     raise ValueError("tokenAmount requires token or tokenPath")
                 if "threshold" in params:
-                    threshold = params["threshold"]
+                    threshold = descriptor_value(params["threshold"])
                     if isinstance(threshold, str) and threshold.startswith("0x"):
                         threshold = int(threshold, 16)
                     literals.append((1, _unsigned_literal(threshold)))
@@ -476,7 +566,10 @@ class CalldataCompiler(object):
                     else:
                         raise ValueError("invalid tokenAmount chainId")
                 aliases = params.get("nativeCurrencyAddress", ())
+                aliases = descriptor_value(aliases)
                 if aliases:
+                    if isinstance(aliases, str):
+                        aliases = [aliases]
                     references = []
                     for alias in aliases:
                         literals.append((5, _hex_address(alias)))
@@ -494,6 +587,29 @@ class CalldataCompiler(object):
                 arguments.append((5, 3, string_index[params["base"]]))
                 literals.append((6, bytes([1 if params.get("prefix") else 0])))
                 arguments.append((6, 2, len(literals) - 1))
+            elif kind == 8:
+                enum_ref = params["$ref"]
+                enum_values = self.descriptor["metadata"]["enums"][
+                    enum_ref[len("$.metadata.enums."):]]
+                node = _path_node(root, steps)
+                pairs = []
+                for raw_key, label in sorted(enum_values.items()):
+                    if node.kind == 4:
+                        if raw_key not in ("true", "false"):
+                            raise ValueError("boolean enum key must be true or false")
+                        key = raw_key == "true"
+                    elif node.kind in (1, 2):
+                        key = int(raw_key, 0)
+                    elif node.kind in (3, 5, 6):
+                        key = raw_key
+                    else:
+                        raise ValueError("enum requires a scalar ABI value")
+                    literals.append(_condition_literal(node, key))
+                    pairs.append((len(literals) - 1, string_index[label]))
+                pairs.sort()
+                literals.append((8, _u16(len(pairs)) + b"".join(
+                    _u16(key) + _u16(value) for key, value in pairs)))
+                arguments.append((10, 2, len(literals) - 1))
             elif kind == 13:
                 callee = params.get("calleePath")
                 if not callee:
@@ -568,6 +684,9 @@ class CalldataCompiler(object):
         for steps in paths:
             if steps and steps[0][0] == "literal":
                 payload += bytes([3, 0]) + _u16(steps[0][1])
+                continue
+            if steps and steps[0][0] == "container":
+                payload += bytes([2, 0]) + _u16(steps[0][1])
                 continue
             payload += bytes([1, len(steps)]) + _u16(ABSENT)
             for step in steps:

@@ -276,6 +276,44 @@ def test_compiles_typed_if_not_in_and_must_match_conditions():
             subprocess.check_call([validator, output.name])
 
 
+def test_compiles_interpolated_intent_and_metadata_enum():
+    descriptor = {
+        "metadata": {"enums": {"side": {"false": "Buy", "true": "Sell"}}},
+        "display": {"formats": {
+            "swap(bool selling,uint256 amount)": {
+                "intent": "Swap",
+                "interpolatedIntent": "Swap {amount} as {selling}",
+                "fields": [
+                    {"path": "selling", "label": "Side", "format": "enum",
+                     "params": {"$ref": "$.metadata.enums.side"},
+                     "visible": "always"},
+                    {"path": "amount", "label": "Amount", "format": "raw",
+                     "visible": "always"},
+                ],
+            }
+        }}
+    }
+    compiled = compile_calldata(
+        descriptor, "swap(bool selling,uint256 amount)", 1,
+        "0x1111111111111111111111111111111111111111")
+    sections = _sections(compiled)
+    display = sections[7]
+    count = int.from_bytes(display[:2], "big")
+    opcodes = [display[2 + i * 8] for i in range(count)]
+    assert opcodes == [1, 2, 3, 2, 3, 4, 4, 10]
+    formatters = sections[6]
+    assert int.from_bytes(formatters[:2], "big") == 2
+    assert formatters[2] == 8
+    literals = sections[4]
+    assert int.from_bytes(literals[:2], "big") == 3
+    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
+    if validator:
+        with tempfile.NamedTemporaryFile() as output:
+            output.write(compiled)
+            output.flush()
+            subprocess.check_call([validator, output.name])
+
+
 def test_compiles_official_uniswap_eip712_fixture_through_firmware():
     registry = os.environ.get("ERC7730_REGISTRY")
     if not registry:
