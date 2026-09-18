@@ -638,6 +638,31 @@ class CalldataCompiler(object):
                     literals.append((9, _u16(len(references)) + b"".join(
                         _u16(index) for index in references)))
                     arguments.append((22, 2, len(literals) - 1))
+            elif kind == 4:
+                collection = params.get("collectionPath")
+                if collection is None:
+                    collection = params.get("collection")
+                collection = descriptor_value(collection)
+                if isinstance(collection, str) and collection.startswith("0x"):
+                    literals.append((5, _hex_address(collection)))
+                    collection_path = intern_path(
+                        (("literal", len(literals) - 1),))
+                elif isinstance(collection, str):
+                    collection_path = intern_path(_resolve_path(root, collection))
+                else:
+                    raise ValueError("nftName requires collection or collectionPath")
+                arguments.append((3, 1, collection_path))
+                chain = params.get("chainIdPath", params.get("chainId"))
+                if chain is not None:
+                    chain = descriptor_value(chain)
+                    if isinstance(chain, int):
+                        literals.append((7, _unsigned_literal(chain)))
+                        arguments.append((11, 2, len(literals) - 1))
+                    elif isinstance(chain, str):
+                        arguments.append((11, 1,
+                                          intern_path(_resolve_path(root, chain))))
+                    else:
+                        raise ValueError("invalid nftName chainId")
             elif kind == 5:
                 encoding = params.get("encoding", "timestamp")
                 arguments.append((9, 3, string_index[encoding]))
@@ -704,21 +729,24 @@ class CalldataCompiler(object):
                                    value_path, len(literals) - 1))
             all_positions = [i for i, step in enumerate(steps)
                              if step[0] == 2]
-            if len(all_positions) > 1:
-                raise ValueError("nested array iteration requires a field group")
             if all_positions:
-                prefix = steps[:all_positions[0]]
-                array_path = intern_path(prefix)
-                begin = len(displays)
-                displays.append([7, array_path, condition, 0])
+                begins = []
+                for position in all_positions:
+                    array_path = intern_path(steps[:position + 1])
+                    begin = len(displays)
+                    begins.append(begin)
+                    displays.append([7, array_path, condition, 0])
                 displays.append([4, string_index[field["label"]],
                                  formatter_index, ABSENT])
-                end = len(displays)
                 separator = field.get("separator")
-                displays.append([8, begin,
-                                 string_index[separator] if separator else ABSENT,
-                                 ABSENT])
-                displays[begin][3] = end
+                for depth, begin in enumerate(reversed(begins)):
+                    end = len(displays)
+                    displays.append([
+                        8, begin,
+                        (string_index[separator]
+                         if separator and depth == len(begins) - 1 else ABSENT),
+                        ABSENT])
+                    displays[begin][3] = end
             else:
                 displays.append([4, string_index[field["label"]],
                                  formatter_index, condition])
