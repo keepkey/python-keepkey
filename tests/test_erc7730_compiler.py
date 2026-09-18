@@ -203,3 +203,72 @@ def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
             output.write(compiled)
             output.flush()
             subprocess.check_call([validator, output.name])
+
+
+def test_compiles_array_iteration_separator_and_optional_visibility():
+    descriptor = {
+        "display": {"formats": {
+            "batch((address recipient,uint256 amount)[] items)": {
+                "intent": "Batch transfer",
+                "fields": [{
+                    "path": "items.[].recipient",
+                    "label": "Recipient",
+                    "format": "addressName",
+                    "separator": "Next recipient",
+                    "visible": "optional",
+                }],
+            }
+        }}
+    }
+    compiled = compile_calldata(
+        descriptor,
+        "batch((address recipient,uint256 amount)[] items)", 1,
+        "0x1111111111111111111111111111111111111111")
+    sections = _sections(compiled)
+    assert 5 in sections
+    display = sections[7]
+    count = int.from_bytes(display[:2], "big")
+    opcodes = [display[2 + i * 8] for i in range(count)]
+    assert opcodes == [1, 7, 4, 8, 10]
+    begin = display[10:18]
+    end = display[26:34]
+    assert int.from_bytes(begin[6:8], "big") == 3
+    assert int.from_bytes(end[2:4], "big") == 1
+    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
+    if validator:
+        with tempfile.NamedTemporaryFile() as output:
+            output.write(compiled)
+            output.flush()
+            subprocess.check_call([validator, output.name])
+
+
+def test_compiles_typed_if_not_in_and_must_match_conditions():
+    descriptor = {"display": {"formats": {
+        "guard(uint256 mode,address recipient)": {
+            "intent": "Guarded call",
+            "fields": [
+                {"path": "mode", "label": "Mode", "format": "raw",
+                 "visible": {"ifNotIn": [0, 255]}},
+                {"path": "recipient", "label": "Bound recipient",
+                 "format": "addressName",
+                 "visible": {"mustMatch": [
+                     "0x2222222222222222222222222222222222222222"]}},
+            ],
+        }
+    }}}
+    compiled = compile_calldata(
+        descriptor, "guard(uint256 mode,address recipient)", 1,
+        "0x1111111111111111111111111111111111111111")
+    sections = _sections(compiled)
+    conditions = sections[5]
+    assert int.from_bytes(conditions[:2], "big") == 2
+    assert conditions[2] == 7
+    assert conditions[10] == 8
+    literals = sections[4]
+    assert int.from_bytes(literals[:2], "big") == 5
+    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
+    if validator:
+        with tempfile.NamedTemporaryFile() as output:
+            output.write(compiled)
+            output.flush()
+            subprocess.check_call([validator, output.name])
