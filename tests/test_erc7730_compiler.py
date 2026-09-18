@@ -10,8 +10,10 @@ import tempfile
 import pytest
 
 from keepkeylib.erc7730_compiler import (
-    HEADER_SIZE, compile_calldata, parse_function_signature,
+    HEADER_SIZE, compile_calldata, compile_eip712, eip712_encode_type,
+    parse_function_signature,
 )
+from keepkeylib.signed_metadata import keccak256
 
 
 def _sections(program):
@@ -266,6 +268,41 @@ def test_compiles_typed_if_not_in_and_must_match_conditions():
     assert conditions[10] == 8
     literals = sections[4]
     assert int.from_bytes(literals[:2], "big") == 5
+    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
+    if validator:
+        with tempfile.NamedTemporaryFile() as output:
+            output.write(compiled)
+            output.flush()
+            subprocess.check_call([validator, output.name])
+
+
+def test_compiles_official_uniswap_eip712_fixture_through_firmware():
+    registry = os.environ.get("ERC7730_REGISTRY")
+    if not registry:
+        pytest.skip("official ERC-7730 registry not configured")
+    with open(os.path.join(registry, "registry", "uniswap",
+                           "eip712-uniswap-permit2.json"), "r") as source:
+        descriptor = json.load(source)
+    with open(os.path.join(registry, "registry", "uniswap", "testsv2",
+                           "eip712-uniswap-permit2.tests.json"), "r") as source:
+        fixture = json.load(source)["tests"][0]["data"]
+    encoded = eip712_encode_type(fixture["primaryType"], fixture["types"])
+    assert encoded == (
+        "PermitSingle(PermitDetails details,address spender,uint256 sigDeadline)"
+        "PermitDetails(address token,uint160 amount,uint48 expiration,uint48 nonce)")
+    compiled = compile_eip712(
+        descriptor, fixture,
+        token_records=[
+            (1, "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "USDC", 6)
+        ], network_records=[(1, "Ethereum", "ETH", 18)])
+    assert compiled[7] == 2
+    assert compiled[10:18] == (1).to_bytes(8, "big")
+    assert compiled[18:38].hex() == "000000000022d473030f116ddee9f6b43ac78ba3"
+    assert compiled[38:70] == keccak256(encoded.encode("ascii"))
+    sections = _sections(compiled)
+    binding = sections[8]
+    # deployment + name/chain/contract domain facts + token + network
+    assert int.from_bytes(binding[:2], "big") == 6
     validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
     if validator:
         with tempfile.NamedTemporaryFile() as output:
