@@ -19,6 +19,43 @@ from urllib.parse import urlparse
 
 import requests
 
+
+def pytest_collection_modifyitems(config, items):
+    """Select exact report test IDs for the screenshot-only pytest phase.
+
+    Firmware CI's python-keepkey-tests.sh passes the report's selector list in
+    KEEPKEY_SCREENSHOT_TESTS. Without this hook the screenshot phase ran the
+    whole suite and the job hit its 30-minute limit.
+    """
+    if os.environ.get('KEEPKEY_SCREENSHOT') != '1':
+        return
+    encoded = os.environ.get('KEEPKEY_SCREENSHOT_TESTS', '')
+    if not encoded:
+        raise pytest.UsageError(
+            'KEEPKEY_SCREENSHOT_TESTS must list exact module::method pairs')
+    selected_pairs = set()
+    for line in encoded.splitlines():
+        if not line:
+            continue
+        parts = line.split('::')
+        if len(parts) != 2 or not all(parts):
+            raise pytest.UsageError(
+                'invalid KEEPKEY_SCREENSHOT_TESTS entry %r' % line)
+        selected_pairs.add(tuple(parts))
+    selected = []
+    deselected = []
+    for item in items:
+        module = os.path.splitext(os.path.basename(item.location[0]))[0]
+        method = getattr(item, 'originalname', None) or item.name.split('[', 1)[0]
+        if (module, method) in selected_pairs:
+            selected.append(item)
+        else:
+            deselected.append(item)
+    if deselected:
+        config.hook.pytest_deselected(items=deselected)
+    items[:] = selected
+
+
 if os.environ.get('KEEPKEY_SCREENSHOT') == '1':
     import common
 

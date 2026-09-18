@@ -118,6 +118,15 @@ def _transparent_sig_digest(inputs, outputs, input_index=None):
 class TestZcashTransparentShielding(common.KeepKeyTest):
     """Transparent signing must stay bound to reviewed transaction data."""
 
+    def setUp(self):
+        super().setUp()
+        # Bitcoin-only builds have no Zcash (KK_ZCASH_PRIVACY OFF); the device
+        # correctly answers "Unknown message". skipTest in setUp bypasses
+        # tearDown, so close the transport via a cleanup instead.
+        if self.client.features.firmware_variant in ("KeepKeyBTC", "EmulatorBTC"):
+            self.addCleanup(self.client.close)
+            self.skipTest("Zcash is not in the bitcoin-only firmware")
+
     def _make_transparent_input(self, index=0, address_n=None, amount=VALUE):
         return {
             'index': index,
