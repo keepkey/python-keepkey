@@ -244,6 +244,31 @@ def test_compiles_array_iteration_separator_and_optional_visibility():
             subprocess.check_call([validator, output.name])
 
 
+def test_compiles_recursive_array_iteration_frames():
+    descriptor = {"display": {"formats": {
+        "matrix(uint256[][] values)": {
+            "intent": "Review matrix",
+            "fields": [{"path": "values.[].[]", "label": "Value",
+                        "format": "raw", "separator": "Next row"}],
+        }
+    }}}
+    compiled = compile_calldata(
+        descriptor, "matrix(uint256[][] values)", 1,
+        "0x1111111111111111111111111111111111111111")
+    display = _sections(compiled)[7]
+    count = int.from_bytes(display[:2], "big")
+    instructions = [display[2 + i * 8:10 + i * 8] for i in range(count)]
+    assert [item[0] for item in instructions] == [1, 7, 7, 4, 8, 8, 10]
+    assert int.from_bytes(instructions[1][6:8], "big") == 5
+    assert int.from_bytes(instructions[2][6:8], "big") == 4
+    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
+    if validator:
+        with tempfile.NamedTemporaryFile() as output:
+            output.write(compiled)
+            output.flush()
+            subprocess.check_call([validator, output.name])
+
+
 def test_compiles_typed_if_not_in_and_must_match_conditions():
     descriptor = {"display": {"formats": {
         "guard(uint256 mode,address recipient)": {
