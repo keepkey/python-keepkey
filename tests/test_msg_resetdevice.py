@@ -27,6 +27,45 @@ from keepkeylib import messages_pb2 as proto
 from keepkeylib import types_pb2 as proto_types
 from mnemonic import Mnemonic
 
+# Dice derivations, restated here independently of the firmware so the tests
+# check the published formula rather than whatever the device happens to do.
+# The byte tags match lib/firmware/dice_input.c; the shape mirrors Coldcard's
+# so its published verifier applies to ONLY mode unchanged.
+DICE_TAG_USER = b'KK\x01D'
+DICE_TAG_MIX = b'KK\x01SM'
+
+
+def dice_only_seed(rolls):
+    """ONLY mode: seed = SHA256(rolls). Nothing else participates."""
+    return hashlib.sha256(rolls.encode('ascii')).digest()
+
+
+def dice_mixed_seed(device_entropy, rolls):
+    """MIXED mode: user = SHA256(tag || rolls);
+    seed = SHA256(SHA256(tag2 || device_entropy || user))."""
+    user = hashlib.sha256(DICE_TAG_USER + rolls.encode('ascii')).digest()
+    inner = hashlib.sha256(DICE_TAG_MIX + device_entropy + user).digest()
+    return hashlib.sha256(inner).digest()
+
+
+def bip39_words_to_entropy(words):
+    """Decode a 24-word BIP-39 sentence to its 32 entropy bytes, checking
+    the checksum. Written out rather than taken from the mnemonic library so
+    the words the device showed are decoded by code the device did not
+    write, and so it does not depend on the library version in the test
+    image."""
+    wordlist = Mnemonic('english').wordlist
+    words = words.split()
+    if len(words) != 24:
+        raise ValueError('expected 24 words, got %d' % len(words))
+    bits = ''.join('{:011b}'.format(wordlist.index(w)) for w in words)
+    entropy = bytes(int(bits[i:i + 8], 2) for i in range(0, 256, 8))
+    checksum = '{:08b}'.format(hashlib.sha256(entropy).digest()[0])
+    if bits[256:] != checksum:
+        raise ValueError('BIP-39 checksum mismatch')
+    return entropy
+
+
 def generate_entropy(strength, internal_entropy, external_entropy):
     '''
     strength - length of produced seed. One of 128, 192, 256
@@ -118,89 +157,105 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertIsInstance(resp, proto.Success)
 
     def test_reset_device_dice(self):
-        # On-device dice entry landed after the RC18 candidate. RC18 accepts
-        # the forward-compatible field but follows the ordinary entropy flow.
+        """MIXED dice reset through the host-selected, on-device-consented
+        flow: consent, the device's 24 words BEFORE any roll, the rolls, the
+        full-digest confirm. The seed is recomputed from the words and rolls
+        alone -- the host's EntropyAck bytes must not reach it."""
         self.requires_firmware(self.POST_RC18_SETUP_FIRMWARE)
+        self.requires_dice_modes()
 
         external_entropy = b'zlutoucky kun upel divoke ody' * 2
-        strength = 256  # 99 rolls
+        strength = 256  # 99 rolls, 24 words
 
-        ret = self.client.call_raw(proto.ResetDevice(display_random=False,
-                                               strength=strength,
-                                               passphrase_protection=False,
-                                               pin_protection=False,
-                                               language='english',
-                                               label='dice',
-                                               dice_entropy=True))
-
-        # Device announces the on-device dice entry screen
-        self.assertIsInstance(ret, proto.ButtonRequest)
-        self.assertEqual(ret.code, proto_types.ButtonRequest_DiceRoll)
-        self.client.capture_oled()
-
-        # Ack without blocking on the reply: the device only leaves the dice
-        # screen once the rolls are complete, and input is ignored until the
-        # ButtonRequest is acked.
-        self.client.transport.write(proto.ButtonAck())
-        time.sleep(0.3)
-
-        # Inject rolls in max_size-40 chunks, exercising undo ('u') along the
-        # way. Simulate the same rules host-side to know the expected string.
-        chunks = [
-            "123456" * 6 + "1234",           # 40 digits
-            "654321" * 6 + "43u2",           # 39 digits + undo
-            "1234561234561234561u2u3",       # more undo churn
-            "555555555555555555555555",      # top up past 99 (extras dropped)
-        ]
-        expected = []
-        for chunk in chunks:
-            for c in chunk:
-                if c == 'u':
-                    if expected:
-                        expected.pop()
-                elif len(expected) < 99:
-                    expected.append(c)
-            self.client.debug.press_input(chunk)
-            time.sleep(0.2)
-        expected = ''.join(expected)
-        self.assertEqual(len(expected), 99)
-
-        # Rolls complete -> digest confirmation screen
-        resp = self.client.transport.read_blocking()
+        resp = self.client.call_raw(proto.ResetDevice(display_random=False,
+                                                strength=strength,
+                                                passphrase_protection=False,
+                                                pin_protection=False,
+                                                language='english',
+                                                label='dice',
+                                                dice_entropy=True,
+                                                dice_only=False))
+        # Consent screen names the mode the host asked for.
         self.assertIsInstance(resp, proto.ButtonRequest)
         self.assertEqual(resp.code, proto_types.ButtonRequest_DiceRoll)
-
-        # The device-computed digest must cover exactly the injected rolls
-        dice_digest = self.client.debug.read_dice_digest()
-        self.assertEqual(dice_digest,
-                         hashlib.sha256(expected.encode('ascii')).digest())
         self.client.capture_oled()
-
-        self.client.debug.press_yes()
-        ret = self.client.call_raw(proto.ButtonAck())
-
-        # From here the flow is the standard one: the displayed internal
-        # entropy is the post-dice-mix value and still binds the seed.
-        self.assertIsInstance(ret, proto.EntropyRequest)
-        internal_entropy = self.client.debug.read_reset_entropy()
-        resp = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
-
-        entropy = generate_entropy(strength, internal_entropy, external_entropy)
-        expected_mnemonic = Mnemonic('english').to_mnemonic(entropy)
-
-        # Explainer dialog, then the paginated backup
-        self.assertIsInstance(resp, proto.ButtonRequest)
         self.client.debug.press_yes()
         resp = self.client.call_raw(proto.ButtonAck())
 
-        mnemonic = []
-        while isinstance(resp, proto.ButtonRequest):
-            mnemonic.append(self.client.debug.read_reset_word())
+        # Device-entropy words, one DiceRoll request per page; the roll screen
+        # reads back empty, which ends the pages.
+        device_words = []
+        while True:
+            self.assertIsInstance(resp, proto.ButtonRequest)
+            self.assertEqual(resp.code, proto_types.ButtonRequest_DiceRoll)
+            words = self.client.debug.read_reset_word()
+            if not words:
+                break
+            if not device_words or device_words[-1] != words:
+                device_words.append(words)
             self.client.debug.press_yes()
             resp = self.client.call_raw(proto.ButtonAck())
+        device_words = ' '.join(device_words)
 
+        # Roll entry: ack without blocking, then inject rolls. The pattern is
+        # close to uniform so it passes the 30%-per-face bias gate, and stops
+        # at the target exactly as dice_input_collect() does.
+        self.client.transport.write(proto.ButtonAck())
+        time.sleep(0.3)
+        chunks = [
+            "123456" * 6 + "1234",
+            "654321" * 6 + "43u2",
+            "1234561234561234561u2u3",
+            "612345612345612345612345",
+        ]
+        rolls = []
+        for chunk in chunks:
+            for c in chunk:
+                if len(rolls) >= 99:
+                    break
+                if c == 'u':
+                    if rolls:
+                        rolls.pop()
+                else:
+                    rolls.append(c)
+            self.client.debug.press_input(chunk)
+            time.sleep(0.2)
+            if len(rolls) >= 99:
+                break
+        rolls = ''.join(rolls)
+        self.assertEqual(len(rolls), 99)
+
+        # Full-digest confirm covers exactly the injected rolls.
+        resp = self.client.transport.read_blocking()
+        self.assertIsInstance(resp, proto.ButtonRequest)
+        self.assertEqual(resp.code, proto_types.ButtonRequest_DiceRoll)
+        self.assertEqual(self.client.debug.read_dice_digest(),
+                         hashlib.sha256(rolls.encode('ascii')).digest())
+        self.client.capture_oled()
+        ret = resp
+        while isinstance(ret, proto.ButtonRequest):
+            self.assertEqual(ret.code, proto_types.ButtonRequest_DiceRoll)
+            self.client.debug.press_yes()
+            ret = self.client.call_raw(proto.ButtonAck())
+
+        # EntropyRequest is still sent and consumed; its bytes are dropped.
+        self.assertIsInstance(ret, proto.EntropyRequest)
+        resp = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
+        self.assertIsInstance(resp, proto.ButtonRequest)
+        self.client.debug.press_yes()
+        resp = self.client.call_raw(proto.ButtonAck())
+        mnemonic = []
+        while isinstance(resp, proto.ButtonRequest):
+            words = self.client.debug.read_reset_word()
+            if not mnemonic or mnemonic[-1] != words:
+                mnemonic.append(words)
+            self.client.debug.press_yes()
+            resp = self.client.call_raw(proto.ButtonAck())
         self.assertIsInstance(resp, proto.Success)
-        self.assertEqual(' '.join(mnemonic), expected_mnemonic)
+
+        seed = dice_mixed_seed(bip39_words_to_entropy(device_words), rolls)
+        self.assertEqual(' '.join(mnemonic),
+                         Mnemonic('english').to_mnemonic(seed[:strength // 8]))
 
     def test_reset_reentry_disarms_entropy_ack(self):
         """An abandoned reset must never leave EntropyAck armed.

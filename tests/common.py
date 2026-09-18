@@ -239,6 +239,16 @@ class KeepKeyTest(unittest.TestCase):
             self.client.features.firmware_variant == "EmulatorBTC":
         self.skipTest("Full feature firmware required to run this test")
 
+    def requires_dice_modes(self):
+        """Skip unless the firmware reports the verifiable dice modes.
+
+        A capability, not a version: firmware without the unit skips the
+        unknown ResetDevice.dice_only field and runs the older ceremony.
+        """
+        self.client.init_device()
+        if not getattr(self.client.features, 'supports_dice_modes', False):
+            self.skipTest("Firmware does not report supports_dice_modes")
+
     def requires_bitcoinOnly(self):
       """Inverse of requires_fullFeature(): skip unless this IS the
       bitcoin-only product.
