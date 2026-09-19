@@ -1209,11 +1209,11 @@ SECTIONS = [
           'Failure on the wire.',
           []),
          ('E17', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_approve_liquidity_ETH',
-          'Uniswap V2 LP-token approval',
-          'Approves the Uniswap V2 FOX/WETH LP token for the canonical router. The exact pool '
-          'identity and full-LP allowance are shown before the generic fee review, and the fixed '
-          'signature proves the reviewed transaction bytes are the bytes signed.',
-          ['Full LP allowance', 'LP token and pool address', 'Fee and final approval']),
+          'Uniswap V2 unlimited LP-token approval refused',
+          'Enables AdvancedMode, then attempts an unlimited FOX/WETH LP-token approval. '
+          'The device refuses it with Failure_ActionCancelled and the explicit disabled-approval '
+          'reason before any signing consent. The refusal itself is checked on the wire.',
+          ['Enable Policy: AdvancedMode']),
          ('E18', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_add_liquidity_ETH',
           'Uniswap V2 add liquidity ETH+token',
           'Clear-signs both desired/minimum FOX and ETH amounts, the signed recipient, and the '
@@ -2617,7 +2617,6 @@ SECTIONS = [
           'again. MALFORMED is the assertion: the signer itself is gone.',
           ['Enable Policy: AdvancedMode',
            "Load Clearsigner: Trust 'CI Test' (fingerprint) ... NOT verified by KeepKey",
-           'Home screen at the refusal - the AdvancedMode gate draws no screen of its own',
            'Enable Policy: AdvancedMode (re-armed to isolate the slot)']),
          ('I5', 'test_msg_session_trust_lifetime', 'test_signer_dropped_by_power_cycle',
           'Reboot drops the loaded signer',
@@ -2647,7 +2646,6 @@ SECTIONS = [
           ['Enable Policy: AdvancedMode',
            "Load Clearsigner: Trust 'CI Test' (fingerprint) ... NOT verified by KeepKey",
            'Disable Policy: AdvancedMode',
-           'Home screen at the refusal - the metadata message fails closed with no screen',
            'Enable Policy: AdvancedMode - the only confirm on re-arming, and the signer does NOT '
            'come back with it']),
      ]),
