@@ -127,6 +127,13 @@ class KeepKeyTest(unittest.TestCase):
     def assertEndsWith(self, s, suffix):
         self.assertTrue(s.endswith(suffix), "'{}'.endswith('{}')".format(s, suffix))
 
+    def firmware_at_least(self, ver_required):
+        """Return whether the connected firmware includes a versioned feature."""
+        self.client.init_device()
+        features = self.client.features
+        version = "%s.%s.%s" % (features.major_version, features.minor_version, features.patch_version)
+        return semver.VersionInfo.parse(version) >= semver.VersionInfo.parse(ver_required)
+
     def requires_firmware(self, ver_required):
         self.client.init_device()
         features = self.client.features
@@ -238,6 +245,16 @@ class KeepKeyTest(unittest.TestCase):
       if self.client.features.firmware_variant == "KeepKeyBTC" or \
             self.client.features.firmware_variant == "EmulatorBTC":
         self.skipTest("Full feature firmware required to run this test")
+
+    def requires_dice_modes(self):
+        """Skip unless the firmware reports the verifiable dice modes.
+
+        A capability, not a version: firmware without the unit skips the
+        unknown ResetDevice.dice_only field and runs the older ceremony.
+        """
+        self.client.init_device()
+        if not getattr(self.client.features, 'supports_dice_modes', False):
+            self.skipTest("Firmware does not report supports_dice_modes")
 
     def requires_bitcoinOnly(self):
       """Inverse of requires_fullFeature(): skip unless this IS the

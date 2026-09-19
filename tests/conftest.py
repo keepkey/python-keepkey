@@ -19,6 +19,43 @@ from urllib.parse import urlparse
 
 import requests
 
+
+def pytest_collection_modifyitems(config, items):
+    """Select exact report test IDs for the screenshot-only pytest phase.
+
+    Firmware CI's python-keepkey-tests.sh passes the report's selector list in
+    KEEPKEY_SCREENSHOT_TESTS. Without this hook the screenshot phase ran the
+    whole suite and the job hit its 30-minute limit.
+    """
+    if os.environ.get('KEEPKEY_SCREENSHOT') != '1':
+        return
+    encoded = os.environ.get('KEEPKEY_SCREENSHOT_TESTS', '')
+    if not encoded:
+        raise pytest.UsageError(
+            'KEEPKEY_SCREENSHOT_TESTS must list exact module::method pairs')
+    selected_pairs = set()
+    for line in encoded.splitlines():
+        if not line:
+            continue
+        parts = line.split('::')
+        if len(parts) != 2 or not all(parts):
+            raise pytest.UsageError(
+                'invalid KEEPKEY_SCREENSHOT_TESTS entry %r' % line)
+        selected_pairs.add(tuple(parts))
+    selected = []
+    deselected = []
+    for item in items:
+        module = os.path.splitext(os.path.basename(item.location[0]))[0]
+        method = getattr(item, 'originalname', None) or item.name.split('[', 1)[0]
+        if (module, method) in selected_pairs:
+            selected.append(item)
+        else:
+            deselected.append(item)
+    if deselected:
+        config.hook.pytest_deselected(items=deselected)
+    items[:] = selected
+
+
 if os.environ.get('KEEPKEY_SCREENSHOT') == '1':
     import common
 
@@ -56,6 +93,33 @@ if os.environ.get('KEEPKEY_SCREENSHOT') == '1':
     common.KeepKeyTest.setUp = _patched_setUp
 
 
+def _configured_emulator_endpoints(getaddrinfo):
+    """Return the exact emulator names and addresses the harness configured.
+
+    In the firmware CI compose network the emulator is the service `kkemu`
+    (KK_TRANSPORT_MAIN=kkemu:11044), which is not loopback. Allow exactly the
+    two configured transports, as the audit line does, and nothing else.
+    """
+    names = set()
+    addresses = set()
+    for variable, default in (
+            ('KK_TRANSPORT_MAIN', '127.0.0.1:11044'),
+            ('KK_TRANSPORT_DEBUG', '127.0.0.1:11045')):
+        endpoint = os.environ.get(variable, default)
+        try:
+            host, port_text = endpoint.rsplit(':', 1)
+            port = int(port_text)
+        except (AttributeError, TypeError, ValueError):
+            raise RuntimeError(
+                '%s must be a host:port emulator endpoint, got %r' %
+                (variable, endpoint))
+        names.add((host, port))
+        for result in getaddrinfo(host, port, type=socket.SOCK_DGRAM):
+            sockaddr = result[4]
+            addresses.add((sockaddr[0], sockaddr[1]))
+    return names, addresses
+
+
 def _is_loopback_address(address):
     """Allow emulator traffic while rejecting every external destination."""
     if not isinstance(address, tuple):
@@ -81,6 +145,15 @@ def deny_external_network(monkeypatch, request):
     original_connect_ex = socket.socket.connect_ex
     original_sendto = socket.socket.sendto
     original_request = requests.sessions.Session.request
+    emulator_names, emulator_addresses = _configured_emulator_endpoints(
+        original_getaddrinfo)
+
+    def allowed(address):
+        if isinstance(address, tuple) and len(address) >= 2:
+            endpoint = (address[0], address[1])
+            if endpoint in emulator_names or endpoint in emulator_addresses:
+                return True
+        return _is_loopback_address(address)
 
     def denied(destination):
         raise AssertionError(
@@ -88,23 +161,24 @@ def deny_external_network(monkeypatch, request):
             'test=%s destination=%r' % (nodeid, destination))
 
     def guarded_getaddrinfo(host, *args, **kwargs):
-        if not _is_loopback_address((host, 0)):
+        port = args[0] if args else kwargs.get('port')
+        if (host, port) not in emulator_names and not _is_loopback_address((host, 0)):
             denied(host)
         return original_getaddrinfo(host, *args, **kwargs)
 
     def guarded_connect(sock, address):
-        if not _is_loopback_address(address):
+        if not allowed(address):
             denied(address)
         return original_connect(sock, address)
 
     def guarded_connect_ex(sock, address):
-        if not _is_loopback_address(address):
+        if not allowed(address):
             denied(address)
         return original_connect_ex(sock, address)
 
     def guarded_sendto(sock, data, *args):
         address = args[-1]
-        if not _is_loopback_address(address):
+        if not allowed(address):
             denied(address)
         return original_sendto(sock, data, *args)
 
