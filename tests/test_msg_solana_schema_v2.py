@@ -14,7 +14,8 @@ test_relay_certified_v0_no_lookup_proof_reaches_signer_check), applied to
 messages built around this device's own key so the whole review runs; and the
 delegate's signatures, from the deployed ClearSign Worker, over the SoltoshiDICE
 join's version 2 schema and the SDICE token definition, applied to the real
-join re-keyed to this device.
+join re-keyed to this device. A changed schema or schema signature, or a
+missing one, is refused before the first screen.
 
 The certificate chains to the ALPHA ClearSign root (02de9231...dae7).
 Production gets its own root key after the 7.15 re-release, not before, so
@@ -41,6 +42,7 @@ from ecdsa import SECP256k1, SigningKey, VerifyingKey
 from ecdsa.util import sigdecode_string, sigencode_string
 from keepkeylib import messages_pb2 as proto
 from keepkeylib import messages_solana_pb2 as solana
+from keepkeylib import types_pb2 as proto_types
 from keepkeylib.client import CallException
 from keepkeylib import signed_metadata
 from keepkeylib.tools import b58decode, b58encode, parse_path
@@ -124,6 +126,9 @@ SDICE_UNTRUSTED = "1000000000 base units of mint\n" + SDICE_MINT
 # 1,000,000 micro-lamports x the join's 200,000-unit limit = 200,000 lamports.
 JOIN_PRICE = 1000000
 JOIN_MAX_FEE = "Max priority fee\n0.000200000 SOL"
+# The firmware's refusals of a certified proof (fsm_msg_solana.h).
+INCOMPLETE_PROOF = "Incomplete certified Solana ClearSign proof"
+SCHEMA_MISMATCH = "Certified Solana schema does not match transaction"
 
 
 def sign(preimage):
@@ -418,6 +423,54 @@ class TestSolanaSchemaCertified(SchemaReview):
         self.assertFalse(any(find_line(screen, "BLIND SIGN", TITLE_FONT)
                              for screen in on))
         self.assertSignedBy(response, raw)
+
+    # A proof that is not exactly what the delegate signed. The join is the
+    # real one re-keyed to this device, with the SDICE definition, so the
+    # schema proof is the only thing wrong. There is no case for a schema
+    # signed under another scope: the delegate signs sha256(schema), which
+    # carries no scope, and the alpha root has issued no public certificate
+    # for any scope but 501.
+
+    def assertRefused(self, request, message):
+        """Refused with exactly `message`, before any screen, and no
+        signature returned."""
+        recorder = ScreenRecorder(self.client, answer=True)
+        with recorder:
+            try:
+                response = self.client.call(request)
+            except CallException as refused:
+                failure = tuple(refused.args)
+            else:
+                self.fail("signed after %d screens, signature %s" % (
+                    len(recorder.screens), bytes(response.signature).hex()))
+        self.assertEqual(failure, (proto_types.Failure_SyntaxError, message))
+        self.assertEqual(recorder.screens, [])
+
+    def test_certified_schema_signature_one_byte_changed_refused(self):
+        signature = bytearray(SOLTOSHI_SCHEMA_SIG)
+        signature[0] ^= 0x01
+        request = self._join_request(soltoshi_join(self.signer),
+                                     [sdice_definition()])
+        request.schema_signature = bytes(signature)
+        self.assertRefused(request, SCHEMA_MISMATCH)
+
+    def test_certified_edited_schema_refused(self):
+        """The instruction renamed under the delegate's original signature.
+        The edit keeps the length, so the schema still parses and still
+        applies to the join."""
+        schema = SOLTOSHI_SCHEMA.replace(b"Blackjack join", b"Claim airdrop!")
+        self.assertEqual(len(schema), len(SOLTOSHI_SCHEMA))
+        self.assertNotEqual(schema, SOLTOSHI_SCHEMA)
+        request = self._join_request(soltoshi_join(self.signer),
+                                     [sdice_definition()])
+        request.schema_payload = schema
+        self.assertRefused(request, SCHEMA_MISMATCH)
+
+    def test_certified_proof_without_schema_signature_refused(self):
+        request = self._join_request(soltoshi_join(self.signer),
+                                     [sdice_definition()])
+        request.ClearField("schema_signature")
+        self.assertRefused(request, INCOMPLETE_PROOF)
 
 
 class TestSolanaSchemaRuntime(SchemaReview):
