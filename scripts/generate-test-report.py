@@ -1936,9 +1936,8 @@ SECTIONS = [
           []),
          ('G37', 'test_msg_hive', 'test_hive_sign_ops_account_update2_is_rejected',
           'account_update2 is refused',
-          'The operation always carries a memo key. Without trusted chain state the device '
-          'cannot prove that key is unchanged, so it refuses every account_update2 instead '
-          'of presenting a profile-only summary.',
+          'Any owner/active/posting authority or memo_key present is a hard reject, so a key '
+          'change is never summarized as a profile-only update.',
           []),
          ('G38', 'test_msg_hive', 'test_hive_sign_ops_truncated_bodies_rejected',
           'Truncated op bodies refused',
