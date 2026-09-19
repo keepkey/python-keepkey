@@ -560,6 +560,18 @@ class TestMsgEosSignTx(common.KeepKeyTest):
 
         self.assertEqual(binascii.hexlify(res.hash), "0282c00575f451a47e99902ab2a51243499ea004df309148d1f2e23c007520b7")
 
+        # Fork #568/#563: eos_hashAuthorization() used to emit accounts_count
+        # wait entries instead of waits_count. This SLIP-48 vector has one
+        # delegated account and zero waits, so older firmware hashes a phantom
+        # 6-byte zero wait that was neither present nor confirmed on-device
+        # (the known-bad digest fb936ef1...). The fix is on the 7.14.3, 7.15
+        # and 7.16 release heads. 5938294e... is checked against two
+        # independent EOSIO ABI serializers and against mainnet updateauth
+        # transactions of the same shape.
+        if not self.firmware_at_least("7.14.3"):
+            self.skipTest("Firmware before 7.14.3 hashes a phantom updateauth "
+                          "wait (fork #568/#563)")
+
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
                 address_n=parse_path("m/48'/4'/0'/0'/0'"),
@@ -568,17 +580,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 num_actions=1),
             [self.action_updateauth(True)])
 
-        # Firmware #568 (7.16.0) fixed eos_hashAuthorization() to serialize
-        # waits_count entries, not accounts_count entries. This SLIP-48 vector
-        # has one delegated account and zero waits; the old golden committed a
-        # phantom zero wait that was neither present nor confirmed on-device.
-        version = (self.client.features.major_version,
-                   self.client.features.minor_version,
-                   self.client.features.patch_version)
-        expected = ("5938294e65cf9e8b5dd5f2b204503b4825f277e6f4a2d5ab7a55a31065a23af1"
-                    if version >= (7, 16, 0)
-                    else "fb936ef1be4bda680d93bd10b6d062357d8dd7272038a706dc0d61a91f39c5ee")
-        self.assertEqual(binascii.hexlify(res.hash), expected)
+        self.assertEqual(binascii.hexlify(res.hash), "5938294e65cf9e8b5dd5f2b204503b4825f277e6f4a2d5ab7a55a31065a23af1")
 
     def test_deleteauth(self):
         self.requires_fullFeature()
