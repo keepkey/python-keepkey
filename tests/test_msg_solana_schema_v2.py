@@ -14,9 +14,12 @@ test_relay_certified_v0_no_lookup_proof_reaches_signer_check), applied to
 messages built around this device's own key so the whole review runs; and the
 delegate's signatures, from the deployed ClearSign Worker, over the SoltoshiDICE
 join's version 2 schema and the SDICE token definition, applied to the real
-join re-keyed to this device. It needs
-the alpha ClearSign root compiled in (KK_CLEARSIGN_ALPHA_ROOT); an emulator
-without it refuses the certificate first, and those tests skip.
+join re-keyed to this device.
+
+The certificate chains to the ALPHA ClearSign root (02de9231...dae7).
+Production gets its own root key after the 7.15 re-release, not before, so
+this certified tier is alpha-only. Every 7.16+ build embeds the root, so a
+build that refuses the certificate FAILS this tier; it never skips.
 
 Runtime tier: the CI signer, loaded into slots 2 and 3, signs the schema and
 the token definitions.
@@ -246,16 +249,21 @@ class TestSolanaSchemaCertified(SchemaReview):
             clearsign_certificate=CERT_501)
 
     def _require_alpha_root(self):
-        """A build without the root refuses the certificate before anything
-        else. With it, a proof for a message this device does not sign passes
-        every certified check and fails at the signer check; any other outcome
-        is a failure, not a skip."""
+        """With the root, a proof for a message this device does not sign
+        passes every certified check and fails at the signer check. setUp has
+        already skipped firmware before 7.16.0 and the bitcoin-only variant;
+        every build left embeds the root, so refusing the certificate is a
+        failure. Skipping here once turned a build without the root into a
+        green run. The certificate is issued by the alpha root, which stays
+        alpha-only until production gets its own key after the 7.15
+        re-release."""
         with self.assertRaises(CallException) as refused:
             self.client.call(self._certified(
                 relay_message(b"\x11" * 32, [RELAY_IX])))
         if "Invalid certified Solana certificate" in str(refused.exception):
-            self.skipTest("emulator built without the alpha ClearSign root "
-                          "(KK_CLEARSIGN_ALPHA_ROOT=OFF)")
+            self.fail("7.16+ firmware must embed the ClearSign root: this "
+                      "build refused the alpha-root certificate CERT_501 "
+                      "(%s)" % refused.exception)
         self.assertIn("Derived key is not a signer for this tx",
                       str(refused.exception))
 
