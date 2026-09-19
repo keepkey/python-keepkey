@@ -320,7 +320,14 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
             mnemonic = []
             while isinstance(resp, proto.ButtonRequest):
-                mnemonic.append(self.client.debug.read_reset_word())
+                words = self.client.debug.read_reset_word()
+                # The debug build raises one ButtonRequest per physical
+                # subpage, and every subpage of a word group reports the same
+                # reset_word. Whether a group spills onto a second subpage
+                # depends on glyph widths, so without this the random
+                # mnemonic made the test flaky ("Invalid mnemonic").
+                if not mnemonic or mnemonic[-1] != words:
+                    mnemonic.append(words)
                 self.client.debug.press_yes()
                 resp = self.client.call_raw(proto.ButtonAck())
 
