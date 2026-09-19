@@ -71,6 +71,20 @@ class TestMsgEthereumSigntxERC20(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
+        if self.firmware_at_least("7.14.2"):
+            with self.assertRaises(CallException):
+                self.client.ethereum_sign_tx(
+                    n=[2147483692,2147483708,2147483648,0,0],
+                    nonce=1,
+                    gas_price=20,
+                    gas_limit=20,
+                    value=0,
+                    to=binascii.unhexlify('41e5560054824ea6b0732e656e3ad64e20e94e45'),
+                    chain_id=1,
+                    data=binascii.unhexlify('095ea7b3000000000000000000000000' + '1d1c328764a41bda0492b66baa30c4a339ff85ef' + 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
+                    )
+            return
+
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
             nonce=1,

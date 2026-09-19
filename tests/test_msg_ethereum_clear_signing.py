@@ -1018,14 +1018,25 @@ class TestEthereumClearSigning(common.KeepKeyTest):
     def _clearsign_flow(self, flow, chain_id=1):
         """Run one catalog flow END-TO-END with AdvancedMode ON: real tx,
         per-tx-bound metadata, who/what/why annotation plus the ordinary raw
-        review (auto-acked), sign, and assert the signature recovers to the
-        device signer over this exact digest."""
+        review (auto-acked), then either sign and recover the exact digest or
+        assert the release policy's explicit fail-closed rejection."""
         n = parse_path(DEVICE_PATH)
         tx_hash = flow_tx_hash(flow, chain_id)
         resp = self.client.ethereum_send_tx_metadata(
             signed_payload=flow_blob(flow, chain_id),
             metadata_version=1, key_id=TEST_KEY_ID)
         self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
+
+        if flow['key'] == 'erc20-approve-unlimited':
+            with self.assertRaises(CallException) as ctx:
+                self.client.ethereum_sign_tx(
+                    n=n, nonce=FLOW_NONCE, gas_price=FLOW_GAS_PRICE,
+                    gas_limit=FLOW_GAS_LIMIT, to=flow['to'],
+                    value=flow['value'], data=flow['data'],
+                    chain_id=chain_id)
+            self.assertIn('Unlimited ERC20 approval is disabled',
+                          str(ctx.exception))
+            return
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=n, nonce=FLOW_NONCE, gas_price=FLOW_GAS_PRICE,
@@ -1089,11 +1100,8 @@ class TestEthereumClearSigning(common.KeepKeyTest):
     def test_advanced_mode_gate(self):
         """AdvancedMode OFF + unknown contract + no metadata → hard reject;
         ON → raw-data confirm path signs; recognized ERC-20 transfer unaffected."""
-        # RC18 predates the rule that loading a runtime signer itself requires
-        # AdvancedMode. The first released firmware line carrying that complete
-        # gate is 7.16; the older blind-transaction gate remains covered by
-        # test_msg_ethereum_signtx on RC18.
-        self.requires_firmware("7.16.0")
+        # Canonical 7.15 requires AdvancedMode before runtime signer loading.
+        self.requires_firmware("7.15.0")
         n = parse_path(DEVICE_PATH)
         data = aave_supply_calldata(1000000000000000000)
 

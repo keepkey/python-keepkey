@@ -127,6 +127,13 @@ class KeepKeyTest(unittest.TestCase):
     def assertEndsWith(self, s, suffix):
         self.assertTrue(s.endswith(suffix), "'{}'.endswith('{}')".format(s, suffix))
 
+    def firmware_at_least(self, ver_required):
+        """Return whether the connected firmware includes a versioned feature."""
+        self.client.init_device()
+        features = self.client.features
+        version = "%s.%s.%s" % (features.major_version, features.minor_version, features.patch_version)
+        return semver.VersionInfo.parse(version) >= semver.VersionInfo.parse(ver_required)
+
     def requires_firmware(self, ver_required):
         self.client.init_device()
         features = self.client.features
