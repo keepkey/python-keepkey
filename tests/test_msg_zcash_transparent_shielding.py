@@ -126,6 +126,21 @@ class TestZcashTransparentShielding(common.KeepKeyTest):
         if self.client.features.firmware_variant in ("KeepKeyBTC", "EmulatorBTC"):
             self.addCleanup(self.client.close)
             self.skipTest("Zcash is not in the bitcoin-only firmware")
+        # These tests assert the final ZIP-244 wire contract, which ships from
+        # 7.15.0. 7.14.x releases answer "Unknown message" to ZcashSignPCZT,
+        # and unreleased develop builds labelled 7.14.x speak the draft
+        # protocol. The probe also skips a 7.15+ build without the privacy
+        # engine. Probe ZcashSignPCZT, the session opener every test sends
+        # first, and no other message: ZcashTransparentInput cannot serialize
+        # empty, so requires_message would not probe at all, and
+        # ZcashPCZTAction is refused outside a session, so it would skip on
+        # exactly the firmware that has the engine.
+        try:
+            self.requires_firmware("7.15.0")
+            self.requires_message("ZcashSignPCZT")
+        except unittest.SkipTest:
+            self.addCleanup(self.client.close)
+            raise
 
     def _make_transparent_input(self, index=0, address_n=None, amount=VALUE):
         return {
