@@ -11,9 +11,17 @@
 Certified tier: the public Vault 501-scope certificate and its delegate's real
 signature over the version 1 relayDepositNative schema (the fixture of
 test_relay_certified_v0_no_lookup_proof_reaches_signer_check), applied to
-messages built around this device's own key so the whole review runs. It needs
-the alpha ClearSign root compiled in (KK_CLEARSIGN_ALPHA_ROOT); an emulator
-without it refuses the certificate first, and those tests skip.
+messages built around this device's own key so the whole review runs; and the
+delegate's signatures, from the deployed ClearSign Worker, over the SoltoshiDICE
+join's version 2 schema and the SDICE token definition, applied to the real
+join re-keyed to this device. A changed schema or schema signature, a
+signature one byte short, a missing one, or the same delegate's certificate
+for another scope, is refused before the first screen.
+
+The certificate chains to the ALPHA ClearSign root (02de9231...dae7).
+Production gets its own root key after the 7.15 re-release, not before, so
+this certified tier is alpha-only. Every 7.16+ build embeds the root, so a
+build that refuses the certificate FAILS this tier; it never skips.
 
 Runtime tier: the CI signer, loaded into slots 2 and 3, signs the schema and
 the token definitions.
@@ -30,13 +38,15 @@ import struct
 import unittest
 
 import common
+from Crypto.Signature import eddsa
 from ecdsa import SECP256k1, SigningKey, VerifyingKey
 from ecdsa.util import sigdecode_string, sigencode_string
 from keepkeylib import messages_pb2 as proto
 from keepkeylib import messages_solana_pb2 as solana
+from keepkeylib import types_pb2 as proto_types
 from keepkeylib.client import CallException
 from keepkeylib import signed_metadata
-from keepkeylib.tools import b58encode, parse_path
+from keepkeylib.tools import b58decode, b58encode, parse_path
 from oled_text import TITLE_FONT, find_line, find_text, shows
 from test_msg_display_disclosure import ScreenRecorder
 
@@ -60,6 +70,19 @@ CERT_501 = bytes.fromhex(
     "b2dc9f48abcd2e46d4850cfa2753fac6068a45747a32a4a39f249af72b55370f"
     "3491913b7fb9a80207d619b3b4fca6750fc1fdc790da5562b42a351e12cde3c"
     "0f084056a24ca8d1bf2c36b5")
+# The public alpha EVM-scope certificate: scope 1, alias "KeepKey Alpha 716",
+# the same alpha root and the same delegate (0342f5f9...) as CERT_501. Fetched
+# once on 2026-09-19 from the deployed ClearSign Worker, POST
+# https://keepkey-clearsign.bithighlander.workers.dev/v1/evm/schema with the
+# chainId 1 Relay bridgeDeposit shape (contract 0x4cd00e38...bc31, selector
+# 0x49290c1c, calldataLength 68; keepkey-sdk tests/evm-clearsign/
+# certified-relay-bridge-deposit.js): bytes [1:140] of its signedPayload.
+CERT_SCOPE1 = bytes.fromhex(
+    "0101000000016abc51004b6565704b657920416c706861203731360000000000"
+    "000000000000000000000342f5f9704494b3f9bd72295eecaf29d783d23ea02b"
+    "2dc9f48abcd2e46d4850cf1b0971669d2c9156e7bd1150a507640bf44b3ac888"
+    "8d738543ce75deb21b4ecf12d5e07ce547c3854b134bad14ad32a990531c9b93"
+    "2862a78b32b20f1a9b9d54")
 SYSTEM = b"\0" * 32
 COMPUTE_BUDGET = bytes.fromhex(
     "0306466fe5211732ffecadba72c39be7bc8ce5bbc5f7126b2c439b3a40000000")
@@ -98,6 +121,30 @@ SOLTOSHI_SCHEMA = bytes.fromhex(
 SDICE_MINT = "4nCmpwne7hCoWTSpAd54uENmCgHJrHTyn4DMPCEMpump"
 TOKEN_AMOUNT_LABELS = ("BUY-IN", "ALLOWANCE", "MAX WAGER")
 
+# The deployed ClearSign Worker's certify response for that join (Worker
+# source ee1488807): the Vault delegate's signature over SOLTOSHI_SCHEMA, and its
+# KeepKeySolanaTokenDef/2 signature over the SDICE mint, Token-2022, 6 and
+# "SDICE". Neither covers a transaction, so both apply to the join re-keyed
+# to this device. The delegate is certified by CERT_501.
+SOLTOSHI_SCHEMA_SIG = bytes.fromhex(
+    "7302c703ce5fee498427bf87801384c21660f4d3451aef18549f2a31d8cd2561"
+    "1d99c94afcaeafcbd6a8d04c3c1b49232a77a2b949451ba84ff217c590c14700")
+SDICE_DEFINITION_SIG = bytes.fromhex(
+    "36ed412ef38eb9ade9a7ac3e5b60841f9d032ea870c7886b87155c202f2ecfa1"
+    "1fc87848280fea855881f9e34127fbd2dfb91c4ed556dbd54cd1fb18e279d41a")
+# The join's decoded values (Vault __tests__/fixtures/solana/
+# soltoshidice-blackjack-join.json).
+SESSION_KEY = "BqtZ8PRQywD9Z5xXeB5112wtPG3xtj7TqF56hroicGjX"
+SDICE_TRUSTED = "1000.000000 SDICE\n" + SDICE_MINT
+SDICE_UNTRUSTED = "1000000000 base units of mint\n" + SDICE_MINT
+# 1,000,000 micro-lamports x the join's 200,000-unit limit = 200,000 lamports.
+JOIN_PRICE = 1000000
+JOIN_MAX_FEE = "Max priority fee\n0.000200000 SOL"
+# The firmware's refusals of a certified proof (fsm_msg_solana.h).
+INCOMPLETE_PROOF = "Incomplete certified Solana ClearSign proof"
+INVALID_CERTIFICATE = "Invalid certified Solana certificate"
+SCHEMA_MISMATCH = "Certified Solana schema does not match transaction"
+
 
 def sign(preimage):
     """The CI signer (slot 3's key) over sha256(preimage)."""
@@ -132,6 +179,27 @@ def relay_message(signer, ixs):
         out += bytes([program, len(accounts)]) + bytes(accounts)
         out += bytes([len(data)]) + data
     return bytes(out)
+
+
+def soltoshi_join(signer, priced=False):
+    """The join with account 0, its fee payer and only signer, set to
+    `signer`. `priced` adds a SetComputeUnitPrice of JOIN_PRICE after the
+    SetComputeUnitLimit; the real join sets none."""
+    msg = bytearray(SOLTOSHI_JOIN)
+    msg[4:36] = signer
+    if priced:
+        count_at = 4 + 32 * msg[3] + 32
+        msg[count_at] += 1
+        after_limit = count_at + 1 + 3 + 5  # program 10, no accounts, 5 bytes
+        msg[after_limit:after_limit] = (bytes([10, 0, 9, 3]) +
+                                        struct.pack("<Q", JOIN_PRICE))
+    return bytes(msg)
+
+
+def sdice_definition(signature=SDICE_DEFINITION_SIG):
+    return solana.SolanaTokenInfo(
+        mint=b58decode(SDICE_MINT, 32), symbol="SDICE", decimals=6,
+        signature=signature, signer_key_id=128)
 
 
 def schema_v2(args):
@@ -201,16 +269,21 @@ class TestSolanaSchemaCertified(SchemaReview):
             clearsign_certificate=CERT_501)
 
     def _require_alpha_root(self):
-        """A build without the root refuses the certificate before anything
-        else. With it, a proof for a message this device does not sign passes
-        every certified check and fails at the signer check; any other outcome
-        is a failure, not a skip."""
+        """With the root, a proof for a message this device does not sign
+        passes every certified check and fails at the signer check. setUp has
+        already skipped firmware before 7.16.0 and the bitcoin-only variant;
+        every build left embeds the root, so refusing the certificate is a
+        failure. Skipping here once turned a build without the root into a
+        green run. The certificate is issued by the alpha root, which stays
+        alpha-only until production gets its own key after the 7.15
+        re-release."""
         with self.assertRaises(CallException) as refused:
             self.client.call(self._certified(
                 relay_message(b"\x11" * 32, [RELAY_IX])))
         if "Invalid certified Solana certificate" in str(refused.exception):
-            self.skipTest("emulator built without the alpha ClearSign root "
-                          "(KK_CLEARSIGN_ALPHA_ROOT=OFF)")
+            self.fail("7.16+ firmware must embed the ClearSign root: this "
+                      "build refused the alpha-root certificate CERT_501 "
+                      "(%s)" % refused.exception)
         self.assertIn("Derived key is not a signer for this tx",
                       str(refused.exception))
 
@@ -260,6 +333,180 @@ class TestSolanaSchemaCertified(SchemaReview):
                 self.client.call(
                     self._certified(relay_message(self.signer, ixs)))
             self.assertIn("Invalid priority fee", str(refused.exception))
+
+    # The real SoltoshiDICE join, certified by the deployed ClearSign Worker.
+
+    def _join_request(self, raw, token_info=()):
+        return solana.SolanaSignTx(
+            address_n=PATH, raw_tx=raw, schema_payload=SOLTOSHI_SCHEMA,
+            schema_signature=SOLTOSHI_SCHEMA_SIG, schema_signer_key_id=128,
+            clearsign_certificate=CERT_501, token_info=list(token_info))
+
+    def _join_review(self, amount, priced=False):
+        """Every screen of the join's certified review, in order, as (title,
+        body). The real join sets no compute-unit price, so it has no Fee
+        screens; its fee payer is the Transfer's funding account."""
+        payer = b58encode(self.signer)
+        total = 4 if priced else 3
+        instr = lambda i: "INSTR %d/%d" % (i, total)
+        screens = [(instr(1), "Set compute unit limit to 200000?")]
+        if priced:
+            screens.append((instr(2), "Set compute unit price to %d?" %
+                            JOIN_PRICE))
+        screens += [
+            (instr(total - 1), "Funding account\n" + payer),
+            (instr(total - 1), "Send 0.002000000 SOL to %s?" % SESSION_KEY),
+            ("KEEPKEY CLEARSIGN", "KeepKey Vault\nSigner A9531B9D"),
+            ("SOLTOSHIDICE", "Blackjack join"),
+            ("ROUND", "86"),
+            ("REVISION", "980"),
+            ("SEAT", "1"),
+            ("BUY-IN", amount),
+            ("SESSION KEY", SESSION_KEY),
+            ("EXPIRES IN", "1 h"),
+            ("ALLOWANCE", amount),
+            ("MAX WAGER", amount),
+        ]
+        if priced:
+            screens += [("FEE", "Fee payer\n" + payer), ("FEE", JOIN_MAX_FEE)]
+        return screens + [("SOLANA", "Sign this Solana transaction?")]
+
+    def assertScreens(self, screens, expected):
+        self.assertEqual(len(screens), len(expected))
+        for i, (screen, (title, body)) in enumerate(zip(screens, expected)):
+            self.assertIsNotNone(find_line(screen, title, TITLE_FONT),
+                                 "screen %d is not titled %r" % (i, title))
+            self.assertTrue(shows(screen, body),
+                            "screen %d does not show %r" % (i, body))
+
+    def assertSignedBy(self, response, message):
+        """A 64-byte ed25519 signature by this device's key over `message`."""
+        self.assertEqual(len(response.signature), 64)
+        eddsa.new(eddsa.import_public_key(self.signer), "rfc8032").verify(
+            message, bytes(response.signature))
+
+    def test_certified_soltoshi_join_reviews_every_screen(self):
+        """The Worker's schema and SDICE definition name every value of the
+        join, AdvancedMode off. These frames are the report's evidence, so
+        the setUp policy screen is dropped first."""
+        raw = soltoshi_join(self.signer)
+        self.client.reset_screenshots()
+        response, screens = self._review(
+            self._join_request(raw, [sdice_definition()]), None)
+        self.assertScreens(screens, self._join_review(SDICE_TRUSTED))
+        self.assertSignedBy(response, raw)
+
+    def test_certified_soltoshi_join_priority_fee_names_fee_payer(self):
+        """With a compute-unit price added, the fee payer and the maximum
+        priority fee follow the join's values, before the final screen."""
+        raw = soltoshi_join(self.signer, priced=True)
+        response, screens = self._review(
+            self._join_request(raw, [sdice_definition()]), "join_priced")
+        self.assertScreens(screens,
+                           self._join_review(SDICE_TRUSTED, priced=True))
+        self.assertSignedBy(response, raw)
+
+    def test_certified_soltoshi_join_untrusted_definition_shows_base_units(
+            self):
+        """No definition, or one with one byte of its signature changed: the
+        three amounts are raw base units beside the mint, nothing else
+        changes, and the join still signs."""
+        raw = soltoshi_join(self.signer)
+        response, missing = self._review(self._join_request(raw),
+                                         "join_no_definition")
+        self.assertScreens(missing, self._join_review(SDICE_UNTRUSTED))
+        self.assertSignedBy(response, raw)
+
+        signature = bytearray(SDICE_DEFINITION_SIG)
+        signature[0] ^= 0x01
+        response, flipped = self._review(
+            self._join_request(raw, [sdice_definition(bytes(signature))]),
+            "join_bad_definition")
+        self.assertEqual(flipped, missing)
+        self.assertSignedBy(response, raw)
+
+    def test_certified_soltoshi_join_ignores_blind_sign_policy(self):
+        """AdvancedMode on changes nothing: the same certified review, frame
+        for frame, and never the Blind Sign screen."""
+        raw = soltoshi_join(self.signer)
+        request = self._join_request(raw, [sdice_definition()])
+        _, off = self._review(request, "join_policy_off")
+        self.client.apply_policy("AdvancedMode", True)
+        response, on = self._review(request, "join_policy_on")
+        self.assertEqual(on, off)
+        self.assertScreens(on, self._join_review(SDICE_TRUSTED))
+        self.assertFalse(any(find_line(screen, "BLIND SIGN", TITLE_FONT)
+                             for screen in on))
+        self.assertSignedBy(response, raw)
+
+    # A proof that is not exactly what the delegate signed for Solana. The
+    # join is the real one re-keyed to this device, with the SDICE
+    # definition, so the proof is the only thing wrong. The delegate signs
+    # sha256(schema), which carries no scope, so its schema signature
+    # verifies under every certificate that names it; only the certificate's
+    # scope binds it to Solana. The alpha root has publicly certified the
+    # same delegate for scope 1 as well: CERT_SCOPE1.
+
+    def assertRefused(self, request, message):
+        """Refused with exactly `message`, before any screen, and no
+        signature returned."""
+        recorder = ScreenRecorder(self.client, answer=True)
+        with recorder:
+            try:
+                response = self.client.call(request)
+            except CallException as refused:
+                failure = tuple(refused.args)
+            else:
+                self.fail("signed after %d screens, signature %s" % (
+                    len(recorder.screens), bytes(response.signature).hex()))
+        self.assertEqual(failure, (proto_types.Failure_SyntaxError, message))
+        self.assertEqual(recorder.screens, [])
+
+    def test_certified_schema_signature_one_byte_changed_refused(self):
+        signature = bytearray(SOLTOSHI_SCHEMA_SIG)
+        signature[0] ^= 0x01
+        request = self._join_request(soltoshi_join(self.signer),
+                                     [sdice_definition()])
+        request.schema_signature = bytes(signature)
+        self.assertRefused(request, SCHEMA_MISMATCH)
+
+    def test_certified_edited_schema_refused(self):
+        """The instruction renamed under the delegate's original signature.
+        The edit keeps the length, so the schema still parses and still
+        applies to the join."""
+        schema = SOLTOSHI_SCHEMA.replace(b"Blackjack join", b"Claim airdrop!")
+        self.assertEqual(len(schema), len(SOLTOSHI_SCHEMA))
+        self.assertNotEqual(schema, SOLTOSHI_SCHEMA)
+        request = self._join_request(soltoshi_join(self.signer),
+                                     [sdice_definition()])
+        request.schema_payload = schema
+        self.assertRefused(request, SCHEMA_MISMATCH)
+
+    def test_certified_proof_without_schema_signature_refused(self):
+        request = self._join_request(soltoshi_join(self.signer),
+                                     [sdice_definition()])
+        request.ClearField("schema_signature")
+        self.assertRefused(request, INCOMPLETE_PROOF)
+
+    def test_certified_wrong_scope_certificate_refused(self):
+        """The delegate's real schema signature under its scope-1
+        certificate, which only the scope check refuses."""
+        self.assertEqual(CERT_SCOPE1[2:6], struct.pack(">I", 1))
+        self.assertEqual(CERT_SCOPE1[42:75], CERT_501[42:75])
+        request = self._join_request(soltoshi_join(self.signer),
+                                     [sdice_definition()])
+        request.clearsign_certificate = CERT_SCOPE1
+        self.assertRefused(request, INVALID_CERTIFICATE)
+
+    def test_certified_short_schema_signature_refused(self):
+        """The delegate's signature without its last byte. That byte is 0x00,
+        so the firmware's zeroed 64-byte field holds the real signature
+        again; only the length check refuses it."""
+        self.assertEqual(SOLTOSHI_SCHEMA_SIG[-1], 0)
+        request = self._join_request(soltoshi_join(self.signer),
+                                     [sdice_definition()])
+        request.schema_signature = SOLTOSHI_SCHEMA_SIG[:63]
+        self.assertRefused(request, SCHEMA_MISMATCH)
 
 
 class TestSolanaSchemaRuntime(SchemaReview):

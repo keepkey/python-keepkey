@@ -447,6 +447,9 @@ FULL_SEQUENCE_TESTS = {
     ('test_msg_thorchain_signtx', 'test_thorchain_sign_tx'),
     ('test_msg_mayachain_signtx', 'test_mayachain_sign_tx_memos'),
     ('test_msg_osmosis_signtx', 'test_osmosis_swap_max_fields_are_fully_paged'),
+    # Every screen of a certified Solana review is a claim about what the user
+    # was shown before signing.
+    ('test_msg_solana_schema_v2', 'test_certified_soltoshi_join_reviews_every_screen'),
 }
 
 def _v_catalog_tests(start_id=17):
@@ -2121,6 +2124,51 @@ SECTIONS = [
           'user never loaded verifies against nothing and renders nothing, which is the '
           'property that keeps sessions without a loaded provider safe.',
           []),
+         # KKSOLSC1 v2, certified: the real SoltoshiDICE "Blackjack join" with the
+         # schema and SDICE token definition the deployed ClearSign Worker signs.
+         ('S30', 'test_msg_solana_schema_v2',
+          'test_certified_soltoshi_join_reviews_every_screen',
+          'Certified SoltoshiDICE join: every value on screen, AdvancedMode OFF',
+          'The real dapp transaction (legacy, no lookup tables), re-keyed so its fee payer '
+          'is this device. A 501-scope ClearSign root certificate authorizes the Vault '
+          'delegate that signed the join\'s schema and a KeepKeySolanaTokenDef/2 definition '
+          'of SDICE; neither signature covers a transaction. The certificate is issued by '
+          'the alpha root, which every 7.16+ build embeds, so a build that refuses it fails '
+          'rather than skips; production gets its own root after the 7.15 re-release. The '
+          'test reads the text of all 14 screens in '
+          'order: the compute-unit limit, the Transfer companion (funding account, then '
+          '0.002 SOL to the session key), the certified signer, Round 86, Revision 980, '
+          'Seat 1, Buy-in / Allowance / Max wager as 1000.000000 SDICE with the full mint, '
+          'the session key, Expires in 1 h, and the sign prompt. It then verifies the '
+          'ed25519 signature over the message.',
+          ['Instr 1/3 compute unit limit', 'Instr 2/3 funding account',
+           'Instr 2/3 send 0.002 SOL to session key', 'KeepKey ClearSign signer',
+           'SoltoshiDICE Blackjack join', 'Round 86', 'Revision 980', 'Seat 1',
+           'Buy-in 1000 SDICE + mint', 'Session key', 'Expires in 1 h',
+           'Allowance 1000 SDICE + mint', 'Max wager 1000 SDICE + mint',
+           'Sign this Solana transaction?']),
+         ('S31', 'test_msg_solana_schema_v2',
+          'test_certified_soltoshi_join_priority_fee_names_fee_payer',
+          'Certified join with a priority fee names the fee payer',
+          'The real join sets no compute-unit price, so it has no Fee screens. With a '
+          'SetComputeUnitPrice added, the same certified review ends with Fee payer '
+          '<device address> and Max priority fee 0.000200000 SOL before the sign prompt.',
+          []),
+         ('S32', 'test_msg_solana_schema_v2',
+          'test_certified_soltoshi_join_untrusted_definition_shows_base_units',
+          'Certified join without a valid token definition shows base units',
+          'Without the SDICE definition, the three amounts read 1000000000 base units of '
+          'mint with the full mint. A definition whose signature differs by one byte '
+          'gives exactly the same screens, frame for frame. No symbol, and no scaling, '
+          'comes from an unverified definition.',
+          []),
+         ('S33', 'test_msg_solana_schema_v2',
+          'test_certified_soltoshi_join_ignores_blind_sign_policy',
+          'Certified join is not a blind sign when AdvancedMode is on',
+          'Turning AdvancedMode on leaves the certified review identical, frame for frame, '
+          'and never adds the Blind Sign screen: the certificate, not the policy, decides '
+          'how the transaction is shown.',
+          []),
      ]),
 
     ('T', 'TRON', '7.14.0',
@@ -3215,6 +3263,14 @@ _TEST_MIN_VERSION = {
     ('Storage', 'PinKdfRewrapsToActiveVersionAfterCorrectPin'): '7.15.0',
     ('Storage', 'PinUnlocksAfterRebootUnderV17'): '7.15.0',
     ('Storage', 'PinKdfV2FlagIsVersionedInV19'): '7.15.0',
+    ('test_msg_solana_schema_v2',
+     'test_certified_soltoshi_join_reviews_every_screen'): '7.16.0',
+    ('test_msg_solana_schema_v2',
+     'test_certified_soltoshi_join_priority_fee_names_fee_payer'): '7.16.0',
+    ('test_msg_solana_schema_v2',
+     'test_certified_soltoshi_join_untrusted_definition_shows_base_units'): '7.16.0',
+    ('test_msg_solana_schema_v2',
+     'test_certified_soltoshi_join_ignores_blind_sign_policy'): '7.16.0',
 }
 
 
