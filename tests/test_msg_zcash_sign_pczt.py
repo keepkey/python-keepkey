@@ -200,6 +200,19 @@ class TestZcashSignPCZTClient(unittest.TestCase):
             [0, 1, 2],
         )
 
+    def test_documented_action_index_does_not_conflict_with_device_order(self):
+        supplied = action(0, False)
+        supplied['index'] = 9
+        client = ScriptedClient([
+            zcash_proto.ZcashPCZTActionAck(next_index=0),
+            zcash_proto.ZcashSignedPCZT(signatures=[]),
+        ])
+
+        client.zcash_sign_pczt(**sign_kwargs([supplied]))
+
+        self.assertEqual(client.sent[1].index, 0)
+        self.assertEqual(supplied['index'], 9)
+
     def test_missing_is_spend_is_rejected_before_device_call(self):
         malformed = action(0, True)
         del malformed['is_spend']

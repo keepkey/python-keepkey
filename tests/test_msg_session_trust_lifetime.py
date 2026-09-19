@@ -198,9 +198,9 @@ def _resolve_executable(pid, comm, cwd):
 
 class TestSessionTrustLifetime(common.KeepKeyTest):
 
-    # RC18 still persisted AdvancedMode and retained runtime signers across
-    # session teardown. The session-lifetime fixes first ship in 7.16.
-    MIN_FIRMWARE = "7.16.0"
+    # Canonical 7.15 makes AdvancedMode and runtime signer trust session-only.
+    # Its release contract requires these lifetime checks.
+    MIN_FIRMWARE = "7.15.0"
 
     def setUp(self):
         super(TestSessionTrustLifetime, self).setUp()

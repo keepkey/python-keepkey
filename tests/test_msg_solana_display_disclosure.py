@@ -57,12 +57,16 @@ def build_memo_tx(signer, memo):
 class TestSolanaDisplayDisclosure(common.KeepKeyTest):
     def setUp(self):
         super(TestSolanaDisplayDisclosure, self).setUp()
-        self.requires_firmware("7.16.0")
         self.requires_fullFeature()
+        self.requires_firmware("7.14.2")
         self.setup_mnemonic_allallall()
 
-    def _capture(self, request):
-        recorder = ScreenRecorder(self.client, answer=True)
+    def _capture(self, request, screenshot_group):
+        recorder = ScreenRecorder(
+            self.client,
+            answer=True,
+            screenshot_group=screenshot_group,
+        )
         try:
             with recorder:
                 self.client.call(request)
@@ -75,8 +79,8 @@ class TestSolanaDisplayDisclosure(common.KeepKeyTest):
         payload_b = payload_a[:96] + b"B" + payload_a[97:]
         self.assertEqual(payload_a[:32], payload_b[:32])
 
-        screens_a = self._capture(make_request(payload_a))
-        screens_b = self._capture(make_request(payload_b))
+        screens_a = self._capture(make_request(payload_a), "payload-a")
+        screens_b = self._capture(make_request(payload_b), "payload-b")
         self.assertIsNotNone(screens_a)
         self.assertIsNotNone(screens_b)
         self.assertGreater(len(screens_a), 1)
@@ -114,7 +118,8 @@ class TestSolanaDisplayDisclosure(common.KeepKeyTest):
                 version=0,
                 message_format=0,
                 message=payload,
-            )
+            ),
+            "format-ascii",
         )
         screens_utf8 = self._capture(
             solana.SolanaSignOffchainMessage(
@@ -122,7 +127,8 @@ class TestSolanaDisplayDisclosure(common.KeepKeyTest):
                 version=0,
                 message_format=1,
                 message=payload,
-            )
+            ),
+            "format-utf8",
         )
         self.assertIsNotNone(screens_ascii)
         self.assertIsNotNone(screens_utf8)

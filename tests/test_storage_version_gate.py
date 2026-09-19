@@ -493,6 +493,7 @@ class Emulator(object):
         self.port = _free_port_pair()
         self.img = os.path.join(workdir, "emulator.img")
         self.proc = None
+        self._endpoint_lease = None
 
     # -- process ------------------------------------------------------------
 
@@ -514,15 +515,22 @@ class Emulator(object):
             self.proc = subprocess.Popen(
                 [_EMULATOR_BIN], cwd=self.workdir, env=env, stdout=log,
                 stderr=subprocess.STDOUT)
-        for _ in range(100):
-            time.sleep(0.1)
-            if self.proc.poll() is not None:
-                raise RuntimeError(
-                    "emulator exited rc=%s before answering; see %s"
-                    % (self.proc.returncode, os.path.join(self.workdir, "emu.log")))
-            if self._ping():
-                return
-        raise RuntimeError("emulator did not answer PINGPING on port %d" % self.port)
+        from emulator_endpoints import owned_emulator_pair
+        try:
+            self._endpoint_lease = owned_emulator_pair(self.port)
+            self._endpoint_lease.__enter__()
+            for _ in range(100):
+                time.sleep(0.1)
+                if self.proc.poll() is not None:
+                    raise RuntimeError(
+                        "emulator exited rc=%s before answering; see %s"
+                        % (self.proc.returncode, os.path.join(self.workdir, "emu.log")))
+                if self._ping():
+                    return
+            raise RuntimeError("emulator did not answer PINGPING on port %d" % self.port)
+        except BaseException:
+            self.halt()
+            raise
 
     def halt(self):
         """Power cycle, not a graceful shutdown -- flash keeps whatever
@@ -537,6 +545,9 @@ class Emulator(object):
                 self.proc.kill()
                 self.proc.wait()
         self.proc = None
+        if self._endpoint_lease is not None:
+            self._endpoint_lease.__exit__(None, None, None)
+            self._endpoint_lease = None
         time.sleep(0.2)
 
     # -- client -------------------------------------------------------------
@@ -606,6 +617,20 @@ class Emulator(object):
         with open(self.img, "r+b") as f:
             f.seek(off + rel)
             f.write(data)
+            # These edits construct alternate-version fixtures, not corrupt
+            # records. Preserve the optional durable-commit envelope so boot
+            # reaches the version reader rather than rejecting a stale CRC.
+            f.seek(off)
+            record = f.read(2580)
+            if record[2572:2576] == b"crc1":
+                crc = 0xffffffff
+                for (word,) in struct.iter_unpack("<I", record[:2572]):
+                    crc ^= word
+                    for _ in range(32):
+                        crc = ((crc << 1) ^ (0x04c11db7 if crc & 0x80000000
+                                             else 0)) & 0xffffffff
+                f.seek(off + 2576)
+                f.write(struct.pack("<I", crc))
             f.flush()
             os.fsync(f.fileno())
 
@@ -1065,6 +1090,8 @@ class TestStorageUpgradePreservation(unittest.TestCase):
                 label=LABEL, language="english")
             c.init_device()
             self.assertTrue(c.features.initialized)
+            from keepkeylib import messages_pb2 as proto
+            self.bitcoin_only = c.call(proto.GetCoinTable()).num_coins == 2
             addr = c.get_address("Bitcoin", BIP44_ADDRESS_N)
         finally:
             c.close()
@@ -1140,6 +1167,8 @@ class TestStorageUpgradePreservation(unittest.TestCase):
         # only record which branch the author was standing on.
         declared = _define(_read_source("include/keepkey/firmware/storage.h"),
                            "STORAGE_VERSION")
+        if self.bitcoin_only:
+            declared += STORAGE_VERSION_BTC_ONLY_BASE
         self.assertEqual(
             declared, self.emu.read_u32(off, OFF_VERSION),
             "the firmware committed a storage version other than the %d its "
@@ -1181,8 +1210,18 @@ class TestStorageUpgradePreservation(unittest.TestCase):
         derive if the wrapped storage key unwrapped, the 512-byte V16
         ciphertext decrypted, and the seed came back byte-identical.
         """
+        self._check_v16_upgrade()
+
+    def test_unframed_v16_blob_upgrades_without_wiping(self):
+        """Legacy V16 without the optional CRC envelope preserves its wallet."""
+        self._check_v16_upgrade(unframed=True)
+
+    def _check_v16_upgrade(self, unframed=False):
         addr, off = self._create_wallet()
         self._make_v16_blob(off)
+        if unframed:
+            self.emu.patch(off, 41, b"\x00" * 3)
+            self.emu.patch(off, 2572, b"\xff" * 8)
         self.assertEqual(16, self.emu.read_u32(off, OFF_VERSION))
 
         before = self.emu.image()
@@ -1215,7 +1254,7 @@ class TestStorageUpgradePreservation(unittest.TestCase):
             c.close()
 
     def test_unrecognised_version_wipes_on_boot(self):
-        """A downgrade wipes, deliberately -- do not "fix" this.
+        """Unknown full-product versions wipe; Bitcoin-only bands stay intact.
 
         A device that has run newer firmware carries a newer stamp. Older
         firmware cannot read it, so version_from_int() returns
@@ -1231,6 +1270,7 @@ class TestStorageUpgradePreservation(unittest.TestCase):
         addr, off = self._create_wallet()
         unknown = self.emu.read_u32(off, OFF_VERSION) + 1
         self.emu.write_u32(off, OFF_VERSION, unknown)
+        before = self.emu.image()
 
         self.emu.boot()
         c = self.emu.client(self.method)
@@ -1244,6 +1284,12 @@ class TestStorageUpgradePreservation(unittest.TestCase):
                 "an older signed image would keep the seed." % unknown)
             self.assertFalse(c.features.pin_protection)
             self.assertNotEqual(LABEL, c.features.label)
+            # Unknown versions in the Bitcoin-only band are refused without
+            # erasing the wallet; full firmware uses its existing wipe policy.
+            if self.bitcoin_only:
+                self.assertEqual(before, self.emu.image())
+            else:
+                self.assertNotEqual(before, self.emu.image())
         finally:
             c.close()
 
@@ -1263,6 +1309,24 @@ class TestStorageUpgradePreservation(unittest.TestCase):
         wallet comes back once the stamp is the multi-chain one again.
         """
         addr, off = self._create_wallet()
+        if self.bitcoin_only:
+            # This product must read its own band; the full-product branch below
+            # must refuse the same band while preserving its bytes.
+            declared = _define(_read_source("include/keepkey/firmware/storage.h"),
+                               "STORAGE_VERSION")
+            self.assertEqual(STORAGE_VERSION_BTC_ONLY_BASE + declared,
+                             self.emu.read_u32(off, OFF_VERSION))
+            before = self.emu.image()
+            self.emu.boot()
+            c = self.emu.client(self.method, pin=PIN)
+            try:
+                c.init_device()
+                self.assertTrue(c.features.initialized)
+                self.assertEqual(before, self.emu.image())
+                self.assertEqual(addr, c.get_address("Bitcoin", BIP44_ADDRESS_N))
+            finally:
+                c.close()
+            return
         self.assertLess(
             self.emu.read_u32(off, OFF_VERSION), STORAGE_VERSION_BTC_ONLY_BASE,
             "this emulator already stamps its wallets into the bitcoin-only "

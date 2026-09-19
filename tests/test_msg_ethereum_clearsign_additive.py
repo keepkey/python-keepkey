@@ -87,10 +87,9 @@ from test_msg_ethereum_clear_signing import (
 # METADATA_MAX_KEYS in include/keepkey/firmware/signed_metadata.h.
 METADATA_MAX_KEYS = 4
 
-# RC18 verifies runtime metadata, but the successful-decode path did not yet
-# guarantee that the ordinary raw review survived byte-for-byte. That security
-# invariant landed after RC18 and first ships on the 7.16 line.
-ADDITIVE_REVIEW_FIRMWARE = "7.16.0"
+# The canonical 7.15 product requires additive runtime provider review.
+# Do not inherit the earlier RC18 candidate's capability assumptions.
+ADDITIVE_REVIEW_FIRMWARE = "7.15.0"
 
 # The Aave V3 supply() transaction every additive test signs. Real ABI
 # calldata (selector + 4 x 32-byte words), so the metadata below binds a

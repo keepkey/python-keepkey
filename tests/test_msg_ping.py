@@ -27,6 +27,25 @@ from keepkeylib import types_pb2 as proto_types
 
 class TestPing(common.KeepKeyTest):
 
+    def test_protected_ping_preserves_message_presence_after_debug_read(self):
+        self.requires_firmware("7.14.2")
+        for message in (None, '', 'ping response'):
+            with self.subTest(message=message):
+                request = proto.Ping(button_protection=True)
+                if message is not None:
+                    request.message = message
+                response = self.client.call_raw(request)
+                self.assertIsInstance(response, proto.ButtonRequest)
+                # Read the screen while the normal response is suspended.
+                self.client.debug.read_layout()
+                self.client.debug.press_yes()
+                response = self.client.call_raw(proto.ButtonAck())
+                self.assertIsInstance(response, proto.Success)
+                self.assertEqual(response.HasField('message'), message is not None)
+                if message is not None:
+                    self.assertEqual(response.message, message)
+
+
     def test_ping(self):
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()
@@ -142,15 +161,15 @@ class TestPing(common.KeepKeyTest):
         # local cache. This is the precondition that made the stale-data path
         # reachable after ClearSession.
         self.client.ping('\x19wipeAuthdata:')
-        # Alpha rejects TOTP seeds below the 128-bit minimum. Use a 160-bit
-        # RFC 4648 Base32 fixture so this test reaches the cancellation path
-        # it is intended to exercise.
-        init_auth = (
-            '\x15initializeAuth:example.com:alice:'
-            'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP'
-        )
+        init_auth = ('\x15initializeAuth:example.com:alice:'
+                     'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP')
         self.client.ping(init_auth)
         self.client.clear_session()
+        # The wipe/add-account confirmations establish the stale-cache
+        # precondition; they are not evidence for the cancellation boundary.
+        # Retain only the randomized PIN grid reached by the operation under
+        # test. Passphrase entry and terminal cancellation are host/wire state.
+        common.reset_screenshot_capture(self.client)
 
         resp = self.client.call_raw(proto.Ping(message='\x17getAccount:0'))
         self.assertIsInstance(resp, proto.PinMatrixRequest)

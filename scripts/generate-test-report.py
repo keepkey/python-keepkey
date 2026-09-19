@@ -216,6 +216,22 @@ def ver_t(s):
     parts = (s.split('.') + ['0', '0', '0'])[:3]
     return tuple(int(''.join(ch for ch in p if ch.isdigit()) or '0') for p in parts)
 def ver_ge(a, b): return ver_t(a) >= ver_t(b)
+
+# Tests whose newer fail-closed behavior deliberately returns before drawing a
+# confirmation screen. Keep their historical catalog text, but do not schedule
+# or audit an OLED capture once the refusal behavior is active.
+_NO_SCREEN_FROM = {
+    ('test_msg_signtx_ethereum_erc20', 'test_approve_all'): '7.14.2',
+}
+
+
+def _screens_for(fw_version, mod, meth, screens):
+    floor = _NO_SCREEN_FROM.get((mod, meth))
+    if floor and ver_ge(fw_version, floor):
+        return []
+    return screens
+
+
 def _w(text, n=95):
     words, lines, cur = text.split(), [], ''
     for w in words:
@@ -792,7 +808,7 @@ SECTIONS = [
           ['Wordlist rejection warning']),
      ]),
 
-    ('K', 'Seed Generation Hardening (7.15)', '7.15.0',
+    ('K', 'Seed Generation Hardening (7.14.3+)', '7.14.3',
      'The 7.15 changes to how a seed comes into existence: user-supplied dice entropy folded in '
      'on-device, and the PIN key-derivation rewrap. These ran green from the first 7.15 RC but '
      'appeared nowhere in this report, because the catalog could not reference native firmware '
@@ -1102,7 +1118,8 @@ SECTIONS = [
           ['Approval screen']),
          ('E11', 'test_msg_signtx_ethereum_erc20', 'test_approve_all',
           'ERC-20 approve unlimited',
-          'MAX_UINT256 approval. Device shows "UNLIMITED" warning since this grants infinite spending.',
+          'MAX_UINT256 approval. Older firmware showed an "UNLIMITED" warning; 7.14.2 and later '
+          'refuse it before drawing a confirmation screen.',
           ['Unlimited approval warning']),
          ('E12', 'test_msg_ethereum_makerdao', 'test_generate',
           'MakerDAO generate DAI', 'Complex DeFi contract interaction (MakerDAO CDP).', []),
@@ -1863,11 +1880,11 @@ SECTIONS = [
           # visual proof and is not. The per-beneficiary confirm screens are
           # captured by G35, which actually signs a two-beneficiary payout.
           []),
-         ('G37', 'test_msg_hive', 'test_hive_sign_ops_account_update2_rejects_authority_change',
-          'account_update2 cannot rotate keys',
-          'Only the profile-metadata form is in the table. Any owner/active/posting/memo_key '
-          'field present is a hard reject — the op-9/10 device-derived-keys invariant applied '
-          'field-level.',
+         ('G37', 'test_msg_hive', 'test_hive_sign_ops_account_update2_is_rejected',
+          'account_update2 is refused',
+          'The operation always carries a memo key. Without trusted chain state the device '
+          'cannot prove that key is unchanged, so it refuses every account_update2 instead '
+          'of presenting a profile-only summary.',
           []),
          ('G38', 'test_msg_hive', 'test_hive_sign_ops_truncated_bodies_rejected',
           'Truncated op bodies refused',
@@ -2012,7 +2029,8 @@ SECTIONS = [
          # KKSOLSW1 -- the answer to S24. A v0 tx whose accounts live in a
          # lookup table cannot be resolved on-device, so today the device signs
          # accounts it never showed. These four are the additive invariant
-         # (section F) restated for Solana, and R-4.1 of SRS-7.15.
+         # (section F) restated for Solana, and R-4.1 of SRS-7.15. The
+         # canonical 7.15 product includes this protocol work.
          ('S26', 'test_msg_solana_lut_attestation',
           'test_attested_accounts_are_shown_and_blind_sign_still_follows',
           'Attested lookup-table accounts are shown, and the blind-sign warning survives',
@@ -2048,7 +2066,7 @@ SECTIONS = [
           'With no signer loaded a well-formed attestation is inert',
           'Trust is opt-in and per-session. A perfectly valid attestation from a provider the '
           'user never loaded verifies against nothing and renders nothing, which is the '
-          'property that keeps 7.15 safe without any key-management programme.',
+          'property that keeps sessions without a loaded provider safe.',
           []),
      ]),
 
@@ -3139,6 +3157,29 @@ SECTIONS = [
 
 ]
 
+# A section may span adjacent release lines even when individual native tests
+# landed later. Filter those rows before validation so a 7.14.3 report cannot
+# demand 7.15-only binaries, while 7.15 still requires the coverage.
+_TEST_MIN_VERSION = {
+    ('Storage', 'PinKdfRewrapsToActiveVersionAfterCorrectPin'): '7.15.0',
+    ('Storage', 'PinUnlocksAfterRebootUnderV17'): '7.15.0',
+    ('Storage', 'PinKdfV2FlagIsVersionedInV19'): '7.15.0',
+}
+
+
+def _active_sections(fw_version):
+    active = []
+    for letter, title, minimum, background, flow, tests in SECTIONS:
+        if not ver_ge(fw_version, minimum):
+            continue
+        filtered = [
+            test for test in tests
+            if ver_ge(fw_version,
+                      _TEST_MIN_VERSION.get((test[1], test[2]), minimum))
+        ]
+        active.append((letter, title, minimum, background, flow, filtered))
+    return active
+
 # ---------------------------------------------------------------
 # Render
 # ---------------------------------------------------------------
@@ -3170,7 +3211,7 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     _build_frame_census(screenshot_dir)
     ts = datetime.now().strftime('%Y-%m-%d %H:%M')
     build_label = os.environ.get('KK_BUILD_LABEL', '').strip()
-    active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
+    active = _active_sections(fw_version)
     # Separate specs section (no tests) from test sections
     specs = [s for s in active if not s[5]]
 
@@ -3280,6 +3321,7 @@ def render(output_path, fw_version, results, screenshot_dir=None):
             pb.text(9, f'Tests: {len(tests)}', bold=True)
         pb.gap(2)
         for tid, mod, meth, title, ctx, scr in tests:
+            scr = _screens_for(fw_version, mod, meth, scr)
             pb.need(50)
             r = _lookup(results, mod, meth)
             pb.check(9, f'{tid} {meth}', r)
@@ -3391,11 +3433,11 @@ def screenshot_filter(fw_version):
     The shell script calls this instead of maintaining a hardcoded filter.
     Adding screenshots to a test in SECTIONS automatically includes it in CI Phase 1.
     """
-    active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
+    active = _active_sections(fw_version)
     terms = []
     for letter, title, mf, bg, fl, tests in active:
         for tid, mod, meth, ttl, ctx, scr in tests:
-            if scr:  # non-empty screenshot list = needs OLED capture
+            if _screens_for(fw_version, mod, meth, scr):
                 # Use (method and module) for unambiguous pytest -k matching
                 terms.append(f'({meth} and {mod})')
     return ' or '.join(terms)
@@ -3403,11 +3445,11 @@ def screenshot_filter(fw_version):
 
 def screenshot_test_list(fw_version):
     """Return exact module::method selectors consumed by conftest.py."""
-    active = [x for x in SECTIONS if ver_ge(fw_version, x[2])]
+    active = _active_sections(fw_version)
     pairs = set()
     for _letter, _title, _mf, _bg, _fl, tests in active:
         for _tid, mod, meth, _ttl, _ctx, screens in tests:
-            if screens:
+            if _screens_for(fw_version, mod, meth, screens):
                 pairs.add('%s::%s' % (mod, meth))
     return '\n'.join(sorted(pairs))
 
@@ -3425,8 +3467,14 @@ def screenshot_test_list(fw_version):
 # version-blind set would fail every older-firmware run for a module that
 # legitimately cannot exist yet.
 MUST_RUN_MODULES = {
-    'test_msg_signtx_taproot': '7.0.0',
-    'test_msg_getaddress_taproot': '7.0.0',
+    # Taproot did not exist at 7.0.0. That floor only ever held because this
+    # table was applied to products that happen to carry taproot: 7.14.2
+    # reports no supports_taproot and has no P2TR path in signing.c at all, so
+    # requiring its six taproot cases to run demanded coverage the product
+    # cannot have. The floor is the release taproot actually ships in, which
+    # keeps the requirement binding on 7.14.3 and 7.15, both of which carry it.
+    'test_msg_signtx_taproot': '7.14.3',
+    'test_msg_getaddress_taproot': '7.14.3',
     # GH #516: all three Uniswap liquidity tests used to skip together on the
     # emulator, leaving a daily-driver signing path completely unexercised.
     'test_msg_ethereum_erc20_uniswap_liquidity': '7.16.0',
@@ -3471,11 +3519,11 @@ def screenshot_audit(fw_version, screenshot_root, junit_path=None):
                     mod = next((p for p in cn.split('.') if p.startswith('test_')), '')
                     skipped.add((mod, tc.get('name')))
 
-    active = [x for x in SECTIONS if ver_ge(fw_version, x[2])]
+    active = _active_sections(fw_version)
     missing = []
     for letter, title, mf, bg, fl, tests in active:
         for tid, mod, meth, ttl, ctx, scr in tests:
-            if not scr:
+            if not _screens_for(fw_version, mod, meth, scr):
                 continue
             if (mod, meth) in skipped:
                 continue
@@ -3487,7 +3535,7 @@ def screenshot_audit(fw_version, screenshot_root, junit_path=None):
     return (len(missing) == 0, missing)
 
 
-def validate_junit(fw_version, results, build_variant='full'):
+def validate_junit(fw_version, results, variant='full'):
     """Check SECTIONS tests against JUnit results. Returns (passed, failed_list).
 
     A test is considered failed if it appears in SECTIONS for this firmware version
@@ -3496,17 +3544,19 @@ def validate_junit(fw_version, results, build_variant='full'):
     Tests that were skipped (gated by requires_message/requires_firmware) are OK,
     unless their module is in MUST_RUN_MODULES.
     """
-    active = [(l,t,mf,bg,fl,tests) for l,t,mf,bg,fl,tests in SECTIONS if ver_ge(fw_version, mf)]
+    active = _active_sections(fw_version)
     failures = []
     for letter, title, mf, bg, fl, tests in active:
         for tid, mod, meth, ttl, ctx, scr in tests:
             status = _lookup(results, mod, meth)
             if status in ('fail', 'error'):
                 failures.append((tid, mod, meth, status))
-            elif (status == 'skip'
-                  and ver_ge(fw_version, MUST_RUN_MODULES.get(mod, '99.0.0'))
-                  and not (build_variant == 'bitcoin-only'
-                           and mod in FULL_FEATURE_ONLY_MUST_RUN_MODULES)):
+            must_run = not (
+                variant == 'bitcoin-only' and
+                mod in FULL_FEATURE_ONLY_MUST_RUN_MODULES
+            )
+            if (status == 'skip' and must_run and
+                    ver_ge(fw_version, MUST_RUN_MODULES.get(mod, '99.0.0'))):
                 failures.append((tid, mod, meth, 'skipped-but-required'))
             elif not status:
                 failures.append((tid, mod, meth, 'missing'))
@@ -3530,10 +3580,24 @@ def main():
                    help='Print exact module::method screenshot selectors, then exit')
     p.add_argument('--validate-junit', action='store_true',
                    help='Validate JUnit results against SECTIONS, exit non-zero on failures')
-    p.add_argument('--build-variant', choices=('full', 'bitcoin-only'), default='full',
-                   help='Expected CI product; controls only explicit build-flag waivers')
+    # --build-variant is the spelling firmware CI (python-keepkey-tests.sh)
+    # passes; keep it as an alias so either repo can move first.
+    p.add_argument('--variant', '--build-variant', dest='variant',
+                   choices=('full', 'bitcoin-only'),
+                   default=os.environ.get('KK_FIRMWARE_VARIANT', 'full'),
+                   help='Product variant whose required report coverage is validated')
     p.add_argument('--section', action='append', default=[],
                    help='Render only the named section id (repeatable)')
+    p.add_argument('--firmware-sha', default=None,
+                   help='Exact firmware commit represented by this report')
+    p.add_argument('--python-sha', default=None,
+                   help='Exact python-keepkey commit represented by this report')
+    p.add_argument('--run-url', default=None,
+                   help='Exact CI run that produced the evidence')
+    p.add_argument('--generator-sha256', default=None,
+                   help='Combined wrapper/renderer digest')
+    p.add_argument('--arm-manifest-sha256', default=None,
+                   help='Digest binding the complete ARM manifest set')
     args = p.parse_args()
 
     if args.section:
@@ -3572,7 +3636,7 @@ def main():
             print('ERROR: --validate-junit requires --junit=<path>', file=sys.stderr)
             sys.exit(2)
         results = parse_junit(args.junit)
-        ok, failures = validate_junit(fw, results, args.build_variant)
+        ok, failures = validate_junit(fw, results, args.variant)
         if ok:
             print(f'SECTIONS validation passed: all tests for fw {fw} are pass or skip')
             sys.exit(0)
@@ -3581,6 +3645,17 @@ def main():
             for tid, mod, meth, status in failures:
                 print(f'  {tid} {mod}::{meth} -> {status}')
             sys.exit(1)
+
+    provenance = [
+        ('firmware', args.firmware_sha),
+        ('python', args.python_sha),
+        ('run', args.run_url),
+        ('generator', args.generator_sha256),
+        ('arm-manifests', args.arm_manifest_sha256),
+    ]
+    supplied = ['%s=%s' % item for item in provenance if item[1]]
+    if supplied:
+        os.environ['KK_BUILD_LABEL'] = ' | '.join(supplied)
 
     results = parse_junit(args.junit) if args.junit else {}
     render(args.output, fw, results, args.screenshots)

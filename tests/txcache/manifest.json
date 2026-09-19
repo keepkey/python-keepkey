@@ -89,18 +89,6 @@
     },
     {
       "algorithm": "sha256d",
-      "canonical_hex": "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff00ffffffff01a086010000000000225120a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c00000000",
-      "canonical_sha256": "b4e89b9c45aba656e504d85b181ada12f23db7a9bc45ebc5c307807b6a4bd108",
-      "network": "insight_bitcoin",
-      "required_by": [
-        "test_msg_signtx_taproot.py"
-      ],
-      "response": "insight_bitcoin_tx_6e32033911982f7550ab1d26232adfd08711293e15085f77cd27628be0a6ee37.json",
-      "response_sha256": "c24a70106b4265675d75e095dd8b445caed398410abe930e4740bfb5a8926797",
-      "txid": "6e32033911982f7550ab1d26232adfd08711293e15085f77cd27628be0a6ee37"
-    },
-    {
-      "algorithm": "sha256d",
       "canonical_hex": "0100000001f1655bcf4bbfb9e7f8e3abf1a3ae6d65583e8ae5a05a85e060e44cb0d312551f000000006a4730440220644d26019da3fdeed5258ee625e96873c87a5ec1e36eac25447482b5a7fceacf02202b0ccf16e9907f7f18c38033452e0ca70e233f139dc23893f90a06228a7fd147012103a641ba46e07563a0231090a208a222a8e750bf119fb49f4086b0526dbdfb50b2ffffffff02d0e89600000000001976a9146970a648bb72eedba08c2d72eb47b8b704bf5ae388aca08601000000000017a91488376dc8232dbafd959cba5b370be6629506cb1c8700000000",
       "canonical_sha256": "466730301709c02ff3389ff2e1a03a4d0ff923a58421f9929ad90e949b740cd7",
       "network": "insight_bitcoin",
@@ -145,6 +133,7 @@
       "required_by": [
         "test_msg_bitcoin_only_variant.py",
         "test_msg_mayachain_signtx.py",
+        "test_msg_signing_boundaries.py",
         "test_msg_signtx.py",
         "test_msg_signtx_raw.py",
         "test_msg_signtx_xfer.py",
