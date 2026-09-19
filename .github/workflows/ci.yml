@@ -474,7 +474,7 @@ jobs:
           cd keepkey-firmware/deps/python-keepkey/tests
           python tx_fixture_manifest.py --check
           EMULATOR_IP=$(docker inspect -f \
-            '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' kkemu-rc18)
+            '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' kkemu-7143)
           test -n "$EMULATOR_IP"
           sudo iptables -I OUTPUT 1 -d "$EMULATOR_IP" -j ACCEPT
           sudo iptables -I OUTPUT 2 ! -o lo -m conntrack --ctstate NEW -j REJECT
@@ -483,15 +483,15 @@ jobs:
             sudo iptables -D OUTPUT -d "$EMULATOR_IP" -j ACCEPT
           }
           trap cleanup_network_gate EXIT
-          pytest -v --junitxml=junit-rc18.xml 2>&1 | tee pytest-rc18-output.txt
-          echo "${PIPESTATUS[0]}" > status-rc18
+          pytest -v --junitxml=junit-7143.xml 2>&1 | tee pytest-7143-output.txt
+          echo "${PIPESTATUS[0]}" > status-7143
 
       - name: 7.14.3 summary
         if: always()
         run: |
-          XML="keepkey-firmware/deps/python-keepkey/tests/junit-rc18.xml"
+          XML="keepkey-firmware/deps/python-keepkey/tests/junit-7143.xml"
           MANIFEST="keepkey-firmware/deps/python-keepkey/tests/txcache/manifest.json"
-          echo "## 🔑 python-keepkey — RC18 / 7.15.0" >> "$GITHUB_STEP_SUMMARY"
+          echo "## 🔑 python-keepkey — 7.14.3" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Blocking release-target compatibility gate." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
