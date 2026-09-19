@@ -14,8 +14,9 @@ test_relay_certified_v0_no_lookup_proof_reaches_signer_check), applied to
 messages built around this device's own key so the whole review runs; and the
 delegate's signatures, from the deployed ClearSign Worker, over the SoltoshiDICE
 join's version 2 schema and the SDICE token definition, applied to the real
-join re-keyed to this device. A changed schema or schema signature, or a
-missing one, is refused before the first screen.
+join re-keyed to this device. A changed schema or schema signature, a
+signature one byte short, a missing one, or the same delegate's certificate
+for another scope, is refused before the first screen.
 
 The certificate chains to the ALPHA ClearSign root (02de9231...dae7).
 Production gets its own root key after the 7.15 re-release, not before, so
@@ -69,6 +70,19 @@ CERT_501 = bytes.fromhex(
     "b2dc9f48abcd2e46d4850cfa2753fac6068a45747a32a4a39f249af72b55370f"
     "3491913b7fb9a80207d619b3b4fca6750fc1fdc790da5562b42a351e12cde3c"
     "0f084056a24ca8d1bf2c36b5")
+# The public alpha EVM-scope certificate: scope 1, alias "KeepKey Alpha 716",
+# the same alpha root and the same delegate (0342f5f9...) as CERT_501. Fetched
+# once on 2026-09-19 from the deployed ClearSign Worker, POST
+# https://keepkey-clearsign.bithighlander.workers.dev/v1/evm/schema with the
+# chainId 1 Relay bridgeDeposit shape (contract 0x4cd00e38...bc31, selector
+# 0x49290c1c, calldataLength 68; keepkey-sdk tests/evm-clearsign/
+# certified-relay-bridge-deposit.js): bytes [1:140] of its signedPayload.
+CERT_SCOPE1 = bytes.fromhex(
+    "0101000000016abc51004b6565704b657920416c706861203731360000000000"
+    "000000000000000000000342f5f9704494b3f9bd72295eecaf29d783d23ea02b"
+    "2dc9f48abcd2e46d4850cf1b0971669d2c9156e7bd1150a507640bf44b3ac888"
+    "8d738543ce75deb21b4ecf12d5e07ce547c3854b134bad14ad32a990531c9b93"
+    "2862a78b32b20f1a9b9d54")
 SYSTEM = b"\0" * 32
 COMPUTE_BUDGET = bytes.fromhex(
     "0306466fe5211732ffecadba72c39be7bc8ce5bbc5f7126b2c439b3a40000000")
@@ -128,6 +142,7 @@ JOIN_PRICE = 1000000
 JOIN_MAX_FEE = "Max priority fee\n0.000200000 SOL"
 # The firmware's refusals of a certified proof (fsm_msg_solana.h).
 INCOMPLETE_PROOF = "Incomplete certified Solana ClearSign proof"
+INVALID_CERTIFICATE = "Invalid certified Solana certificate"
 SCHEMA_MISMATCH = "Certified Solana schema does not match transaction"
 
 
@@ -424,12 +439,13 @@ class TestSolanaSchemaCertified(SchemaReview):
                              for screen in on))
         self.assertSignedBy(response, raw)
 
-    # A proof that is not exactly what the delegate signed. The join is the
-    # real one re-keyed to this device, with the SDICE definition, so the
-    # schema proof is the only thing wrong. There is no case for a schema
-    # signed under another scope: the delegate signs sha256(schema), which
-    # carries no scope, and the alpha root has issued no public certificate
-    # for any scope but 501.
+    # A proof that is not exactly what the delegate signed for Solana. The
+    # join is the real one re-keyed to this device, with the SDICE
+    # definition, so the proof is the only thing wrong. The delegate signs
+    # sha256(schema), which carries no scope, so its schema signature
+    # verifies under every certificate that names it; only the certificate's
+    # scope binds it to Solana. The alpha root has publicly certified the
+    # same delegate for scope 1 as well: CERT_SCOPE1.
 
     def assertRefused(self, request, message):
         """Refused with exactly `message`, before any screen, and no
@@ -471,6 +487,26 @@ class TestSolanaSchemaCertified(SchemaReview):
                                      [sdice_definition()])
         request.ClearField("schema_signature")
         self.assertRefused(request, INCOMPLETE_PROOF)
+
+    def test_certified_wrong_scope_certificate_refused(self):
+        """The delegate's real schema signature under its scope-1
+        certificate, which only the scope check refuses."""
+        self.assertEqual(CERT_SCOPE1[2:6], struct.pack(">I", 1))
+        self.assertEqual(CERT_SCOPE1[42:75], CERT_501[42:75])
+        request = self._join_request(soltoshi_join(self.signer),
+                                     [sdice_definition()])
+        request.clearsign_certificate = CERT_SCOPE1
+        self.assertRefused(request, INVALID_CERTIFICATE)
+
+    def test_certified_short_schema_signature_refused(self):
+        """The delegate's signature without its last byte. That byte is 0x00,
+        so the firmware's zeroed 64-byte field holds the real signature
+        again; only the length check refuses it."""
+        self.assertEqual(SOLTOSHI_SCHEMA_SIG[-1], 0)
+        request = self._join_request(soltoshi_join(self.signer),
+                                     [sdice_definition()])
+        request.schema_signature = SOLTOSHI_SCHEMA_SIG[:63]
+        self.assertRefused(request, SCHEMA_MISMATCH)
 
 
 class TestSolanaSchemaRuntime(SchemaReview):
