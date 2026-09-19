@@ -30,6 +30,8 @@ class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
     def test_generate(self):
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
+        # MakerDAO calldata now follows the generic blind-signing path.
+        self.client.apply_policy("AdvancedMode", 1)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
@@ -50,6 +52,8 @@ class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
     def test_deposit(self):
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
+        # MakerDAO calldata now follows the generic blind-signing path.
+        self.client.apply_policy("AdvancedMode", 1)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
@@ -71,6 +75,8 @@ class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
     def test_close(self):
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
+        # MakerDAO calldata now follows the generic blind-signing path.
+        self.client.apply_policy("AdvancedMode", 1)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
@@ -92,6 +98,8 @@ class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
     def test_free(self):
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
+        # MakerDAO calldata now follows the generic blind-signing path.
+        self.client.apply_policy("AdvancedMode", 1)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
@@ -111,4 +119,3 @@ class TestMsgEthereumtxMakerDAO(common.KeepKeyTest):
 
 if __name__ == '__main__':
     unittest.main()
-

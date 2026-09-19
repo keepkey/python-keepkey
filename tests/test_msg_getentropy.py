@@ -30,10 +30,9 @@ import keepkeylib.types_pb2 as proto_types
 
 class TestMsgGetentropy(common.KeepKeyTest):
 
-    @unittest.skipUnless(
-        os.getenv('KK_EXPECT_ENTROPY_BUDGET') == '1',
-        'requires the RC23 entropy audit budget policy')
     def test_entropy(self):
+        if os.getenv("KK_EXPECT_ENTROPY_BUDGET") != "1":
+            self.requires_firmware("7.15.0")
         chunk_size = 8192
         chunk_count = 8
 

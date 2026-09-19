@@ -244,10 +244,9 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         matters: one screen cannot hold both, and collapsing them back into one
         reintroduces exactly the defect.
         """
-        # RC18 has the Orchard flow but predates the repair that separates the
-        # amount and 106-character unified address. That UI fix first ships in
-        # 7.16, so do not mislabel it as an RC18 regression in this host suite.
-        self.requires_firmware("7.16.0")
+        # The canonical 7.15 product includes the separated amount/address
+        # confirmation. Exercise it instead of inheriting RC18's old skip.
+        self.requires_firmware("7.15.0")
         actions = [note_action(CMX_ORCHARD)]
         screens = self._capture_button_screens()
 
@@ -294,19 +293,9 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
             self.client.zcash_sign_pczt(**sign_kwargs(actions))
         self.assertIn('commitment mismatch', str(caught.exception))
 
-    # The Ironwood pool is NOT part of the 7.15/RC18 product. The note
-    # fixtures below come from unittests/firmware/zcash.cpp, and
-    # IronwoodNoteCommitment_V3KnownVector does not exist on the RC18 branch
-    # (audit/7.15.0-rc18-final) -- it arrives with 7.16. The class-level
-    # requires_firmware("7.15.0") is a FLOOR, so without this these two would
-    # run against RC18 and fail. Gate them to the release that implements the
-    # pool, so RC18 skips instead.
-    #
-    # NB: this is about firmware support, not the wire contract.
-    # messages-zcash.proto marks only `sapling_digest` as reserved and
-    # currently rejected; `shielded_pool` and `ironwood_digest` are ordinary
-    # v6 fields there.
-    IRONWOOD_FIRMWARE = "7.16.0"
+    # Canonical release/7.15 includes Ironwood handlers and the corresponding
+    # native commitment vectors. These regressions apply to that product.
+    IRONWOOD_FIRMWARE = "7.15.0"
 
     def test_pool_selection_is_honoured(self):
         """The same note commits differently in each pool.

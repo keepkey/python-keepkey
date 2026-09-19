@@ -18,6 +18,9 @@ TX_FIXTURE_RE = re.compile(
 
 NETWORK_IMPORT_ALLOWLIST = {
     "conftest.py": {"requests", "socket", "urllib"},
+    # Negative control: these APIs must be imported so the autouse fixture can
+    # prove every non-emulator transport is rejected at runtime.
+    "test_network_policy.py": {"requests", "socket"},
     "test_storage_version_gate.py": {"socket"},
     "test_tx_fixture_integrity.py": {"requests", "socket"},
 }

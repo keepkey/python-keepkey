@@ -46,8 +46,13 @@ class TestTransactionFixtureIntegrity(unittest.TestCase):
             tx_api.TxApiBitcoin.get_tx("0" * 64)
 
     def test_network_denial_control_blocks_dns_and_http(self):
-        # Loopback remains available for the local emulator.
-        self.assertTrue(socket.getaddrinfo("127.0.0.1", 11044))
+        # The only network exception is the emulator transport selected by the
+        # harness. In firmware CI this is kkemu:11044/11045; in standalone
+        # python-keepkey CI it is the published emulator on loopback.
+        endpoint = os.environ.get(
+            "KK_TRANSPORT_MAIN", "127.0.0.1:11044")
+        host, port = endpoint.rsplit(":", 1)
+        self.assertTrue(socket.getaddrinfo(host, int(port)))
         with self.assertRaisesRegex(
                 AssertionError,
                 "authoritative test attempted external network access"):

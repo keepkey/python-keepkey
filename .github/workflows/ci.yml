@@ -1,23 +1,21 @@
 # KeepKey python-keepkey CI
 #
-# Pulls the published emulator image (kktech/kkemu) from DockerHub
-# and runs the full python integration test suite against it.
+# Builds both fork release candidates from immutable commits and runs this
+# exact Python head against their regular and Bitcoin-only product surfaces.
 #
 # Stage 1: GATE (seconds)
 #   └─ lint        Python syntax + deterministic protocol contract tests
 #
 # Stage 2: TEST (gated by Stage 1)
-#   ├─ integration      full pytest suite against the regular emulator (7.16)
-#   ├─ integration-btc  bitcoin-only product boundary against a
-#   │                   -DKK_BITCOIN_ONLY=ON emulator (7.16)
-#   └─ integration-rc18 the same suite against RC18/7.15.0, a blocking
-#                       release-target compatibility gate
+#   ├─ integration       full suite against regular 7.15
+#   ├─ integration-7143  full suite against regular 7.14.3
+#   └─ integration-btc   Bitcoin-only boundary against both candidates
 
 name: CI
 
 on:
   push:
-    branches: [master, develop, reconcile/upstream-sync, 'feature/**', 'fix/**', 'hotfix/**']
+    branches: [master, develop, 'reconcile/**', 'feature/**', 'fix/**', 'hotfix/**']
   pull_request:
     branches: [master, develop, reconcile/upstream-sync]
 
@@ -92,10 +90,10 @@ jobs:
           echo "| Offline fixture integrity | ✅ PASS |" >> "$GITHUB_STEP_SUMMARY"
           FIXTURE_SHA=$(sha256sum tests/txcache/manifest.json | cut -d' ' -f1)
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Fixture manifest SHA-256: `$FIXTURE_SHA`" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Fixture manifest SHA-256: `%s`\n' "$FIXTURE_SHA" >> "$GITHUB_STEP_SUMMARY"
 
   # ═══════════════════════════════════════════════════════════
-  # STAGE 2: TEST — pull published emulator, run pytest
+  # STAGE 2: TEST — build exact candidate emulators, run pytest
   # ═══════════════════════════════════════════════════════════
 
   integration:
@@ -121,8 +119,8 @@ jobs:
           submodules: recursive
           path: python-keepkey
 
-      # python-keepkey is a SUBMODULE of the firmware repo, so the firmware is
-      # where the emulator lives. alpha is the fork's integration branch.
+      # Immutable fork 7.15 candidate. Once canonical Python merges, the
+      # firmware branch is repinned to that one upstream commit and rerun.
       - name: Checkout firmware
         uses: actions/checkout@v4
         with:
@@ -184,20 +182,27 @@ jobs:
           pip install --upgrade pip
           pip install "protobuf>=3.20,<4"
           pip install -e .
-          pip install pytest semver rlp requests eth-keys pycryptodome
+          pip install pytest pytest-timeout semver rlp requests eth-keys pycryptodome
 
       - name: Wait for emulator
         run: |
           echo "Waiting for emulator bridge on port 5000..."
+          ready=false
           for i in $(seq 1 30); do
             if curl -sf -X POST http://localhost:5000/exchange/main \
                  -H 'Content-Type: application/json' \
                  -d '{"data":""}' > /dev/null 2>&1; then
               echo "Emulator ready after ${i}s"
+              ready=true
               break
             fi
             sleep 1
           done
+          [ "$ready" = true ] || {
+            docker logs kkemu
+            echo "FATAL: emulator bridge did not become ready" >&2
+            exit 1
+          }
 
       # "The emulator answered a ping" is not "the emulator is the right
       # firmware". CI ran a 7.16-era suite against a 7.10.0 image for five
@@ -244,6 +249,7 @@ jobs:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
           PYTHONPATH: "${{ github.workspace }}/keepkey-firmware/deps/python-keepkey"
+          PYTHONUNBUFFERED: "1"
           # A crashed emulator now raises instead of blocking in recv() forever.
           KK_UDP_TIMEOUT: "45"
         run: |
@@ -276,7 +282,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if [ -f "$MANIFEST" ]; then
             FIXTURE_SHA=$(sha256sum "$MANIFEST" | cut -d' ' -f1)
-            echo "Fixture manifest SHA-256: `$FIXTURE_SHA`" >> "$GITHUB_STEP_SUMMARY"
+            printf 'Fixture manifest SHA-256: `%s`\n' "$FIXTURE_SHA" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
           fi
 
@@ -345,27 +351,16 @@ jobs:
           [ "$STATUS" = "0" ] || exit 1
 
   # ═══════════════════════════════════════════════════════════
-  # STAGE 2c: TEST — the RELEASE TARGET (RC18 / 7.15.0)
+  # STAGE 2c: TEST — the 7.14.3 release candidate
   # ═══════════════════════════════════════════════════════════
 
-  integration-rc18:
+  integration-7143:
     needs: [lint]
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
-    # The other two integration jobs pin firmware 7.16.0, because parts of
-    # this suite need firmware that postdates RC18: variant_getName()
-    # returning "EmulatorBTC", and the Ironwood known-answer vectors. A green
-    # run there says nothing about the release this PR targets.
-    #
-    # This job closes that gap by actually running the suite against
-    # RC18/7.15.0. The current-head suite is green against that exact image, so
-    # this is a blocking release gate: a regression from green is a real
-    # failure.
-    #
-    # Tests that need post-RC18 firmware skip themselves here rather than
-    # failing. Their gates are tied to the implementation history, so RC18 is
-    # not credited with behavior it never shipped.
+    # Run the complete merged Python suite against the immutable fork 7.14.3
+    # candidate before canonical Python is merged upstream.
 
     steps:
       - uses: actions/checkout@v4
@@ -373,14 +368,11 @@ jobs:
           submodules: recursive
           path: python-keepkey
 
-      - name: Checkout firmware (RC18)
+      - name: Checkout firmware (7.14.3)
         uses: actions/checkout@v4
         with:
           repository: BitHighlander/keepkey-firmware
-          # v7.15.0-rc18 final audit candidate -- the head of
-          # audit/7.15.0-rc18-final, merged as firmware PR #320. This is the
-          # release this PR is cut against.
-          ref: fd1012c5adbacf88e2ca521a95b335a2849d528f
+          ref: 4125e1c7409b1cb7b08ba595bc408e3128fc24ca
           path: keepkey-firmware
 
       - name: Init the submodules the emulator build needs
@@ -397,18 +389,18 @@ jobs:
           rm -rf keepkey-firmware/deps/python-keepkey
           cp -a python-keepkey keepkey-firmware/deps/python-keepkey
 
-      - name: Build the RC18 emulator
+      - name: Build the 7.14.3 emulator
         timeout-minutes: 20
         working-directory: keepkey-firmware
         run: |
-          docker build -t kkemu-rc18-ci -f scripts/emulator/Dockerfile .
+          docker build -t kkemu-7143-ci -f scripts/emulator/Dockerfile .
 
       - name: Start the emulator
         run: |
-          docker run -d --name kkemu-rc18 \
-            -p 11044:11044/udp -p 11045:11045/udp -p 5000:5000 kkemu-rc18-ci
+          docker run -d --name kkemu-7143 \
+            -p 11044:11044/udp -p 11045:11045/udp -p 5000:5000 kkemu-7143-ci
           sleep 3
-          docker logs kkemu-rc18 | head -5
+          docker logs kkemu-7143 | head -5
 
       - uses: actions/setup-python@v5
         with:
@@ -420,25 +412,32 @@ jobs:
           pip install --upgrade pip
           pip install "protobuf>=3.20,<4"
           pip install -e .
-          pip install pytest semver rlp requests eth-keys pycryptodome
+          pip install pytest pytest-timeout semver rlp requests eth-keys pycryptodome
 
       - name: Wait for emulator
         run: |
           echo "Waiting for emulator bridge on port 5000..."
+          ready=false
           for i in $(seq 1 30); do
             if curl -sf -X POST http://localhost:5000/exchange/main \
                  -H 'Content-Type: application/json' \
                  -d '{"data":""}' > /dev/null 2>&1; then
               echo "Emulator ready after ${i}s"
+              ready=true
               break
             fi
             sleep 1
           done
+          [ "$ready" = true ] || {
+            docker logs kkemu-7143
+            echo "FATAL: emulator bridge did not become ready" >&2
+            exit 1
+          }
 
-      # Assert this really is 7.15.0. A silently-wrong ref would make this job
+      # Assert this really is 7.14.3. A silently-wrong ref would make this job
       # a duplicate of `integration` and quietly retire the gap it exists to
       # measure.
-      - name: Assert the emulator is RC18
+      - name: Assert the emulator is 7.14.3
         timeout-minutes: 2
         env:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
@@ -459,12 +458,12 @@ jobs:
           f = c.features
           got = (f.major_version, f.minor_version, f.patch_version)
           print('emulator firmware %d.%d.%d, variant %r' % (got + (f.firmware_variant,)))
-          if got != (7, 15, 0):
-              sys.exit('FATAL: expected RC18 (7.15.0), got %d.%d.%d -- the pinned '
+          if got != (7, 14, 3):
+              sys.exit('FATAL: expected 7.14.3, got %d.%d.%d -- the pinned '
                        'firmware ref is not the release target.' % got)
           PY
 
-      - name: Run the suite against RC18
+      - name: Run the suite against 7.14.3
         timeout-minutes: 10
         env:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
@@ -487,7 +486,7 @@ jobs:
           pytest -v --junitxml=junit-rc18.xml 2>&1 | tee pytest-rc18-output.txt
           echo "${PIPESTATUS[0]}" > status-rc18
 
-      - name: RC18 summary
+      - name: 7.14.3 summary
         if: always()
         run: |
           XML="keepkey-firmware/deps/python-keepkey/tests/junit-rc18.xml"
@@ -498,7 +497,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if [ -f "$MANIFEST" ]; then
             FIXTURE_SHA=$(sha256sum "$MANIFEST" | cut -d' ' -f1)
-            echo "Fixture manifest SHA-256: `$FIXTURE_SHA`" >> "$GITHUB_STEP_SUMMARY"
+            printf 'Fixture manifest SHA-256: `%s`\n' "$FIXTURE_SHA" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
           fi
           if [ ! -f "$XML" ]; then
@@ -519,32 +518,32 @@ jobs:
             echo "| 💥 Errors | $ERRORS |" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
             if [ "$FAILED" -eq 0 ] && [ "$ERRORS" -eq 0 ]; then
-              echo "RC18 is green at current head." >> "$GITHUB_STEP_SUMMARY"
+              echo "7.14.3 is green at current head." >> "$GITHUB_STEP_SUMMARY"
             else
-              echo "RC18 compatibility failed at current head." >> "$GITHUB_STEP_SUMMARY"
+              echo "7.14.3 compatibility failed at current head." >> "$GITHUB_STEP_SUMMARY"
             fi
           fi
 
-      - name: Annotate RC18 results
+      - name: Annotate 7.14.3 results
         uses: mikepenz/action-junit-report@v4
         if: always()
         with:
-          report_paths: keepkey-firmware/deps/python-keepkey/tests/junit-rc18.xml
+          report_paths: keepkey-firmware/deps/python-keepkey/tests/junit-7143.xml
           annotate_only: true
           require_tests: true
           fail_on_failure: false
 
       # `pytest | tee` makes the run step exit with tee's status, so without
-      # this the job reports success no matter what RC18 did. This step makes a
+      # this the job reports success no matter what 7.14.3 did. This step makes a
       # real pytest failure fail the blocking release gate.
-      - name: Report the RC18 result
+      - name: Report the 7.14.3 result
         if: always()
         run: |
-          STATUS=$(cat keepkey-firmware/deps/python-keepkey/tests/status-rc18 2>/dev/null || echo "1")
+          STATUS=$(cat keepkey-firmware/deps/python-keepkey/tests/status-7143 2>/dev/null || echo "1")
           if [ "$STATUS" = "0" ]; then
-            echo "RC18 suite passed."
+            echo "7.14.3 suite passed."
           else
-            echo "::error::RC18 (7.15.0) compatibility failed; see the summary."
+            echo "::error::7.14.3 compatibility failed; see the summary."
             exit 1
           fi
 
@@ -553,9 +552,20 @@ jobs:
   # ═══════════════════════════════════════════════════════════
 
   integration-btc:
+    name: integration-btc (${{ matrix.release }})
     needs: [lint]
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - release: "7.14.3"
+            firmware_ref: 4125e1c7409b1cb7b08ba595bc408e3128fc24ca
+            min_fw: "7.14.3"
+          - release: "7.15"
+            firmware_ref: d33f1711c3b2b205f64c5dc35fdec02926a6dc63
+            min_fw: "7.15.0"
 
     # KK_BITCOIN_ONLY=ON is a second shipping product, not a build flavour:
     # coins.def keeps only Bitcoin and Testnet, messagemap.def drops every
@@ -639,20 +649,27 @@ jobs:
           pip install --upgrade pip
           pip install "protobuf>=3.20,<4"
           pip install -e .
-          pip install pytest semver rlp requests eth-keys pycryptodome
+          pip install pytest pytest-timeout semver rlp requests eth-keys pycryptodome
 
       - name: Wait for emulator
         run: |
           echo "Waiting for emulator bridge on port 5000..."
+          ready=false
           for i in $(seq 1 30); do
             if curl -sf -X POST http://localhost:5000/exchange/main \
                  -H 'Content-Type: application/json' \
                  -d '{"data":""}' > /dev/null 2>&1; then
               echo "Emulator ready after ${i}s"
+              ready=true
               break
             fi
             sleep 1
           done
+          [ "$ready" = true ] || {
+            docker logs kkemu-btc
+            echo "FATAL: emulator bridge did not become ready" >&2
+            exit 1
+          }
 
       # A bitcoin-only emulator that reports "Emulator" instead of
       # "EmulatorBTC" makes requires_bitcoinOnly() skip the whole file, and a
@@ -663,7 +680,7 @@ jobs:
         env:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
-          KK_MIN_FW: "7.15.0"
+          KK_MIN_FW: "${{ matrix.min_fw }}"
           KK_UDP_TIMEOUT: "20"
         working-directory: keepkey-firmware/deps/python-keepkey/tests
         run: |
@@ -752,7 +769,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if [ -f "$MANIFEST" ]; then
             FIXTURE_SHA=$(sha256sum "$MANIFEST" | cut -d' ' -f1)
-            echo "Fixture manifest SHA-256: `$FIXTURE_SHA`" >> "$GITHUB_STEP_SUMMARY"
+            printf 'Fixture manifest SHA-256: `%s`\n' "$FIXTURE_SHA" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
           fi
           if [ ! -f "$XML" ]; then

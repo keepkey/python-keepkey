@@ -35,6 +35,18 @@ class TestMsgRippleGetAddress(KeepKeyTest):
         address = self.client.ripple_get_address(parse_path("m/44'/144'/1'/0/0"))
         self.assertEqual(address, "rJX2KwzaLJDyFhhtXKi3htaLfaUH2tptEX")
 
+    def test_ripple_show_address(self):
+        self.requires_fullFeature()
+        self.requires_firmware("6.4.0")
+        self.setup_mnemonic_allallall()
+        address = self.client.ripple_get_address(
+            parse_path("m/44'/144'/0'/0/0"), show_display=True)
+        # 7.14.2 and later preserve the response across DebugLinkGetState
+        # requests made during screenshot capture; the same fix is on all three
+        # products, so the floor is the release the fix first shipped in.
+        if self.firmware_at_least("7.14.2"):
+            self.assertEqual(address, "rNaqKtKrMSwpwZSzRckPf7S96DkimjkF4H")
+
     def test_ripple_get_address_other(self):
         self.requires_fullFeature()
         self.requires_firmware("6.4.0")
@@ -54,4 +66,3 @@ class TestMsgRippleGetAddress(KeepKeyTest):
 
 if __name__ == '__main__':
     unittest.main()
-

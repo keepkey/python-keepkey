@@ -35,6 +35,27 @@ TX_FIXTURE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 tx_api.configure_offline_fixtures(TX_FIXTURE_DIR)
 VERBOSE = False
 
+
+def reset_screenshot_capture(client):
+    """Start a fresh evidence sequence after fixture-only device setup.
+
+    KeepKeyTest.setUp() wipes the device and the setup_mnemonic_* helpers load
+    a public test seed. Those confirmations are prerequisites, not evidence
+    for the test that follows. Leaving them in the per-test directory allowed
+    a Wipe/import/lock frame to satisfy an unrelated OLED requirement.
+    """
+    if os.environ.get('KEEPKEY_SCREENSHOT') != '1':
+        return
+    screenshot_dir = getattr(client, 'screenshot_dir', None)
+    if not screenshot_dir:
+        raise RuntimeError('screenshot capture has no per-test directory')
+    os.makedirs(screenshot_dir, exist_ok=True)
+    for name in os.listdir(screenshot_dir):
+        if (name.startswith('btn') and name.endswith('.png') and
+                len(name) == len('btn00000.png')) or name == 'frames.json':
+            os.unlink(os.path.join(screenshot_dir, name))
+    client.screenshot_id = 0
+
 class KeepKeyTest(unittest.TestCase):
     def setUp(self):
         transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
@@ -77,11 +98,7 @@ class KeepKeyTest(unittest.TestCase):
         self.pin8 = '45678978'
 
         self.client.wipe_device()
-        # The wipe confirmation belongs to the test harness, not the test.
-        # Drop it for every suite, including suites that never call one of the
-        # setup_mnemonic_* helpers; otherwise a presence-only screenshot audit
-        # can mistake this frame for evidence of the behavior under test.
-        self._drop_setup_screenshots()
+        reset_screenshot_capture(self.client)
 
         if VERBOSE:
             print("Setup finished")
@@ -96,24 +113,27 @@ class KeepKeyTest(unittest.TestCase):
 
     def setup_mnemonic_allallall(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic_all, pin='', passphrase_protection=False, label='test', language='english')
-        self._drop_setup_screenshots()
+        reset_screenshot_capture(self.client)
 
     def setup_mnemonic_abandon(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic_abandon, pin='', passphrase_protection=False, label='test', language='english')
-        self._drop_setup_screenshots()
+        reset_screenshot_capture(self.client)
 
     def setup_mnemonic_nopin_nopassphrase(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic12, pin='', passphrase_protection=False, label='test', language='english')
-        self._drop_setup_screenshots()
+        reset_screenshot_capture(self.client)
 
     def setup_mnemonic_vuln20007(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic20007, pin='', passphrase_protection=False, label='test', language='english')
+        reset_screenshot_capture(self.client)
 
     def setup_mnemonic_pin_nopassphrase(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic12, pin=self.pin4, passphrase_protection=False, label='test', language='english')
+        reset_screenshot_capture(self.client)
 
     def setup_mnemonic_pin_passphrase(self):
         self.client.load_device_by_mnemonic(mnemonic=self.mnemonic12, pin=self.pin4, passphrase_protection=True, label='test', language='english')
+        reset_screenshot_capture(self.client)
 
     def tearDown(self):
         self.client.close()
@@ -127,18 +147,19 @@ class KeepKeyTest(unittest.TestCase):
     def assertEndsWith(self, s, suffix):
         self.assertTrue(s.endswith(suffix), "'{}'.endswith('{}')".format(s, suffix))
 
+    def firmware_version(self):
+        self.client.init_device()
+        features = self.client.features
+        version = "%s.%s.%s" % (features.major_version, features.minor_version, features.patch_version)
+        return semver.VersionInfo.parse(version)
+
     def firmware_at_least(self, ver_required):
         """Return whether the connected firmware includes a versioned feature."""
-        self.client.init_device()
-        features = self.client.features
-        version = "%s.%s.%s" % (features.major_version, features.minor_version, features.patch_version)
-        return semver.VersionInfo.parse(version) >= semver.VersionInfo.parse(ver_required)
+        return self.firmware_version() >= semver.VersionInfo.parse(ver_required)
 
     def requires_firmware(self, ver_required):
-        self.client.init_device()
-        features = self.client.features
-        version = "%s.%s.%s" % (features.major_version, features.minor_version, features.patch_version)
-        if semver.VersionInfo.parse(version) < semver.VersionInfo.parse(ver_required):
+        version = self.firmware_version()
+        if version < semver.VersionInfo.parse(ver_required):
             self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
 
     def requires_taproot(self):
@@ -152,6 +173,19 @@ class KeepKeyTest(unittest.TestCase):
         self.client.init_device()
         if not getattr(self.client.features, 'supports_taproot', False):
             self.skipTest("Firmware does not report supports_taproot")
+
+    def requires_dice_modes(self):
+        """Skip unless the firmware reports the verifiable dice modes.
+
+        A capability, not a version. Firmware without the unit skips the
+        unknown ResetDevice.dice_only field and runs the older ceremony, so a
+        version gate would fail these tests red on such a build -- and a host
+        must refuse to offer the modes on exactly this same signal, because
+        that older firmware would derive a different wallet without complaint.
+        """
+        self.client.init_device()
+        if not getattr(self.client.features, 'supports_dice_modes', False):
+            self.skipTest("Firmware does not report supports_dice_modes")
 
     def requires_structured_eip712(self):
         """Skip unless the FIRMWARE drives the structured EIP-712 walk.
@@ -245,16 +279,6 @@ class KeepKeyTest(unittest.TestCase):
       if self.client.features.firmware_variant == "KeepKeyBTC" or \
             self.client.features.firmware_variant == "EmulatorBTC":
         self.skipTest("Full feature firmware required to run this test")
-
-    def requires_dice_modes(self):
-        """Skip unless the firmware reports the verifiable dice modes.
-
-        A capability, not a version: firmware without the unit skips the
-        unknown ResetDevice.dice_only field and runs the older ceremony.
-        """
-        self.client.init_device()
-        if not getattr(self.client.features, 'supports_dice_modes', False):
-            self.skipTest("Firmware does not report supports_dice_modes")
 
     def requires_bitcoinOnly(self):
       """Inverse of requires_fullFeature(): skip unless this IS the

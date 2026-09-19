@@ -218,9 +218,12 @@ def _op_delegate_vesting_shares(delegator, delegatee, vesting_shares):
 
 
 def _op_account_update2(account, json_metadata, posting_json_metadata,
-                        authority_present=False):
+                        authority_present=False, memo_key_present=False):
+    # owner/active/posting/memo_key are all optional<> in op 43 (dhive and
+    # hive-tx OptionalSerializer): a 0/1 presence byte, then the value.
+    memo_key = bytes([1, 0x02]) + bytes(32) if memo_key_present else bytes([0])
     return (_varint(43) + _string(account) +
-            bytes([1 if authority_present else 0, 0, 0, 0]) +
+            bytes([1 if authority_present else 0, 0, 0]) + memo_key +
             _string(json_metadata) + _string(posting_json_metadata) +
             _varint(0))
 
@@ -353,7 +356,11 @@ class TestMsgHive(common.KeepKeyTest):
         self.assertEqual((ref_num, ref_prefix, expiration), (12345, 67890, 1700000000))
         self.assertEqual(r.string(), b"kktester")     # from
         self.assertEqual(r.string(), b"kkrecipient")  # to
-        self.assertEqual(r.asset(), (1000, 3, "STEEM"))
+        # The WIRE spelling, per _WIRE_SYMBOL above: hived writes "STEEM" for
+        # HIVE, and this reads the bytes the device actually signed. Asserting
+        # the display name here passed only while the firmware serialized a
+        # symbol the chain does not use.
+        self.assertEqual(r.asset(), (1000, 3, _WIRE_SYMBOL["HIVE"]))
         self.assertEqual(r.string(), b"kktest")        # memo
         self.assertEqual(r.varint(), 0)                # extensions
         r.assert_end()
@@ -399,7 +406,7 @@ class TestMsgHive(common.KeepKeyTest):
         r = _Reader(resp.serialized_tx)
         ref_num, ref_prefix, expiration = _parse_header(r, HIVE_OP_ACCOUNT_CREATE)
         self.assertEqual((ref_num, ref_prefix, expiration), (12345, 67890, 1700000000))
-        self.assertEqual(r.asset(), (3000, 3, "STEEM"))     # fee
+        self.assertEqual(r.asset(), (3000, 3, _WIRE_SYMBOL["HIVE"]))  # fee
         self.assertEqual(r.string(), b"kksponsor")          # creator
         self.assertEqual(r.string(), b"kktestacct")         # new_account_name
         self.assertEqual(r.authority(), raw[ROLE_OWNER])
@@ -1015,10 +1022,9 @@ class TestMsgHive(common.KeepKeyTest):
                 "kkauthor", "my-post", 1000000, 10000, beneficiaries=bens)])
             self._assert_ops_fails("beneficiaries", tx)
 
-    def test_hive_sign_ops_account_update2_rejects_authority_change(self):
-        """account_update2 can rotate account keys. Only the profile-metadata
-        form is in the table — the same device-derived-keys invariant that
-        keeps ops 9/10 out, applied field-level."""
+    def test_hive_sign_ops_account_update2_is_rejected(self):
+        """account_update2 can rotate account keys. Any authority or memo_key
+        present is refused, so no key change is summarized as profile-only."""
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignOperations")
         self.setup_mnemonic_nopin_nopassphrase()
@@ -1029,14 +1035,16 @@ class TestMsgHive(common.KeepKeyTest):
                                          authority_present=True)]),
             path=hive_path(ROLE_ACTIVE))
 
-        # json_metadata is an active-key field...
-        self._ops_signs_with(
-            _ops_tx([_op_account_update2("kkuser", '{"profile":{}}', "")]),
-            ROLE_ACTIVE)
-        # ...while a posting-metadata-only profile edit stays posting tier.
-        self._ops_signs_with(
-            _ops_tx([_op_account_update2("kkuser", "", '{"profile":{}}')]),
-            ROLE_POSTING)
+        self._assert_ops_fails(
+            "authority changes",
+            _ops_tx([_op_account_update2("kkuser", '{"profile":{}}', "",
+                                         memo_key_present=True)]),
+            path=hive_path(ROLE_ACTIVE))
+        self._assert_ops_fails(
+            "authority changes",
+            _ops_tx([_op_account_update2("kkuser", "", '{"profile":{}}',
+                                         memo_key_present=True)]),
+            path=hive_path(ROLE_POSTING))
 
     def test_hive_sign_ops_truncated_bodies_rejected(self):
         """The signature covers the whole buffer, so a short read would mean

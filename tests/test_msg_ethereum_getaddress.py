@@ -34,5 +34,13 @@ class TestMsgEthereumGetaddress(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(self.client.ethereum_get_address([-9, 0])), 'f68804ac9eca9483ab4241d3e4751590d2c05102')
         self.assertEqual(binascii.hexlify(self.client.ethereum_get_address([0, 9999999])), '7a6366ecfcaf0d5dcc1539c171696c6cdd1eb8ed')
 
+    def test_ethereum_show_address(self):
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        # The legacy display response is empty after the ButtonAck; address
+        # correctness is covered above. This case exists to retain the actual
+        # operation-specific OLED sequence for visual review.
+        self.client.ethereum_get_address([], show_display=True)
+
 if __name__ == '__main__':
     unittest.main()
