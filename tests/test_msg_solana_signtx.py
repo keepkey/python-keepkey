@@ -73,6 +73,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     def setup_mnemonic_allallall(self):
         policy_negative = self._testMethodName in {
             "test_solana_sign_message_blocked_without_advanced_mode",
+            "test_solana_sign_plain_text_message_without_advanced_mode",
             "test_solana_sign_malformed_bad_account_count",
             "test_solana_sign_versioned_v0_opaque",
         }
@@ -153,9 +154,11 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.client.apply_policy('AdvancedMode', False)
 
     def test_solana_sign_message_blocked_without_advanced_mode(self):
-        """Solana message signing BLOCKED without AdvancedMode.
+        """Non-text Solana message signing BLOCKED without AdvancedMode.
         Without domain separation, a signed message is indistinguishable from
-        a signed transaction. Device refuses to sign without explicit opt-in."""
+        a signed transaction. Device refuses to sign without explicit opt-in.
+        The payload is binary so this remains true when bounded plain text is
+        allowed."""
         self.requires_firmware("7.14.0")
         self.requires_fullFeature()
         self.requires_message("SolanaSignMessage")
@@ -165,9 +168,26 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         with pytest.raises(CallException) as exc:
             self.client.call(messages.SolanaSignMessage(
                 address_n=parse_path("m/44'/501'/0'/0'"),
-                message=b"Hello Solana!",
+                message=b"\x01\x00\x01\x02" + b"\x00" * 64,
             ))
         self.assertIn("disabled by policy", str(exc.value))
+
+    def test_solana_sign_plain_text_message_without_advanced_mode(self):
+        """Bounded printable login text signs without AdvancedMode."""
+        self.requires_firmware("7.15.0")
+        self.requires_fullFeature()
+        self.requires_message("SolanaSignMessage")
+        self.setup_mnemonic_allallall()
+        self.client.apply_policy('AdvancedMode', False)
+
+        text = (b"example.com wants you to sign in with your Solana account:\n"
+                b"Sign in to Example.\n\nNonce: 9d9972a1f2ed0aaa")
+        resp = self.client.call(messages.SolanaSignMessage(
+            address_n=parse_path("m/44'/501'/0'/0'"),
+            message=text,
+        ))
+        self.assertEqual(len(resp.signature), 64)
+        self.assertEqual(len(resp.public_key), 32)
 
     def test_solana_sign_empty_rejected(self):
         """Test that empty raw_tx is rejected."""
