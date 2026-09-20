@@ -644,8 +644,11 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
     # ================================================================
 
     def test_solana_sign_versioned_v0_opaque(self):
-        """Versioned v0 transaction (first byte 0x80) — should require AdvancedMode
-        for blind/opaque signing since firmware cannot parse address lookup tables."""
+        """A v0 transaction using an address lookup table requires AdvancedMode.
+
+        Lookup-free v0 transactions are parsed and clear-signed, so the vector
+        must contain a real lookup reference to exercise the opaque path.
+        """
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
@@ -685,8 +688,13 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         tx.append(len(instr_data))
         tx.extend(instr_data)
 
-        # Address table lookups: 0 entries
+        # One address-table lookup makes the account set host-resolved and
+        # therefore unverifiable on this device.
+        tx.append(1)
+        tx.extend(b'\x33' * 32)  # lookup table account
+        tx.append(1)             # one writable lookup index
         tx.append(0)
+        tx.append(0)             # no readonly lookup indices
 
         raw_tx = bytes(tx)
 
