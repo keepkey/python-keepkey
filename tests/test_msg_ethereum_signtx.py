@@ -101,7 +101,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
     def test_ethereum_blind_sign_blocked(self):
         """AdvancedMode OFF + contract data = device refuses to sign (7.15+).
 
-        OLED shows 'Blind signing disabled' then Failure.
+        Firmware returns the canonical policy refusal before signing.
         """
         self.requires_firmware("7.15.0")
         self.requires_fullFeature()
@@ -121,7 +121,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             )
             self.fail("Expected Failure -- blind signing should be blocked")
         except CallException as e:
-            self.assertIn("Blind signing disabled", str(e))
+            self.assertIn("Arbitrary contract data signing disabled by policy", str(e))
 
     def test_ethereum_blind_sign_allowed(self):
         """AdvancedMode ON + contract data = device shows BLIND SIGNATURE warning (7.15+).
