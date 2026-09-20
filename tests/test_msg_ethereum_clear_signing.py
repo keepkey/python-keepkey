@@ -42,6 +42,16 @@ from keepkeylib.tools import parse_path
 
 # Alias shown on the load confirm and on every per-tx warning screen.
 CI_SIGNER_ALIAS = 'CI Test'
+TEST_KEY_ID = 3
+
+
+def test_signer_compressed_pubkey():
+    """Return the compressed public key matching TEST_PRIVATE_KEY."""
+    from ecdsa import SECP256k1, SigningKey
+
+    point = SigningKey.from_string(
+        TEST_PRIVATE_KEY, curve=SECP256k1).get_verifying_key().to_string()
+    return bytes([2 | (point[-1] & 1)]) + point[:32]
 
 # ─── Test constants ────────────────────────────────────────────────────
 
@@ -419,6 +429,11 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         self.requires_message("LoadClearsignSigner")
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
+        self.client.load_clearsign_signer(
+            key_id=TEST_KEY_ID,
+            pubkey=test_signer_compressed_pubkey(),
+            alias=CI_SIGNER_ALIAS,
+        )
 
     def test_valid_metadata_returns_verified(self):
         """Send valid signed metadata → device returns VERIFIED."""

@@ -47,6 +47,9 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         self.requires_firmware("7.14.0")
         self.requires_message("TonGetAddress")
         self.requires_message("TonGetAddress")
+
+    def setup_mnemonic_allallall(self):
+        super().setup_mnemonic_allallall()
         self.client.apply_policy("AdvancedMode", 1)
 
     def test_ton_get_address(self):

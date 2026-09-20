@@ -25,8 +25,8 @@ def make_send(from_address, to_address, amount):
 
 class TestMsgMayaChainSignTx(common.KeepKeyTest):
 
-    def setUp(self):
-        super().setUp()
+    def setup_mnemonic_nopin_nopassphrase(self):
+        super().setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 
     @unittest.skip("TODO: capture expected signatures from emulator")

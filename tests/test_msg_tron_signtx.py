@@ -32,6 +32,9 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         super().setUp()
         self.requires_firmware("7.14.0")
         self.requires_message("TronGetAddress")
+
+    def setup_mnemonic_allallall(self):
+        super().setup_mnemonic_allallall()
         self.client.apply_policy("AdvancedMode", 1)
 
     def test_tron_get_address(self):
