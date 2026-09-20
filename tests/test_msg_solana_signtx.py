@@ -71,14 +71,21 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.requires_message("SolanaGetAddress")
 
     def setup_mnemonic_allallall(self):
+        policy_negative = self._testMethodName in {
+            "test_solana_sign_message_blocked_without_advanced_mode",
+            "test_solana_sign_malformed_bad_account_count",
+            "test_solana_sign_versioned_v0_opaque",
+        }
+        if policy_negative:
+            # AdvancedMode is intentionally non-revoking within a live wallet
+            # session.  Start negative-policy proofs from factory state instead
+            # of depending on the test order or apply_policy(False).
+            self.client.wipe_device()
         super().setup_mnemonic_allallall()
         # These cases specifically prove that the policy gate or malformed
         # transaction rejection still fails closed.  Do not pre-enable the
         # session policy or an opaque fallback could mask that assertion.
-        if self._testMethodName not in {
-                "test_solana_sign_message_blocked_without_advanced_mode",
-                "test_solana_sign_malformed_bad_account_count",
-                "test_solana_sign_versioned_v0_opaque"}:
+        if not policy_negative:
             self.client.apply_policy("AdvancedMode", 1)
 
     def test_solana_get_address(self):
