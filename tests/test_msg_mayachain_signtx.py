@@ -25,6 +25,10 @@ def make_send(from_address, to_address, amount):
 
 class TestMsgMayaChainSignTx(common.KeepKeyTest):
 
+    def setUp(self):
+        super().setUp()
+        self.client.apply_policy("AdvancedMode", 1)
+
     @unittest.skip("TODO: capture expected signatures from emulator")
     def test_mayachain_sign_tx(self):
         self.requires_firmware("7.9.1")

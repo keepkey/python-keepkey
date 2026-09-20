@@ -25,6 +25,10 @@ def make_send(from_address, to_address, amount):
 
 class TestMsgThorChainSignTx(common.KeepKeyTest):
 
+    def setUp(self):
+        super().setUp()
+        self.client.apply_policy("AdvancedMode", 1)
+
     def test_thorchain_sign_tx(self):
         self.requires_fullFeature()
         self.requires_firmware("7.0.2")

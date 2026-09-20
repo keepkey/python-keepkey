@@ -414,6 +414,7 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         self.requires_firmware("7.14.0")
         self.requires_message("EthereumTxMetadata")
         self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 1)
 
     def test_valid_metadata_returns_verified(self):
         """Send valid signed metadata → device returns VERIFIED."""
