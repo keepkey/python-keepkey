@@ -69,6 +69,7 @@ class TestMsgEthereumSigntxERC20(common.KeepKeyTest):
 
     def test_approve_all(self):
         self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         with self.assertRaises(CallException) as caught:
