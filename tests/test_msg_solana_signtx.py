@@ -143,6 +143,10 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         self.requires_firmware("7.14.0")
         self.requires_fullFeature()
         self.requires_message("SolanaSignMessage")
+        # AdvancedMode belongs to the live wallet session. Start this negative
+        # policy proof from factory state rather than relying on test order or
+        # on apply_policy(False) to revoke an already-authorized session.
+        self.client.wipe_device()
         self.setup_mnemonic_allallall()
         self.client.apply_policy('AdvancedMode', False)
 
@@ -158,9 +162,10 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         AdvancedMode. Printable text that never contains the signer's key
         cannot authorize a transaction: a tx signature only verifies when the
         signer's key is in the message's account keys."""
-        self.requires_firmware("7.16.0")
+        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.requires_message("SolanaSignMessage")
+        self.client.wipe_device()
         self.setup_mnemonic_allallall()
         self.client.apply_policy('AdvancedMode', False)
 
