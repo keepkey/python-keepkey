@@ -131,42 +131,7 @@ _ZCASHSIGNPCZT = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='tx_version', full_name='ZcashSignPCZT.tx_version', index=14,
-      number=15, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='version_group_id', full_name='ZcashSignPCZT.version_group_id', index=15,
-      number=16, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='lock_time', full_name='ZcashSignPCZT.lock_time', index=16,
-      number=17, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='expiry_height', full_name='ZcashSignPCZT.expiry_height', index=17,
-      number=18, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='n_transparent_outputs', full_name='ZcashSignPCZT.n_transparent_outputs', index=18,
-      number=29, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='n_transparent_inputs', full_name='ZcashSignPCZT.n_transparent_inputs', index=19,
+      name='n_transparent_inputs', full_name='ZcashSignPCZT.n_transparent_inputs', index=14,
       number=30, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -290,20 +255,6 @@ _ZCASHPCZTACTION = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='out_ciphertext', full_name='ZcashPCZTAction.out_ciphertext', index=13,
       number=14, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='recipient', full_name='ZcashPCZTAction.recipient', index=14,
-      number=15, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='rseed', full_name='ZcashPCZTAction.rseed', index=15,
-      number=16, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -500,7 +451,7 @@ _ZCASHTRANSPARENTINPUT = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='sighash', full_name='ZcashTransparentInput.sighash', index=1,
-      number=2, type=12, cpp_type=9, label=1,
+      number=2, type=12, cpp_type=9, label=2,
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -516,34 +467,6 @@ _ZCASHTRANSPARENTINPUT = _descriptor.Descriptor(
       name='amount', full_name='ZcashTransparentInput.amount', index=3,
       number=4, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='prevout_txid', full_name='ZcashTransparentInput.prevout_txid', index=4,
-      number=5, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='prevout_index', full_name='ZcashTransparentInput.prevout_index', index=5,
-      number=6, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='sequence', full_name='ZcashTransparentInput.sequence', index=6,
-      number=7, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='script_pubkey', full_name='ZcashTransparentInput.script_pubkey', index=7,
-      number=8, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -564,22 +487,22 @@ _ZCASHTRANSPARENTINPUT = _descriptor.Descriptor(
 )
 
 
-_ZCASHTRANSPARENTACK = _descriptor.Descriptor(
-  name='ZcashTransparentAck',
-  full_name='ZcashTransparentAck',
+_ZCASHTRANSPARENTSIG = _descriptor.Descriptor(
+  name='ZcashTransparentSig',
+  full_name='ZcashTransparentSig',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='next_output_index', full_name='ZcashTransparentAck.next_output_index', index=0,
-      number=1, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
+      name='signature', full_name='ZcashTransparentSig.signature', index=0,
+      number=1, type=12, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='next_input_index', full_name='ZcashTransparentAck.next_input_index', index=1,
+      name='next_index', full_name='ZcashTransparentSig.next_index', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -703,10 +626,8 @@ DESCRIPTOR.message_types_by_name['ZcashPCZTActionAck'] = _ZCASHPCZTACTIONACK
 DESCRIPTOR.message_types_by_name['ZcashSignedPCZT'] = _ZCASHSIGNEDPCZT
 DESCRIPTOR.message_types_by_name['ZcashGetOrchardFVK'] = _ZCASHGETORCHARDFVK
 DESCRIPTOR.message_types_by_name['ZcashOrchardFVK'] = _ZCASHORCHARDFVK
-DESCRIPTOR.message_types_by_name['ZcashTransparentOutput'] = _ZCASHTRANSPARENTOUTPUT
 DESCRIPTOR.message_types_by_name['ZcashTransparentInput'] = _ZCASHTRANSPARENTINPUT
-DESCRIPTOR.message_types_by_name['ZcashTransparentAck'] = _ZCASHTRANSPARENTACK
-DESCRIPTOR.message_types_by_name['ZcashTransparentSigned'] = _ZCASHTRANSPARENTSIGNED
+DESCRIPTOR.message_types_by_name['ZcashTransparentSig'] = _ZCASHTRANSPARENTSIG
 DESCRIPTOR.message_types_by_name['ZcashDisplayAddress'] = _ZCASHDISPLAYADDRESS
 DESCRIPTOR.message_types_by_name['ZcashAddress'] = _ZCASHADDRESS
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -753,13 +674,6 @@ ZcashOrchardFVK = _reflection.GeneratedProtocolMessageType('ZcashOrchardFVK', (_
   ))
 _sym_db.RegisterMessage(ZcashOrchardFVK)
 
-ZcashTransparentOutput = _reflection.GeneratedProtocolMessageType('ZcashTransparentOutput', (_message.Message,), dict(
-  DESCRIPTOR = _ZCASHTRANSPARENTOUTPUT,
-  __module__ = 'messages_zcash_pb2'
-  # @@protoc_insertion_point(class_scope:ZcashTransparentOutput)
-  ))
-_sym_db.RegisterMessage(ZcashTransparentOutput)
-
 ZcashTransparentInput = _reflection.GeneratedProtocolMessageType('ZcashTransparentInput', (_message.Message,), dict(
   DESCRIPTOR = _ZCASHTRANSPARENTINPUT,
   __module__ = 'messages_zcash_pb2'
@@ -767,19 +681,12 @@ ZcashTransparentInput = _reflection.GeneratedProtocolMessageType('ZcashTranspare
   ))
 _sym_db.RegisterMessage(ZcashTransparentInput)
 
-ZcashTransparentAck = _reflection.GeneratedProtocolMessageType('ZcashTransparentAck', (_message.Message,), dict(
-  DESCRIPTOR = _ZCASHTRANSPARENTACK,
+ZcashTransparentSig = _reflection.GeneratedProtocolMessageType('ZcashTransparentSig', (_message.Message,), dict(
+  DESCRIPTOR = _ZCASHTRANSPARENTSIG,
   __module__ = 'messages_zcash_pb2'
-  # @@protoc_insertion_point(class_scope:ZcashTransparentAck)
+  # @@protoc_insertion_point(class_scope:ZcashTransparentSig)
   ))
-_sym_db.RegisterMessage(ZcashTransparentAck)
-
-ZcashTransparentSigned = _reflection.GeneratedProtocolMessageType('ZcashTransparentSigned', (_message.Message,), dict(
-  DESCRIPTOR = _ZCASHTRANSPARENTSIGNED,
-  __module__ = 'messages_zcash_pb2'
-  # @@protoc_insertion_point(class_scope:ZcashTransparentSigned)
-  ))
-_sym_db.RegisterMessage(ZcashTransparentSigned)
+_sym_db.RegisterMessage(ZcashTransparentSig)
 
 ZcashDisplayAddress = _reflection.GeneratedProtocolMessageType('ZcashDisplayAddress', (_message.Message,), dict(
   DESCRIPTOR = _ZCASHDISPLAYADDRESS,
