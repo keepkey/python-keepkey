@@ -28,7 +28,22 @@ from keepkeylib.tools import int_to_big_endian
 from keepkeylib import tools
 
 class TestMsgE712Verify(common.KeepKeyTest):
-  
+
+    def test_structured_eip712_is_refused(self):
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        self.setup_mnemonic_allallall()
+        with self.assertRaises(CallException) as caught:
+            self.client.e712_types_values(
+                n=tools.parse_path("m/44'/60'/0'/0/0"),
+                types_prop='{"types": {"EIP712Domain": []}}',
+                ptype_prop='{"primaryType": "EIP712Domain"}',
+                value_prop='{"domain": {}}',
+                typevals=1,
+            )
+        self.assertIn("Structured EIP-712 disabled", str(caught.exception))
+
+    @unittest.skip("legacy whole-JSON EIP-712 is withdrawn until canonical display hardening")
     def test_verify(self):
         self.requires_fullFeature()
         self.requires_firmware("7.5.1")

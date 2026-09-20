@@ -32,8 +32,10 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.requires_firmware("7.1.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
-        # Approval tx for the ETH/FOX pool
-        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+        self.client.apply_policy("AdvancedMode", 1)
+        # Unlimited approval is deliberately disabled on canonical 7.15.
+        with self.assertRaises(CallException) as caught:
+            self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
             nonce=0xf,
             gas_price=0x2980872680,
@@ -48,10 +50,8 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
                 '0000000000000000000000007a250d5630b4cf539739df2c5dacb4c659f2488d' +  # uniswap v2: router 2 contract address
                 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')   # approve amount
 
-        )        
-        self.assertEqual(sig_v, 38)
-        self.assertEqual(binascii.hexlify(sig_r), '7f7a5ce501371a01ead394d2186385742d5fbdc3d85da98249d2a05043ac6d5a')
-        self.assertEqual(binascii.hexlify(sig_s), '329954b284ed1df9a6242820e793b9719c0c6c21cae5f90190ce61c7f73c731e')
+            )
+        self.assertIn('Unlimited ERC20 approval is disabled', str(caught.exception))
                  
     def test_sign_uni_add_liquidity_ETH(self):
         self.requires_fullFeature()

@@ -71,7 +71,8 @@ class TestMsgEthereumSigntxERC20(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 
-        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+        with self.assertRaises(CallException) as caught:
+            self.client.ethereum_sign_tx(
             n=[2147483692,2147483708,2147483648,0,0],
             nonce=1,
             gas_price=20,
@@ -81,10 +82,7 @@ class TestMsgEthereumSigntxERC20(common.KeepKeyTest):
             chain_id=1,
             data=binascii.unhexlify('095ea7b3000000000000000000000000' + '1d1c328764a41bda0492b66baa30c4a339ff85ef' + 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
             )
-
-        self.assertEqual(sig_v, 37)
-        self.assertEqual(binascii.hexlify(sig_r), '3671acb6aed5241948de56635ef64554d5e834355e99d806c4ae30bf463eae57')
-        self.assertEqual(binascii.hexlify(sig_s), '2b0aa2fdfabefb4ae687f3418b13cddf1111e62338bc8fd3ca4e0196352bb6f8')
+        self.assertIn('Unlimited ERC20 approval is disabled', str(caught.exception))
 
 
 if __name__ == '__main__':
