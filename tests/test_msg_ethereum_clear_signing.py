@@ -39,6 +39,7 @@ from keepkeylib.signed_metadata import (
     TEST_PRIVATE_KEY,
 )
 from keepkeylib.tools import parse_path
+from keepkeylib.client import CallException
 
 # Alias shown on the load confirm and on every per-tx warning screen.
 CI_SIGNER_ALIAS = 'CI Test'
@@ -435,6 +436,13 @@ class TestEthereumClearSigning(common.KeepKeyTest):
             alias=CI_SIGNER_ALIAS,
         )
 
+    def _load_ci_signer(self):
+        self.client.load_clearsign_signer(
+            key_id=TEST_KEY_ID,
+            pubkey=test_signer_compressed_pubkey(),
+            alias=CI_SIGNER_ALIAS,
+        )
+
     def test_valid_metadata_returns_verified(self):
         """Send valid signed metadata → device returns VERIFIED."""
         blob, expected, desc = TestVectorCatalog.valid_aave_supply()
@@ -558,6 +566,7 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         is loaded — proves there is no built-in trust path in phase 1."""
         self.client.wipe_device()  # factory reset drops loaded signers
         self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 1)
 
         blob, _, _ = TestVectorCatalog.valid_aave_supply()
         resp = self.client.ethereum_send_tx_metadata(

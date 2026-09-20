@@ -72,7 +72,14 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
 
     def setup_mnemonic_allallall(self):
         super().setup_mnemonic_allallall()
-        self.client.apply_policy("AdvancedMode", 1)
+        # These cases specifically prove that the policy gate or malformed
+        # transaction rejection still fails closed.  Do not pre-enable the
+        # session policy or an opaque fallback could mask that assertion.
+        if self._testMethodName not in {
+                "test_solana_sign_message_blocked_without_advanced_mode",
+                "test_solana_sign_malformed_bad_account_count",
+                "test_solana_sign_versioned_v0_opaque"}:
+            self.client.apply_policy("AdvancedMode", 1)
 
     def test_solana_get_address(self):
         """Test Solana address derivation from device."""
