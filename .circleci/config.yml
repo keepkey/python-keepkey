@@ -8,7 +8,12 @@ jobs:
     docker:
       - image: cimg/python:3.11
     steps:
-      - checkout
+      - run:
+          name: Checkout current branch over HTTPS
+          command: |
+            git clone --depth 1 -b "$CIRCLE_BRANCH" \
+              https://github.com/keepkey/python-keepkey.git .
+            git submodule update --init --recursive
       - run:
           name: Validate canonical Python and EOS vector contracts
           command: |
