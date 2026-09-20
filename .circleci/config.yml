@@ -1,0 +1,27 @@
+version: 2.1
+
+# The authoritative multi-release emulator matrix lives in GitHub Actions.
+# Keep this smoke job while the legacy CircleCI project remains connected so
+# its required status verifies the checkout instead of failing at config load.
+jobs:
+  canonical-smoke:
+    docker:
+      - image: cimg/python:3.11
+    steps:
+      - run:
+          name: Checkout current branch over HTTPS
+          command: |
+            git clone --depth 1 -b "$CIRCLE_BRANCH" \
+              https://github.com/keepkey/python-keepkey.git .
+            git submodule update --init --recursive
+      - run:
+          name: Validate canonical Python and EOS vector contracts
+          command: |
+            python -m py_compile keepkeylib/*.py tests/test_msg_solana_signtx.py
+            python -m pip install --quiet pytest requests
+            python -m pytest -q tests/unit/test_eos_updateauth_vector.py
+
+workflows:
+  canonical:
+    jobs:
+      - canonical-smoke
