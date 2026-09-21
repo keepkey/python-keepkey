@@ -152,6 +152,7 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
         )
 
     def test_unsupported_memo_is_rejected(self):
+        self.requires_release_capability("ripple-memo-policy")
         self.requires_fullFeature()
         self.requires_firmware("7.14.3")
         if self.firmware_at_least("7.15.0"):
