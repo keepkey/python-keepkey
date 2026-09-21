@@ -99,29 +99,29 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 
-        # remove liquidity from the ETH/FOX pool
-        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
-            n=[2147483692,2147483708,2147483648,0,0],
-            nonce=0xf,
-            gas_price=0x320313e400,
-            gas_limit=0x3b754,
-            value=0x0,
-            to=binascii.unhexlify('7a250d5630B4cF539739dF2C5dAcb4c659F2488D'),     # UNISWAP router
-            address_type=0,
-            chain_id=1,
-            # The data below is generally broken into 32-byte chunks except for the function selector (4 bytes_ and
-            # keccak signatures (4 bytes)
-            data=binascii.unhexlify('02751cec' +                                      # addLiquidityETH
-                '000000000000000000000000c770eefad204b5180df6a14ee197d99d808ee52d' +  # FOX token
-                '00000000000000000000000000000000000000000000000002684b14a52bcefc' +  # liquidity amount
-                '000000000000000000000000000000000000000000000000010a741a46278000' +  # min amount of fox token
-                '0000000000000000000000000000000000000000000000000000fb04c77f3e94' +  # min amount of eth token
-                '0000000000000000000000005028d647b74f12903e6d5f3969f8f624e6a9a93d' +  # to address (not self)
-                '00000000000000000000000000000000000000000000000000000178b2062f3d')   # deadline
-        )
-        self.assertEqual(sig_v, 37)
-        self.assertEqual(binascii.hexlify(sig_r).decode("ascii"), '7143f0d8e5505a8cfb1df55e9c5d7433eba33a61959137c08cc5c088ec12ab5d')
-        self.assertEqual(binascii.hexlify(sig_s).decode("ascii"), '20b456d6c13295f5abb6109d7ade2c5d5fc395963b1e45d92e6dc8c33749c517')
+        # Canonical 7.15 refuses removeLiquidityETH when its recipient is not
+        # the signing wallet. Older firmware signed this legacy vector after a
+        # soft warning, which could route both assets to an attacker.
+        with self.assertRaises(CallException) as caught:
+            self.client.ethereum_sign_tx(
+                n=[2147483692,2147483708,2147483648,0,0],
+                nonce=0xf,
+                gas_price=0x320313e400,
+                gas_limit=0x3b754,
+                value=0x0,
+                to=binascii.unhexlify('7a250d5630B4cF539739dF2C5dAcb4c659F2488D'),
+                address_type=0,
+                chain_id=1,
+                data=binascii.unhexlify('02751cec' +
+                    '000000000000000000000000c770eefad204b5180df6a14ee197d99d808ee52d' +
+                    '00000000000000000000000000000000000000000000000002684b14a52bcefc' +
+                    '000000000000000000000000000000000000000000000000010a741a46278000' +
+                    '0000000000000000000000000000000000000000000000000000fb04c77f3e94' +
+                    '0000000000000000000000005028d647b74f12903e6d5f3969f8f624e6a9a93d' +
+                    '00000000000000000000000000000000000000000000000000000178b2062f3d')
+            )
+        self.assertEqual(caught.exception.args[0],
+                         proto_types.Failure_ActionCancelled)
 
 if __name__ == '__main__':
     unittest.main()
