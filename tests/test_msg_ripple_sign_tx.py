@@ -121,12 +121,11 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
         resp = self.client.call(msg)
 
         # Verify the XRPL Memos array is appended to the serialized tx.
-        # Format: 0xF9 (STArray[9]) 0xEA (STObject[10]) 0x7D (MemoData VL[13];
-        #         0x72 would be MessageKey, which rippled rejects inside a Memo)
+        # Format: 0xF9 (STArray[9]) 0xEA (STObject[10]) 0x72 (MemoData VL[2])
         #         <varint len> <UTF-8 memo bytes> 0xE1 (end object) 0xF1 (end array)
         memo_bytes = memo.encode('ascii')
         expected_tail = (
-            bytes([0xF9, 0xEA, 0x7D, len(memo_bytes)]) +
+            bytes([0xF9, 0xEA, 0x72, len(memo_bytes)]) +
             memo_bytes +
             bytes([0xE1, 0xF1])
         )

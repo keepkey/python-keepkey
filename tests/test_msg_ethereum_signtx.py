@@ -45,7 +45,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         if self.firmware_at_least("7.15.0"):
             expected_frames = {
                 "transfer": (
-                    "843693d0c5f8f87986a1769c6e5192a6746cbfcb24c7c4c37d335b10c1f5b54c"),
+                    "48eab4f4d0e125199325f4b5a601583250462f06b98514b4b56b3b3298169211"),
             }
         else:
             # 7.14.3 uses the pre-7.15 review layout while proving the same
