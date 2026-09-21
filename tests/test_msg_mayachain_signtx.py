@@ -58,9 +58,8 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
 
     def test_ack_rejects_send_and_deposit_together(self):
         """An unused deposit submessage must not suppress the signed tx memo."""
-        # The exactly-one-message check was added after RC18 as part of the
-        # 7.16 alpha security backport (firmware 71e6c1d942).
-        self.requires_firmware("7.16.0")
+        # The exactly-one-message check is part of the corrected 7.15 release.
+        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
 

@@ -255,9 +255,8 @@ class TestMultisig(common.KeepKeyTest):
         The declared max_size is a decoder bound, never a runtime one. This
         asserts the device applies the real one.
         """
-        # The 72-byte runtime bound was backported after RC18 in the 7.16
-        # alpha security line (firmware 40da090620).
-        self.requires_firmware("7.16.0")
+        # The 72-byte runtime bound is part of the corrected 7.15 release.
+        self.requires_firmware("7.15.0")
         self.setup_mnemonic_nopin_nopassphrase()
 
         node = ckd_public.deserialize('xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy')

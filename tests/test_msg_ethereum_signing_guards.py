@@ -283,7 +283,7 @@ class TestMsgEthereumSigningGuards(common.KeepKeyTest):
         then hashed the distinct tails invisibly.  The complete-calldata
         Keccak-256 confirmation makes the approval sequences distinguishable.
         """
-        self.requires_firmware("7.16.0")
+        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)

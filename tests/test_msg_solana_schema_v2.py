@@ -135,7 +135,7 @@ SDICE_DEFINITION_SIG = bytes.fromhex(
 # The join's decoded values (Vault __tests__/fixtures/solana/
 # soltoshidice-blackjack-join.json).
 SESSION_KEY = "BqtZ8PRQywD9Z5xXeB5112wtPG3xtj7TqF56hroicGjX"
-SDICE_TRUSTED = "1000.000000 SDICE\n" + SDICE_MINT
+SDICE_TRUSTED = "1000 SDICE\n" + SDICE_MINT
 SDICE_UNTRUSTED = "1000000000 base units of mint\n" + SDICE_MINT
 # 1,000,000 micro-lamports x the join's 200,000-unit limit = 200,000 lamports.
 JOIN_PRICE = 1000000
@@ -220,7 +220,7 @@ class SchemaReview(common.KeepKeyTest):
 
     def setUp(self):
         super(SchemaReview, self).setUp()
-        self.requires_firmware("7.16.0")
+        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
 
@@ -258,6 +258,9 @@ class TestSolanaSchemaCertified(SchemaReview):
 
     def setUp(self):
         super(TestSolanaSchemaCertified, self).setUp()
+        # Certified schemas depend on the alpha root and remain 7.16-only.
+        # Runtime schemas and attestor review are release 7.15 capabilities.
+        self.requires_firmware("7.16.0")
         self.client.apply_policy("AdvancedMode", False)
         self._require_alpha_root()
         self.signer = self._signer()
@@ -586,7 +589,7 @@ class TestSolanaSchemaRuntime(SchemaReview):
             self.assertEqual(len(response.signature), 64)
             return screens
 
-        trusted = "1000.000000 SDICE\n" + SDICE_MINT
+        trusted = "1000 SDICE\n" + SDICE_MINT
         untrusted = "1000000000 base units of mint\n" + SDICE_MINT
 
         same = review(2, "join_schema_signer_definition")

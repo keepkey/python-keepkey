@@ -37,9 +37,9 @@ class TestMsgEthereumSignTypedDataHash(common.KeepKeyTest):
         recipient and value embedded in the signed EIP-712 message.
         """
         self.requires_fullFeature()
-        # RC18 still exposes the legacy JSON endpoint. Its fail-closed
-        # retirement and the replacement streamed implementation land on 7.16.
-        self.requires_firmware("7.16.0")
+        # 7.15 retires the legacy JSON endpoint fail closed; the replacement
+        # streamed implementation is covered independently.
+        self.requires_firmware("7.15.0")
         self.requires_message("Ethereum712TypesValues")
         self.setup_mnemonic_allallall()
 

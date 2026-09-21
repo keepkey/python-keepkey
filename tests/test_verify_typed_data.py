@@ -45,7 +45,7 @@ class TestMsgE712Verify(common.KeepKeyTest):
         replaced by test_verify below, not simply deleted.
         """
         self.requires_fullFeature()
-        self.requires_firmware("7.16.0")
+        self.requires_firmware("7.15.0")
         self.setup_mnemonic_allallall()
 
         try:
