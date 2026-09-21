@@ -1226,9 +1226,6 @@ class TestEthereumClearSigning(common.KeepKeyTest):
             signed_payload=sign_metadata(payload), metadata_version=1, key_id=1)
         self.assertEqual(resp.classification, CLASSIFICATION_MALFORMED)
 
-    @unittest.skipUnless(
-        os.getenv('KK_EXPECT_PERSIST_REJECTED') == '1',
-        'requires the exact RC18 firmware security boundary')
     def test_persistent_signer_rejected_without_session_mutation(self):
         """RC18 firmware fails closed on persist=true without slot mutation."""
         pub = test_signer_compressed_pubkey()
