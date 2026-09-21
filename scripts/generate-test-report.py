@@ -1225,12 +1225,13 @@ SECTIONS = [
           ['FOX desired amount', 'FOX minimum', 'Recipient', 'ETH desired amount',
            'ETH minimum', 'Deadline', 'Fee and final approval']),
          ('E19', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_remove_liquidity_ETH',
-          'Uniswap V2 remove liquidity ETH+token',
-          'Clear-signs the LP burn amount, minimum FOX and ETH outputs, the non-self signed '
-          'recipient, and deadline before the final fee review. This is the regression for the '
-          'recipient-confirmation path that previously cancelled after the user approved it.',
-          ['LP burn amount', 'FOX minimum', 'Recipient', 'ETH minimum', 'Deadline',
-           'Fee and final approval']),
+          'Uniswap V2 unsafe remove-liquidity recipient refused',
+          'Enables AdvancedMode and reviews the LP burn amount and minimum FOX output, then '
+          'discloses that the signed recipient is not the signing wallet and refuses before '
+          'the remaining output, deadline, fee, or signing consent. The Failure_ActionCancelled '
+          'response proves the non-self recipient cannot route both withdrawn assets away.',
+          ['Enable Policy: AdvancedMode', 'LP burn amount', 'FOX minimum',
+           'Non-self recipient refusal']),
          ('E20', 'test_msg_ethereum_thorchain_deposit', 'test_deposit_legacy_selector',
           'THORChain router deposit() (legacy selector)',
           'Cross-chain swap via the THORChain router contract — a daily-driver EVM<->THORChain '
