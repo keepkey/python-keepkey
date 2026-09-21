@@ -128,6 +128,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
     def test_ethereum_unrenderable_amounts_are_rejected(self):
         """Maximum native and token amounts must never reach a blank review."""
+        self.requires_release_capability('evm-max-amount-review')
         self.requires_firmware("7.14.2")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()

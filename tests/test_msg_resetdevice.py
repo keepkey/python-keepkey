@@ -525,6 +525,7 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertFalse(resp.passphrase_protection)
 
     def test_reset_device_pin(self):
+        self.requires_release_capability('safe-reset-ceremony')
         external_entropy = b'zlutoucky kun upel divoke ody' * 2
         strength = 128
         # display_random is ignored by every supported product. 7.14.2 always
@@ -612,6 +613,7 @@ class TestDeviceReset(common.KeepKeyTest):
         self.client.call_raw(proto.Cancel())
 
     def test_failed_pin(self):
+        self.requires_release_capability('safe-reset-ceremony')
         external_entropy = 'zlutoucky kun upel divoke ody' * 2
         strength = 128
         # display_random is ignored by every supported product. 7.14.2 always

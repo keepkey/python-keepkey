@@ -57,6 +57,7 @@ class TestMsgEthereumThorchainDeposit(common.KeepKeyTest):
 
     def test_deposit_legacy_selector(self):
         """Existing deposit() selector (0x1fece7b4) is recognized without AdvancedMode."""
+        self.requires_release_capability('thor-deposit-review')
         self.requires_fullFeature()
         self.requires_firmware("7.5.0")
         self.setup_mnemonic_allallall()
@@ -86,6 +87,7 @@ class TestMsgEthereumThorchainDeposit(common.KeepKeyTest):
         device would fall through to the blind-sign gate and refuse to sign (or
         require AdvancedMode), breaking every EVM->THORChain swap.
         """
+        self.requires_release_capability('thor-deposit-review')
         self.requires_fullFeature()
         self.requires_firmware("7.14.2")
         self.setup_mnemonic_allallall()

@@ -162,6 +162,25 @@ class KeepKeyTest(unittest.TestCase):
         if version < semver.VersionInfo.parse(ver_required):
             self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
 
+    def requires_release_capability(self, capability):
+        """Skip only when staged CI explicitly declares a capability absent.
+
+        A released firmware, a developer invocation, and older firmware all
+        receive the canonical suite's normal version/device gates.  Only the
+        stacked-release workflow sets ``KK_RELEASE_MISSING_CAPABILITIES`` for
+        deliberately incomplete intermediate trees.  This keeps one canonical
+        multi-release branch without weakening the final release assertions.
+        """
+        missing_raw = os.environ.get('KK_RELEASE_MISSING_CAPABILITIES')
+        if missing_raw is None:
+            return
+        missing = set(value.strip() for value in missing_raw.split(',')
+                      if value.strip())
+        if capability in missing:
+            self.skipTest(
+                "Staged release tree does not yet provide capability: " +
+                capability)
+
     def requires_taproot(self):
         """Skip unless the firmware reports taproot support.
 
