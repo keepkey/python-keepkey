@@ -39,10 +39,11 @@ class TestSolanaLutAttestation(common.KeepKeyTest):
 
     def setUp(self):
         super(TestSolanaLutAttestation, self).setUp()
-        # Canonical 7.15 contains KKSOLSW1 and requires its positive and
-        # negative paths. The older RC18-based 7.16 floor hid this coverage.
-        self.requires_firmware("7.15.0")
         self.requires_fullFeature()
+        # The wire fields exist before every release implements the trust and
+        # presentation path. The device capability—not its version—decides
+        # whether these positive provider-attestation tests apply.
+        self.requires_solana_lut_attestation()
         self.requires_message("LoadClearsignSigner")
         self.setup_mnemonic_allallall()
 

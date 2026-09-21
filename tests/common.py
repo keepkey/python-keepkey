@@ -187,6 +187,20 @@ class KeepKeyTest(unittest.TestCase):
         if not getattr(self.client.features, 'supports_dice_modes', False):
             self.skipTest("Firmware does not report supports_dice_modes")
 
+    def requires_solana_lut_attestation(self):
+        """Skip unless firmware authenticates and presents resolved LUT data.
+
+        The Solana wire fields are shared across releases, so their presence in
+        generated Python bindings does not prove the connected firmware trusts
+        or displays them. Gate the provider-attestation tests on the device's
+        explicit capability instead of treating every 7.15 build as identical.
+        """
+        self.client.init_device()
+        if not getattr(self.client.features,
+                       'supports_solana_lut_attestation', False):
+            self.skipTest(
+                "Firmware does not report supports_solana_lut_attestation")
+
     def requires_structured_eip712(self):
         """Skip unless the FIRMWARE drives the structured EIP-712 walk.
 
@@ -292,4 +306,3 @@ class KeepKeyTest(unittest.TestCase):
       if self.client.features.firmware_variant not in ("KeepKeyBTC",
                                                        "EmulatorBTC"):
         self.skipTest("Bitcoin-only firmware required to run this test")
-
