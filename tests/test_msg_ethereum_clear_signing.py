@@ -832,6 +832,7 @@ class TestEthereumClearSigning(common.KeepKeyTest):
 
     def setUp(self):
         super().setUp()
+        self.requires_release_capability("erc7730-runtime-review")
         self.requires_firmware("7.15.0")
         self.requires_message("EthereumTxMetadata")
         self.requires_message("LoadClearsignSigner")
@@ -1290,6 +1291,7 @@ class TestClearSignV2Device(common.KeepKeyTest):
 
     def setUp(self):
         super().setUp()
+        self.requires_release_capability("erc7730-runtime-review")
         self.requires_firmware(self.V2_FIRMWARE)
         self.requires_message("EthereumTxMetadata")
         self.requires_message("LoadClearsignSigner")

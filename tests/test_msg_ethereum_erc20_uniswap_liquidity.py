@@ -34,6 +34,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.requires_firmware("7.15.0")
 
     def test_sign_uni_approve_liquidity_ETH(self):
+        self.requires_release_capability("erc7730-runtime-review")
         self.requires_fullFeature()
         self.requires_firmware("7.1.0")
         self.setup_mnemonic_nopin_nopassphrase()
