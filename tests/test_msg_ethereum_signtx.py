@@ -127,7 +127,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         self.assertNotEqual(first_screens[1], first_screens[257])
 
     def test_ethereum_unrenderable_amounts_are_rejected(self):
-        """Neither a native nor ERC-20 amount may reach an approval blank."""
+        """Maximum native and token amounts must never reach a blank review."""
         self.requires_firmware("7.14.2")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
@@ -137,37 +137,42 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
         max_uint256 = (1 << 256) - 1
 
-        with self.client:
-            self.client.set_expected_responses([
-                proto.Failure(
-                    code=proto_types.Failure_SyntaxError,
-                    message="Ethereum amount too large"),
-            ])
-            with self.assertRaises(CallException):
-                self.client.ethereum_sign_tx(
-                    n=[0, 0], nonce=0, gas_price=20, gas_limit=21000,
-                    to=recipient, value=max_uint256, chain_id=1,
-                )
+        def assert_reviewable_then_cancel(**tx):
+            # The 7.15 formatter has enough capacity for every uint256 value.
+            # The security invariant is therefore disclosure, not refusal:
+            # prove a non-blank review is emitted and terminate it cleanly so
+            # this negative-path test cannot poison the next test's session.
+            with self.client:
+                self.client.set_expected_responses([
+                    proto.ButtonRequest(
+                        code=proto_types.ButtonRequest_ConfirmOutput),
+                    proto.Failure(
+                        code=proto_types.Failure_ActionCancelled,
+                        message="Signing cancelled by user"),
+                ])
+                with ScreenRecorder(self.client, answer=False) as recorder:
+                    with self.assertRaises(CallException):
+                        self.client.ethereum_sign_tx(**tx)
+            self.assertEqual(len(recorder.screens), 1)
+            self.assertGreater(sum(bytearray(recorder.screens[0])), 0)
 
-        # Known mainnet ERC-20 transfer with the same unrenderable amount.
+        assert_reviewable_then_cancel(
+            n=[0, 0], nonce=0, gas_price=20, gas_limit=21000,
+            to=recipient, value=max_uint256, chain_id=1,
+        )
+
+        # Known mainnet ERC-20 transfer with the same maximum amount.
         erc20_data = (
             binascii.unhexlify("a9059cbb" + "00" * 12) +
             recipient + int_to_big_endian(max_uint256).rjust(32, b"\x00")
         )
-        with self.client:
-            self.client.set_expected_responses([
-                proto.Failure(
-                    code=proto_types.Failure_SyntaxError,
-                    message="Ethereum amount too large"),
-            ])
-            with self.assertRaises(CallException):
-                self.client.ethereum_sign_tx(
-                    n=[0, 0], nonce=0, gas_price=20, gas_limit=60000,
-                    to=binascii.unhexlify(
-                        "d0d6d6c5fe4a677d343cc433536bb717bae167dd"
-                    ),
-                    value=0, chain_id=1, data=erc20_data,
-                )
+        assert_reviewable_then_cancel(
+            n=[0, 0], nonce=0, gas_price=20, gas_limit=60000,
+            to=binascii.unhexlify(
+                "d0d6d6c5fe4a677d343cc433536bb717bae167dd"
+            ),
+            value=0, chain_id=1, data=erc20_data,
+        )
 
     def test_ethereum_signtx_data(self):
         self.requires_fullFeature()
