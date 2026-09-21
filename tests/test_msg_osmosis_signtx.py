@@ -167,6 +167,7 @@ class TestMsgOsmosisSignTx(common.KeepKeyTest):
 
     def test_osmosis_send_rejects_noncanonical_wire_amounts(self):
         """Wire callers cannot exploit strtoull spellings or saturation."""
+        self.requires_release_capability("osmosis-wire-guards")
         self.requires_fullFeature()
         self.requires_firmware("7.15.0")
         self.setup_mnemonic_nopin_nopassphrase()

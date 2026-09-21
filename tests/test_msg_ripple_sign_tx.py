@@ -101,6 +101,7 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
 
 
     def test_sign_with_thorchain_memo(self):
+        self.requires_release_capability("ripple-memo-policy")
         self.requires_fullFeature()
         self.requires_firmware("7.15.0")
 

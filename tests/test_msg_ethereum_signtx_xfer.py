@@ -34,6 +34,7 @@ from test_msg_display_disclosure import ScreenRecorder
 class TestMsgEthereumSigntx(common.KeepKeyTest):
     def test_native_pseudo_address_transfer_is_unknown_off_mainnet(self):
         """TRANSFER must show the exact unknown-token frame on chain 257."""
+        self.requires_release_capability("evm-unknown-token-review")
         self.requires_firmware("7.14.2")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()

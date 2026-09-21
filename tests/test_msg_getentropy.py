@@ -31,6 +31,7 @@ import keepkeylib.types_pb2 as proto_types
 class TestMsgGetentropy(common.KeepKeyTest):
 
     def test_entropy(self):
+        self.requires_release_capability("entropy-audit-budget")
         if os.getenv("KK_EXPECT_ENTROPY_BUDGET") != "1":
             self.requires_firmware("7.15.0")
         # Entropy is a bounded nanopb response (1024 bytes on every supported
