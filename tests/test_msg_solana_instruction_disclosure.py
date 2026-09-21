@@ -65,6 +65,9 @@ class TestSolanaInstructionDisclosure(common.KeepKeyTest):
         self.requires_fullFeature()
         self.requires_firmware("7.14.2")
         self.setup_mnemonic_allallall()
+        # Opaque-policy tests must not inherit AdvancedMode from an earlier
+        # test because policies persist across Initialize/session setup.
+        self.client.apply_policy("AdvancedMode", 0)
         response = self.client.call(solana.SolanaGetAddress(
             address_n=PATH, show_display=False
         ))
