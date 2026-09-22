@@ -214,6 +214,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
 
     def test_multidimensional_arrays_walk_outermost_first_on_device(self):
         """Host and device must traverse asymmetric Solidity dimensions alike."""
+        self.requires_release_capability("evm-unknown-token-review")
         doc = {
             'types': {
                 'EIP712Domain': [],

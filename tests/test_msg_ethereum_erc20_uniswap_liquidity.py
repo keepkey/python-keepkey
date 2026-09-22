@@ -65,6 +65,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
                       str(caught.exception))
 
     def test_sign_uni_add_liquidity_ETH(self):
+        self.requires_release_capability("evm-unknown-token-review")
         self.requires_fullFeature()
         self.requires_firmware("7.1.0")
         self.setup_mnemonic_nopin_nopassphrase()
@@ -95,6 +96,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s).decode("ascii"), '0a8eec6856aef8caa234240b06862976f8e238e8b24f5c989279507dd7e51ccd')
 
     def test_sign_uni_remove_liquidity_ETH(self):
+        self.requires_release_capability("evm-unknown-token-review")
         self.requires_fullFeature()
         self.requires_firmware("7.1.0")
         self.setup_mnemonic_nopin_nopassphrase()
