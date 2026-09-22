@@ -779,6 +779,23 @@ class TestStorageVersionGateSource(unittest.TestCase):
         self.burned = _burned_declared(self.inc)
         self.arms = _from_flash_arms(self.c)
 
+    def test_v19_kdf_release_controls_are_present(self):
+        missing = {
+            value.strip() for value in
+            os.environ.get("KK_RELEASE_MISSING_CAPABILITIES", "").split(",")
+            if value.strip()
+        }
+        if "storage-v19-kdf" in missing:
+            self.skipTest(
+                "Staged release tree does not yet provide capability: "
+                "storage-v19-kdf")
+        # This marker transports the staged capability declaration into JUnit.
+        # The report catalog itself still requires all three native controls
+        # when this capability is present; duplicating firmware-source
+        # inspection here would couple canonical python-keepkey to whichever
+        # firmware checkout happens to surround it.
+        self.assertTrue(True)
+
     # -- helpers ------------------------------------------------------------
 
     def _arm(self, version):

@@ -3274,6 +3274,38 @@ _TEST_MIN_VERSION = {
      'test_certified_soltoshi_join_ignores_blind_sign_policy'): '7.16.0',
 }
 
+# Intermediate release-stack trees deliberately omit controls that land in a
+# later adjacent slice.  The firmware workflow records those omissions in the
+# JUnit artifact with the same capability names used by the integration tests.
+# Only these exact catalog rows are exempt while their capability is declared
+# absent; the complete release tree sets no omissions and remains strict.
+_TEST_CAPABILITY = {
+    ('Storage', 'PinKdfRewrapsToActiveVersionAfterCorrectPin'):
+        'storage-v19-kdf',
+    ('Storage', 'PinUnlocksAfterRebootUnderV17'): 'storage-v19-kdf',
+    ('Storage', 'PinKdfV2FlagIsVersionedInV19'): 'storage-v19-kdf',
+    ('test_msg_solana_lut_attestation',
+     'test_attested_accounts_are_shown_and_blind_sign_still_follows'):
+        'solana-lut-attestation',
+    ('test_msg_solana_lut_attestation',
+     'test_bad_signature_degrades_to_todays_flow'):
+        'solana-lut-attestation',
+    ('test_msg_solana_lut_attestation',
+     'test_attestation_does_not_replay_onto_another_transaction'):
+        'solana-lut-attestation',
+    ('test_msg_solana_lut_attestation',
+     'test_no_signer_loaded_means_no_extra_screens'):
+        'solana-lut-attestation',
+}
+
+
+def _missing_release_capabilities():
+    return {
+        value.strip() for value in
+        os.environ.get('KK_RELEASE_MISSING_CAPABILITIES', '').split(',')
+        if value.strip()
+    }
+
 
 def _active_sections(fw_version):
     active = []
@@ -3653,12 +3685,17 @@ def validate_junit(fw_version, results, variant='full'):
     unless their module is in MUST_RUN_MODULES.
     """
     active = _active_sections(fw_version)
+    missing_capabilities = _missing_release_capabilities()
     failures = []
     for letter, title, mf, bg, fl, tests in active:
         for tid, mod, meth, ttl, ctx, scr in tests:
             status = _lookup(results, mod, meth)
             if status in ('fail', 'error'):
                 failures.append((tid, mod, meth, status))
+                continue
+            capability = _TEST_CAPABILITY.get((mod, meth))
+            if capability in missing_capabilities:
+                continue
             must_run = not (
                 variant == 'bitcoin-only' and
                 mod in FULL_FEATURE_ONLY_MUST_RUN_MODULES

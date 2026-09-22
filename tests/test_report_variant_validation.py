@@ -26,6 +26,9 @@ def catalog_results_with_solana_lut_skipped(fw_version):
 
 class TestReportVariantValidation(unittest.TestCase):
 
+    def tearDown(self):
+        os.environ.pop('KK_RELEASE_MISSING_CAPABILITIES', None)
+
     def test_full_7143_accepts_unimplemented_solana_lut_skip(self):
         result = REPORT.validate_junit(
             '7.14.3', catalog_results_with_solana_lut_skipped('7.14.3'),
@@ -55,6 +58,37 @@ class TestReportVariantValidation(unittest.TestCase):
             '7.16.0', catalog_results_with_solana_lut_skipped('7.16.0'),
             'bitcoin-only')
         self.assertEqual((True, []), result)
+
+    def test_staged_capabilities_accept_only_their_mapped_controls(self):
+        results = catalog_results_with_solana_lut_skipped('7.15.0')
+        for method in (
+                'PinKdfRewrapsToActiveVersionAfterCorrectPin',
+                'PinUnlocksAfterRebootUnderV17',
+                'PinKdfV2FlagIsVersionedInV19'):
+            del results['Storage::' + method]
+        os.environ['KK_RELEASE_MISSING_CAPABILITIES'] = (
+            'solana-lut-attestation,storage-v19-kdf')
+        self.assertEqual(
+            (True, []),
+            REPORT.validate_junit('7.15.0', results, 'full'))
+
+    def test_complete_release_still_requires_staged_controls(self):
+        results = catalog_results_with_solana_lut_skipped('7.15.0')
+        for method in (
+                'PinKdfRewrapsToActiveVersionAfterCorrectPin',
+                'PinUnlocksAfterRebootUnderV17',
+                'PinKdfV2FlagIsVersionedInV19'):
+            del results['Storage::' + method]
+        ok, failures = REPORT.validate_junit('7.15.0', results, 'full')
+        self.assertFalse(ok)
+        failed = {(module, method, status)
+                  for _, module, method, status in failures}
+        self.assertIn(
+            ('Storage', 'PinKdfV2FlagIsVersionedInV19', 'missing'), failed)
+        self.assertIn(
+            ('test_msg_solana_lut_attestation',
+             'test_attestation_does_not_replay_onto_another_transaction',
+             'skipped-but-required'), failed)
 
 
 if __name__ == '__main__':

@@ -214,6 +214,7 @@ class KeepKeyTest(unittest.TestCase):
         or displays them. Gate the provider-attestation tests on the device's
         explicit capability instead of treating every 7.15 build as identical.
         """
+        self.requires_release_capability('solana-lut-attestation')
         self.client.init_device()
         if not getattr(self.client.features,
                        'supports_solana_lut_attestation', False):
