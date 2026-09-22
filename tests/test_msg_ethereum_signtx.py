@@ -139,26 +139,40 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
         )
         max_uint256 = (1 << 256) - 1
 
-        def assert_reviewable_then_cancel(**tx):
-            # The 7.15 formatter has enough capacity for every uint256 value.
-            # The security invariant is therefore disclosure, not refusal:
-            # prove a non-blank review is emitted and terminate it cleanly so
-            # this negative-path test cannot poison the next test's session.
-            with self.client:
-                self.client.set_expected_responses([
-                    proto.ButtonRequest(
-                        code=proto_types.ButtonRequest_ConfirmOutput),
-                    proto.Failure(
-                        code=proto_types.Failure_ActionCancelled,
-                        message="Signing cancelled by user"),
-                ])
-                with ScreenRecorder(self.client, answer=False) as recorder:
+        if self.firmware_at_least("7.15.0"):
+            def assert_amount_is_safe(**tx):
+                # The 7.15 formatter has enough capacity for every uint256
+                # value. Prove disclosure, then cancel cleanly so this path
+                # cannot poison the next test's session.
+                with self.client:
+                    self.client.set_expected_responses([
+                        proto.ButtonRequest(
+                            code=proto_types.ButtonRequest_ConfirmOutput),
+                        proto.Failure(
+                            code=proto_types.Failure_ActionCancelled,
+                            message="Signing cancelled by user"),
+                    ])
+                    with ScreenRecorder(self.client, answer=False) as recorder:
+                        with self.assertRaises(CallException):
+                            self.client.ethereum_sign_tx(**tx)
+                self.assertEqual(len(recorder.screens), 1)
+                self.assertGreater(sum(bytearray(recorder.screens[0])), 0)
+        else:
+            def assert_amount_is_safe(**tx):
+                # 7.14.x has the smaller formatter and its safe behavior is
+                # refusal before presenting an approval. Keep this canonical
+                # branch compatible with that released behavior rather than
+                # demanding the 7.15 rendering policy from older firmware.
+                with self.client:
+                    self.client.set_expected_responses([
+                        proto.Failure(
+                            code=proto_types.Failure_SyntaxError,
+                            message="Ethereum amount too large"),
+                    ])
                     with self.assertRaises(CallException):
                         self.client.ethereum_sign_tx(**tx)
-            self.assertEqual(len(recorder.screens), 1)
-            self.assertGreater(sum(bytearray(recorder.screens[0])), 0)
 
-        assert_reviewable_then_cancel(
+        assert_amount_is_safe(
             n=[0, 0], nonce=0, gas_price=20, gas_limit=21000,
             to=recipient, value=max_uint256, chain_id=1,
         )
@@ -168,7 +182,7 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             binascii.unhexlify("a9059cbb" + "00" * 12) +
             recipient + int_to_big_endian(max_uint256).rjust(32, b"\x00")
         )
-        assert_reviewable_then_cancel(
+        assert_amount_is_safe(
             n=[0, 0], nonce=0, gas_price=20, gas_limit=60000,
             to=binascii.unhexlify(
                 "d0d6d6c5fe4a677d343cc433536bb717bae167dd"
