@@ -2848,31 +2848,30 @@ SECTIONS = [
            'WARNING: DUPLICATE TRANSACTION! Already signed a tx with the same outputs']),
      ]),
     ('U', 'Storage Upgrade Preservation', '7.15.0',
-     'A signed UPGRADE must never wipe. A DOWNGRADE wipes, and that is correct. Those two '
-     'sentences are the whole policy (docs/StorageVersionGate.md), and until this section '
-     'nothing in the suite tested either half - every other test creates storage with the '
+     'A signed UPGRADE must never wipe. An older firmware must never parse a newer storage '
+     'format; depending on the tree it either resets that record or explicitly refuses it '
+     'without writing. Until this section nothing in the suite tested those boundaries - every '
+     'other test creates storage with the '
      'firmware under test and never crosses a release boundary, which is exactly where this '
-     'class of defect lives. The mechanism is one function: storage_init() hands whatever is in '
-     'flash to storage_fromFlash(), and if version_from_int() does not recognise the version it '
-     'returns StorageVersion_NONE, the load reports SUS_Invalid, and storage_init() runs '
-     'storage_reset() + storage_commit(). No prompt, no warning - the wallet is gone at boot. '
+     'class of defect lives. The mechanism is one function: storage_init() hands flash to '
+     'storage_fromFlash(). Historical trees map unknown versions to SUS_Invalid and commit a '
+     'reset; trees implementing SUS_TooNew refuse a newer normal-band record without committing. '
      'The flash format this build reads and writes is V17, the same format shipped in v7.14.1. '
      '7.15 reverted the RC27 bump to V19 (commit 6bebde7b2) because one boot silently migrated '
      '17 to 19 and from that moment no downgrade was possible without a wipe; V18, the '
      'clear-sign identity block, is dead, and the V19 serializer survives only behind '
-     'STORAGE_PIN_KDF_V19 == 0. U5 pins that V17 as a literal, on purpose: the compile-time '
-     'assert compares two numbers in the same header, and raising the baseline to make a build '
-     'compile is the edit the SOP calls its highest-severity review item.',
+     'STORAGE_PIN_KDF_V19 == 0. U5 independently ratchets the shipped floor at V17: the '
+     'compile-time assert compares two numbers in the same header, and lowering both to make a '
+     'build compile is the edit the SOP calls its highest-severity review item.',
      [
          'THE RULE: recognise every version any shipped firmware ever wrote, and never lower',
          'STORAGE_VERSION. Both ways of breaking it compile cleanly and pass every other test:',
          '- lowering STORAGE_VERSION below a version that has shipped;',
          '- deleting, reordering or renumbering an entry in storage_versions.inc.',
          '',
-         'The reverse direction is NOT a defect. Older firmware cannot read a newer record, so a',
-         'DOWNGRADE lands on SUS_Invalid and resets. Do not "fix" that: the reset is what stops',
-         'an attacker flashing an older, validly signed image with a known extraction bug and',
-         'keeping the seed.',
+         'The reverse direction is tree-specific but must be explicit. Older firmware cannot',
+         'read a newer record: historical trees reset it, while SUS_TooNew trees lock it and',
+         'preserve the bytes. Neither policy may load the incompatible wallet.',
          '',
          'HOW THESE TESTS REACH THE GATE: it only runs at boot, and no host message can reboot',
          'the device. SoftReset (messages.proto type 89) has no messagemap entry and no handler',
@@ -2891,10 +2890,10 @@ SECTIONS = [
          '  device.',
          '- U2 restamps a record THIS build wrote rather than replaying one 7.14.x wrote, so the',
          '  V16 reader runs but the older LAYOUTS (V1-V15) and their fallthrough chain do not.',
-         '- U1-U4 SKIP wherever no kkemu binary can be started. The CI python-keepkey image',
-         '  (scripts/emulator/python-keepkey.Dockerfile) copies the source but never builds the',
-         '  emulator, so as the pipeline stands today only U5-U8 run in CI. A skipped U1-U4 in',
-         '  this report means the release was NOT audited for upgrade preservation.',
+         '- U1-U4 SKIP wherever no kkemu binary can be started. The release Compose harness',
+         '  supplies the exact variant binary built by the firmware-unit service; running the',
+         '  python-keepkey image by itself does not. A skipped U1-U4 in this report means the',
+         '  release was NOT audited for upgrade preservation.',
      ],
      [
          ('U1', 'test_storage_version_gate', 'test_reboot_preserves_the_wallet',
@@ -2930,17 +2929,16 @@ SECTIONS = [
            'Home screen after the migrating boot: wallet still present',
            'Bitcoin Account #0 / Address #0 - the same address the V16 record held']),
          ('U3', 'test_storage_version_gate', 'test_unrecognised_version_wipes_on_boot',
-          'An unrecognised version wipes, deliberately',
-          'The half of the policy nobody should be tempted to soften. A device that has run '
-          'newer firmware carries a newer stamp; older firmware cannot read it, so '
-          'version_from_int() returns StorageVersion_NONE and storage_init() resets. That reset '
-          'is the rollback protection: without it an attacker could flash an older, validly '
-          'signed image with a known extraction bug and keep the seed. The stamp used is one '
-          'past the version this build just committed - measured from the device, not read out '
-          'of the header - which is exactly what the next format bump will look like from here. '
-          'The device must come up with no wallet, no PIN and no label.',
+          'A newer storage version follows the firmware policy',
+          'A device that has run newer firmware carries a newer stamp that this firmware cannot '
+          'parse. The canonical test derives the policy from the firmware tree: historical '
+          'trees reset unknown normal-band storage, while trees implementing SUS_TooNew refuse '
+          'the record without modifying flash so reinstalling the newer firmware can recover '
+          'the wallet. In both cases the older firmware must expose no wallet, PIN or label. '
+          'The stamp is one past the value the device just committed, so the test crosses the '
+          'actual next-version boundary rather than pinning python-keepkey to one release.',
           ['Wipe Device confirm', 'Import Recovery Sentence confirm',
-           'Home screen after the boot that reset storage: no wallet']),
+           'Home screen after the incompatible boot: no wallet']),
          ('U4', 'test_storage_version_gate', 'test_bitcoin_only_band_refuses_without_wiping',
           'A bitcoin-only wallet is refused, not destroyed',
           'Seeds created under bitcoin-only firmware are stamped in a reserved band (10000 + the '

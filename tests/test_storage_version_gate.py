@@ -1,22 +1,22 @@
 # This file is part of the KeepKey project.
 #
-# Storage version gate -- upgrade preservation and downgrade wipe.
+# Storage version gate -- upgrade preservation and explicit downgrade policy.
 #
-# Policy, from docs/StorageVersionGate.md, in two sentences:
+# Policy, derived from the surrounding firmware tree, in two sentences:
 #
-#   A signed UPGRADE must never wipe. A DOWNGRADE wipes, and that is correct.
+#   A signed UPGRADE must never wipe. An unreadable newer record must never be
+#   parsed; firmware either resets it or explicitly refuses it without writing.
 #
 # Nothing in this suite tested either half before this file. Both directions
 # are release blockers: a wiping upgrade destroys every field wallet with no
-# prompt, and a downgrade that DOESN'T wipe would let an attacker roll back to
-# an older signed image with a known extraction bug and keep the seed.
+# prompt, while loading an unreadable newer format can expose or corrupt it.
 #
-# How the wipe happens, mechanically (lib/firmware/storage.c):
+# How incompatibility is handled, mechanically (lib/firmware/storage.c):
 #
 #   storage_init() -> storage_fromFlash() -> version_from_int(raw_version)
-#   An unrecognised version returns StorageVersion_NONE, storage_fromFlash()
-#   returns SUS_Invalid, and storage_init() runs storage_reset() +
-#   storage_commit(). No prompt, no warning -- the wallet is gone at boot.
+#   Historical trees map an unrecognised version to StorageVersion_NONE and
+#   reset. Trees with SUS_TooNew intercept newer normal-band versions first and
+#   reset only the RAM shadow while leaving flash byte-identical.
 #
 # So "does this firmware recognise the version in flash?" IS the whole
 # question, and every test below is a way of asking it.
@@ -451,10 +451,9 @@ _NO_EMULATOR = (
     "<repo>/bin/kkemu, <repo>/build*/bin/kkemu). The version gate only runs at "
     "boot, and there is no host-driven reboot -- SoftReset is unimplemented and "
     "DebugLinkFlashDump is compiled out under EMULATOR -- so these tests must "
-    "own the emulator process. In CI the python-keepkey container is built from "
-    "scripts/emulator/python-keepkey.Dockerfile, which copies the source but "
-    "never builds the emulator, so this section is UNPROVEN there until that "
-    "image ships a kkemu."
+    "own the emulator process. The release Compose harness mounts the exact "
+    "variant binary published by firmware-unit; a standalone python-keepkey "
+    "container has no such binary, so this section remains UNPROVEN there."
 )
 
 
@@ -898,8 +897,8 @@ class TestStorageVersionGateSource(unittest.TestCase):
         device that has run newer firmware carries a stamp older firmware
         cannot read, and it must reset rather than load a blob it will
         misparse. The emulator test test_unrecognised_version_wipes_on_boot
-        proves the behaviour end to end; this proves the arm still exists on a
-        runner with no emulator.
+        proves the tree's declared wipe-or-refuse policy end to end; this
+        proves the legacy invalid arm still exists on a runner with no emulator.
         """
         arm = self.arms.get("NONE")
         self.assertIsNotNone(arm, "storage_fromFlash has no StorageVersion_NONE case")
@@ -1271,13 +1270,18 @@ class TestStorageUpgradePreservation(unittest.TestCase):
             c.close()
 
     def test_unrecognised_version_wipes_on_boot(self):
-        """Unknown full-product versions wipe; Bitcoin-only bands stay intact.
+        """A newer full-product version follows this firmware's declared policy.
+
+        The historical test id is retained because release reports from several
+        firmware lines key on it.  Older firmware deliberately wiped an unknown
+        normal-band version.  Firmware with the SUS_TooNew capability instead
+        refuses it without modifying flash, so reinstalling the newer firmware
+        can recover the wallet.  Canonical python-keepkey must verify whichever
+        policy the surrounding firmware tree actually implements.
 
         A device that has run newer firmware carries a newer stamp. Older
-        firmware cannot read it, so version_from_int() returns
-        StorageVersion_NONE and storage_init() resets. That is the property
-        that stops an attacker flashing an older, validly signed image with a
-        known extraction bug and keeping the seed.
+        firmware cannot read it. Trees without SUS_TooNew reset; trees with
+        SUS_TooNew lock the RAM shadow and preserve the record byte-for-byte.
 
         One past the version this build just committed is the tightest
         possible case, and it is measured from the device rather than read out
@@ -1297,13 +1301,16 @@ class TestStorageUpgradePreservation(unittest.TestCase):
             self.assertFalse(
                 c.features.initialized,
                 "a storage record stamped v%d -- which this firmware does not "
-                "recognise -- was loaded anyway. Rollback protection is gone: "
-                "an older signed image would keep the seed." % unknown)
+                "recognise -- was loaded anyway. An older image must never "
+                "parse a newer wallet format." % unknown)
             self.assertFalse(c.features.pin_protection)
             self.assertNotEqual(LABEL, c.features.label)
-            # Unknown versions in the Bitcoin-only band are refused without
-            # erasing the wallet; full firmware uses its existing wipe policy.
-            if self.bitcoin_only:
+            source = _read_source("lib/firmware/storage.c")
+            preserves_too_new = "SUS_TooNew" in source
+            # Bitcoin-only versions and firmware that explicitly implements
+            # SUS_TooNew are refused without erasing the wallet. Older regular
+            # firmware retains its historical wipe policy.
+            if self.bitcoin_only or preserves_too_new:
                 self.assertEqual(before, self.emu.image())
             else:
                 self.assertNotEqual(before, self.emu.image())
@@ -1340,7 +1347,11 @@ class TestStorageUpgradePreservation(unittest.TestCase):
                 c.init_device()
                 self.assertTrue(c.features.initialized)
                 self.assertEqual(before, self.emu.image())
-                self.assertEqual(addr, c.get_address("Bitcoin", BIP44_ADDRESS_N))
+                _capture(c)
+                self.assertEqual(
+                    addr, _get_displayed_address(c),
+                    "the bitcoin-only wallet did not return with the same "
+                    "displayed address after its power cycle")
             finally:
                 c.close()
             return
@@ -1351,7 +1362,6 @@ class TestStorageUpgradePreservation(unittest.TestCase):
         self.emu.write_u32(
             off, OFF_VERSION,
             STORAGE_VERSION_BTC_ONLY_BASE + self.emu.read_u32(off, OFF_VERSION))
-        self.emu.refresh_crc(off)
         before = self.emu.sector(off)
 
         self.emu.boot()
@@ -1376,7 +1386,6 @@ class TestStorageUpgradePreservation(unittest.TestCase):
         self.emu.write_u32(off, OFF_VERSION,
                            self.emu.read_u32(off, OFF_VERSION)
                            - STORAGE_VERSION_BTC_ONLY_BASE)
-        self.emu.refresh_crc(off)
         self.emu.boot()
         c = self.emu.client(self.method, pin=PIN)
         try:
