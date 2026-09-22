@@ -335,8 +335,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
             # wipe device
             ret = self.client.call_raw(proto.WipeDevice())
+            self.assertIsInstance(ret, proto.ButtonRequest)
             self.client.debug.press_yes()
             ret = self.client.call_raw(proto.ButtonAck())
+            self.assertIsInstance(ret, proto.Success)
+            self.assertEqual(ret.message, 'Device wiped')
 
             # recover devce
             ret = self.client.call_raw(proto.RecoveryDevice(word_count=int(strength/32*3),
@@ -381,8 +384,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
             # wipe device
             ret = self.client.call_raw(proto.WipeDevice())
+            self.assertIsInstance(ret, proto.ButtonRequest)
             self.client.debug.press_yes()
             ret = self.client.call_raw(proto.ButtonAck())
+            self.assertIsInstance(ret, proto.Success)
+            self.assertEqual(ret.message, 'Device wiped')
 
     def test_vuln1971(self):
         self.setup_mnemonic_allallall()
