@@ -127,7 +127,7 @@ jobs:
           # PINNED, not a moving branch, so a green result remains citeable.
           # This is the code/workflow head beneath the handoff-only commit on
           # firmware PR #843.
-          ref: a6effd7205b480c4fb314a1714831ffd863e2a48
+          ref: 9b0583a41b758af7fb4c08280ab2a2bd8bb5d503
           path: keepkey-firmware
 
       # NOT `submodules: recursive`. trezor-firmware carries a micropython
@@ -555,7 +555,7 @@ jobs:
             firmware_ref: 4125e1c7409b1cb7b08ba595bc408e3128fc24ca
             min_fw: "7.14.3"
           - release: "7.15"
-            firmware_ref: a6effd7205b480c4fb314a1714831ffd863e2a48
+            firmware_ref: 9b0583a41b758af7fb4c08280ab2a2bd8bb5d503
             min_fw: "7.15.0"
 
     # KK_BITCOIN_ONLY=ON is a second shipping product, not a build flavour:
