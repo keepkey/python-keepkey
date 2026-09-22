@@ -26,8 +26,17 @@ def catalog_results_with_solana_lut_skipped(fw_version):
 
 class TestReportVariantValidation(unittest.TestCase):
 
-    def tearDown(self):
+    def setUp(self):
+        self._original_missing_capabilities = os.environ.get(
+            'KK_RELEASE_MISSING_CAPABILITIES')
         os.environ.pop('KK_RELEASE_MISSING_CAPABILITIES', None)
+
+    def tearDown(self):
+        if self._original_missing_capabilities is None:
+            os.environ.pop('KK_RELEASE_MISSING_CAPABILITIES', None)
+        else:
+            os.environ['KK_RELEASE_MISSING_CAPABILITIES'] = (
+                self._original_missing_capabilities)
 
     def test_full_7143_accepts_unimplemented_solana_lut_skip(self):
         result = REPORT.validate_junit(
@@ -89,6 +98,29 @@ class TestReportVariantValidation(unittest.TestCase):
             ('test_msg_solana_lut_attestation',
              'test_attestation_does_not_replay_onto_another_transaction',
              'skipped-but-required'), failed)
+
+
+class TestReportVariantEnvironmentIsolation(unittest.TestCase):
+
+    def test_fixture_cleanup_restores_staged_capabilities(self):
+        key = 'KK_RELEASE_MISSING_CAPABILITIES'
+        original = os.environ.get(key)
+        try:
+            os.environ[key] = 'prompt-workflow-unwind,storage-v19-kdf'
+            case = TestReportVariantValidation(
+                'test_staged_capabilities_accept_only_their_mapped_controls')
+            case.setUp()
+            self.assertNotIn(key, os.environ)
+            os.environ[key] = 'temporary-test-value'
+            case.tearDown()
+            self.assertEqual(
+                'prompt-workflow-unwind,storage-v19-kdf',
+                os.environ.get(key))
+        finally:
+            if original is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = original
 
 
 if __name__ == '__main__':

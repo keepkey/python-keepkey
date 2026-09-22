@@ -101,7 +101,7 @@ class TestMsgOsmosisSignTx(common.KeepKeyTest):
         """Baseline: a whole-OSMO send signs and returns a well-formed
         secp256k1 signature + compressed pubkey."""
         self.requires_fullFeature()
-        self.requires_firmware("7.15.0")
+        self.requires_firmware("7.14.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig = self._sign(1500000)  # 1.500000 OSMO
@@ -117,7 +117,7 @@ class TestMsgOsmosisSignTx(common.KeepKeyTest):
         only that the device signs it, and read the amount off the screenshot.
         """
         self.requires_fullFeature()
-        self.requires_firmware("7.15.0")
+        self.requires_firmware("7.14.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig = self._sign(123456789123456)
@@ -127,7 +127,7 @@ class TestMsgOsmosisSignTx(common.KeepKeyTest):
         """500 uosmo is 0.000500 OSMO — six decimal places, no integer part.
         The formatter must not collapse it to "0" or drop the tail."""
         self.requires_fullFeature()
-        self.requires_firmware("7.15.0")
+        self.requires_firmware("7.14.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig = self._sign(500)
@@ -141,7 +141,7 @@ class TestMsgOsmosisSignTx(common.KeepKeyTest):
         ``uosmo`` serializer and any future display/signing mismatch.
         """
         self.requires_fullFeature()
-        self.requires_firmware("7.15.0")
+        self.requires_firmware("7.14.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
         def sign_denom(denom):
@@ -188,7 +188,7 @@ class TestMsgOsmosisSignTx(common.KeepKeyTest):
     def test_osmosis_swap_max_fields_are_fully_paged(self):
         """Maximum Swap assets exercise separate three-row screen bounds."""
         self.requires_fullFeature()
-        self.requires_firmware("7.15.0")
+        self.requires_firmware("7.14.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
         addr = self._start_raw_signing()
@@ -212,7 +212,7 @@ class TestMsgOsmosisSignTx(common.KeepKeyTest):
         they matched, the amount would not be in the digest and the confirm
         screen would be decorative."""
         self.requires_fullFeature()
-        self.requires_firmware("7.15.0")
+        self.requires_firmware("7.14.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
         a = self._sign(1500000)
@@ -226,7 +226,7 @@ class TestMsgOsmosisSignTx(common.KeepKeyTest):
         mismatch here means nonce generation is not deterministic, which is a
         key-recovery risk long before it is a display problem."""
         self.requires_fullFeature()
-        self.requires_firmware("7.15.0")
+        self.requires_firmware("7.14.2")
         self.setup_mnemonic_nopin_nopassphrase()
 
         first = self._sign(1500000)
