@@ -27,6 +27,18 @@
     },
     {
       "algorithm": "sha256d",
+      "canonical_hex": "010000000100000000000000000000000000000000000000000000000000000000000000000000000000ffffffff02a086010000000000225120a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c50c30000000000001976a914d986ed01b7a22225a70edbf2ba7cfb63a15cb3aa88ac00000000",
+      "canonical_sha256": "c0a02107b8e7a669e4872f7658e1fb92dbfcf30d14e1bbd1c52293b20332a394",
+      "network": "insight_bitcoin",
+      "required_by": [
+        "test_msg_signtx_taproot.py"
+      ],
+      "response": "insight_bitcoin_tx_3e1fdf082678a8a2f378995ffc0e4f853942c55c4ddbc2771b348413eeeca9a4.json",
+      "response_sha256": "8d08e188010976b1625e887f1fdfb528edd1e31d8dbf3c58f2061adb42842a58",
+      "txid": "3e1fdf082678a8a2f378995ffc0e4f853942c55c4ddbc2771b348413eeeca9a4"
+    },
+    {
+      "algorithm": "sha256d",
       "canonical_hex": "01000000017a1ebb08f129fb1cc814b59d63284286d58a7602708ae8be6dd073d8cbc7afbe000000006a47304402204ec6818b86591bbbc2abd5a10d203df49996c4bd5621eb2fa85345bb05458fa602202c9553fb00fc18199af82f4ec8f1055e9aeda6a5bbead1e02303a95a8bc91d31012103f54094da6a0b2e0799286268bb59ca7c83538e81c78e64f6333f40f9e0e222c0ffffffff0222bc0100000000001976a914902c642ba3a22f5c6cfa30a1790c133ddf15cc8888ac50c30000000000001976a914a6450f1945831a81912616691e721b787383f4ed88ac00000000",
       "canonical_sha256": "866676e1d518d08451cff11a7db284cb9e07e40b0186659d540049c4ae4d9e9c",
       "network": "insight_bitcoin",
@@ -119,7 +131,9 @@
       "canonical_sha256": "736027dec37c89ef66e5cba5a45f52977b78aff2bb63eb6e5dbd4ea4fc25eec9",
       "network": "insight_bitcoin",
       "required_by": [
+        "test_msg_bitcoin_only_variant.py",
         "test_msg_mayachain_signtx.py",
+        "test_msg_signing_boundaries.py",
         "test_msg_signtx.py",
         "test_msg_signtx_raw.py",
         "test_msg_signtx_xfer.py",

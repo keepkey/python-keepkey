@@ -1,80 +1,27 @@
-version: 2          # keep 2.0 syntax; CircleCI 2.1 also works
+version: 2.1
 
+# The authoritative multi-release emulator matrix lives in GitHub Actions.
+# Keep this smoke job while the legacy CircleCI project remains connected so
+# its required status verifies the checkout instead of failing at config load.
 jobs:
-  emulator-build-test:
+  canonical-smoke:
     docker:
-      - image: circleci/python:3.7      # upgrade to cimg/python:3.12 if you like
+      - image: cimg/python:3.11
     steps:
-      # ────────────────────────────────────────────────────────────────
-      # 1) Clone the current branch of python-keepkey via HTTPS
-      # ────────────────────────────────────────────────────────────────
       - run:
-          name: Clone python-keepkey (current branch)
+          name: Checkout current branch over HTTPS
           command: |
-            git clone --depth 1 -b "$CIRCLE_BRANCH" https://github.com/keepkey/python-keepkey.git .pykk
-            cd .pykk && git submodule update --init --recursive
-
-      # ────────────────────────────────────────────────────────────────
-      # 2) Grab firmware repo and inject our fresh python-keepkey copy
-      # ────────────────────────────────────────────────────────────────
-      - run:
-          name: Checkout firmware & inject python-keepkey
-          command: |
-            # Ensure all submodule URLs fall back to HTTPS
-            git config --global url."https://github.com/".insteadOf git@github.com:
-            git config --global url."https://".insteadOf git://
-
-            # Move python-keepkey out of the way
-            mv .pykk ../
-
-            # Clone firmware repository (expects $FIRMWARE_REPO env var)
-            git clone --depth 1 -b master "$FIRMWARE_REPO" .
-
-            # Initialise firmware submodules
+            git clone --depth 1 -b "$CIRCLE_BRANCH" \
+              https://github.com/keepkey/python-keepkey.git .
             git submodule update --init --recursive
-
-            # Replace the vendor copy with our PR branch python-keepkey
-            rm -rf deps/python-keepkey
-            mv ../.pykk deps/python-keepkey
-
-            # This is python-keepkey's standalone compatibility lane. Release
-            # OLED/PDF evidence is generated only by the exact-head firmware
-            # workflow, where the firmware and Python SHAs are pinned together.
-            # Do not inherit the firmware checkout's report/screenshot phase:
-            # it can describe a different (published/master) emulator and is
-            # therefore not release evidence for this Python PR.
-            cp deps/python-keepkey/.circleci/standalone-emulator-tests.sh \
-              scripts/emulator/python-keepkey-tests.sh
-
-      # ────────────────────────────────────────────────────────────────
-      # 3) Build the Docker-based emulator tests
-      # ────────────────────────────────────────────────────────────────
-      - setup_remote_docker
-
       - run:
-          name: Emulator tests
+          name: Validate canonical Python and EOS vector contracts
           command: |
-            pushd ./scripts/emulator
-            set +e                                   # don’t exit on first failure
-            docker-compose up --build firmware-unit
-            docker-compose up --build python-keepkey
-            set -e
+            python -m py_compile keepkeylib/*.py tests/test_msg_solana_signtx.py
+            python -m pip install --quiet pytest requests
+            python -m pytest -q tests/unit/test_eos_updateauth_vector.py
 
-            # Collect JUnit / pytest XML results
-            mkdir -p ../../test-reports
-            docker cp "$(docker-compose ps -q firmware-unit)":/kkemu/test-reports/. ../../test-reports/
-            docker cp "$(docker-compose ps -q python-keepkey)":/kkemu/test-reports/. ../../test-reports/
-            popd
-
-            # Fail job if either container reported non-zero status
-            [ "$(cat test-reports/python-keepkey/status)$(cat test-reports/firmware-unit/status)" = "00" ] || exit 1
-
-      - store_test_results:
-          path: test-reports
-
-# ──────────────────────────────────────────────────────────────────────
 workflows:
-  version: 2
-  emulator:
+  canonical:
     jobs:
-      - emulator-build-test
+      - canonical-smoke

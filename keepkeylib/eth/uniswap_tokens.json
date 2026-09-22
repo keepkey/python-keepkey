@@ -4542,5 +4542,13 @@
     "contractAddress": "0x0Ae055097C6d159879521C384F1D2123D1f195e6",
     "precision": 18,
     "network": "ETH"
+  },
+  {
+    "symbol": "WETH",
+    "identifier": "weth",
+    "displayName": "Wrapped Ether",
+    "contractAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    "precision": 18,
+    "network": "ETH"
   }
 ]

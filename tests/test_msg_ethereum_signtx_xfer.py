@@ -34,6 +34,7 @@ from test_msg_display_disclosure import ScreenRecorder
 class TestMsgEthereumSigntx(common.KeepKeyTest):
     def test_native_pseudo_address_transfer_is_unknown_off_mainnet(self):
         """TRANSFER must show the exact unknown-token frame on chain 257."""
+        self.requires_release_capability("evm-unknown-token-review")
         self.requires_firmware("7.14.2")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
@@ -59,9 +60,16 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                     data=erc20_data, chain_id=257,
                 )
             self.assertGreaterEqual(len(recorder.screens), 2)
+            # 7.15 explicitly labels the untrusted token value before the raw
+            # calldata review; pin that first warning frame exactly.
+            expected_frame = (
+                "ccaae357cd0efe7dfa015d93ba08079e415b8857e6139a7773fd6efbec37ea35"
+                if self.firmware_at_least("7.15.0") else
+                "b0a3026e7af1778ebd71a968ace25c03945cccf2d8abc951e5dd65abc04e914e"
+            )
             self.assertEqual(
                 hashlib.sha256(recorder.screens[0]).hexdigest(),
-                "b0a3026e7af1778ebd71a968ace25c03945cccf2d8abc951e5dd65abc04e914e",
+                expected_frame,
             )
         finally:
             self.client.apply_policy('AdvancedMode', 0)

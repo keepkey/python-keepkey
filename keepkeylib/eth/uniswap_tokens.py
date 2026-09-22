@@ -27,8 +27,29 @@ class USETHTokenTable(object):
             self.ustoks.append(USETHToken(token))
 
     def serialize_c(self):
+        # Flash budget -- see token_policy.
+        # Run as a standalone script by the build, so there is no package
+        # context for a relative import.
+        import os as _os, sys as _s
+        _s.path.insert(0, _os.path.dirname(_os.path.realpath(__file__)))
+        import token_policy
+        import sys as _sys
+        chosen, ambiguous = token_policy.select(
+            self.ustoks,
+            token_policy.BUDGET_UNISWAP_LIST,
+            symbol_of=lambda t: t.token.get('symbol', ''),
+            address_of=lambda t: t.token['contractAddress'].lower(),
+            # This list is mainnet-only (serialize_c hardcodes chain_id 1),
+            # so the chain component is constant rather than absent.
+            chain_of=lambda t: 1)
+        print('uniswap_tokens: %d of %d kept (budget %d)'
+              % (len(chosen), len(self.ustoks),
+                 token_policy.BUDGET_UNISWAP_LIST), file=_sys.stderr)
+        if ambiguous:
+            print('uniswap_tokens: priority symbols DROPPED as ambiguous: %s'
+                  % ', '.join(sorted(ambiguous)), file=_sys.stderr)
         ser_list = []
-        for token in sorted(self.ustoks, key=lambda t: t.token['contractAddress']):
+        for token in sorted(chosen, key=lambda t: t.token['contractAddress']):
             ser_list.append(token.serialize_c())
         return(ser_list)
 
