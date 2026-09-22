@@ -19,6 +19,7 @@
 # The script has been modified for KeepKey Device.
 
 import unittest
+import time
 import common
 
 from keepkeylib import messages_pb2 as proto
@@ -329,9 +330,19 @@ class TestDeviceRecovery(common.KeepKeyTest):
                 if not mnemonic or mnemonic[-1] != words:
                     mnemonic.append(words)
                 self.client.debug.press_yes()
+                # A subpage cannot finish on debug approval alone. Its own
+                # ButtonAck is required; a stale ack from the prior subpage
+                # must not release the next request prematurely.
+                time.sleep(0.2)
+                self.assertFalse(self.client.transport.ready_to_read(),
+                    'backup page completed before its ButtonAck')
                 resp = self.client.call_raw(proto.ButtonAck())
 
+            self.assertIsInstance(resp, proto.Success,
+                                  'reset completion at %d bits' % strength)
+            self.assertEqual(resp.message, 'Device reset')
             mnemonic = ' '.join(mnemonic)
+            self.assertEqual(len(mnemonic.split()), strength // 32 * 3)
 
             # wipe device
             ret = self.client.call_raw(proto.WipeDevice())
