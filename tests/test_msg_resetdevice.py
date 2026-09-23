@@ -228,6 +228,69 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertEqual(len(expected), target)
         return expected
 
+    def _assert_private_dice_state(self):
+        state = self.client.debug._call(proto.DebugLinkGetState())
+        self.assertEqual([], state.ListFields())
+
+    def _private_dice_reset(self, dice_only, strength, external_entropy):
+        """Exercise real wire phases without reading the device's contribution.
+
+        Firmware native DiceCeremonyPrivacy fixtures independently prove MIXED
+        derivation and on-device pages from a known draw. This transport test
+        proves disclosure suppression, completion and ONLY derivation. Stored
+        mnemonic diagnostics resume only after the ceremony has committed.
+        """
+        response = self.client.call_raw(proto.ResetDevice(
+            strength=strength, dice_entropy=True, dice_only=dice_only))
+        prompts = 0
+        # At roll entry ButtonAck arms input without sending another response.
+        # Use readiness, never a secret word or screenshot, to detect that wait.
+        while prompts < 32:
+            self.assertIsInstance(response, proto.ButtonRequest)
+            self.assertEqual(response.code, proto_types.ButtonRequest_DiceRoll)
+            self._assert_private_dice_state()
+            prompts += 1
+            self.client.debug.press_yes()
+            self.client.transport.write(proto.ButtonAck())
+            deadline = time.monotonic() + 1.0
+            while not self.client.transport.ready_to_read() and time.monotonic() < deadline:
+                time.sleep(0.01)
+            if not self.client.transport.ready_to_read():
+                break
+            response = self.client.transport.read_blocking()
+        self.assertLess(prompts, 32)
+        self.assertGreaterEqual(prompts, 2 if dice_only else 3)
+        self._assert_private_dice_state()
+        rolls = self._inject_rolls({128: 50, 192: 75, 256: 99}[strength])
+        response = self.client.transport.read_blocking()
+        digest_pages = 0
+        while isinstance(response, proto.ButtonRequest):
+            self.assertEqual(response.code, proto_types.ButtonRequest_DiceRoll)
+            self._assert_private_dice_state()
+            digest_pages += 1
+            self.assertLess(digest_pages, 32)
+            self.client.debug.press_yes()
+            response = self.client.call_raw(proto.ButtonAck())
+        self.assertGreater(digest_pages, 0)
+        self.assertIsInstance(response, proto.EntropyRequest)
+        self._assert_private_dice_state()
+        response = self.client.call_raw(proto.EntropyAck(entropy=external_entropy))
+        backup_pages = 0
+        while isinstance(response, proto.ButtonRequest):
+            self.assertIn(response.code, (proto_types.ButtonRequest_Other,
+                                         proto_types.ButtonRequest_ConfirmWord))
+            self._assert_private_dice_state()
+            backup_pages += 1
+            self.assertLess(backup_pages, 32)
+            self.client.debug.press_yes()
+            response = self.client.call_raw(proto.ButtonAck())
+        self.assertGreater(backup_pages, 1)
+        self.assertIsInstance(response, proto.Success)
+        state = self.client.debug._call(proto.DebugLinkGetState())
+        self.assertTrue(state.HasField('mnemonic'))
+        self.assertTrue(Mnemonic('english').check(state.mnemonic))
+        return None, rolls, state.mnemonic, response
+
     def _dice_reset(self, dice_only, strength, external_entropy):
         """Drive a dice ResetDevice in the mode the host selects.
 
@@ -235,6 +298,9 @@ class TestDeviceReset(common.KeepKeyTest):
         (device_words, rolls, mnemonic, final_resp); device_words is the
         24-word device-entropy sentence MIXED shows before rolling, else ''.
         """
+        if os.environ.get("KK_DICE_DEBUG_PRIVATE") == "1":
+            return self._private_dice_reset(dice_only, strength, external_entropy)
+
         rolls_needed = {128: 50, 192: 75, 256: 99}[strength]
 
         previous_layout = self._current_layout_for_capture()
@@ -332,6 +398,11 @@ class TestDeviceReset(common.KeepKeyTest):
 
         # The device committed its 32-byte draw as 24 valid BIP-39 words
         # before it had seen a single roll.
+        if device_words is None:
+            # The device draw is deliberately unavailable to the host. Full
+            # known-draw derivation is checked by the native companion fixture.
+            self.assertEqual(24, len(mnemonic.split()))
+            return
         self.assertEqual(24, len(device_words.split()))
         device_entropy = bip39_words_to_entropy(device_words)
 
@@ -357,7 +428,7 @@ class TestDeviceReset(common.KeepKeyTest):
         self.assertIsInstance(resp, proto.Success)
 
         # Nothing to copy down: the rolls are the entire derivation.
-        self.assertEqual('', device_words)
+        self.assertIn(device_words, ('', None))
         seed = dice_only_seed(rolls)
         self.assertEqual(
             mnemonic, Mnemonic('english').to_mnemonic(seed[:strength // 8]))
