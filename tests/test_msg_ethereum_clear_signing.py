@@ -29,6 +29,7 @@ import hashlib
 import struct
 
 from keepkeylib import messages_ethereum_pb2 as messages_eth
+from keepkeylib import messages_pb2 as messages
 
 try:
     import common
@@ -1029,12 +1030,15 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
 
         if flow['key'] == 'erc20-approve-unlimited':
-            with self.assertRaises(CallException) as ctx:
-                self.client.ethereum_sign_tx(
-                    n=n, nonce=FLOW_NONCE, gas_price=FLOW_GAS_PRICE,
-                    gas_limit=FLOW_GAS_LIMIT, to=flow['to'],
-                    value=flow['value'], data=flow['data'],
-                    chain_id=chain_id)
+            with self.client:
+                self.client.set_expected_responses([messages.Failure(
+                    message='Unlimited ERC20 approval is disabled')])
+                with self.assertRaises(CallException) as ctx:
+                    self.client.ethereum_sign_tx(
+                        n=n, nonce=FLOW_NONCE, gas_price=FLOW_GAS_PRICE,
+                        gas_limit=FLOW_GAS_LIMIT, to=flow['to'],
+                        value=flow['value'], data=flow['data'],
+                        chain_id=chain_id)
             self.assertIn('Unlimited ERC20 approval is disabled',
                           str(ctx.exception))
             return
