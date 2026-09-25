@@ -202,8 +202,7 @@ def test_compiles_official_uniswap_tuple_fixture_through_firmware():
     assert calldata[:4] == compiled[38:42]
     assert fixtures[1]["txHash"] == (
         "0xb25281abb3e6bbfe18c746187522c2e915aa02fdb8175082005340e00c1f0b30")
-    _firmware_validate(compiled,
-                       "formatter kind 7 is not executed")
+    _firmware_validate(compiled)
 
 
 def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
@@ -229,8 +228,7 @@ def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
         fixture["descriptor"], fixture["signature"], fixture["chainId"],
         fixture["to"], network_records=[(1, "Ethereum", "ETH", 18)])
     assert compiled[38:42].hex() == expected["selector"]
-    _firmware_validate(compiled,
-                       "formatter kind 2 is not executed")
+    _firmware_validate(compiled)
 
 
 def test_compiles_array_iteration_separator_and_optional_visibility():
@@ -360,8 +358,7 @@ def test_compiles_interpolated_intent_and_metadata_enum():
     assert formatters[2] == 8
     literals = sections[4]
     assert int.from_bytes(literals[:2], "big") == 3
-    _firmware_validate(compiled,
-                       "formatter kind 8 is not executed")
+    _firmware_validate(compiled)
 
 
 def test_compiles_nested_field_group_with_balanced_links():
@@ -440,7 +437,8 @@ DEVICE_LIMITS = (
 # tokenAmount over bytes32/uint256 words that pack an address or an encrypted
 # amount, rather than reinterpret bytes the calldata does not say are one.
 # Phase B adds the interpolated intent, shown as numbered parts: 954.
-REGISTRY_SIGNABLE = 954
+# Phase C adds amount, nftName, date, duration, unit, enum and @.value: 1138.
+REGISTRY_SIGNABLE = 1138
 
 
 def test_official_registry_all_calldata_formats_reach_firmware():
@@ -519,5 +517,4 @@ def test_compiles_official_uniswap_eip712_fixture_through_firmware():
     binding = sections[8]
     # deployment + name/chain/contract domain facts + token + network
     assert int.from_bytes(binding[:2], "big") == 6
-    _firmware_validate(compiled,
-                       "formatter kind 5 is not executed")
+    _firmware_validate(compiled)

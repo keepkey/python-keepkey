@@ -975,40 +975,66 @@ class CalldataCompiler(object):
 # include/keepkey/firmware/erc7730_capabilities.h. The device refuses every
 # program outside it at preload, before the first screen. Widen this only
 # together with the firmware table.
+_PATH, _LITERAL, _STRING = frozenset((1,)), frozenset((2,)), frozenset((3,))
 DEVICE_CAPABILITIES = {
     # 2 and 3 (interpolated intent) only as one run directly after the intent
     "display_opcodes": frozenset((1, 2, 3, 4, 10)),
     # formatter kind -> (argument role -> permitted sources, required roles)
     "formatters": {
-        1: ({1: frozenset((1,))}, frozenset((1,))),     # raw
-        3: ({1: frozenset((1,)), 2: frozenset((1,)),     # tokenAmount
-             7: frozenset((2,)), 8: frozenset((3,)), 22: frozenset((2,))},
-            frozenset((1, 2))),
-        10: ({1: frozenset((1,))}, frozenset((1,))),    # addressName
+        1: ({1: _PATH}, frozenset((1,))),                        # raw
+        2: ({1: _PATH}, frozenset((1,))),                        # amount
+        3: ({1: _PATH, 2: _PATH, 7: _LITERAL, 8: _STRING,        # tokenAmount
+             22: _LITERAL}, frozenset((1, 2))),
+        4: ({1: _PATH, 3: _PATH}, frozenset((1, 3))),            # nftName
+        5: ({1: _PATH, 9: _STRING}, frozenset((1,))),            # date
+        6: ({1: _PATH}, frozenset((1,))),                        # duration
+        7: ({1: _PATH, 4: _LITERAL, 5: _STRING, 6: _LITERAL},    # unit
+            frozenset((1, 5))),
+        8: ({1: _PATH, 10: _LITERAL}, frozenset((1, 10))),       # enum
+        10: ({1: _PATH}, frozenset((1,))),                       # addressName
     },
     "path_sources": frozenset((1, 2, 3)),
-    # @.from and @.to, calldata definitions only
-    "containers": frozenset((1, 2)),
+    # @.from, @.to and @.value, calldata definitions only
+    "containers": frozenset((1, 2, 3)),
     "path_step_opcodes": frozenset((1,)),
     "conditions": False,
     "alias_set_max": 4,
+    "enum_max": 16,
 }
 # Value classes: 1-7 are ABI leaf kinds; literals map to what they hold.
-CLASS_UINT, CLASS_ADDRESS, CLASS_STRING_REF, CLASS_ALIAS_SET = 1, 3, 8, 9
+(CLASS_UINT, CLASS_INT, CLASS_ADDRESS, CLASS_BOOL, CLASS_STRING,
+ CLASS_STRING_REF, CLASS_ALIAS_SET, CLASS_UINT_SMALL, CLASS_DATE_ENCODING,
+ CLASS_ENUM_MAP, CLASS_FLAG) = 1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13
 
 
 def _value_allowed(kind, role, cls):
     """Mirror of erc7730_cap_value()."""
     if not cls:
         return False
-    if kind == 1 and role == 1:
-        return cls <= CLASS_STRING_REF
-    if kind == 10 and role == 1:
-        return cls == CLASS_ADDRESS
-    if kind == 3:
-        return {1: CLASS_UINT, 7: CLASS_UINT, 2: CLASS_ADDRESS,
-                22: CLASS_ALIAS_SET}.get(role) == cls
-    return False
+    unsigned = (CLASS_UINT, CLASS_UINT_SMALL)
+    rules = {
+        (1, 1): lambda: cls <= CLASS_STRING_REF or cls == CLASS_UINT_SMALL,
+        (10, 1): lambda: cls == CLASS_ADDRESS,
+        (2, 1): lambda: cls == CLASS_UINT,
+        (6, 1): lambda: cls == CLASS_UINT,
+        (3, 1): lambda: cls == CLASS_UINT,
+        (3, 7): lambda: cls in unsigned,
+        (3, 2): lambda: cls == CLASS_ADDRESS,
+        (3, 8): lambda: cls in (CLASS_STRING, CLASS_DATE_ENCODING),
+        (3, 22): lambda: cls == CLASS_ALIAS_SET,
+        (4, 1): lambda: cls == CLASS_UINT,
+        (4, 3): lambda: cls == CLASS_ADDRESS,
+        (5, 1): lambda: cls == CLASS_UINT,
+        (5, 9): lambda: cls == CLASS_DATE_ENCODING,
+        (7, 1): lambda: cls == CLASS_UINT,
+        (7, 4): lambda: cls == CLASS_UINT_SMALL,
+        (7, 5): lambda: cls in (CLASS_STRING, CLASS_DATE_ENCODING),
+        (7, 6): lambda: cls == CLASS_FLAG,
+        (8, 1): lambda: cls in (CLASS_UINT, CLASS_INT, CLASS_BOOL),
+        (8, 10): lambda: cls == CLASS_ENUM_MAP,
+    }
+    rule = rules.get((kind, role))
+    return bool(rule and rule())
 
 
 MAX_ARRAY_ELEMENTS = 64
@@ -1067,14 +1093,32 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
         kind, length = literal_table[at], u16(literal_table, at + 1)
         value = literal_table[at + 3:at + 3 + length]
         at += 3 + length
-        members = u16(value, 0) if kind == 9 else 0
-        literal_classes.append(
-            {1: CLASS_UINT, 4: CLASS_STRING_REF, 5: CLASS_ADDRESS}.get(kind) or
-            (CLASS_ALIAS_SET if kind == 9 and
-             0 < members <= capabilities.get("alias_set_max", 0) else 0))
+        members = u16(value, 0) if kind in (8, 9) else 0
+        if kind == 1:
+            cls = CLASS_UINT_SMALL if length == 1 else CLASS_UINT
+        elif kind == 8:
+            cls = (CLASS_ENUM_MAP if 0 < members <= capabilities.get(
+                "enum_max", 0) else 0)
+        elif kind == 9:
+            cls = (CLASS_ALIAS_SET if 0 < members <= capabilities.get(
+                "alias_set_max", 0) else 0)
+        else:
+            cls = {4: CLASS_STRING_REF, 5: CLASS_ADDRESS,
+                   6: CLASS_FLAG}.get(kind, 0)
+        literal_classes.append(cls)
 
     def literal_class(index):
         return literal_classes[index] if index < len(literal_classes) else 0
+
+    string_table = sections.get(1, b"\0\0")
+    date_strings = set()
+    at = 2
+    for index in range(u16(string_table, 0)):
+        length = u16(string_table, at)
+        if string_table[at + 2:at + 2 + length] in (b"timestamp",
+                                                    b"blockheight"):
+            date_strings.add(index)
+        at += 2 + length
 
     calldata = program[7] == 1
     path_classes = []
@@ -1090,8 +1134,9 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             return "container %d is not executed" % index
         if source == 3 and index >= 64:
             return "path names a literal beyond the table"
-        path_classes.append(CLASS_ADDRESS if source == 2 else
-                            ("literal", index) if source == 3 else None)
+        path_classes.append(
+            (CLASS_UINT if index == 3 else CLASS_ADDRESS) if source == 2 else
+            ("literal", index) if source == 3 else None)
         steps = []
         for _ in range(count):
             opcode = paths[at]
@@ -1132,14 +1177,17 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             if source not in roles.get(role, ()):
                 return "formatter kind %d argument role %d is not executed" % (
                     kind, role)
-            if source != 3:
+            if source == 3:
+                cls = (CLASS_DATE_ENCODING if index in date_strings else
+                       CLASS_STRING)
+            else:
                 cls = (literal_class(index) if source == 2 else
                        path_classes[index] if index < len(path_classes) else 0)
-                if isinstance(cls, tuple):
-                    cls = literal_class(cls[1])
-                if not _value_allowed(kind, role, cls):
-                    return ("formatter kind %d argument role %d has the wrong "
-                            "type" % (kind, role))
+            if isinstance(cls, tuple):
+                cls = literal_class(cls[1])
+            if not _value_allowed(kind, role, cls):
+                return ("formatter kind %d argument role %d has the wrong "
+                        "type" % (kind, role))
             seen.add(role)
         if not required <= seen:
             return "formatter kind %d lacks a required argument" % kind
