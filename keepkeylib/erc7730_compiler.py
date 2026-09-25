@@ -777,6 +777,12 @@ class CalldataCompiler(object):
                 if not callee:
                     raise ValueError("embedded calldata requires calleePath")
                 arguments.append((15, 1, intern_path(_resolve_path(root, callee))))
+                # 17: the native value the inner call moves; 18: whose
+                # authority it runs with.
+                for role, key in ((17, "amountPath"), (18, "spenderPath")):
+                    if params.get(key):
+                        arguments.append((role, 1, intern_path(
+                            _resolve_path(root, params[key]))))
             formatter_index = len(formatters)
             formatters.append((kind, arguments))
             condition = ABSENT
@@ -993,6 +999,8 @@ DEVICE_CAPABILITIES = {
             frozenset((1, 5))),
         8: ({1: _PATH, 10: _LITERAL}, frozenset((1, 10))),       # enum
         10: ({1: _PATH}, frozenset((1,))),                       # addressName
+        13: ({1: _PATH, 15: _PATH, 17: _PATH, 18: _PATH},        # calldata
+             frozenset((1, 15))),
     },
     "path_sources": frozenset((1, 2, 3)),
     # @.from, @.to and @.value, calldata definitions only
@@ -1006,6 +1014,7 @@ DEVICE_CAPABILITIES = {
     "enum_max": 16,
 }
 # Value classes: 1-7 are ABI leaf kinds; literals map to what they hold.
+CLASS_BYTES = 6
 (CLASS_UINT, CLASS_INT, CLASS_ADDRESS, CLASS_BOOL, CLASS_STRING,
  CLASS_STRING_REF, CLASS_ALIAS_SET, CLASS_UINT_SMALL, CLASS_DATE_ENCODING,
  CLASS_ENUM_MAP, CLASS_FLAG) = 1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13
@@ -1036,6 +1045,10 @@ def _value_allowed(kind, role, cls):
         (7, 6): lambda: cls == CLASS_FLAG,
         (8, 1): lambda: cls in (CLASS_UINT, CLASS_INT, CLASS_BOOL),
         (8, 10): lambda: cls == CLASS_ENUM_MAP,
+        (13, 1): lambda: cls == CLASS_BYTES,
+        (13, 15): lambda: cls == CLASS_ADDRESS,
+        (13, 17): lambda: cls == CLASS_UINT,
+        (13, 18): lambda: cls == CLASS_ADDRESS,
     }
     rule = rules.get((kind, role))
     return bool(rule and rule())
@@ -1227,6 +1240,8 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             seen.add(role)
         if not required <= seen:
             return "formatter kind %d lacks a required argument" % kind
+        if kind == 13 and not calldata:
+            return "embedded calldata is executed for calldata only"
         formatter_arrays.append((value_array, any_array))
 
     displays = sections.get(7, b"\0\0")
