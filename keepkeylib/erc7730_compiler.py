@@ -1326,8 +1326,7 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
                 return "a field label is longer than the device shows"
             if any_array and iteration is None:
                 return "an iterating value outside an iteration"
-            if (iteration is not None and value_array is not None and
-                    value_array != iteration):
+            if iteration is not None and value_array != iteration:
                 return "a field reads another array than its iteration"
     return None
 

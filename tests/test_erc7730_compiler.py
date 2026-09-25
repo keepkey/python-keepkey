@@ -263,6 +263,42 @@ def test_compiles_array_iteration_separator_and_optional_visibility():
     _firmware_validate(compiled)
 
 
+def test_refuses_scalar_value_repeated_inside_iteration():
+    descriptor = {"display": {"formats": {
+        "batch(address[] recipients,address fallback)": {
+            "intent": "Batch transfer",
+            "fields": [
+                {"path": "recipients.[]", "label": "Recipient",
+                 "format": "addressName", "separator": "Next recipient"},
+                {"path": "fallback", "label": "Fallback",
+                 "format": "addressName"},
+            ],
+        }
+    }}}
+    program = bytearray(_unchecked(
+        compile_calldata, descriptor,
+        "batch(address[] recipients,address fallback)", 1,
+        "0x1111111111111111111111111111111111111111"))
+    _firmware_validate(bytes(program))
+    # Replace the iterated formatter's path with the scalar formatter's path.
+    # The display still contains an iteration, so the device must refuse it.
+    offset = HEADER_SIZE
+    while offset < len(program):
+        kind = program[offset]
+        length = struct.unpack_from(">I", program, offset + 1)[0]
+        if kind == 6:
+            start = offset + 5
+            assert struct.unpack_from(">H", program, start)[0] == 2
+            assert program[start + 7:start + 9] != program[start + 14:start + 16]
+            program[start + 7:start + 9] = program[start + 14:start + 16]
+            break
+        offset += 5 + length
+    else:
+        pytest.fail("formatter section missing")
+    _firmware_validate(bytes(program),
+                       "a field reads another array than its iteration")
+
+
 def test_refuses_nested_array_iteration_the_device_cannot_verify():
     # The device's catalog verifier accepts one "[]" step per path, so a
     # program iterating a nested array could never be loaded. The compiler
