@@ -973,9 +973,10 @@ class CalldataCompiler(object):
 # together with the firmware table.
 DEVICE_CAPABILITIES = {
     "display_opcodes": frozenset((1, 4, 10)),
-    # formatter kind -> {argument role -> permitted sources}
-    "formatters": {1: {1: frozenset((1,))}},
+    # formatter kind -> (argument role -> permitted sources, required roles)
+    "formatters": {1: ({1: frozenset((1,))}, frozenset((1,)))},
     "path_sources": frozenset((1,)),
+    "containers": frozenset(),
     "path_step_opcodes": frozenset((1,)),
     "conditions": False,
 }
@@ -997,6 +998,27 @@ def _program_sections(program):
     return sections
 
 
+def _abi_walk(nodes, steps):
+    """Mirror of the firmware's preload walk; steps are (opcode, index)."""
+    node = 0
+    for opcode, index in steps:
+        if node >= len(nodes):
+            return "path leaves the ABI"
+        kind, _, first, count, length = nodes[node]
+        if kind == 8 and opcode == 1 and count and 0 <= index < count:
+            node = first + index
+        elif kind == 9 and opcode in (1, 2):
+            limit = MAX_ARRAY_ELEMENTS if length == ABSENT else length
+            if not -limit <= index < limit:
+                return "path indexes beyond the array"
+            node = first
+        else:
+            return "path does not name an ABI member"
+    if node >= len(nodes) or nodes[node][0] > 7:
+        return "path does not end at a value"
+    return None
+
+
 def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     """Why the device would refuse `program` at preload, or None."""
     sections = _program_sections(program)
@@ -1006,43 +1028,33 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     nodes = [struct.unpack(">BHHHH", abi[2 + 9 * i:11 + 9 * i])
              for i in range(u16(abi, 0))]
 
-    def walk(steps):
-        node = 0
-        for step in steps:
-            if node >= len(nodes):
-                return "path leaves the ABI"
-            kind, _, first, count, length = nodes[node]
-            if kind == 8 and count and 0 <= step < count:
-                node = first + step
-            elif kind == 9:
-                limit = MAX_ARRAY_ELEMENTS if length == ABSENT else length
-                if not -limit <= step < limit:
-                    return "path indexes beyond the array"
-                node = first
-            else:
-                return "path does not name an ABI member"
-        if node >= len(nodes) or nodes[node][0] > 7:
-            return "path does not end at a value"
-        return None
-
     paths = sections.get(3, b"\0\0")
     at = 2
     for _ in range(u16(paths, 0)):
-        source, count = paths[at], paths[at + 1]
+        source, count, index = paths[at], paths[at + 1], u16(paths, at + 2)
         at += 4
         if source not in capabilities["path_sources"]:
             return "path source %d is not executed" % source
+        if source == 2 and index not in capabilities["containers"]:
+            return "container %d is not executed" % index
         steps = []
         for _ in range(count):
             opcode = paths[at]
             at += 1
             if opcode not in capabilities["path_step_opcodes"]:
                 return "path step opcode %d is not executed" % opcode
-            steps.append(struct.unpack(">i", paths[at:at + 4])[0])
-            at += 4
-        reason = walk(steps)
-        if reason:
-            return reason
+            if opcode == 1:
+                steps.append((1, struct.unpack(">i", paths[at:at + 4])[0]))
+                at += 4
+            elif opcode == 2:
+                steps.append((2, 0))
+            else:
+                flags = paths[at]
+                at += 1 + 4 * bin(flags).count("1")
+        if source == 1:
+            reason = _abi_walk(nodes, steps)
+            if reason:
+                return reason
 
     conditions = sections.get(5, b"\0\0")
     if u16(conditions, 0) and not capabilities["conditions"]:
@@ -1053,9 +1065,9 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     for _ in range(u16(formatters, 0)):
         kind, argc = formatters[at], formatters[at + 2]
         at += 3
-        roles = capabilities["formatters"].get(kind)
-        if roles is None:
+        if kind not in capabilities["formatters"]:
             return "formatter kind %d is not executed" % kind
+        roles, required = capabilities["formatters"][kind]
         seen = set()
         for _ in range(argc):
             role, source = formatters[at], formatters[at + 1]
@@ -1064,7 +1076,7 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
                 return "formatter kind %d argument role %d is not executed" % (
                     kind, role)
             seen.add(role)
-        if not set(roles) <= seen:
+        if not required <= seen:
             return "formatter kind %d lacks a required argument" % kind
 
     displays = sections.get(7, b"\0\0")
