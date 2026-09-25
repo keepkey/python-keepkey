@@ -248,7 +248,10 @@ def test_compiles_array_iteration_separator_and_optional_visibility():
     _firmware_validate(compiled)
 
 
-def test_compiles_recursive_array_iteration_frames():
+def test_refuses_nested_array_iteration_the_device_cannot_verify():
+    # The device's catalog verifier accepts one "[]" step per path, so a
+    # program iterating a nested array could never be loaded. The compiler
+    # refuses it by name instead of emitting a program the device rejects.
     descriptor = {"display": {"formats": {
         "matrix(uint256[][] values)": {
             "intent": "Review matrix",
@@ -256,16 +259,10 @@ def test_compiles_recursive_array_iteration_frames():
                         "format": "raw", "separator": "Next row"}],
         }
     }}}
-    compiled = compile_calldata(
-        descriptor, "matrix(uint256[][] values)", 1,
-        "0x1111111111111111111111111111111111111111")
-    display = _sections(compiled)[7]
-    count = int.from_bytes(display[:2], "big")
-    instructions = [display[2 + i * 8:10 + i * 8] for i in range(count)]
-    assert [item[0] for item in instructions] == [1, 7, 7, 4, 8, 8, 10]
-    assert int.from_bytes(instructions[1][6:8], "big") == 5
-    assert int.from_bytes(instructions[2][6:8], "big") == 4
-    _firmware_validate(compiled)
+    with pytest.raises(ValueError, match="iterates more than one array"):
+        compile_calldata(
+            descriptor, "matrix(uint256[][] values)", 1,
+            "0x1111111111111111111111111111111111111111")
 
 
 def test_token_amount_without_token_uses_firmware_raw_fallback():
@@ -279,8 +276,10 @@ def test_token_amount_without_token_uses_firmware_raw_fallback():
     compiled = compile_calldata(
         descriptor, "quote(uint256 amount)", 1,
         "0x1111111111111111111111111111111111111111")
+    # With no token named the device can only show the raw integer, and its
+    # verifier refuses a tokenAmount formatter without a token argument.
     formatter = _sections(compiled)[6]
-    assert formatter[2:5] == bytes([3, 0, 1])
+    assert formatter[2:5] == bytes([1, 0, 1])
     assert formatter[5:9] == bytes([1, 1, 0, 0])
     _firmware_validate(compiled)
 
@@ -405,11 +404,18 @@ def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
     _firmware_validate(compiled)
 
 
+DEVICE_LIMITS = (
+    "iterates more than one array",
+    "nests deeper than the device supports",
+)
+
+
 def test_official_registry_all_calldata_formats_reach_firmware():
     registry = _evidence_input("ERC7730_REGISTRY")
     validator = _evidence_input("ERC7730_FIRMWARE_VALIDATOR")
     import glob
     failures = []
+    unsupported = []
     checked = 0
     for path in glob.glob(os.path.join(
             registry, "registry", "**", "calldata-*.json"), recursive=True):
@@ -425,9 +431,15 @@ def test_official_registry_all_calldata_formats_reach_firmware():
         for signature in descriptor.get("display", {}).get("formats", {}):
             checked += 1
             try:
-                program = compile_calldata(
-                    descriptor, signature, deployment["chainId"],
-                    deployment["address"])
+                try:
+                    program = compile_calldata(
+                        descriptor, signature, deployment["chainId"],
+                        deployment["address"])
+                except ValueError as exc:
+                    if any(reason in str(exc) for reason in DEVICE_LIMITS):
+                        unsupported.append(signature)
+                        continue
+                    raise
                 with tempfile.NamedTemporaryFile() as output:
                     output.write(program)
                     output.flush()
@@ -439,6 +451,9 @@ def test_official_registry_all_calldata_formats_reach_firmware():
                     os.path.basename(path), signature, exc))
     assert checked == 1450
     assert failures == []
+    # Every other format is refused by the compiler for a named device limit:
+    # 8 iterate nested arrays, 2 nest their ABI deeper than 8 levels.
+    assert len(unsupported) == 10
 
 
 def test_compiles_official_uniswap_eip712_fixture_through_firmware():

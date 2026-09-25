@@ -670,6 +670,11 @@ class CalldataCompiler(object):
                         "threshold", "message", "chainId", "chainIdPath")):
                     raise ValueError(
                         "unknown token amount cannot use token metadata parameters")
+                else:
+                    # No token is named, so the device can only show the raw
+                    # integer. Its verifier refuses a tokenAmount without a
+                    # token argument, so compile the raw formatter it runs.
+                    kind = 1
                 if "threshold" in params:
                     threshold = descriptor_value(params["threshold"])
                     if isinstance(threshold, str) and threshold.startswith("0x"):
@@ -847,6 +852,11 @@ class CalldataCompiler(object):
             return 1 + (max(depth(child) for child in node.children)
                         if node.children else 0)
         max_depth = depth(root)
+        # The device's ABI verifier counts the root as depth 1, as depth()
+        # does, and refuses a node deeper than ERC7730_ABI_MAX_DEPTH (8).
+        if max_depth > 8:
+            raise ValueError(
+                "ERC-7730 ABI nests deeper than the device supports")
         for node, first, count in flat:
             array_length = node.array_length if node.kind == 9 else 0
             payload += bytes([node.kind]) + _u16(node.size) + _u16(first) + _u16(count) + _u16(array_length or 0)
@@ -859,6 +869,11 @@ class CalldataCompiler(object):
             if steps and steps[0][0] == "container":
                 payload += bytes([2, 0]) + _u16(steps[0][1])
                 continue
+            # The device iterates at most one array per path ("[]" step).
+            if sum(1 for step in steps if step[0] == 2) > 1:
+                raise ValueError(
+                    "ERC-7730 path iterates more than one array; the device "
+                    "supports one")
             payload += bytes([1, len(steps)]) + _u16(ABSENT)
             for step in steps:
                 if step[0] == 1:
