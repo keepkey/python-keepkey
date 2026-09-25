@@ -432,7 +432,6 @@ FULL_SEQUENCE_TESTS = {
     ('test_msg_ethereum_clearsign_additive',
      'test_failed_signature_falls_back_to_the_unverified_review'),
     ('test_msg_ethereum_clear_signing', 'test_binding_happy_path_signs_and_recovers'),
-    ('test_msg_ethereum_clear_signing', 'test_clearsign_erc20_approve_unlimited'),
     ('test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v2_eth_to_token'),
     # The newest/highest-stakes tx shapes get the full ordered walkthrough too.
     ('test_msg_ethereum_clear_signing', 'test_clearsign_eip7702_setcode_authorization'),
@@ -460,10 +459,9 @@ def _v_catalog_tests(start_id=17):
     silently go stale (as happened when the old hand-written V17-V23 test
     names drifted from the dynamically-generated ones).
 
-    Every entry gets a NON-EMPTY screenshots hint: screenshot_filter() below
-    only includes tests whose hint list is non-empty in the Phase-1 capture
-    filter, so an empty list here would silently exclude a flow from ever
-    getting an OLED screenshot.
+    Signing entries get screenshot hints. The unlimited-approval refusal is
+    deliberately screenless: its wire assertion requires immediate Failure,
+    so setup or home frames must never be used as approval evidence.
     """
     if not CLEARSIGN_FLOWS:
         return []
@@ -473,6 +471,18 @@ def _v_catalog_tests(start_id=17):
         if f['key'] == 'aave-v3-supply':
             continue
         method = 'test_clearsign_' + f['key'].replace('-', '_').replace('.', '_')
+        if f['key'] == 'erc20-approve-unlimited':
+            out.append((
+                'V%d' % i, 'test_msg_ethereum_clear_signing', method,
+                'Unlimited ERC-20 approval refused before confirmation',
+                'Even with AdvancedMode and valid runtime metadata, unlimited '
+                'approval returns Failure before any ButtonRequest or signature. '
+                'The wire test requires that immediate refusal; no OLED approval '
+                'screen is expected.',
+                [],
+            ))
+            i += 1
+            continue
 
         def _arg_shown(a):
             # Render what the OLED will actually show for this arg:
@@ -502,14 +512,14 @@ def _v_catalog_tests(start_id=17):
         # Prefer any TOKEN_AMOUNT/ADDRESS/STRING label as the screenshot hint
         # so it reads like what the OLED will actually show.
         hint_names = [a['name'] for a in f['args'][:2]] or [f['method']]
-        ctx = ('%s.%s (%s). %s AdvancedMode OFF; the bound metadata is the '
-              'only reason this contract data may sign. Real tx: to=0x%s..%s, '
+        ctx = ('%s.%s (%s). %s AdvancedMode ON; runtime annotations are '
+              'additional to ordinary raw review. Real tx: to=0x%s..%s, '
               'chainId %d. Decode: %s.' % (
                   f['protocol'], f['method'], f['category'], f.get('why', ''),
                   f['to'].hex()[:4], f['to'].hex()[-4:], f['chain_id'], shows))
         out.append((
             'V%d' % i, 'test_msg_ethereum_clear_signing', method,
-            '%s %s — clear-signed, zero hex' % (f['protocol'], f['method']),
+            '%s %s — annotated with ordinary review' % (f['protocol'], f['method']),
             ctx,
             hint_names,
         ))
