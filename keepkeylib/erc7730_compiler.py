@@ -974,12 +974,38 @@ class CalldataCompiler(object):
 DEVICE_CAPABILITIES = {
     "display_opcodes": frozenset((1, 4, 10)),
     # formatter kind -> (argument role -> permitted sources, required roles)
-    "formatters": {1: ({1: frozenset((1,))}, frozenset((1,)))},
-    "path_sources": frozenset((1,)),
-    "containers": frozenset(),
+    "formatters": {
+        1: ({1: frozenset((1,))}, frozenset((1,))),     # raw
+        3: ({1: frozenset((1,)), 2: frozenset((1,)),     # tokenAmount
+             7: frozenset((2,)), 8: frozenset((3,)), 22: frozenset((2,))},
+            frozenset((1, 2))),
+        10: ({1: frozenset((1,))}, frozenset((1,))),    # addressName
+    },
+    "path_sources": frozenset((1, 2, 3)),
+    # @.from and @.to, calldata definitions only
+    "containers": frozenset((1, 2)),
     "path_step_opcodes": frozenset((1,)),
     "conditions": False,
+    "alias_set_max": 4,
 }
+# Value classes: 1-7 are ABI leaf kinds; literals map to what they hold.
+CLASS_UINT, CLASS_ADDRESS, CLASS_STRING_REF, CLASS_ALIAS_SET = 1, 3, 8, 9
+
+
+def _value_allowed(kind, role, cls):
+    """Mirror of erc7730_cap_value()."""
+    if not cls:
+        return False
+    if kind == 1 and role == 1:
+        return cls <= CLASS_STRING_REF
+    if kind == 10 and role == 1:
+        return cls == CLASS_ADDRESS
+    if kind == 3:
+        return {1: CLASS_UINT, 7: CLASS_UINT, 2: CLASS_ADDRESS,
+                22: CLASS_ALIAS_SET}.get(role) == cls
+    return False
+
+
 MAX_ARRAY_ELEMENTS = 64
 
 
@@ -999,24 +1025,25 @@ def _program_sections(program):
 
 
 def _abi_walk(nodes, steps):
-    """Mirror of the firmware's preload walk; steps are (opcode, index)."""
+    """Mirror of the firmware's preload walk; steps are (opcode, index).
+    Returns (refusal, leaf kind)."""
     node = 0
     for opcode, index in steps:
         if node >= len(nodes):
-            return "path leaves the ABI"
+            return "path leaves the ABI", 0
         kind, _, first, count, length = nodes[node]
         if kind == 8 and opcode == 1 and count and 0 <= index < count:
             node = first + index
         elif kind == 9 and opcode in (1, 2):
             limit = MAX_ARRAY_ELEMENTS if length == ABSENT else length
             if not -limit <= index < limit:
-                return "path indexes beyond the array"
+                return "path indexes beyond the array", 0
             node = first
         else:
-            return "path does not name an ABI member"
+            return "path does not name an ABI member", 0
     if node >= len(nodes) or nodes[node][0] > 7:
-        return "path does not end at a value"
-    return None
+        return "path does not end at a value", 0
+    return None, nodes[node][0]
 
 
 def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
@@ -1028,6 +1055,24 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     nodes = [struct.unpack(">BHHHH", abi[2 + 9 * i:11 + 9 * i])
              for i in range(u16(abi, 0))]
 
+    literal_table = sections.get(4, b"\0\0")
+    literal_classes = []
+    at = 2
+    for _ in range(u16(literal_table, 0)):
+        kind, length = literal_table[at], u16(literal_table, at + 1)
+        value = literal_table[at + 3:at + 3 + length]
+        at += 3 + length
+        members = u16(value, 0) if kind == 9 else 0
+        literal_classes.append(
+            {1: CLASS_UINT, 4: CLASS_STRING_REF, 5: CLASS_ADDRESS}.get(kind) or
+            (CLASS_ALIAS_SET if kind == 9 and
+             0 < members <= capabilities.get("alias_set_max", 0) else 0))
+
+    def literal_class(index):
+        return literal_classes[index] if index < len(literal_classes) else 0
+
+    calldata = program[7] == 1
+    path_classes = []
     paths = sections.get(3, b"\0\0")
     at = 2
     for _ in range(u16(paths, 0)):
@@ -1035,8 +1080,13 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
         at += 4
         if source not in capabilities["path_sources"]:
             return "path source %d is not executed" % source
-        if source == 2 and index not in capabilities["containers"]:
+        if source == 2 and (index not in capabilities["containers"] or
+                            not calldata):
             return "container %d is not executed" % index
+        if source == 3 and index >= 64:
+            return "path names a literal beyond the table"
+        path_classes.append(CLASS_ADDRESS if source == 2 else
+                            ("literal", index) if source == 3 else None)
         steps = []
         for _ in range(count):
             opcode = paths[at]
@@ -1052,9 +1102,10 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
                 flags = paths[at]
                 at += 1 + 4 * bin(flags).count("1")
         if source == 1:
-            reason = _abi_walk(nodes, steps)
+            reason, leaf = _abi_walk(nodes, steps)
             if reason:
                 return reason
+            path_classes[-1] = leaf
 
     conditions = sections.get(5, b"\0\0")
     if u16(conditions, 0) and not capabilities["conditions"]:
@@ -1071,10 +1122,19 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
         seen = set()
         for _ in range(argc):
             role, source = formatters[at], formatters[at + 1]
+            index = u16(formatters, at + 2)
             at += 4
             if source not in roles.get(role, ()):
                 return "formatter kind %d argument role %d is not executed" % (
                     kind, role)
+            if source != 3:
+                cls = (literal_class(index) if source == 2 else
+                       path_classes[index] if index < len(path_classes) else 0)
+                if isinstance(cls, tuple):
+                    cls = literal_class(cls[1])
+                if not _value_allowed(kind, role, cls):
+                    return ("formatter kind %d argument role %d has the wrong "
+                            "type" % (kind, role))
             seen.add(role)
         if not required <= seen:
             return "formatter kind %d lacks a required argument" % kind

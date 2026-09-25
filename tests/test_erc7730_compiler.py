@@ -168,8 +168,7 @@ def test_compiles_deterministic_canonical_calldata_program():
     assert set(sections) == {1, 2, 3, 6, 7, 8, 9}
     assert hashlib.sha256(first).digest() == hashlib.sha256(second).digest()
     assert len(first) < 16384
-    _firmware_validate(first,
-                       "formatter kind 3 is not executed")
+    _firmware_validate(first)
 
 
 def test_compiles_official_uniswap_tuple_fixture_through_firmware():
@@ -204,7 +203,7 @@ def test_compiles_official_uniswap_tuple_fixture_through_firmware():
     assert fixtures[1]["txHash"] == (
         "0xb25281abb3e6bbfe18c746187522c2e915aa02fdb8175082005340e00c1f0b30")
     _firmware_validate(compiled,
-                       "formatter kind 3 is not executed")
+                       "formatter kind 7 is not executed")
 
 
 def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
@@ -231,7 +230,7 @@ def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
         fixture["to"], network_records=[(1, "Ethereum", "ETH", 18)])
     assert compiled[38:42].hex() == expected["selector"]
     _firmware_validate(compiled,
-                       "formatter kind 10 is not executed")
+                       "formatter kind 2 is not executed")
 
 
 def test_compiles_array_iteration_separator_and_optional_visibility():
@@ -388,7 +387,7 @@ def test_compiles_nested_field_group_with_balanced_links():
     assert int.from_bytes(instructions[1][6:8], "big") == 4
     assert int.from_bytes(instructions[4][2:4], "big") == 1
     _firmware_validate(compiled,
-                       "formatter kind 10 is not executed")
+                       "display opcode 5 is not executed")
 
 
 def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
@@ -436,9 +435,11 @@ DEVICE_LIMITS = (
 # Formats the device can fully sign with this firmware's capability table.
 # Each later phase of the ERC-7730 formatter plan raises this number
 # (docs/security/HANDOFF-ERC7730-715-FORMATTERS.md in keepkey-firmware).
-# The plan estimated 94; two 1inch increaseEpoch formats show a raw field read
-# from a container path (@.from), which the runtime does not capture.
-REGISTRY_SIGNABLE = 92
+# Phase 0 signed 92 (raw fields only). Phase A adds tokenAmount, addressName,
+# @.from/@.to and signed constants: 812. It refuses addressName and
+# tokenAmount over bytes32/uint256 words that pack an address or an encrypted
+# amount, rather than reinterpret bytes the calldata does not say are one.
+REGISTRY_SIGNABLE = 812
 
 
 def test_official_registry_all_calldata_formats_reach_firmware():
@@ -518,4 +519,4 @@ def test_compiles_official_uniswap_eip712_fixture_through_firmware():
     # deployment + name/chain/contract domain facts + token + network
     assert int.from_bytes(binding[:2], "big") == 6
     _firmware_validate(compiled,
-                       "formatter kind 3 is not executed")
+                       "formatter kind 5 is not executed")
