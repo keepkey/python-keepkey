@@ -3416,6 +3416,11 @@ SECTIONS = [
           'A Wanchain transaction is never certified',
           'A transaction carrying tx_type (Wanchain, valued in WAN) is refused on the certified path before any screen; the review would otherwise name its value ETH.',
           []),
+         ('EX36', 'test_msg_ethereum_erc7730_runtime',
+          'test_declining_any_certified_screen_returns_no_signature',
+          'Declining any certified screen returns no signature',
+          'Declining a blind-sign warning (long value, no inner definition, refused inner definition), a later part of a split value, or an inner field aborts with no signature.',
+          []),
      ]),
 
     # Two-character id because all 26 letters were taken. The catalog keys on a

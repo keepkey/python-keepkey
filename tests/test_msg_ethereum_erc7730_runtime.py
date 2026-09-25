@@ -96,7 +96,7 @@ class Erc7730Harness(object):
                 if code != types.ButtonRequest_Other]
 
     def _walk(self, start, envelope=b"", doc=None, change_pass=None, cancel_button=None,
-              arguments=None, catalog=None, altered=None):
+              arguments=None, catalog=None, altered=None, cancel_title=None):
         response = self.client.call_raw(start)
         self.definition_requests = 0
         self.button_codes = []
@@ -111,7 +111,9 @@ class Erc7730Harness(object):
                 self.screens.append(self.client.debug.read_confirm_text())
                 if self.screens[-1][0] not in ORDINARY_REVIEW:
                     self.client.capture_oled()
-                self.client.debug.press_yes() if buttons != cancel_button else self.client.debug.press_no()
+                decline = (buttons == cancel_button or
+                           self.screens[-1][0] == cancel_title)
+                self.client.debug.press_no() if decline else self.client.debug.press_yes()
                 response = self.client.call_raw(proto.ButtonAck())
             elif isinstance(response, eth.EthereumClearSignDefinitionRequest) and catalog:
                 self.definition_requests += 1
@@ -739,8 +741,8 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
 
     def test_multiline_values_split_between_lines(self):
         # A label of 64 non-ASCII bytes escapes to 256 characters, leaving 93
-        # per screen: the unknown-token body splits, but between lines, so
-        # the token address is never cut.
+        # per confirmation: the unknown-token body splits into numbered
+        # confirmations between lines, so no confirmation ends mid-address.
         label = "é" * 32
         signature = "send(address token,uint256 amount)"
         descriptor = {"display": {"formats": {signature: {
@@ -936,12 +938,14 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         self.assertEqual(result.message,
                          "ERC-7730 calldata does not match definition")
         self.assertNotIn(types.ButtonRequest_SignTx, self.button_codes)
-        both = self._titled_fields(descriptor, signature,
-                                   arguments([OTHER_ADDRESS, ADDRESS]))
-        self.assertEqual([t for t, _ in both],
-                         ["Signer field 1 of 2", "Signer field 2 of 2"])
-        self.assertTrue(both[0][1].endswith(OTHER_ADDRESS.hex()), both[0][1])
-        self.assertTrue(both[1][1].endswith(ADDRESS.hex()), both[1][1])
+        self.assertEqual(
+            self._titled_fields(descriptor, signature,
+                                arguments([OTHER_ADDRESS, ADDRESS])), [
+                ("Signer field 1 of 2", "Amount:\n7\nunknown token\n0x" +
+                 OTHER_ADDRESS.hex()),
+                ("Signer field 2 of 2", "Amount:\n8\nunknown token\n0x" +
+                 ADDRESS.hex()),
+            ])
 
     def test_a_call_at_depth_two_is_shown_blind(self):
         # A Safe executing a call on a second Safe: the second Safe's
@@ -991,3 +995,62 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
             "\nFunction 0xa9059cbb\nData 68 bytes"), shown[4][1])
         self.assertEqual(shown[5][1], "Operation:\n0")
         self.assertEqual(shown[6][1], "Operation:\n0")
+
+
+    def _declined(self, program, arguments, title, preload=None,
+                  catalog=None):
+        envelope = self._preload(program) if preload is None else preload()
+        result, _, _, _ = self._walk(
+            self._audit_start(program, 4 + len(arguments)), envelope,
+            arguments=arguments, catalog=catalog, cancel_title=title)
+        assert_failure(self, result, types.Failure_ActionCancelled,
+                       "Signing cancelled by user")
+        self.assertEqual(self.screens[-1][0], title)
+        self.assertNotIn(types.ButtonRequest_SignTx, self.button_codes)
+
+    def test_declining_any_certified_screen_returns_no_signature(self):
+        # Every certified screen is a consent: the blind-sign warnings, a
+        # later part of a split value and an inner field each abort when
+        # declined, with no signature.
+        signature = "blob(bytes data)"
+        blob = erc7730_compiler.compile_calldata(
+            {"display": {"formats": {signature: {"intent": "Blob", "fields": [
+                {"path": "data", "label": "Data", "format": "raw"}]}}}},
+            signature, 1, ADDRESS)
+        data = bytes(range(200))
+        self._declined(blob, self._word(32) + self._word(len(data)) + data +
+                       bytes(-len(data) % 32), "Blind signature")
+
+        signature = "send(address token,uint256 amount)"
+        split = erc7730_compiler.compile_calldata(
+            {"display": {"formats": {signature: {"intent": "Send", "fields": [{
+                "path": "amount", "label": "\u00e9" * 32,
+                "format": "tokenAmount",
+                "params": {"tokenPath": "token"}}]}}}},
+            signature, 1, ADDRESS)
+        self._declined(split, self._word(OTHER_ADDRESS) + self._word(10 ** 60),
+                       "Signer field (2/2)")
+
+        _, arguments, outer_def, inner_def = self._exec_setup()
+        outer = self._exec_outer[0]
+
+        def preload():
+            erc7730.preload(self.client, outer_def)
+            self._drop_setup_screenshots()
+            return b""
+        # No inner definition: the E1 warning.
+        self._declined(outer, arguments, "Blind signature", preload=preload,
+                       catalog=erc7730.Catalog((outer_def,)))
+        # A refused inner definition: the warning on the blind re-run.
+        refused = erc7730_compiler.compile_calldata(
+            {"display": {"formats": {self.TRANSFER: {
+                "intent": "Transfer", "fields": [{
+                    "path": "to", "label": "Recipient", "format": "raw",
+                    "visible": {"ifNotIn": ["0x" + ADDRESS.hex()]}}]}}}},
+            self.TRANSFER, 1, self.USDC, executable_only=False)
+        self._declined(outer, arguments, "Blind signature", preload=preload,
+                       catalog=erc7730.Catalog(
+                           (outer_def, self._exec_inner_catalog(refused))))
+        # A clear-signed inner call: its field.
+        self._declined(outer, arguments, "Inner field", preload=preload,
+                       catalog=erc7730.Catalog((outer_def, inner_def)))
