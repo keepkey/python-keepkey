@@ -3369,7 +3369,7 @@ SECTIONS = [
          ('EX26', 'test_msg_ethereum_erc7730_runtime',
           'test_multiline_values_split_between_lines',
           'Long values split between lines',
-          'A value too long for one confirmation is split across numbered confirmations at line boundaries, so an amount or address line stays whole.',
+          'A value too long for one confirmation is split into numbered confirmations at line boundaries. Within one confirmation the board pager still wraps by pixel width, so a long line can continue on the next OLED page.',
           ['Numbered part', 'Next part']),
          ('EX27', 'test_msg_ethereum_erc7730_runtime',
           'test_an_inner_definition_the_device_refuses_falls_back_to_blind',
@@ -3411,6 +3411,11 @@ SECTIONS = [
           'Depth is bounded at one',
           'A call inside an inner call is shown blind; the device never requests a depth-2 definition.',
           ['Blind warning inside the inner call']),
+         ('EX35', 'test_msg_ethereum_erc7730_runtime',
+          'test_a_wanchain_transaction_is_never_certified',
+          'A Wanchain transaction is never certified',
+          'A transaction carrying tx_type (Wanchain, valued in WAN) is refused on the certified path before any screen; the review would otherwise name its value ETH.',
+          []),
      ]),
 
     # Two-character id because all 26 letters were taken. The catalog keys on a

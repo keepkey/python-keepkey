@@ -1017,7 +1017,7 @@ DEVICE_CAPABILITIES = {
     "unit_decimals_max": 77,
 }
 # The verifier's table limits (erc7730_catalog.c).
-TABLE_LIMITS = {1: 96, 2: 64, 3: 64, 4: 64, 5: 32, 6: 64, 7: 64}
+TABLE_LIMITS = {1: 96, 2: 64, 3: 64, 4: 64, 5: 32, 6: 64, 7: 64, 8: 64}
 # Value classes: 1-7 are ABI leaf kinds; literals map to what they hold.
 CLASS_BYTES = 6
 (CLASS_UINT, CLASS_INT, CLASS_ADDRESS, CLASS_BOOL, CLASS_STRING,
@@ -1229,7 +1229,7 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     formatter_arrays = []
     at = 2
     for _ in range(u16(formatters, 0)):
-        value_array, any_array = None, False
+        value_array, any_array, value_literal = None, False, False
         kind, argc = formatters[at], formatters[at + 2]
         at += 3
         if kind not in capabilities["formatters"]:
@@ -1261,6 +1261,12 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             if (kind == 13 and role == 15 and index < len(path_classes) and
                     isinstance(path_classes[index], tuple)):
                 return "an embedded call's callee must come from calldata"
+            if (kind == 8 and role == 1 and index < len(path_classes) and
+                    isinstance(path_classes[index], tuple)):
+                return "an enum's value must come from the signed data"
+            if (role == 1 and source == 1 and index < len(path_classes) and
+                    isinstance(path_classes[index], tuple)):
+                value_literal = True
             if source == 1 and path_arrays[index] is not None:
                 any_array = True
                 if role == 1:
@@ -1270,7 +1276,8 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             return "formatter kind %d lacks a required argument" % kind
         if kind == 13 and not calldata:
             return "embedded calldata is executed for calldata only"
-        formatter_arrays.append((value_array, any_array, kind == 13))
+        formatter_arrays.append((value_array, any_array, kind == 13,
+                                 value_literal))
 
     displays = sections.get(7, b"\0\0")
     run_closed = False
@@ -1296,10 +1303,12 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
         elif opcode == 8:
             iteration = None
         elif opcode in (3, 4):
-            value_array, any_array, embedded = formatter_arrays[
-                a if opcode == 3 else b]
+            value_array, any_array, embedded, value_literal = (
+                formatter_arrays[a if opcode == 3 else b])
             if opcode == 3 and embedded:
                 return "an embedded call cannot be an intent value"
+            if opcode == 3 and value_literal:
+                return "a signer constant cannot be an intent value"
             if opcode == 4 and a not in short_strings:
                 return "a field label is longer than the device shows"
             if any_array and iteration is None:

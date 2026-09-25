@@ -261,6 +261,8 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         result, _, passes, _ = self._walk(start, envelope, arguments=arguments,
                                           catalog=catalog)
         self.calldata_passes = passes
+        # The certified path ran: the device asked for its definition.
+        self.assertGreater(self.definition_requests, 0)
         self.assertIsInstance(result, eth.EthereumTxRequest)
         self.assertEqual((result.signature_r, result.signature_s),
                          (baseline.signature_r, baseline.signature_s))
@@ -553,8 +555,10 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
             "uint8 operation)")
     TRANSFER = "transfer(address to,uint256 amount)"
 
-    def _exec_setup(self, amount_path=True):
-        params = {"calleePath": "to", "spenderPath": "@.to"}
+    def _exec_setup(self, amount_path=True, spender="@.to"):
+        params = {"calleePath": "to"}
+        if spender:
+            params["spenderPath"] = spender
         if amount_path:
             params["amountPath"] = "value"
         outer_descriptor = {"display": {"formats": {self.EXEC: {
@@ -687,6 +691,24 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
                                 self._word(1) + pad),
                 [expected])
 
+    def test_a_wanchain_transaction_is_never_certified(self):
+        # tx_type marks a Wanchain transaction, whose value is WAN; the
+        # certified review would name it ETH. Refused before any screen.
+        signature = "audit(uint256 first,uint256 second)"
+        program = erc7730_compiler.compile_calldata(
+            {"display": {"formats": {signature: {
+                "intent": "Audit action", "fields": [
+                    {"path": "first", "label": "First",
+                     "format": "amount"}]}}}},
+            signature, 1, ADDRESS)
+        self._preload(program)
+        start = self._audit_start(program)
+        start.tx_type = 1
+        result, buttons, _, _ = self._walk(start)
+        assert_failure(self, result, types.Failure_SyntaxError,
+                       "ERC-7730 definition does not match transaction")
+        self.assertEqual(buttons, 0)
+
     def test_control_characters_in_a_value_are_escaped(self):
         signature = "note(string text)"
         descriptor = {"display": {"formats": {signature: {
@@ -800,8 +822,8 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
 
     def test_inner_calls_read_their_own_containers(self):
         # Inside the inner call @.value is the value it moves and @.from
-        # whose authority it runs with; a call inside it is shown blind.
-        start, arguments, outer_def, _ = self._exec_setup()
+        # whose authority it runs with: the outer spenderPath, or without
+        # one the outer contract.
         inner = erc7730_compiler.compile_calldata(
             {"display": {"formats": {self.TRANSFER: {
                 "intent": "Transfer", "fields": [
@@ -810,18 +832,19 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
                     {"path": "@.to", "label": "Token", "format": "addressName"},
                 ]}}}},
             self.TRANSFER, 1, self.USDC)
-        # Give the outer call a value: the inner call moves 2 ETH.
-        moving = bytearray(arguments)
-        moving[32:64] = self._word(2 * 10 ** 18)
-        self._exec_certified(bytes(moving),
-                             erc7730.Catalog((outer_def,
-                                              self._exec_inner_catalog(inner))))
-        inner_fields = [s[1] for s in self._relevant() if s[0] == "Inner field"]
-        self.assertEqual(inner_fields, [
-            "Moves:\n2 ETH",
-            "As:\n0x" + ADDRESS.hex(),
-            "Token:\n0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-        ])
+        usdc = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+        for spender, authority in ((None, "0x" + ADDRESS.hex()),
+                                   ("to", usdc)):
+            _, arguments, outer_def, _ = self._exec_setup(spender=spender)
+            # Give the outer call a value: the inner call moves 2 ETH.
+            moving = bytearray(arguments)
+            moving[32:64] = self._word(2 * 10 ** 18)
+            self._exec_certified(bytes(moving), erc7730.Catalog(
+                (outer_def, self._exec_inner_catalog(inner))))
+            inner_fields = [s[1] for s in self._relevant()
+                            if s[0] == "Inner field"]
+            self.assertEqual(inner_fields, [
+                "Moves:\n2 ETH", "As:\n" + authority, "Token:\n" + usdc])
 
     def test_embedded_calls_inside_an_iteration_are_shown_blind(self):
         signature = "multicall(bytes[] calls)"
