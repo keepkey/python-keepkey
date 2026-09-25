@@ -869,6 +869,11 @@ class CalldataCompiler(object):
             if steps and steps[0][0] == "container":
                 payload += bytes([2, 0]) + _u16(steps[0][1])
                 continue
+            # Device captures descend one ABI level per step and refuse
+            # ERC7730_ABI_MAX_DEPTH (8) or more steps.
+            if len(steps) >= 8:
+                raise ValueError(
+                    "ERC-7730 path nests deeper than the device supports")
             # The device iterates at most one array per path ("[]" step).
             if sum(1 for step in steps if step[0] == 2) > 1:
                 raise ValueError(
