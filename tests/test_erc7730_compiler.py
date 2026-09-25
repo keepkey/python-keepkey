@@ -487,7 +487,8 @@ def test_official_registry_all_calldata_formats_reach_firmware():
     # Every other format is refused by the compiler for a named device limit:
     # 8 iterate nested arrays, 2 nest their ABI deeper than 8 levels.
     assert len(unsupported) == 10
-    # Passing the parser is not signability: only these run end to end.
+    # Passing the parser is not signability: only these pass the device's
+    # preload capability checks.
     assert signable == REGISTRY_SIGNABLE
 
 
