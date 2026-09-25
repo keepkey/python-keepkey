@@ -260,8 +260,7 @@ def test_compiles_array_iteration_separator_and_optional_visibility():
     end = display[26:34]
     assert int.from_bytes(begin[6:8], "big") == 3
     assert int.from_bytes(end[2:4], "big") == 1
-    _firmware_validate(compiled,
-                       "path step opcode 2 is not executed")
+    _firmware_validate(compiled)
 
 
 def test_refuses_nested_array_iteration_the_device_cannot_verify():
@@ -325,7 +324,7 @@ def test_compiles_typed_if_not_in_and_must_match_conditions():
     literals = sections[4]
     assert int.from_bytes(literals[:2], "big") == 5
     _firmware_validate(compiled,
-                       "display conditions are not executed")
+                       "condition opcode 7 is not executed")
 
 
 def test_compiles_interpolated_intent_and_metadata_enum():
@@ -383,8 +382,7 @@ def test_compiles_nested_field_group_with_balanced_links():
     assert [item[0] for item in instructions] == [1, 5, 4, 4, 6, 10]
     assert int.from_bytes(instructions[1][6:8], "big") == 4
     assert int.from_bytes(instructions[4][2:4], "big") == 1
-    _firmware_validate(compiled,
-                       "display opcode 5 is not executed")
+    _firmware_validate(compiled)
 
 
 def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
@@ -419,8 +417,7 @@ def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
     count = int.from_bytes(display[:2], "big")
     opcodes = [display[2 + i * 8] for i in range(count)]
     assert opcodes == [1, 7, 5, 4, 4, 6, 8, 10]
-    _firmware_validate(compiled,
-                       "path step opcode 2 is not executed")
+    _firmware_validate(compiled)
 
 
 DEVICE_LIMITS = (
@@ -438,7 +435,8 @@ DEVICE_LIMITS = (
 # amount, rather than reinterpret bytes the calldata does not say are one.
 # Phase B adds the interpolated intent, shown as numbered parts: 954.
 # Phase C adds amount, nftName, date, duration, unit, enum and @.value: 1138.
-REGISTRY_SIGNABLE = 1138
+# Phase D adds groups, single-array iteration and "optional" fields.
+REGISTRY_SIGNABLE = 1294
 
 
 def test_official_registry_all_calldata_formats_reach_firmware():

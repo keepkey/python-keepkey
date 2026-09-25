@@ -977,8 +977,9 @@ class CalldataCompiler(object):
 # together with the firmware table.
 _PATH, _LITERAL, _STRING = frozenset((1,)), frozenset((2,)), frozenset((3,))
 DEVICE_CAPABILITIES = {
-    # 2 and 3 (interpolated intent) only as one run directly after the intent
-    "display_opcodes": frozenset((1, 2, 3, 4, 10)),
+    # 2 and 3 (interpolated intent) only as one run directly after the intent;
+    # 5/6 groups; 7/8 one iteration at a time, calldata only
+    "display_opcodes": frozenset((1, 2, 3, 4, 5, 6, 7, 8, 10)),
     # formatter kind -> (argument role -> permitted sources, required roles)
     "formatters": {
         1: ({1: _PATH}, frozenset((1,))),                        # raw
@@ -996,8 +997,11 @@ DEVICE_CAPABILITIES = {
     "path_sources": frozenset((1, 2, 3)),
     # @.from, @.to and @.value, calldata definitions only
     "containers": frozenset((1, 2, 3)),
-    "path_step_opcodes": frozenset((1,)),
-    "conditions": False,
+    # 2: every element, bound to the iteration's current element
+    "path_step_opcodes": frozenset((1, 2)),
+    # only "optional" (3), which is always shown
+    "condition_opcodes": frozenset((3,)),
+    "conditions": True,
     "alias_set_max": 4,
     "enum_max": 16,
 }
@@ -1057,24 +1061,38 @@ def _program_sections(program):
 
 def _abi_walk(nodes, steps):
     """Mirror of the firmware's preload walk; steps are (opcode, index).
-    Returns (refusal, leaf kind)."""
+    Returns (refusal, leaf kind or 0 for an iteration path, [] array node)."""
     node = 0
+    indexed = False
+    array = None
     for opcode, index in steps:
         if node >= len(nodes):
-            return "path leaves the ABI", 0
+            return "path leaves the ABI", 0, None
         kind, _, first, count, length = nodes[node]
         if kind == 8 and opcode == 1 and count and 0 <= index < count:
             node = first + index
         elif kind == 9 and opcode in (1, 2):
+            if opcode == 2:
+                if indexed:
+                    return "path indexes an array before iterating", 0, None
+                array = node
+            else:
+                indexed = True
             limit = MAX_ARRAY_ELEMENTS if length == ABSENT else length
             if not -limit <= index < limit:
-                return "path indexes beyond the array", 0
+                return "path indexes beyond the array", 0, None
             node = first
         else:
-            return "path does not name an ABI member", 0
-    if node >= len(nodes) or nodes[node][0] > 7:
-        return "path does not end at a value", 0
-    return None, nodes[node][0]
+            return "path does not name an ABI member", 0, None
+    if node >= len(nodes):
+        return "path does not end at a value", 0, None
+    if steps and steps[-1][0] == 2:
+        # An iteration path: a value too when its element is a leaf.
+        leaf = nodes[node][0]
+        return None, (leaf if leaf <= 7 else 0), array
+    if nodes[node][0] > 7:
+        return "path does not end at a value", 0, None
+    return None, nodes[node][0], array
 
 
 def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
@@ -1122,6 +1140,8 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
 
     calldata = program[7] == 1
     path_classes = []
+    path_arrays = []
+    iterable = set()
     paths = sections.get(3, b"\0\0")
     at = 2
     for _ in range(u16(paths, 0)):
@@ -1137,6 +1157,7 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
         path_classes.append(
             (CLASS_UINT if index == 3 else CLASS_ADDRESS) if source == 2 else
             ("literal", index) if source == 3 else None)
+        path_arrays.append(None)
         steps = []
         for _ in range(count):
             opcode = paths[at]
@@ -1152,18 +1173,29 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
                 flags = paths[at]
                 at += 1 + 4 * bin(flags).count("1")
         if source == 1:
-            reason, leaf = _abi_walk(nodes, steps)
+            if sum(1 for step in steps if step[0] == 2) > 1:
+                return "path iterates more than once"
+            reason, leaf, array = _abi_walk(nodes, steps)
             if reason:
                 return reason
             path_classes[-1] = leaf
+            path_arrays[-1] = array
+            if steps and steps[-1][0] == 2:
+                iterable.add(len(path_classes) - 1)
 
     conditions = sections.get(5, b"\0\0")
     if u16(conditions, 0) and not capabilities["conditions"]:
         return "display conditions are not executed"
+    for i in range(u16(conditions, 0)):
+        if conditions[2 + 8 * i] not in capabilities.get("condition_opcodes",
+                                                         ()):
+            return "condition opcode %d is not executed" % conditions[2 + 8 * i]
 
     formatters = sections.get(6, b"\0\0")
+    formatter_arrays = []
     at = 2
     for _ in range(u16(formatters, 0)):
+        value_array, any_array = None, False
         kind, argc = formatters[at], formatters[at + 2]
         at += 3
         if kind not in capabilities["formatters"]:
@@ -1188,12 +1220,18 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             if not _value_allowed(kind, role, cls):
                 return ("formatter kind %d argument role %d has the wrong "
                         "type" % (kind, role))
+            if source == 1 and path_arrays[index] is not None:
+                any_array = True
+                if role == 1:
+                    value_array = path_arrays[index]
             seen.add(role)
         if not required <= seen:
             return "formatter kind %d lacks a required argument" % kind
+        formatter_arrays.append((value_array, any_array))
 
     displays = sections.get(7, b"\0\0")
     run_closed = False
+    iteration = None
     for pc in range(u16(displays, 0)):
         opcode, _, a, b, c = struct.unpack(
             ">BBHHH", displays[2 + 8 * pc:10 + 8 * pc])
@@ -1208,6 +1246,19 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             run_closed = True
         if opcode == 4 and c != ABSENT and not capabilities["conditions"]:
             return "display conditions are not executed"
+        if opcode == 7:
+            if a not in iterable or iteration is not None or not calldata:
+                return "iteration is not executed here"
+            iteration = path_arrays[a]
+        elif opcode == 8:
+            iteration = None
+        elif opcode in (3, 4):
+            value_array, any_array = formatter_arrays[a if opcode == 3 else b]
+            if any_array and iteration is None:
+                return "an iterating value outside an iteration"
+            if (iteration is not None and value_array is not None and
+                    value_array != iteration):
+                return "a field reads another array than its iteration"
     return None
 
 
