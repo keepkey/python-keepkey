@@ -3304,7 +3304,7 @@ SECTIONS = [
          ('EX13', 'test_msg_ethereum_erc7730_runtime',
           'test_enum_labels_are_the_signers_claim_beside_the_value',
           'Enum labels never replace the value',
-          'A mapped value shows "label (value)"; an unmapped one shows "value (unmapped)".',
+          'A mapped value shows "label (value)", marked "label set by signer"; an unmapped one shows "value (unmapped)".',
           ['Unmapped enum value']),
          ('EX14', 'test_msg_ethereum_erc7730_runtime',
           'test_nft_shows_the_collection_address',

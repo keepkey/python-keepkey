@@ -430,7 +430,7 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         pad = self._word(OTHER_ADDRESS)
         self.assertEqual(self._one_field(field, self._word(1) + pad,
                                          metadata=metadata),
-                         ["Side:\nSell (1)"])
+                         ["Side:\nSell (1)\nlabel set by signer"])
         self.assertEqual(self._one_field(field, self._word(5) + pad,
                                          metadata=metadata),
                          ["Side:\n5 (unmapped)"])
