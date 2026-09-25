@@ -122,11 +122,11 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
         resp = self.client.call(msg)
 
         # Verify the XRPL Memos array is appended to the serialized tx.
-        # Format: 0xF9 (STArray[9]) 0xEA (STObject[10]) 0x72 (MemoData VL[2])
+        # Format: 0xF9 (STArray[9]) 0xEA (STObject[10]) 0x7D (MemoData VL[13])
         #         <varint len> <UTF-8 memo bytes> 0xE1 (end object) 0xF1 (end array)
         memo_bytes = memo.encode('ascii')
         expected_tail = (
-            bytes([0xF9, 0xEA, 0x72, len(memo_bytes)]) +
+            bytes([0xF9, 0xEA, 0x7D, len(memo_bytes)]) +
             memo_bytes +
             bytes([0xE1, 0xF1])
         )
@@ -151,6 +151,36 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
             b'\xf9\xea' in resp2.serialized_tx,
             "plain send must not contain Memos array (0xF9 0xEA marker sequence)"
         )
+
+    def test_memo_length_prefix_boundaries(self):
+        self.requires_release_capability("ripple-memo-policy")
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        self.setup_mnemonic_allallall()
+
+        for length in (191, 192, 193, 199):
+            # A distinct suffix makes the last display page inspectable.
+            memo = "A" * (length - 8) + ("TAIL%04d" % length)
+            msg = messages.RippleSignTx(
+                address_n=parse_path("m/44'/144'/0'/0/0"),
+                payment=messages.RipplePayment(
+                    amount=100000000,
+                    destination="rBKz5MC2iXdoS3XgnNSYmF69K1Yo4NS3Ws"
+                ),
+                flags=0x80000000,
+                fee=100000,
+                sequence=25 + length,
+                memo=memo
+            )
+            resp = self.client.call(msg)
+            prefix = (bytes([length]) if length <= 192 else
+                      bytes([193, length - 193]))
+            expected_tail = (b'\xf9\xea\x7d' + prefix +
+                             memo.encode('ascii') + b'\xe1\xf1')
+            self.assertTrue(
+                resp.serialized_tx.endswith(expected_tail),
+                "serialized Ripple memo has wrong prefix at length %d" % length
+            )
 
     def test_unsupported_memo_is_rejected(self):
         self.requires_release_capability("ripple-memo-policy")

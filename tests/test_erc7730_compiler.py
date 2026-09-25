@@ -16,6 +16,32 @@ from keepkeylib.erc7730_compiler import (
 from keepkeylib.signed_metadata import keccak256
 
 
+# CI sets KK_REQUIRE_ERC7730_EVIDENCE=1. There, a missing firmware validator or
+# official registry is a FAILURE: these tests are reported as firmware and
+# registry conformance evidence, and silently skipping that step would let a
+# host-only compile masquerade as firmware acceptance. Elsewhere the absence is
+# reported as an explicit skip, never as a pass.
+REQUIRE_EVIDENCE = os.environ.get("KK_REQUIRE_ERC7730_EVIDENCE") == "1"
+
+
+def _evidence_input(name):
+    value = os.environ.get(name)
+    if value:
+        return value
+    message = "%s is not configured" % name
+    if REQUIRE_EVIDENCE:
+        pytest.fail(message + " (required by KK_REQUIRE_ERC7730_EVIDENCE=1)")
+    pytest.skip(message)
+
+
+def _firmware_validate(program):
+    validator = _evidence_input("ERC7730_FIRMWARE_VALIDATOR")
+    with tempfile.NamedTemporaryFile() as compiled:
+        compiled.write(program)
+        compiled.flush()
+        subprocess.check_call([validator, compiled.name])
+
+
 def _sections(program):
     count = program[178]
     offset = HEADER_SIZE
@@ -127,18 +153,11 @@ def test_compiles_deterministic_canonical_calldata_program():
     assert set(sections) == {1, 2, 3, 6, 7, 8, 9}
     assert hashlib.sha256(first).digest() == hashlib.sha256(second).digest()
     assert len(first) < 16384
-    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
-    if validator:
-        with tempfile.NamedTemporaryFile() as compiled:
-            compiled.write(first)
-            compiled.flush()
-            subprocess.check_call([validator, compiled.name])
+    _firmware_validate(first)
 
 
 def test_compiles_official_uniswap_tuple_fixture_through_firmware():
-    registry = os.environ.get("ERC7730_REGISTRY")
-    if not registry:
-        pytest.skip("official ERC-7730 registry not configured")
+    registry = _evidence_input("ERC7730_REGISTRY")
     path = os.path.join(
         registry, "registry", "uniswap", "calldata-UniswapV3Router02.json")
     with open(path, "r") as source:
@@ -168,12 +187,7 @@ def test_compiles_official_uniswap_tuple_fixture_through_firmware():
     assert calldata[:4] == compiled[38:42]
     assert fixtures[1]["txHash"] == (
         "0xb25281abb3e6bbfe18c746187522c2e915aa02fdb8175082005340e00c1f0b30")
-    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
-    if validator:
-        with tempfile.NamedTemporaryFile() as output:
-            output.write(compiled)
-            output.flush()
-            subprocess.check_call([validator, output.name])
+    _firmware_validate(compiled)
 
 
 def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
@@ -199,12 +213,7 @@ def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
         fixture["descriptor"], fixture["signature"], fixture["chainId"],
         fixture["to"], network_records=[(1, "Ethereum", "ETH", 18)])
     assert compiled[38:42].hex() == expected["selector"]
-    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
-    if validator:
-        with tempfile.NamedTemporaryFile() as output:
-            output.write(compiled)
-            output.flush()
-            subprocess.check_call([validator, output.name])
+    _firmware_validate(compiled)
 
 
 def test_compiles_array_iteration_separator_and_optional_visibility():
@@ -236,15 +245,13 @@ def test_compiles_array_iteration_separator_and_optional_visibility():
     end = display[26:34]
     assert int.from_bytes(begin[6:8], "big") == 3
     assert int.from_bytes(end[2:4], "big") == 1
-    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
-    if validator:
-        with tempfile.NamedTemporaryFile() as output:
-            output.write(compiled)
-            output.flush()
-            subprocess.check_call([validator, output.name])
+    _firmware_validate(compiled)
 
 
-def test_compiles_recursive_array_iteration_frames():
+def test_refuses_nested_array_iteration_the_device_cannot_verify():
+    # The device's catalog verifier accepts one "[]" step per path, so a
+    # program iterating a nested array could never be loaded. The compiler
+    # refuses it by name instead of emitting a program the device rejects.
     descriptor = {"display": {"formats": {
         "matrix(uint256[][] values)": {
             "intent": "Review matrix",
@@ -252,21 +259,10 @@ def test_compiles_recursive_array_iteration_frames():
                         "format": "raw", "separator": "Next row"}],
         }
     }}}
-    compiled = compile_calldata(
-        descriptor, "matrix(uint256[][] values)", 1,
-        "0x1111111111111111111111111111111111111111")
-    display = _sections(compiled)[7]
-    count = int.from_bytes(display[:2], "big")
-    instructions = [display[2 + i * 8:10 + i * 8] for i in range(count)]
-    assert [item[0] for item in instructions] == [1, 7, 7, 4, 8, 8, 10]
-    assert int.from_bytes(instructions[1][6:8], "big") == 5
-    assert int.from_bytes(instructions[2][6:8], "big") == 4
-    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
-    if validator:
-        with tempfile.NamedTemporaryFile() as output:
-            output.write(compiled)
-            output.flush()
-            subprocess.check_call([validator, output.name])
+    with pytest.raises(ValueError, match="iterates more than one array"):
+        compile_calldata(
+            descriptor, "matrix(uint256[][] values)", 1,
+            "0x1111111111111111111111111111111111111111")
 
 
 def test_token_amount_without_token_uses_firmware_raw_fallback():
@@ -280,15 +276,12 @@ def test_token_amount_without_token_uses_firmware_raw_fallback():
     compiled = compile_calldata(
         descriptor, "quote(uint256 amount)", 1,
         "0x1111111111111111111111111111111111111111")
+    # With no token named the device can only show the raw integer, and its
+    # verifier refuses a tokenAmount formatter without a token argument.
     formatter = _sections(compiled)[6]
-    assert formatter[2:5] == bytes([3, 0, 1])
+    assert formatter[2:5] == bytes([1, 0, 1])
     assert formatter[5:9] == bytes([1, 1, 0, 0])
-    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
-    if validator:
-        with tempfile.NamedTemporaryFile() as output:
-            output.write(compiled)
-            output.flush()
-            subprocess.check_call([validator, output.name])
+    _firmware_validate(compiled)
 
 
 def test_compiles_typed_if_not_in_and_must_match_conditions():
@@ -315,12 +308,7 @@ def test_compiles_typed_if_not_in_and_must_match_conditions():
     assert conditions[10] == 8
     literals = sections[4]
     assert int.from_bytes(literals[:2], "big") == 5
-    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
-    if validator:
-        with tempfile.NamedTemporaryFile() as output:
-            output.write(compiled)
-            output.flush()
-            subprocess.check_call([validator, output.name])
+    _firmware_validate(compiled)
 
 
 def test_compiles_interpolated_intent_and_metadata_enum():
@@ -353,12 +341,7 @@ def test_compiles_interpolated_intent_and_metadata_enum():
     assert formatters[2] == 8
     literals = sections[4]
     assert int.from_bytes(literals[:2], "big") == 3
-    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
-    if validator:
-        with tempfile.NamedTemporaryFile() as output:
-            output.write(compiled)
-            output.flush()
-            subprocess.check_call([validator, output.name])
+    _firmware_validate(compiled)
 
 
 def test_compiles_nested_field_group_with_balanced_links():
@@ -383,12 +366,7 @@ def test_compiles_nested_field_group_with_balanced_links():
     assert [item[0] for item in instructions] == [1, 5, 4, 4, 6, 10]
     assert int.from_bytes(instructions[1][6:8], "big") == 4
     assert int.from_bytes(instructions[4][2:4], "big") == 1
-    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
-    if validator:
-        with tempfile.NamedTemporaryFile() as output:
-            output.write(compiled)
-            output.flush()
-            subprocess.check_call([validator, output.name])
+    _firmware_validate(compiled)
 
 
 def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
@@ -423,21 +401,21 @@ def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
     count = int.from_bytes(display[:2], "big")
     opcodes = [display[2 + i * 8] for i in range(count)]
     assert opcodes == [1, 7, 5, 4, 4, 6, 8, 10]
-    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
-    if validator:
-        with tempfile.NamedTemporaryFile() as output:
-            output.write(compiled)
-            output.flush()
-            subprocess.check_call([validator, output.name])
+    _firmware_validate(compiled)
+
+
+DEVICE_LIMITS = (
+    "iterates more than one array",
+    "nests deeper than the device supports",
+)
 
 
 def test_official_registry_all_calldata_formats_reach_firmware():
-    registry = os.environ.get("ERC7730_REGISTRY")
-    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
-    if not registry or not validator:
-        pytest.skip("official registry and firmware validator are required")
+    registry = _evidence_input("ERC7730_REGISTRY")
+    validator = _evidence_input("ERC7730_FIRMWARE_VALIDATOR")
     import glob
     failures = []
+    unsupported = []
     checked = 0
     for path in glob.glob(os.path.join(
             registry, "registry", "**", "calldata-*.json"), recursive=True):
@@ -453,9 +431,15 @@ def test_official_registry_all_calldata_formats_reach_firmware():
         for signature in descriptor.get("display", {}).get("formats", {}):
             checked += 1
             try:
-                program = compile_calldata(
-                    descriptor, signature, deployment["chainId"],
-                    deployment["address"])
+                try:
+                    program = compile_calldata(
+                        descriptor, signature, deployment["chainId"],
+                        deployment["address"])
+                except ValueError as exc:
+                    if any(reason in str(exc) for reason in DEVICE_LIMITS):
+                        unsupported.append(signature)
+                        continue
+                    raise
                 with tempfile.NamedTemporaryFile() as output:
                     output.write(program)
                     output.flush()
@@ -467,12 +451,13 @@ def test_official_registry_all_calldata_formats_reach_firmware():
                     os.path.basename(path), signature, exc))
     assert checked == 1450
     assert failures == []
+    # Every other format is refused by the compiler for a named device limit:
+    # 8 iterate nested arrays, 2 nest their ABI deeper than 8 levels.
+    assert len(unsupported) == 10
 
 
 def test_compiles_official_uniswap_eip712_fixture_through_firmware():
-    registry = os.environ.get("ERC7730_REGISTRY")
-    if not registry:
-        pytest.skip("official ERC-7730 registry not configured")
+    registry = _evidence_input("ERC7730_REGISTRY")
     with open(os.path.join(registry, "registry", "uniswap",
                            "eip712-uniswap-permit2.json"), "r") as source:
         descriptor = json.load(source)
@@ -496,9 +481,4 @@ def test_compiles_official_uniswap_eip712_fixture_through_firmware():
     binding = sections[8]
     # deployment + name/chain/contract domain facts + token + network
     assert int.from_bytes(binding[:2], "big") == 6
-    validator = os.environ.get("ERC7730_FIRMWARE_VALIDATOR")
-    if validator:
-        with tempfile.NamedTemporaryFile() as output:
-            output.write(compiled)
-            output.flush()
-            subprocess.check_call([validator, output.name])
+    _firmware_validate(compiled)
