@@ -439,7 +439,8 @@ DEVICE_LIMITS = (
 # @.from/@.to and signed constants: 812. It refuses addressName and
 # tokenAmount over bytes32/uint256 words that pack an address or an encrypted
 # amount, rather than reinterpret bytes the calldata does not say are one.
-REGISTRY_SIGNABLE = 812
+# Phase B adds the interpolated intent, shown as numbered parts: 954.
+REGISTRY_SIGNABLE = 954
 
 
 def test_official_registry_all_calldata_formats_reach_firmware():

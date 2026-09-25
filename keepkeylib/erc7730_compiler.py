@@ -476,19 +476,23 @@ class CalldataCompiler(object):
         interpolation_tokens = []
         interpolation_values = set()
         if interpolation is not None:
+            # The device shows each fragment and value as its own numbered
+            # screen and escapes edge spaces, so trim fragments here; a
+            # fragment of spaces alone separates nothing and is dropped.
+            def add_text(text):
+                text = text.strip()
+                if text:
+                    strings.add(text)
+                    interpolation_tokens.append(("text", text))
             cursor = 0
             for match in re.finditer(r"\{([^{}]+)\}", interpolation):
                 if match.start() > cursor:
-                    text = interpolation[cursor:match.start()]
-                    strings.add(text)
-                    interpolation_tokens.append(("text", text))
+                    add_text(interpolation[cursor:match.start()])
                 interpolation_tokens.append(("value", match.group(1)))
                 interpolation_values.add(normalized_path(match.group(1)))
                 cursor = match.end()
             if cursor < len(interpolation):
-                text = interpolation[cursor:]
-                strings.add(text)
-                interpolation_tokens.append(("text", text))
+                add_text(interpolation[cursor:])
         for record in self.token_records:
             strings.add(record[2])
         for record in self.network_records:
@@ -972,7 +976,8 @@ class CalldataCompiler(object):
 # program outside it at preload, before the first screen. Widen this only
 # together with the firmware table.
 DEVICE_CAPABILITIES = {
-    "display_opcodes": frozenset((1, 4, 10)),
+    # 2 and 3 (interpolated intent) only as one run directly after the intent
+    "display_opcodes": frozenset((1, 2, 3, 4, 10)),
     # formatter kind -> (argument role -> permitted sources, required roles)
     "formatters": {
         1: ({1: frozenset((1,))}, frozenset((1,))),     # raw
@@ -1140,6 +1145,7 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             return "formatter kind %d lacks a required argument" % kind
 
     displays = sections.get(7, b"\0\0")
+    run_closed = False
     for pc in range(u16(displays, 0)):
         opcode, _, a, b, c = struct.unpack(
             ">BBHHH", displays[2 + 8 * pc:10 + 8 * pc])
@@ -1147,6 +1153,11 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             return "display opcode %d is not executed" % opcode
         if (opcode == 1) != (pc == 0):
             return "the intent must be the first display instruction only"
+        if pc and opcode in (2, 3):
+            if run_closed:
+                return "interpolated intent must directly follow the intent"
+        elif pc:
+            run_closed = True
         if opcode == 4 and c != ABSENT and not capabilities["conditions"]:
             return "display conditions are not executed"
     return None
