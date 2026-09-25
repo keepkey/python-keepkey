@@ -417,7 +417,7 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
              93784, "Lock:\n1d 2h 3m 4s\n(93784 s)"),
             ({"path": "a", "label": "Weight", "format": "unit",
               "params": {"base": "kg", "decimals": 3}},
-             93784, "Weight:\n93.784 kg\nunit set by signer\nraw 93784"),
+             93784, "Weight:\nunit set by signer\n93.784 kg\nraw 93784"),
         ]
         for field, value, expected in cases:
             self.assertEqual(
@@ -432,7 +432,7 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         pad = self._word(OTHER_ADDRESS)
         self.assertEqual(self._one_field(field, self._word(1) + pad,
                                          metadata=metadata),
-                         ["Side:\nSell (1)\nlabel set by signer"])
+                         ["Side:\nlabel set by signer\nSell (1)"])
         self.assertEqual(self._one_field(field, self._word(5) + pad,
                                          metadata=metadata),
                          ["Side:\n5 (unmapped)"])
@@ -684,14 +684,28 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
     # ---- Audit remediation: each of these used to fail mid-review, take a
     # fact from the wrong source, or was untested. ----
 
-    def test_numeric_constants_are_values(self):
-        pad = self._word(OTHER_ADDRESS)
-        for constant, expected in ((5, "Fee:\n5 Wei"), (1000, "Fee:\n1000 Wei")):
-            self.assertEqual(
-                self._one_field({"value": constant, "label": "Fee",
-                                 "format": "amount"},
-                                self._word(1) + pad),
-                [expected])
+    def test_only_a_raw_field_shows_a_signer_constant(self):
+        # Formatters show values the device decodes. A signer constant
+        # formatted as an amount would look decoded, so preload refuses it;
+        # as a raw field it is the signer's own field, and shows.
+        signature = "act(uint256 a,address b)"
+        for constant in (5, 1000):
+            descriptor = {"display": {"formats": {signature: {
+                "intent": "Act", "fields": [{
+                    "value": constant, "label": "Fee", "format": "amount"}]}}}}
+            with self.assertRaises(erc7730_compiler.DeviceCannotExecute):
+                erc7730_compiler.compile_calldata(
+                    descriptor, signature, 1, ADDRESS)
+            program = erc7730_compiler.compile_calldata(
+                descriptor, signature, 1, ADDRESS, executable_only=False)
+            self._load_signer()
+            assert_failure(self, self._raw_preload(self._envelope(program)),
+                           types.Failure_SyntaxError,
+                           "Invalid certified ERC-7730 definition")
+        self.assertEqual(
+            self._one_field({"value": 1000, "label": "Fee"},
+                            self._word(1) + self._word(OTHER_ADDRESS)),
+            ["Fee:\n1000"])
 
     def test_a_wanchain_transaction_is_never_certified(self):
         # tx_type marks a Wanchain transaction, whose value is WAN; the
@@ -739,6 +753,38 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
             [("Blind signature", "The value is too long to show"),
              ("Signer field", "Data:\nNot shown: 200 bytes")])
 
+    def test_a_long_typed_data_value_points_to_the_walk_not_blind(self):
+        # Typed data: the walk shows every leaf in full, so a raw field too
+        # long to capture says where it was shown, with no blind warning.
+        data = bytes(range(200))
+        doc = {
+            "types": {
+                "EIP712Domain": [
+                    {"name": "name", "type": "string"},
+                    {"name": "chainId", "type": "uint256"},
+                    {"name": "verifyingContract", "type": "address"}],
+                "Blob": [{"name": "data", "type": "bytes"}]},
+            "primaryType": "Blob",
+            "domain": {"name": "Audit app", "chainId": 1,
+                       "verifyingContract": "0x" + ADDRESS.hex()},
+            "message": {"data": "0x" + data.hex()}}
+        program = erc7730_compiler.compile_eip712(
+            {"display": {"formats": {"Blob(bytes data)": {
+                "intent": "Blob", "fields": [
+                    {"path": "data", "label": "Data", "format": "raw"}]}}}},
+            doc)
+        start = eth.EthereumSignTypedData(address_n=PATH, primary_type="Blob",
+                                          metamask_v4_compat=True)
+        baseline, _, _, _ = self._walk(start, doc=doc)
+        self.assertIsInstance(baseline, eth.EthereumTypedDataSignature)
+        envelope = self._preload(program)
+        result, _, _, _ = self._walk(start, envelope, doc)
+        self.assertIsInstance(result, eth.EthereumTypedDataSignature)
+        self.assertEqual(result.signature, baseline.signature)
+        self.assertNotIn("Blind signature", [s[0] for s in self.screens])
+        self.assertIn(("Signer field", "Data:\nShown above in full: 200 bytes"),
+                      self._first_pages())
+
     def test_multiline_values_split_between_lines(self):
         # A label of 64 non-ASCII bytes escapes to 256 characters, leaving 93
         # per confirmation: the unknown-token body splits into numbered
@@ -783,9 +829,21 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
             {"display": {"formats": {self.TRANSFER: {
                 "intent": "Transfer", "fields": []}}}},
             self.TRANSFER, 1, self.USDC)
+        # Large enough to stream in several chunks, so the refusal comes on a
+        # later chunk and the fetch position must be reset for the outer.
+        large = erc7730_compiler.compile_calldata(
+            {"display": {"formats": {self.TRANSFER: {
+                "intent": "Transfer", "fields": [
+                    {"path": "to", "label": "Recipient %02d %s" % (i, "r" * 44),
+                     "format": "raw"} for i in range(24)]}}}},
+            self.TRANSFER, 1, self.USDC)
+        signed_large = self._exec_inner_catalog(
+            large, signer=(UNKNOWN_SIGNER_KEY, unknown))
+        self.assertGreater(len(signed_large.envelope), 2 * erc7730.MAX_CHUNK)
         for inner in (self._exec_inner_catalog(refused),
                       self._exec_inner_catalog(
-                          clear, signer=(UNKNOWN_SIGNER_KEY, unknown))):
+                          clear, signer=(UNKNOWN_SIGNER_KEY, unknown)),
+                      signed_large):
             self._exec_certified(arguments,
                                  erc7730.Catalog((outer_def, inner)))
             shown = self._relevant()
@@ -1054,3 +1112,54 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         # A clear-signed inner call: its field.
         self._declined(outer, arguments, "Inner field", preload=preload,
                        catalog=erc7730.Catalog((outer_def, inner_def)))
+
+
+    def test_a_refused_inner_call_does_not_blind_the_next_one(self):
+        # Two embedded calls: the first inner definition is refused and shown
+        # blind; the second is still clear-signed with its own definition.
+        signature = "execTwo(address a,bytes da,address b,bytes db)"
+        other_token = bytes.fromhex("55" * 20)
+        outer = erc7730_compiler.compile_calldata(
+            {"display": {"formats": {signature: {
+                "intent": "Run two calls", "fields": [
+                    {"path": "da", "label": "First", "format": "calldata",
+                     "params": {"calleePath": "a"}},
+                    {"path": "db", "label": "Second", "format": "calldata",
+                     "params": {"calleePath": "b"}}]}}}},
+            signature, 1, ADDRESS)
+        refused = erc7730_compiler.compile_calldata(
+            {"display": {"formats": {self.TRANSFER: {
+                "intent": "Transfer", "fields": [{
+                    "path": "to", "label": "Recipient", "format": "raw",
+                    "visible": {"ifNotIn": ["0x" + ADDRESS.hex()]}}]}}}},
+            self.TRANSFER, 1, self.USDC, executable_only=False)
+        second = erc7730_compiler.compile_calldata(
+            {"display": {"formats": {self.TRANSFER: {
+                "intent": "Transfer", "fields": [
+                    {"path": "to", "label": "Recipient",
+                     "format": "addressName"}]}}}},
+            self.TRANSFER, 1, other_token)
+        call = (bytes.fromhex("a9059cbb") + self._word(OTHER_ADDRESS) +
+                self._word(1500000))
+        padded = self._word(len(call)) + call + bytes(-len(call) % 32)
+        arguments = (self._word(self.USDC) + self._word(128) +
+                     self._word(other_token) + self._word(128 + len(padded)) +
+                     padded + padded)
+        self._load_signer()
+        outer_def = self._definition(outer, self._envelope(outer))
+
+        def preload():
+            erc7730.preload(self.client, outer_def)
+            self._drop_setup_screenshots()
+            return b""
+        self._certified(outer, arguments, preload=preload,
+                        catalog=erc7730.Catalog((
+                            outer_def, self._exec_inner_catalog(refused),
+                            self._exec_inner_catalog(second))))
+        titles = [s[0] for s in self._relevant()
+                  if s[0] not in ("Runtime signer", "Inner signer")]
+        self.assertEqual(titles, [
+            "Contract action", "Blind signature", "Signer field",
+            "Signer field", "Inner action", "Inner field"])
+        self.assertEqual(self._relevant()[-1],
+                         ("Inner field", "Recipient:\n0x" + OTHER_ADDRESS.hex()))

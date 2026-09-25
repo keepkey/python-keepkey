@@ -518,3 +518,40 @@ def test_compiles_official_uniswap_eip712_fixture_through_firmware():
     # deployment + name/chain/contract domain facts + token + network
     assert int.from_bytes(binding[:2], "big") == 6
     _firmware_validate(compiled)
+
+
+def test_mirror_applies_the_devices_abi_and_text_limits():
+    # Each shape the device refuses at preload is refused by the mirror too,
+    # and a neighbour inside the limit is accepted by both.
+    address = "0x" + "11" * 20
+    for length, refusal in ((64, None),
+                            (65, "an ABI array exceeds the device limit")):
+        signature = "f(uint256[%d] a,uint256 b)" % length
+        descriptor = {"display": {"formats": {signature: {
+            "intent": "F", "fields": [
+                {"path": "b", "label": "B", "format": "raw"}]}}}}
+        _firmware_validate(_unchecked(compile_calldata, descriptor, signature,
+                                      1, address), refusal)
+    for label, refusal in (("Line one", None),
+                           ("Line\none", "a program string is not printable text"),
+                           ("Tab\there", "a program string is not printable text"),
+                           ("Del\x7f", "a program string is not printable text")):
+        descriptor = {"display": {"formats": {"f(uint256 a)": {
+            "intent": "F", "fields": [
+                {"path": "a", "label": label, "format": "raw"}]}}}}
+        _firmware_validate(_unchecked(compile_calldata, descriptor,
+                                      "f(uint256 a)", 1, address), refusal)
+
+
+def test_signed_enum_keys_are_minimal_twos_complement():
+    # -128 fits one byte (0x80); the device refuses a longer encoding.
+    for signature, key in (("f(int8 side)", -128), ("f(int16 side)", -32768),
+                           ("f(int16 side)", -129), ("f(int8 side)", 127)):
+        descriptor = {
+            "metadata": {"enums": {"side": {str(key): "Edge", "1": "Long"}}},
+            "display": {"formats": {signature: {
+                "intent": "F", "fields": [{
+                    "path": "side", "label": "Side", "format": "enum",
+                    "params": {"$ref": "$.metadata.enums.side"}}]}}}}
+        _firmware_validate(compile_calldata(descriptor, signature, 1,
+                                            "0x" + "11" * 20), None)

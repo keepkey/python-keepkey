@@ -339,7 +339,9 @@ def _condition_literal(node, value):
     if node.kind == 1 and isinstance(value, int) and not isinstance(value, bool):
         return 1, _unsigned_literal(value)
     if node.kind == 2 and isinstance(value, int) and not isinstance(value, bool):
-        width = max(1, (value.bit_length() + 8) // 8)
+        # Minimal two's complement, as the device requires: -128 is 0x80.
+        width = max(1, ((value if value >= 0 else ~value).bit_length() + 8)
+                    // 8)
         return 2, value.to_bytes(width, "big", signed=True)
     if node.kind == 3 and isinstance(value, str):
         return 5, _hex_address(value)
@@ -1033,27 +1035,26 @@ def _value_allowed(kind, role, cls):
     rules = {
         (1, 1): lambda: cls <= CLASS_STRING_REF or cls == CLASS_UINT_SMALL,
         (10, 1): lambda: cls == CLASS_ADDRESS,
-        (2, 1): lambda: cls in unsigned,
-        (6, 1): lambda: cls in unsigned,
-        (3, 1): lambda: cls in unsigned,
+        (2, 1): lambda: cls == CLASS_UINT,
+        (6, 1): lambda: cls == CLASS_UINT,
+        (3, 1): lambda: cls == CLASS_UINT,
         (3, 7): lambda: cls in unsigned,
         (3, 2): lambda: cls == CLASS_ADDRESS,
         (3, 8): lambda: cls in (CLASS_STRING, CLASS_DATE_ENCODING),
         (3, 22): lambda: cls == CLASS_ALIAS_SET,
-        (4, 1): lambda: cls in unsigned,
+        (4, 1): lambda: cls == CLASS_UINT,
         (4, 3): lambda: cls == CLASS_ADDRESS,
-        (5, 1): lambda: cls in unsigned,
+        (5, 1): lambda: cls == CLASS_UINT,
         (5, 9): lambda: cls == CLASS_DATE_ENCODING,
-        (7, 1): lambda: cls in unsigned,
+        (7, 1): lambda: cls == CLASS_UINT,
         (7, 4): lambda: cls == CLASS_UINT_SMALL,
         (7, 5): lambda: cls in (CLASS_STRING, CLASS_DATE_ENCODING),
         (7, 6): lambda: cls == CLASS_FLAG,
-        (8, 1): lambda: cls in (CLASS_UINT, CLASS_UINT_SMALL, CLASS_INT,
-                                CLASS_BOOL),
+        (8, 1): lambda: cls in (CLASS_UINT, CLASS_INT, CLASS_BOOL),
         (8, 10): lambda: cls == CLASS_ENUM_MAP,
         (13, 1): lambda: cls == CLASS_BYTES,
         (13, 15): lambda: cls == CLASS_ADDRESS,
-        (13, 17): lambda: cls in unsigned,
+        (13, 17): lambda: cls == CLASS_UINT,
         (13, 18): lambda: cls == CLASS_ADDRESS,
     }
     rule = rules.get((kind, role))
@@ -1122,6 +1123,10 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     abi = sections.get(2, b"\0\0")
     nodes = [struct.unpack(">BHHHH", abi[2 + 9 * i:11 + 9 * i])
              for i in range(u16(abi, 0))]
+    # A fixed array holds 1-64 elements (0xffff marks a dynamic one).
+    for kind, _, _, _, length in nodes:
+        if kind == 9 and (length == 0 or (length > 64 and length != 0xffff)):
+            return "an ABI array exceeds the device limit"
 
     string_table = sections.get(1, b"\0\0")
     date_strings = set()
@@ -1129,6 +1134,13 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     at = 2
     for index in range(u16(string_table, 0)):
         length = u16(string_table, at)
+        # Printable ASCII or well-formed UTF-8, never a control character.
+        try:
+            text = string_table[at + 2:at + 2 + length].decode("utf-8")
+        except UnicodeDecodeError:
+            return "a program string is not printable text"
+        if any(ch < " " or ch == "\x7f" for ch in text):
+            return "a program string is not printable text"
         if length <= capabilities.get("signer_text_max", 128):
             short_strings.add(index)
         if string_table[at + 2:at + 2 + length] in (b"timestamp",
@@ -1258,12 +1270,13 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
                 return "signer text is longer than the device shows"
             if kind == 7 and role == 4 and index not in decimals_literals:
                 return "unit decimals exceed the device limit"
-            if (kind == 13 and role == 15 and index < len(path_classes) and
-                    isinstance(path_classes[index], tuple)):
-                return "an embedded call's callee must come from calldata"
-            if (kind == 8 and role == 1 and index < len(path_classes) and
-                    isinstance(path_classes[index], tuple)):
-                return "an enum's value must come from the signed data"
+            constant = (source == 1 and index < len(path_classes) and
+                        isinstance(path_classes[index], tuple))
+            if constant and kind == 13 and role in (15, 17, 18):
+                return ("an embedded call's callee, value and authority must "
+                        "come from calldata")
+            if constant and role == 1 and kind != 1:
+                return "only a raw field may show a signer constant"
             if (role == 1 and source == 1 and index < len(path_classes) and
                     isinstance(path_classes[index], tuple)):
                 value_literal = True
