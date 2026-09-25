@@ -62,6 +62,19 @@ def test_catalog_refuses_unknown_ambiguous_and_malformed_requests():
         catalog.add(definition(b"different-envelope"))
 
 
+def test_catalog_answers_an_unknown_embedded_call_with_none():
+    # A top-level lookup the catalog cannot satisfy is an error; an embedded
+    # call's (recursion_depth set) gets the empty "none" chunk, which firmware
+    # 7.15 shows under a blind-sign warning and 7.16 rejects.
+    catalog = erc7730.Catalog((definition(),))
+    none = catalog.chunk(request(selector_or_type_hash=b"\0" * 4,
+                                 recursion_depth=1))
+    assert (none.offset, none.total_length, none.data) == (0, 0, b"")
+    assert len(none.definition_id) == 32
+    with pytest.raises(KeyError):
+        catalog.chunk(request(selector_or_type_hash=b"\0" * 4))
+
+
 class PreloadClient(object):
     def __init__(self, envelope):
         self.envelope = envelope

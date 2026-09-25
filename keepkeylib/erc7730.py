@@ -166,7 +166,17 @@ class Catalog(object):
         return definition
 
     def chunk(self, request):
-        definition = self.resolve(request)
+        try:
+            definition = self.resolve(request)
+        except KeyError:
+            if (not request.HasField("recursion_depth") or
+                    request.recursion_depth == 0):
+                raise
+            # An embedded call's definition that the catalog does not hold:
+            # the empty chunk means "none". Firmware 7.15 then shows the
+            # inner call under a blind-sign warning; 7.16 rejects it.
+            return ethereum.EthereumClearSignDefinitionChunk(
+                definition_id=bytes(32), offset=0, total_length=0, data=b"")
         offset = request.offset
         length = request.length
         if length == 0 or length > MAX_CHUNK or offset >= len(definition.envelope):
