@@ -312,6 +312,9 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         address = self.client.ethereum_get_address(PATH)
         self.assertEqual(recover_signer(resp.signature, digest).hex(),
                          address.hex())
+        # The reported signer must be intact too: the response is built after
+        # the final screen, so a DebugLink read during it cannot erase it.
+        self.assertEqual(resp.address.lower(), '0x' + address.hex())
 
     def setUp(self):
         super(TestMsgEip712Streaming, self).setUp()
