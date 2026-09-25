@@ -10,8 +10,9 @@ import tempfile
 import pytest
 
 from keepkeylib.erc7730_compiler import (
-    HEADER_SIZE, compile_calldata, compile_eip712, eip712_encode_type,
-    load_descriptor, parse_function_signature,
+    HEADER_SIZE, DeviceCannotExecute, compile_calldata, compile_eip712,
+    device_refusal, eip712_encode_type, load_descriptor,
+    parse_function_signature,
 )
 from keepkeylib.signed_metadata import keccak256
 
@@ -34,12 +35,26 @@ def _evidence_input(name):
     pytest.skip(message)
 
 
-def _firmware_validate(program):
+def _firmware_accepts(program):
     validator = _evidence_input("ERC7730_FIRMWARE_VALIDATOR")
     with tempfile.NamedTemporaryFile() as compiled:
         compiled.write(program)
         compiled.flush()
-        subprocess.check_call([validator, compiled.name])
+        return subprocess.call([validator, compiled.name],
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL) == 0
+
+
+def _unchecked(compile, *args, **kwargs):
+    return compile(*args, executable_only=False, **kwargs)
+
+
+def _firmware_validate(program, refusal=None):
+    """The device verifier accepts `program` exactly when the compiler's
+    capability mirror does, and `refusal` names the expected reason (None
+    for a program the device executes)."""
+    assert device_refusal(program) == refusal
+    assert _firmware_accepts(program) == (refusal is None)
 
 
 def _sections(program):
@@ -137,8 +152,8 @@ def test_compiles_deterministic_canonical_calldata_program():
         ],
         network_records=[(1, "Ethereum", "ETH", 18)],
     )
-    first = compile_calldata(descriptor, **kwargs)
-    second = compile_calldata(descriptor, **kwargs)
+    first = _unchecked(compile_calldata, descriptor, **kwargs)
+    second = _unchecked(compile_calldata, descriptor, **kwargs)
     assert first == second
     assert first[:4] == b"C773"
     assert first[4:8] == bytes([1, 2, 0, 1])
@@ -153,7 +168,8 @@ def test_compiles_deterministic_canonical_calldata_program():
     assert set(sections) == {1, 2, 3, 6, 7, 8, 9}
     assert hashlib.sha256(first).digest() == hashlib.sha256(second).digest()
     assert len(first) < 16384
-    _firmware_validate(first)
+    _firmware_validate(first,
+                       "formatter kind 3 is not executed")
 
 
 def test_compiles_official_uniswap_tuple_fixture_through_firmware():
@@ -171,7 +187,7 @@ def test_compiles_official_uniswap_tuple_fixture_through_firmware():
         "exactInputSingle((address tokenIn, address tokenOut, uint24 fee, "
         "address recipient, uint256 amountIn, uint256 amountOutMinimum, "
         "uint160 sqrtPriceLimitX96) params)")
-    compiled = compile_calldata(
+    compiled = _unchecked(compile_calldata, 
         descriptor, signature, 1,
         "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45",
         token_records=[
@@ -187,7 +203,8 @@ def test_compiles_official_uniswap_tuple_fixture_through_firmware():
     assert calldata[:4] == compiled[38:42]
     assert fixtures[1]["txHash"] == (
         "0xb25281abb3e6bbfe18c746187522c2e915aa02fdb8175082005340e00c1f0b30")
-    _firmware_validate(compiled)
+    _firmware_validate(compiled,
+                       "formatter kind 3 is not executed")
 
 
 def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
@@ -209,11 +226,12 @@ def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
     assert memo == expected["memo"]
     assert int(fixture["value"], 16) == int(expected["amount"])
 
-    compiled = compile_calldata(
+    compiled = _unchecked(compile_calldata, 
         fixture["descriptor"], fixture["signature"], fixture["chainId"],
         fixture["to"], network_records=[(1, "Ethereum", "ETH", 18)])
     assert compiled[38:42].hex() == expected["selector"]
-    _firmware_validate(compiled)
+    _firmware_validate(compiled,
+                       "formatter kind 10 is not executed")
 
 
 def test_compiles_array_iteration_separator_and_optional_visibility():
@@ -231,7 +249,7 @@ def test_compiles_array_iteration_separator_and_optional_visibility():
             }
         }}
     }
-    compiled = compile_calldata(
+    compiled = _unchecked(compile_calldata, 
         descriptor,
         "batch((address recipient,uint256 amount)[] items)", 1,
         "0x1111111111111111111111111111111111111111")
@@ -245,7 +263,8 @@ def test_compiles_array_iteration_separator_and_optional_visibility():
     end = display[26:34]
     assert int.from_bytes(begin[6:8], "big") == 3
     assert int.from_bytes(end[2:4], "big") == 1
-    _firmware_validate(compiled)
+    _firmware_validate(compiled,
+                       "path step opcode 2 is not executed")
 
 
 def test_refuses_nested_array_iteration_the_device_cannot_verify():
@@ -273,7 +292,7 @@ def test_token_amount_without_token_uses_firmware_raw_fallback():
                         "format": "tokenAmount"}],
         }
     }}}
-    compiled = compile_calldata(
+    compiled = _unchecked(compile_calldata, 
         descriptor, "quote(uint256 amount)", 1,
         "0x1111111111111111111111111111111111111111")
     # With no token named the device can only show the raw integer, and its
@@ -298,7 +317,7 @@ def test_compiles_typed_if_not_in_and_must_match_conditions():
             ],
         }
     }}}
-    compiled = compile_calldata(
+    compiled = _unchecked(compile_calldata, 
         descriptor, "guard(uint256 mode,address recipient)", 1,
         "0x1111111111111111111111111111111111111111")
     sections = _sections(compiled)
@@ -308,7 +327,8 @@ def test_compiles_typed_if_not_in_and_must_match_conditions():
     assert conditions[10] == 8
     literals = sections[4]
     assert int.from_bytes(literals[:2], "big") == 5
-    _firmware_validate(compiled)
+    _firmware_validate(compiled,
+                       "display conditions are not executed")
 
 
 def test_compiles_interpolated_intent_and_metadata_enum():
@@ -328,7 +348,7 @@ def test_compiles_interpolated_intent_and_metadata_enum():
             }
         }}
     }
-    compiled = compile_calldata(
+    compiled = _unchecked(compile_calldata, 
         descriptor, "swap(bool selling,uint256 amount)", 1,
         "0x1111111111111111111111111111111111111111")
     sections = _sections(compiled)
@@ -341,7 +361,8 @@ def test_compiles_interpolated_intent_and_metadata_enum():
     assert formatters[2] == 8
     literals = sections[4]
     assert int.from_bytes(literals[:2], "big") == 3
-    _firmware_validate(compiled)
+    _firmware_validate(compiled,
+                       "formatter kind 8 is not executed")
 
 
 def test_compiles_nested_field_group_with_balanced_links():
@@ -357,7 +378,7 @@ def test_compiles_nested_field_group_with_balanced_links():
             }],
         }
     }}}
-    compiled = compile_calldata(
+    compiled = _unchecked(compile_calldata, 
         descriptor, "act((address owner,uint256 amount) details)", 1,
         "0x1111111111111111111111111111111111111111")
     display = _sections(compiled)[7]
@@ -366,7 +387,8 @@ def test_compiles_nested_field_group_with_balanced_links():
     assert [item[0] for item in instructions] == [1, 5, 4, 4, 6, 10]
     assert int.from_bytes(instructions[1][6:8], "big") == 4
     assert int.from_bytes(instructions[4][2:4], "big") == 1
-    _firmware_validate(compiled)
+    _firmware_validate(compiled,
+                       "formatter kind 10 is not executed")
 
 
 def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
@@ -394,14 +416,15 @@ def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
     path = tmp_path / "descriptor.json"
     path.write_text(json.dumps(descriptor))
     loaded = load_descriptor(str(path), str(tmp_path))
-    compiled = compile_calldata(
+    compiled = _unchecked(compile_calldata, 
         loaded, "batch((address to,uint256 amount)[] items)", 1,
         "0x1111111111111111111111111111111111111111")
     display = _sections(compiled)[7]
     count = int.from_bytes(display[:2], "big")
     opcodes = [display[2 + i * 8] for i in range(count)]
     assert opcodes == [1, 7, 5, 4, 4, 6, 8, 10]
-    _firmware_validate(compiled)
+    _firmware_validate(compiled,
+                       "path step opcode 2 is not executed")
 
 
 DEVICE_LIMITS = (
@@ -410,12 +433,21 @@ DEVICE_LIMITS = (
 )
 
 
+# Formats the device can fully sign with this firmware's capability table.
+# Each later phase of the ERC-7730 formatter plan raises this number
+# (docs/security/HANDOFF-ERC7730-715-FORMATTERS.md in keepkey-firmware).
+# The plan estimated 94; two 1inch increaseEpoch formats show a raw field read
+# from a container path (@.from), which the runtime does not capture.
+REGISTRY_SIGNABLE = 92
+
+
 def test_official_registry_all_calldata_formats_reach_firmware():
     registry = _evidence_input("ERC7730_REGISTRY")
-    validator = _evidence_input("ERC7730_FIRMWARE_VALIDATOR")
+    _evidence_input("ERC7730_FIRMWARE_VALIDATOR")
     import glob
     failures = []
     unsupported = []
+    signable = 0
     checked = 0
     for path in glob.glob(os.path.join(
             registry, "registry", "**", "calldata-*.json"), recursive=True):
@@ -432,20 +464,22 @@ def test_official_registry_all_calldata_formats_reach_firmware():
             checked += 1
             try:
                 try:
-                    program = compile_calldata(
-                        descriptor, signature, deployment["chainId"],
-                        deployment["address"])
+                    program = _unchecked(
+                        compile_calldata, descriptor, signature,
+                        deployment["chainId"], deployment["address"])
                 except ValueError as exc:
                     if any(reason in str(exc) for reason in DEVICE_LIMITS):
                         unsupported.append(signature)
                         continue
                     raise
-                with tempfile.NamedTemporaryFile() as output:
-                    output.write(program)
-                    output.flush()
-                    subprocess.check_call(
-                        [validator, output.name], stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL)
+                # The device verifier and the compiler's capability mirror
+                # must agree on every format, in both directions.
+                executable = device_refusal(program) is None
+                if _firmware_accepts(program) != executable:
+                    raise AssertionError(
+                        "device and compiler disagree: %r" %
+                        device_refusal(program))
+                signable += executable
             except Exception as exc:
                 failures.append("%s :: %s :: %s" % (
                     os.path.basename(path), signature, exc))
@@ -454,6 +488,8 @@ def test_official_registry_all_calldata_formats_reach_firmware():
     # Every other format is refused by the compiler for a named device limit:
     # 8 iterate nested arrays, 2 nest their ABI deeper than 8 levels.
     assert len(unsupported) == 10
+    # Passing the parser is not signability: only these run end to end.
+    assert signable == REGISTRY_SIGNABLE
 
 
 def test_compiles_official_uniswap_eip712_fixture_through_firmware():
@@ -468,7 +504,7 @@ def test_compiles_official_uniswap_eip712_fixture_through_firmware():
     assert encoded == (
         "PermitSingle(PermitDetails details,address spender,uint256 sigDeadline)"
         "PermitDetails(address token,uint160 amount,uint48 expiration,uint48 nonce)")
-    compiled = compile_eip712(
+    compiled = _unchecked(compile_eip712, 
         descriptor, fixture,
         token_records=[
             (1, "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "USDC", 6)
@@ -481,4 +517,5 @@ def test_compiles_official_uniswap_eip712_fixture_through_firmware():
     binding = sections[8]
     # deployment + name/chain/contract domain facts + token + network
     assert int.from_bytes(binding[:2], "big") == 6
-    _firmware_validate(compiled)
+    _firmware_validate(compiled,
+                       "formatter kind 3 is not executed")

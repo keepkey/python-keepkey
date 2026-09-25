@@ -967,9 +967,135 @@ class CalldataCompiler(object):
                                  for kind, value in sections)
 
 
-def compile_calldata(descriptor, signature, chain_id, address, **kwargs):
-    return CalldataCompiler(descriptor, signature, chain_id, address,
-                            **kwargs).compile()
+# What the device executes: a mirror of keepkey-firmware's
+# include/keepkey/firmware/erc7730_capabilities.h. The device refuses every
+# program outside it at preload, before the first screen. Widen this only
+# together with the firmware table.
+DEVICE_CAPABILITIES = {
+    "display_opcodes": frozenset((1, 4, 10)),
+    # formatter kind -> {argument role -> permitted sources}
+    "formatters": {1: {1: frozenset((1,))}},
+    "path_sources": frozenset((1,)),
+    "path_step_opcodes": frozenset((1,)),
+    "conditions": False,
+}
+MAX_ARRAY_ELEMENTS = 64
+
+
+class DeviceCannotExecute(ValueError):
+    """The program is valid ERC-7730 but outside the device's capabilities."""
+
+
+def _program_sections(program):
+    offset = HEADER_SIZE
+    sections = {}
+    for _ in range(program[178]):
+        kind = program[offset]
+        length = struct.unpack(">I", program[offset + 1:offset + 5])[0]
+        sections[kind] = program[offset + 5:offset + 5 + length]
+        offset += 5 + length
+    return sections
+
+
+def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
+    """Why the device would refuse `program` at preload, or None."""
+    sections = _program_sections(program)
+    u16 = lambda data, at: struct.unpack(">H", data[at:at + 2])[0]
+
+    abi = sections.get(2, b"\0\0")
+    nodes = [struct.unpack(">BHHHH", abi[2 + 9 * i:11 + 9 * i])
+             for i in range(u16(abi, 0))]
+
+    def walk(steps):
+        node = 0
+        for step in steps:
+            if node >= len(nodes):
+                return "path leaves the ABI"
+            kind, _, first, count, length = nodes[node]
+            if kind == 8 and count and 0 <= step < count:
+                node = first + step
+            elif kind == 9:
+                limit = MAX_ARRAY_ELEMENTS if length == ABSENT else length
+                if not -limit <= step < limit:
+                    return "path indexes beyond the array"
+                node = first
+            else:
+                return "path does not name an ABI member"
+        if node >= len(nodes) or nodes[node][0] > 7:
+            return "path does not end at a value"
+        return None
+
+    paths = sections.get(3, b"\0\0")
+    at = 2
+    for _ in range(u16(paths, 0)):
+        source, count = paths[at], paths[at + 1]
+        at += 4
+        if source not in capabilities["path_sources"]:
+            return "path source %d is not executed" % source
+        steps = []
+        for _ in range(count):
+            opcode = paths[at]
+            at += 1
+            if opcode not in capabilities["path_step_opcodes"]:
+                return "path step opcode %d is not executed" % opcode
+            steps.append(struct.unpack(">i", paths[at:at + 4])[0])
+            at += 4
+        reason = walk(steps)
+        if reason:
+            return reason
+
+    conditions = sections.get(5, b"\0\0")
+    if u16(conditions, 0) and not capabilities["conditions"]:
+        return "display conditions are not executed"
+
+    formatters = sections.get(6, b"\0\0")
+    at = 2
+    for _ in range(u16(formatters, 0)):
+        kind, argc = formatters[at], formatters[at + 2]
+        at += 3
+        roles = capabilities["formatters"].get(kind)
+        if roles is None:
+            return "formatter kind %d is not executed" % kind
+        seen = set()
+        for _ in range(argc):
+            role, source = formatters[at], formatters[at + 1]
+            at += 4
+            if source not in roles.get(role, ()):
+                return "formatter kind %d argument role %d is not executed" % (
+                    kind, role)
+            seen.add(role)
+        if not set(roles) <= seen:
+            return "formatter kind %d lacks a required argument" % kind
+
+    displays = sections.get(7, b"\0\0")
+    for pc in range(u16(displays, 0)):
+        opcode, _, a, b, c = struct.unpack(
+            ">BBHHH", displays[2 + 8 * pc:10 + 8 * pc])
+        if opcode not in capabilities["display_opcodes"]:
+            return "display opcode %d is not executed" % opcode
+        if (opcode == 1) != (pc == 0):
+            return "the intent must be the first display instruction only"
+        if opcode == 4 and c != ABSENT and not capabilities["conditions"]:
+            return "display conditions are not executed"
+    return None
+
+
+def _executable(program, executable_only):
+    if executable_only:
+        reason = device_refusal(program)
+        if reason:
+            raise DeviceCannotExecute("device cannot execute: " + reason)
+    return program
+
+
+def compile_calldata(descriptor, signature, chain_id, address,
+                     executable_only=True, **kwargs):
+    """Compile one calldata format. By default only a program the device
+    executes is returned; pass executable_only=False to obtain the program
+    anyway, for example to prove that the device refuses it."""
+    return _executable(CalldataCompiler(descriptor, signature, chain_id,
+                                        address, **kwargs).compile(),
+                       executable_only)
 
 
 def _typed_base(type_name, types, active):
@@ -1017,7 +1143,7 @@ def eip712_encode_type(primary_type, types):
 
 
 def compile_eip712(descriptor, typed_data, chain_id=None, address=None,
-                   **kwargs):
+                   executable_only=True, **kwargs):
     """Compile one EIP-712 descriptor against its exact typed-data schema."""
     types = typed_data["types"]
     primary = typed_data["primaryType"]
@@ -1060,7 +1186,7 @@ def compile_eip712(descriptor, typed_data, chain_id=None, address=None,
         if name in domain:
             constraints.append((field, domain[name]))
     type_hash = keccak256(eip712_encode_type(primary, types).encode("ascii"))
-    return CalldataCompiler(
+    return _executable(CalldataCompiler(
         synthetic, signature, chain_id, address, definition_kind=2,
         primary_type_hash=type_hash, domain_constraints=constraints,
-        **kwargs).compile()
+        **kwargs).compile(), executable_only)
