@@ -50,7 +50,103 @@ SPEC_DOMAIN_SEPARATOR = "f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a65
 SPEC_MESSAGE_HASH = "c52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e"
 
 
+# --- Independent EIP-712 reference encoder ----------------------------------
+# Written from the EIP-712 specification text and deliberately NOT built on
+# keepkeylib.eip712_stream (the host half of the protocol under test), so a
+# shared misreading of arrays or nested dimensions cannot make both sides
+# agree. keccak comes from pycryptodome directly.
+def _keccak(data):
+    from Crypto.Hash import keccak
+    return keccak.new(digest_bits=256, data=data).digest()
+
+
+def _ref_base_struct(type_name):
+    return type_name.split('[', 1)[0]
+
+
+def _ref_encode_type(primary, types):
+    deps = set()
+
+    def collect(name):
+        if name in deps or name not in types:
+            return
+        deps.add(name)
+        for field in types[name]:
+            collect(_ref_base_struct(field['type']))
+
+    collect(primary)
+    deps.discard(primary)
+    return ''.join(
+        '%s(%s)' % (name, ','.join('%s %s' % (f['type'], f['name'])
+                                   for f in types[name]))
+        for name in [primary] + sorted(deps))
+
+
+def _ref_int(value):
+    if isinstance(value, str):
+        return int(value, 16) if value.startswith('0x') else int(value)
+    return int(value)
+
+
+def _ref_encode_value(type_name, value, types):
+    if type_name.endswith(']'):
+        # Arrays: keccak of the concatenated encodings of the elements, where
+        # each element of T[n][m] is itself an encoded T[n] array.
+        inner = type_name[:type_name.rindex('[')]
+        return _keccak(b''.join(
+            _ref_encode_value(inner, item, types) for item in value))
+    if type_name in types:
+        return _ref_hash_struct(type_name, value, types)
+    if type_name == 'string':
+        return _keccak(value.encode('utf-8'))
+    if type_name == 'bytes':
+        return _keccak(bytes.fromhex(value[2:]))
+    if type_name == 'address':
+        return bytes(12) + bytes.fromhex(value[2:])
+    if type_name == 'bool':
+        return (1 if value else 0).to_bytes(32, 'big')
+    if type_name.startswith('bytes'):
+        return bytes.fromhex(value[2:]).ljust(32, b'\0')
+    if type_name.startswith('uint'):
+        return _ref_int(value).to_bytes(32, 'big')
+    if type_name.startswith('int'):
+        return (_ref_int(value) % (1 << 256)).to_bytes(32, 'big')
+    raise ValueError('reference encoder: unsupported type ' + type_name)
+
+
+def _ref_hash_struct(name, data, types):
+    encoded = _keccak(_ref_encode_type(name, types).encode('ascii'))
+    for field in types[name]:
+        encoded += _ref_encode_value(field['type'], data[field['name']], types)
+    return _keccak(encoded)
+
+
+def reference_eip712_hashes(doc):
+    """Return (domain_separator, message_hash, signing_digest)."""
+    types = doc['types']
+    domain = _ref_hash_struct('EIP712Domain', doc['domain'], types)
+    message = _ref_hash_struct(doc['primaryType'], doc['message'], types)
+    return domain, message, _keccak(b'\x19\x01' + domain + message)
+
+
+def recover_signer(signature, digest):
+    from ecdsa import VerifyingKey, SECP256k1, util
+    rec = signature[64] - 27
+    if rec not in (0, 1):
+        raise AssertionError('unexpected recovery byte %d' % signature[64])
+    keys = VerifyingKey.from_public_key_recovery_with_digest(
+        signature[:64], digest, SECP256k1, hashfunc=None,
+        sigdecode=util.sigdecode_string)
+    return _keccak(keys[rec].to_string())[-20:]
+
+
 class TestEip712StreamHelpers(unittest.TestCase):
+
+    def test_reference_encoder_reproduces_the_published_spec_hashes(self):
+        """The independent encoder is itself checked against Example.js."""
+        domain, message, _ = reference_eip712_hashes(SPEC_MAIL)
+        self.assertEqual(domain.hex(), SPEC_DOMAIN_SEPARATOR)
+        self.assertEqual(message.hex(), SPEC_MESSAGE_HASH)
 
     def test_review_identifiers_are_exact_and_unambiguous(self):
         doc = {
@@ -160,6 +256,17 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
                 return resp
         raise AssertionError('walk did not terminate')
 
+    def _assert_reference_signature(self, doc, resp):
+        """The device's hashes AND signature match an independent encoder."""
+        self.assertIsInstance(resp, eth.EthereumTypedDataSignature)
+        domain, message, digest = reference_eip712_hashes(doc)
+        self.assertEqual(resp.domain_separator_hash.hex(), domain.hex())
+        self.assertEqual(resp.message_hash.hex(), message.hex())
+        self.assertEqual(len(resp.signature), 65)
+        address = self.client.ethereum_get_address(PATH)
+        self.assertEqual(recover_signer(resp.signature, digest).hex(),
+                         address.hex())
+
     def setUp(self):
         super(TestMsgEip712Streaming, self).setUp()
         self.requires_firmware("7.15.0")
@@ -189,7 +296,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         self.assertIsInstance(resp, eth.EthereumTypedDataSignature)
         self.assertEqual(resp.domain_separator_hash.hex(), SPEC_DOMAIN_SEPARATOR)
         self.assertEqual(resp.message_hash.hex(), SPEC_MESSAGE_HASH)
-        self.assertEqual(len(resp.signature), 65)
+        self._assert_reference_signature(SPEC_MAIL, resp)
 
     def test_array_of_structs_walks(self):
         """Arrays, which the walk refused until the decode buffer was reclaimed.
@@ -209,12 +316,10 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
             "message": {"items": [{"id": 1}, {"id": 2}]},
         }
         resp = self._walk(doc)
-        self.assertIsInstance(resp, eth.EthereumTypedDataSignature)
-        self.assertEqual(len(resp.signature), 65)
+        self._assert_reference_signature(doc, resp)
 
     def test_multidimensional_arrays_walk_outermost_first_on_device(self):
         """Host and device must traverse asymmetric Solidity dimensions alike."""
-        self.requires_release_capability("evm-unknown-token-review")
         doc = {
             'types': {
                 'EIP712Domain': [],
@@ -233,8 +338,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         }
 
         resp = self._walk(doc)
-        self.assertIsInstance(resp, eth.EthereumTypedDataSignature)
-        self.assertEqual(len(resp.signature), 65)
+        self._assert_reference_signature(doc, resp)
 
     def test_permit2_batch_walks_realistic_nested_array(self):
         """The production Permit2 Batch shape, including trailing root fields.
@@ -288,8 +392,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
             },
         }
         resp = self._walk(doc)
-        self.assertIsInstance(resp, eth.EthereumTypedDataSignature)
-        self.assertEqual(len(resp.signature), 65)
+        self._assert_reference_signature(doc, resp)
 
     def test_fixed_array_length_must_match_the_declared_size(self):
         """A declared dimension is part of the type string and so of typeHash.
