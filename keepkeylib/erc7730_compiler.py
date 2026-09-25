@@ -339,7 +339,9 @@ def _condition_literal(node, value):
     if node.kind == 1 and isinstance(value, int) and not isinstance(value, bool):
         return 1, _unsigned_literal(value)
     if node.kind == 2 and isinstance(value, int) and not isinstance(value, bool):
-        width = max(1, (value.bit_length() + 8) // 8)
+        # Minimal two's complement, as the device requires: -128 is 0x80.
+        width = max(1, ((value if value >= 0 else ~value).bit_length() + 8)
+                    // 8)
         return 2, value.to_bytes(width, "big", signed=True)
     if node.kind == 3 and isinstance(value, str):
         return 5, _hex_address(value)
@@ -476,19 +478,23 @@ class CalldataCompiler(object):
         interpolation_tokens = []
         interpolation_values = set()
         if interpolation is not None:
+            # The device shows each fragment and value as its own numbered
+            # screen and escapes edge spaces, so trim fragments here; a
+            # fragment of spaces alone separates nothing and is dropped.
+            def add_text(text):
+                text = text.strip()
+                if text:
+                    strings.add(text)
+                    interpolation_tokens.append(("text", text))
             cursor = 0
             for match in re.finditer(r"\{([^{}]+)\}", interpolation):
                 if match.start() > cursor:
-                    text = interpolation[cursor:match.start()]
-                    strings.add(text)
-                    interpolation_tokens.append(("text", text))
+                    add_text(interpolation[cursor:match.start()])
                 interpolation_tokens.append(("value", match.group(1)))
                 interpolation_values.add(normalized_path(match.group(1)))
                 cursor = match.end()
             if cursor < len(interpolation):
-                text = interpolation[cursor:]
-                strings.add(text)
-                interpolation_tokens.append(("text", text))
+                add_text(interpolation[cursor:])
         for record in self.token_records:
             strings.add(record[2])
         for record in self.network_records:
@@ -773,6 +779,12 @@ class CalldataCompiler(object):
                 if not callee:
                     raise ValueError("embedded calldata requires calleePath")
                 arguments.append((15, 1, intern_path(_resolve_path(root, callee))))
+                # 17: the native value the inner call moves; 18: whose
+                # authority it runs with.
+                for role, key in ((17, "amountPath"), (18, "spenderPath")):
+                    if params.get(key):
+                        arguments.append((role, 1, intern_path(
+                            _resolve_path(root, params[key]))))
             formatter_index = len(formatters)
             formatters.append((kind, arguments))
             condition = ABSENT
@@ -971,15 +983,84 @@ class CalldataCompiler(object):
 # include/keepkey/firmware/erc7730_capabilities.h. The device refuses every
 # program outside it at preload, before the first screen. Widen this only
 # together with the firmware table.
+_PATH, _LITERAL, _STRING = frozenset((1,)), frozenset((2,)), frozenset((3,))
 DEVICE_CAPABILITIES = {
-    "display_opcodes": frozenset((1, 4, 10)),
+    # 2 and 3 (interpolated intent) only as one run directly after the intent;
+    # 5/6 groups; 7/8 one iteration at a time, calldata only
+    "display_opcodes": frozenset((1, 2, 3, 4, 5, 6, 7, 8, 10)),
     # formatter kind -> (argument role -> permitted sources, required roles)
-    "formatters": {1: ({1: frozenset((1,))}, frozenset((1,)))},
-    "path_sources": frozenset((1,)),
-    "containers": frozenset(),
-    "path_step_opcodes": frozenset((1,)),
-    "conditions": False,
+    "formatters": {
+        1: ({1: _PATH}, frozenset((1,))),                        # raw
+        2: ({1: _PATH}, frozenset((1,))),                        # amount
+        3: ({1: _PATH, 2: _PATH, 7: _LITERAL, 8: _STRING,        # tokenAmount
+             22: _LITERAL}, frozenset((1, 2))),
+        4: ({1: _PATH, 3: _PATH}, frozenset((1, 3))),            # nftName
+        5: ({1: _PATH, 9: _STRING}, frozenset((1,))),            # date
+        6: ({1: _PATH}, frozenset((1,))),                        # duration
+        7: ({1: _PATH, 4: _LITERAL, 5: _STRING, 6: _LITERAL},    # unit
+            frozenset((1, 5))),
+        8: ({1: _PATH, 10: _LITERAL}, frozenset((1, 10))),       # enum
+        10: ({1: _PATH}, frozenset((1,))),                       # addressName
+        13: ({1: _PATH, 15: _PATH, 17: _PATH, 18: _PATH},        # calldata
+             frozenset((1, 15))),
+    },
+    "path_sources": frozenset((1, 2, 3)),
+    # @.from, @.to and @.value, calldata definitions only
+    "containers": frozenset((1, 2, 3)),
+    # 2: every element, bound to the iteration's current element
+    "path_step_opcodes": frozenset((1, 2)),
+    # only "optional" (3), which is always shown
+    "condition_opcodes": frozenset((3,)),
+    "conditions": True,
+    "alias_set_max": 4,
+    "enum_max": 16,
+    # signer text shown inside a value's screen, and unit decimals
+    "signer_text_max": 64,
+    "unit_decimals_max": 77,
 }
+# The verifier's table limits (erc7730_catalog.c).
+TABLE_LIMITS = {1: 96, 2: 64, 3: 64, 4: 64, 5: 32, 6: 64, 7: 64, 8: 64}
+# Value classes: 1-7 are ABI leaf kinds; literals map to what they hold.
+CLASS_BYTES = 6
+(CLASS_UINT, CLASS_INT, CLASS_ADDRESS, CLASS_BOOL, CLASS_STRING,
+ CLASS_STRING_REF, CLASS_ALIAS_SET, CLASS_UINT_SMALL, CLASS_DATE_ENCODING,
+ CLASS_ENUM_MAP, CLASS_FLAG) = 1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13
+
+
+def _value_allowed(kind, role, cls):
+    """Mirror of erc7730_cap_value()."""
+    if not cls:
+        return False
+    unsigned = (CLASS_UINT, CLASS_UINT_SMALL)
+    rules = {
+        (1, 1): lambda: cls <= CLASS_STRING_REF or cls == CLASS_UINT_SMALL,
+        (10, 1): lambda: cls == CLASS_ADDRESS,
+        (2, 1): lambda: cls == CLASS_UINT,
+        (6, 1): lambda: cls == CLASS_UINT,
+        (3, 1): lambda: cls == CLASS_UINT,
+        (3, 7): lambda: cls in unsigned,
+        (3, 2): lambda: cls == CLASS_ADDRESS,
+        (3, 8): lambda: cls in (CLASS_STRING, CLASS_DATE_ENCODING),
+        (3, 22): lambda: cls == CLASS_ALIAS_SET,
+        (4, 1): lambda: cls == CLASS_UINT,
+        (4, 3): lambda: cls == CLASS_ADDRESS,
+        (5, 1): lambda: cls == CLASS_UINT,
+        (5, 9): lambda: cls == CLASS_DATE_ENCODING,
+        (7, 1): lambda: cls == CLASS_UINT,
+        (7, 4): lambda: cls == CLASS_UINT_SMALL,
+        (7, 5): lambda: cls in (CLASS_STRING, CLASS_DATE_ENCODING),
+        (7, 6): lambda: cls == CLASS_FLAG,
+        (8, 1): lambda: cls in (CLASS_UINT, CLASS_INT, CLASS_BOOL),
+        (8, 10): lambda: cls == CLASS_ENUM_MAP,
+        (13, 1): lambda: cls == CLASS_BYTES,
+        (13, 15): lambda: cls == CLASS_ADDRESS,
+        (13, 17): lambda: cls == CLASS_UINT,
+        (13, 18): lambda: cls == CLASS_ADDRESS,
+    }
+    rule = rules.get((kind, role))
+    return bool(rule and rule())
+
+
 MAX_ARRAY_ELEMENTS = 64
 
 
@@ -999,24 +1080,39 @@ def _program_sections(program):
 
 
 def _abi_walk(nodes, steps):
-    """Mirror of the firmware's preload walk; steps are (opcode, index)."""
+    """Mirror of the firmware's preload walk; steps are (opcode, index).
+    Returns (refusal, leaf kind or 0 for an iteration path, [] array node)."""
     node = 0
+    indexed = False
+    array = None
     for opcode, index in steps:
         if node >= len(nodes):
-            return "path leaves the ABI"
+            return "path leaves the ABI", 0, None
         kind, _, first, count, length = nodes[node]
         if kind == 8 and opcode == 1 and count and 0 <= index < count:
             node = first + index
         elif kind == 9 and opcode in (1, 2):
+            if opcode == 2:
+                if indexed:
+                    return "path indexes an array before iterating", 0, None
+                array = node
+            else:
+                indexed = True
             limit = MAX_ARRAY_ELEMENTS if length == ABSENT else length
             if not -limit <= index < limit:
-                return "path indexes beyond the array"
+                return "path indexes beyond the array", 0, None
             node = first
         else:
-            return "path does not name an ABI member"
-    if node >= len(nodes) or nodes[node][0] > 7:
-        return "path does not end at a value"
-    return None
+            return "path does not name an ABI member", 0, None
+    if node >= len(nodes):
+        return "path does not end at a value", 0, None
+    if steps and steps[-1][0] == 2:
+        # An iteration path: a value too when its element is a leaf.
+        leaf = nodes[node][0]
+        return None, (leaf if leaf <= 7 else 0), array
+    if nodes[node][0] > 7:
+        return "path does not end at a value", 0, None
+    return None, nodes[node][0], array
 
 
 def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
@@ -1027,7 +1123,71 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     abi = sections.get(2, b"\0\0")
     nodes = [struct.unpack(">BHHHH", abi[2 + 9 * i:11 + 9 * i])
              for i in range(u16(abi, 0))]
+    # A fixed array holds 1-64 elements (0xffff marks a dynamic one).
+    for kind, _, _, _, length in nodes:
+        if kind == 9 and (length == 0 or (length > 64 and length != 0xffff)):
+            return "an ABI array exceeds the device limit"
 
+    string_table = sections.get(1, b"\0\0")
+    date_strings = set()
+    short_strings = set()
+    at = 2
+    for index in range(u16(string_table, 0)):
+        length = u16(string_table, at)
+        # Printable ASCII or well-formed UTF-8, never a control character.
+        try:
+            text = string_table[at + 2:at + 2 + length].decode("utf-8")
+        except UnicodeDecodeError:
+            return "a program string is not printable text"
+        if any(ch < " " or ch == "\x7f" for ch in text):
+            return "a program string is not printable text"
+        if length <= capabilities.get("signer_text_max", 128):
+            short_strings.add(index)
+        if string_table[at + 2:at + 2 + length] in (b"timestamp",
+                                                    b"blockheight"):
+            date_strings.add(index)
+        at += 2 + length
+
+    literal_table = sections.get(4, b"\0\0")
+    literal_classes = []
+    decimals_literals = set()
+    at = 2
+    for literal_index in range(u16(literal_table, 0)):
+        kind, length = literal_table[at], u16(literal_table, at + 1)
+        value = literal_table[at + 3:at + 3 + length]
+        at += 3 + length
+        if (kind == 1 and length == 1 and
+                value[0] <= capabilities.get("unit_decimals_max", 255)):
+            decimals_literals.add(literal_index)
+        if kind == 8:
+            for entry in range(u16(value, 0)):
+                if u16(value, 4 + 4 * entry) not in short_strings:
+                    return "an enum label is longer than the device shows"
+        members = u16(value, 0) if kind in (8, 9) else 0
+        if kind == 1:
+            cls = CLASS_UINT_SMALL if length == 1 else CLASS_UINT
+        elif kind == 8:
+            cls = (CLASS_ENUM_MAP if 0 < members <= capabilities.get(
+                "enum_max", 0) else 0)
+        elif kind == 9:
+            cls = (CLASS_ALIAS_SET if 0 < members <= capabilities.get(
+                "alias_set_max", 0) else 0)
+        else:
+            cls = {4: CLASS_STRING_REF, 5: CLASS_ADDRESS,
+                   6: CLASS_FLAG}.get(kind, 0)
+        literal_classes.append(cls)
+
+    def literal_class(index):
+        return literal_classes[index] if index < len(literal_classes) else 0
+
+    for kind, limit in TABLE_LIMITS.items():
+        if kind in sections and u16(sections[kind], 0) > limit:
+            return "program table %d exceeds the device limit" % kind
+
+    calldata = program[7] == 1
+    path_classes = []
+    path_arrays = []
+    iterable = set()
     paths = sections.get(3, b"\0\0")
     at = 2
     for _ in range(u16(paths, 0)):
@@ -1035,8 +1195,15 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
         at += 4
         if source not in capabilities["path_sources"]:
             return "path source %d is not executed" % source
-        if source == 2 and index not in capabilities["containers"]:
+        if source == 2 and (index not in capabilities["containers"] or
+                            not calldata):
             return "container %d is not executed" % index
+        if source == 3 and index >= 64:
+            return "path names a literal beyond the table"
+        path_classes.append(
+            (CLASS_UINT if index == 3 else CLASS_ADDRESS) if source == 2 else
+            ("literal", index) if source == 3 else None)
+        path_arrays.append(None)
         steps = []
         for _ in range(count):
             opcode = paths[at]
@@ -1052,17 +1219,29 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
                 flags = paths[at]
                 at += 1 + 4 * bin(flags).count("1")
         if source == 1:
-            reason = _abi_walk(nodes, steps)
+            if sum(1 for step in steps if step[0] == 2) > 1:
+                return "path iterates more than once"
+            reason, leaf, array = _abi_walk(nodes, steps)
             if reason:
                 return reason
+            path_classes[-1] = leaf
+            path_arrays[-1] = array
+            if steps and steps[-1][0] == 2:
+                iterable.add(len(path_classes) - 1)
 
     conditions = sections.get(5, b"\0\0")
     if u16(conditions, 0) and not capabilities["conditions"]:
         return "display conditions are not executed"
+    for i in range(u16(conditions, 0)):
+        if conditions[2 + 8 * i] not in capabilities.get("condition_opcodes",
+                                                         ()):
+            return "condition opcode %d is not executed" % conditions[2 + 8 * i]
 
     formatters = sections.get(6, b"\0\0")
+    formatter_arrays = []
     at = 2
     for _ in range(u16(formatters, 0)):
+        value_array, any_array, value_literal = None, False, False
         kind, argc = formatters[at], formatters[at + 2]
         at += 3
         if kind not in capabilities["formatters"]:
@@ -1071,15 +1250,51 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
         seen = set()
         for _ in range(argc):
             role, source = formatters[at], formatters[at + 1]
+            index = u16(formatters, at + 2)
             at += 4
             if source not in roles.get(role, ()):
                 return "formatter kind %d argument role %d is not executed" % (
                     kind, role)
+            if source == 3:
+                cls = (CLASS_DATE_ENCODING if index in date_strings else
+                       CLASS_STRING)
+            else:
+                cls = (literal_class(index) if source == 2 else
+                       path_classes[index] if index < len(path_classes) else 0)
+            if isinstance(cls, tuple):
+                cls = literal_class(cls[1])
+            if not _value_allowed(kind, role, cls):
+                return ("formatter kind %d argument role %d has the wrong "
+                        "type" % (kind, role))
+            if source == 3 and role in (5, 8) and index not in short_strings:
+                return "signer text is longer than the device shows"
+            if kind == 7 and role == 4 and index not in decimals_literals:
+                return "unit decimals exceed the device limit"
+            constant = (source == 1 and index < len(path_classes) and
+                        isinstance(path_classes[index], tuple))
+            if constant and kind == 13 and role in (15, 17, 18):
+                return ("an embedded call's callee, value and authority must "
+                        "come from calldata")
+            if constant and role == 1 and kind != 1:
+                return "only a raw field may show a signer constant"
+            if (role == 1 and source == 1 and index < len(path_classes) and
+                    isinstance(path_classes[index], tuple)):
+                value_literal = True
+            if source == 1 and path_arrays[index] is not None:
+                any_array = True
+                if role == 1:
+                    value_array = path_arrays[index]
             seen.add(role)
         if not required <= seen:
             return "formatter kind %d lacks a required argument" % kind
+        if kind == 13 and not calldata:
+            return "embedded calldata is executed for calldata only"
+        formatter_arrays.append((value_array, any_array, kind == 13,
+                                 value_literal))
 
     displays = sections.get(7, b"\0\0")
+    run_closed = False
+    iteration = None
     for pc in range(u16(displays, 0)):
         opcode, _, a, b, c = struct.unpack(
             ">BBHHH", displays[2 + 8 * pc:10 + 8 * pc])
@@ -1087,8 +1302,32 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             return "display opcode %d is not executed" % opcode
         if (opcode == 1) != (pc == 0):
             return "the intent must be the first display instruction only"
+        if pc and opcode in (2, 3):
+            if run_closed:
+                return "interpolated intent must directly follow the intent"
+        elif pc:
+            run_closed = True
         if opcode == 4 and c != ABSENT and not capabilities["conditions"]:
             return "display conditions are not executed"
+        if opcode == 7:
+            if a not in iterable or iteration is not None or not calldata:
+                return "iteration is not executed here"
+            iteration = path_arrays[a]
+        elif opcode == 8:
+            iteration = None
+        elif opcode in (3, 4):
+            value_array, any_array, embedded, value_literal = (
+                formatter_arrays[a if opcode == 3 else b])
+            if opcode == 3 and embedded:
+                return "an embedded call cannot be an intent value"
+            if opcode == 3 and value_literal:
+                return "a signer constant cannot be an intent value"
+            if opcode == 4 and a not in short_strings:
+                return "a field label is longer than the device shows"
+            if any_array and iteration is None:
+                return "an iterating value outside an iteration"
+            if iteration is not None and value_array != iteration:
+                return "a field reads another array than its iteration"
     return None
 
 
