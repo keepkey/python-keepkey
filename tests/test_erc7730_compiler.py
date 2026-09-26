@@ -168,8 +168,7 @@ def test_compiles_deterministic_canonical_calldata_program():
     assert set(sections) == {1, 2, 3, 6, 7, 8, 9}
     assert hashlib.sha256(first).digest() == hashlib.sha256(second).digest()
     assert len(first) < 16384
-    _firmware_validate(first,
-                       "formatter kind 3 is not executed")
+    _firmware_validate(first)
 
 
 def test_compiles_official_uniswap_tuple_fixture_through_firmware():
@@ -203,8 +202,7 @@ def test_compiles_official_uniswap_tuple_fixture_through_firmware():
     assert calldata[:4] == compiled[38:42]
     assert fixtures[1]["txHash"] == (
         "0xb25281abb3e6bbfe18c746187522c2e915aa02fdb8175082005340e00c1f0b30")
-    _firmware_validate(compiled,
-                       "formatter kind 3 is not executed")
+    _firmware_validate(compiled)
 
 
 def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
@@ -230,8 +228,7 @@ def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
         fixture["descriptor"], fixture["signature"], fixture["chainId"],
         fixture["to"], network_records=[(1, "Ethereum", "ETH", 18)])
     assert compiled[38:42].hex() == expected["selector"]
-    _firmware_validate(compiled,
-                       "formatter kind 10 is not executed")
+    _firmware_validate(compiled)
 
 
 def test_compiles_array_iteration_separator_and_optional_visibility():
@@ -263,8 +260,43 @@ def test_compiles_array_iteration_separator_and_optional_visibility():
     end = display[26:34]
     assert int.from_bytes(begin[6:8], "big") == 3
     assert int.from_bytes(end[2:4], "big") == 1
-    _firmware_validate(compiled,
-                       "path step opcode 2 is not executed")
+    _firmware_validate(compiled)
+
+
+def test_refuses_scalar_value_repeated_inside_iteration():
+    descriptor = {"display": {"formats": {
+        "batch(address[] recipients,address fallback)": {
+            "intent": "Batch transfer",
+            "fields": [
+                {"path": "recipients.[]", "label": "Recipient",
+                 "format": "addressName", "separator": "Next recipient"},
+                {"path": "fallback", "label": "Fallback",
+                 "format": "addressName"},
+            ],
+        }
+    }}}
+    program = bytearray(_unchecked(
+        compile_calldata, descriptor,
+        "batch(address[] recipients,address fallback)", 1,
+        "0x1111111111111111111111111111111111111111"))
+    _firmware_validate(bytes(program))
+    # Replace the iterated formatter's path with the scalar formatter's path.
+    # The display still contains an iteration, so the device must refuse it.
+    offset = HEADER_SIZE
+    while offset < len(program):
+        kind = program[offset]
+        length = struct.unpack_from(">I", program, offset + 1)[0]
+        if kind == 6:
+            start = offset + 5
+            assert struct.unpack_from(">H", program, start)[0] == 2
+            assert program[start + 7:start + 9] != program[start + 14:start + 16]
+            program[start + 7:start + 9] = program[start + 14:start + 16]
+            break
+        offset += 5 + length
+    else:
+        pytest.fail("formatter section missing")
+    _firmware_validate(bytes(program),
+                       "a field reads another array than its iteration")
 
 
 def test_refuses_nested_array_iteration_the_device_cannot_verify():
@@ -328,7 +360,7 @@ def test_compiles_typed_if_not_in_and_must_match_conditions():
     literals = sections[4]
     assert int.from_bytes(literals[:2], "big") == 5
     _firmware_validate(compiled,
-                       "display conditions are not executed")
+                       "condition opcode 7 is not executed")
 
 
 def test_compiles_interpolated_intent_and_metadata_enum():
@@ -361,8 +393,7 @@ def test_compiles_interpolated_intent_and_metadata_enum():
     assert formatters[2] == 8
     literals = sections[4]
     assert int.from_bytes(literals[:2], "big") == 3
-    _firmware_validate(compiled,
-                       "formatter kind 8 is not executed")
+    _firmware_validate(compiled)
 
 
 def test_compiles_nested_field_group_with_balanced_links():
@@ -387,8 +418,7 @@ def test_compiles_nested_field_group_with_balanced_links():
     assert [item[0] for item in instructions] == [1, 5, 4, 4, 6, 10]
     assert int.from_bytes(instructions[1][6:8], "big") == 4
     assert int.from_bytes(instructions[4][2:4], "big") == 1
-    _firmware_validate(compiled,
-                       "formatter kind 10 is not executed")
+    _firmware_validate(compiled)
 
 
 def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
@@ -423,8 +453,7 @@ def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
     count = int.from_bytes(display[:2], "big")
     opcodes = [display[2 + i * 8] for i in range(count)]
     assert opcodes == [1, 7, 5, 4, 4, 6, 8, 10]
-    _firmware_validate(compiled,
-                       "path step opcode 2 is not executed")
+    _firmware_validate(compiled)
 
 
 DEVICE_LIMITS = (
@@ -436,9 +465,15 @@ DEVICE_LIMITS = (
 # Formats the device can fully sign with this firmware's capability table.
 # Each later phase of the ERC-7730 formatter plan raises this number
 # (docs/security/HANDOFF-ERC7730-715-FORMATTERS.md in keepkey-firmware).
-# The plan estimated 94; two 1inch increaseEpoch formats show a raw field read
-# from a container path (@.from), which the runtime does not capture.
-REGISTRY_SIGNABLE = 92
+# Phase 0 signed 92 (raw fields only). Phase A adds tokenAmount, addressName,
+# @.from/@.to and signed constants: 812. It refuses addressName and
+# tokenAmount over bytes32/uint256 words that pack an address or an encrypted
+# amount, rather than reinterpret bytes the calldata does not say are one.
+# Phase B adds the interpolated intent, shown as numbered parts: 954.
+# Phase C adds amount, nftName, date, duration, unit, enum and @.value: 1138.
+# Phase D adds groups, single-array iteration and "optional" fields: 1294.
+# Phase E1 adds embedded calldata, shown under a blind-sign warning: 1326.
+REGISTRY_SIGNABLE = 1326
 
 
 def test_official_registry_all_calldata_formats_reach_firmware():
@@ -488,7 +523,8 @@ def test_official_registry_all_calldata_formats_reach_firmware():
     # Every other format is refused by the compiler for a named device limit:
     # 8 iterate nested arrays, 2 nest their ABI deeper than 8 levels.
     assert len(unsupported) == 10
-    # Passing the parser is not signability: only these run end to end.
+    # Passing the parser is not signability: only these pass the device's
+    # preload capability checks.
     assert signable == REGISTRY_SIGNABLE
 
 
@@ -517,5 +553,41 @@ def test_compiles_official_uniswap_eip712_fixture_through_firmware():
     binding = sections[8]
     # deployment + name/chain/contract domain facts + token + network
     assert int.from_bytes(binding[:2], "big") == 6
-    _firmware_validate(compiled,
-                       "formatter kind 3 is not executed")
+    _firmware_validate(compiled)
+
+
+def test_mirror_applies_the_devices_abi_and_text_limits():
+    # Each shape the device refuses at preload is refused by the mirror too,
+    # and a neighbour inside the limit is accepted by both.
+    address = "0x" + "11" * 20
+    for length, refusal in ((64, None),
+                            (65, "an ABI array exceeds the device limit")):
+        signature = "f(uint256[%d] a,uint256 b)" % length
+        descriptor = {"display": {"formats": {signature: {
+            "intent": "F", "fields": [
+                {"path": "b", "label": "B", "format": "raw"}]}}}}
+        _firmware_validate(_unchecked(compile_calldata, descriptor, signature,
+                                      1, address), refusal)
+    for label, refusal in (("Line one", None),
+                           ("Line\none", "a program string is not printable text"),
+                           ("Tab\there", "a program string is not printable text"),
+                           ("Del\x7f", "a program string is not printable text")):
+        descriptor = {"display": {"formats": {"f(uint256 a)": {
+            "intent": "F", "fields": [
+                {"path": "a", "label": label, "format": "raw"}]}}}}
+        _firmware_validate(_unchecked(compile_calldata, descriptor,
+                                      "f(uint256 a)", 1, address), refusal)
+
+
+def test_signed_enum_keys_are_minimal_twos_complement():
+    # -128 fits one byte (0x80); the device refuses a longer encoding.
+    for signature, key in (("f(int8 side)", -128), ("f(int16 side)", -32768),
+                           ("f(int16 side)", -129), ("f(int8 side)", 127)):
+        descriptor = {
+            "metadata": {"enums": {"side": {str(key): "Edge", "1": "Long"}}},
+            "display": {"formats": {signature: {
+                "intent": "F", "fields": [{
+                    "path": "side", "label": "Side", "format": "enum",
+                    "params": {"$ref": "$.metadata.enums.side"}}]}}}}
+        _firmware_validate(compile_calldata(descriptor, signature, 1,
+                                            "0x" + "11" * 20), None)
