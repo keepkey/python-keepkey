@@ -125,9 +125,9 @@ jobs:
         with:
           repository: BitHighlander/keepkey-firmware
           # PINNED, not a moving branch, so a green result remains citeable.
-          # This is the code/workflow head beneath the handoff-only commit on
-          # firmware PR #843.
-          ref: 9b0583a41b758af7fb4c08280ab2a2bd8bb5d503
+          # Accepted consolidated 7b (#871): supplies the compiler/runtime
+          # contracts exercised by the canonical Python stack through 08.
+          ref: 2483977523d9b6beab52a69429ace9aeefd00f76
           path: keepkey-firmware
 
       # NOT `submodules: recursive`. trezor-firmware carries a micropython
@@ -555,7 +555,7 @@ jobs:
             firmware_ref: 4125e1c7409b1cb7b08ba595bc408e3128fc24ca
             min_fw: "7.14.3"
           - release: "7.15"
-            firmware_ref: 9b0583a41b758af7fb4c08280ab2a2bd8bb5d503
+            firmware_ref: 2483977523d9b6beab52a69429ace9aeefd00f76
             min_fw: "7.15.0"
 
     # KK_BITCOIN_ONLY=ON is a second shipping product, not a build flavour:
