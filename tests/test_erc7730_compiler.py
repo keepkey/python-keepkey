@@ -186,7 +186,7 @@ def test_compiles_official_uniswap_tuple_fixture_through_firmware():
         "exactInputSingle((address tokenIn, address tokenOut, uint24 fee, "
         "address recipient, uint256 amountIn, uint256 amountOutMinimum, "
         "uint160 sqrtPriceLimitX96) params)")
-    compiled = _unchecked(compile_calldata, 
+    compiled = _unchecked(compile_calldata,
         descriptor, signature, 1,
         "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45",
         token_records=[
@@ -224,7 +224,7 @@ def test_compiles_and_checks_exact_keepkey_sdk_thorchain_swap():
     assert memo == expected["memo"]
     assert int(fixture["value"], 16) == int(expected["amount"])
 
-    compiled = _unchecked(compile_calldata, 
+    compiled = _unchecked(compile_calldata,
         fixture["descriptor"], fixture["signature"], fixture["chainId"],
         fixture["to"], network_records=[(1, "Ethereum", "ETH", 18)])
     assert compiled[38:42].hex() == expected["selector"]
@@ -246,7 +246,7 @@ def test_compiles_array_iteration_separator_and_optional_visibility():
             }
         }}
     }
-    compiled = _unchecked(compile_calldata, 
+    compiled = _unchecked(compile_calldata,
         descriptor,
         "batch((address recipient,uint256 amount)[] items)", 1,
         "0x1111111111111111111111111111111111111111")
@@ -324,7 +324,7 @@ def test_token_amount_without_token_uses_firmware_raw_fallback():
                         "format": "tokenAmount"}],
         }
     }}}
-    compiled = _unchecked(compile_calldata, 
+    compiled = _unchecked(compile_calldata,
         descriptor, "quote(uint256 amount)", 1,
         "0x1111111111111111111111111111111111111111")
     # With no token named the device can only show the raw integer, and its
@@ -349,7 +349,7 @@ def test_compiles_typed_if_not_in_and_must_match_conditions():
             ],
         }
     }}}
-    compiled = _unchecked(compile_calldata, 
+    compiled = _unchecked(compile_calldata,
         descriptor, "guard(uint256 mode,address recipient)", 1,
         "0x1111111111111111111111111111111111111111")
     sections = _sections(compiled)
@@ -380,7 +380,7 @@ def test_compiles_interpolated_intent_and_metadata_enum():
             }
         }}
     }
-    compiled = _unchecked(compile_calldata, 
+    compiled = _unchecked(compile_calldata,
         descriptor, "swap(bool selling,uint256 amount)", 1,
         "0x1111111111111111111111111111111111111111")
     sections = _sections(compiled)
@@ -409,7 +409,7 @@ def test_compiles_nested_field_group_with_balanced_links():
             }],
         }
     }}}
-    compiled = _unchecked(compile_calldata, 
+    compiled = _unchecked(compile_calldata,
         descriptor, "act((address owner,uint256 amount) details)", 1,
         "0x1111111111111111111111111111111111111111")
     display = _sections(compiled)[7]
@@ -446,7 +446,7 @@ def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
     path = tmp_path / "descriptor.json"
     path.write_text(json.dumps(descriptor))
     loaded = load_descriptor(str(path), str(tmp_path))
-    compiled = _unchecked(compile_calldata, 
+    compiled = _unchecked(compile_calldata,
         loaded, "batch((address to,uint256 amount)[] items)", 1,
         "0x1111111111111111111111111111111111111111")
     display = _sections(compiled)[7]
@@ -544,7 +544,7 @@ def test_compiles_official_uniswap_eip712_fixture_through_firmware():
     assert encoded == (
         "PermitSingle(PermitDetails details,address spender,uint256 sigDeadline)"
         "PermitDetails(address token,uint160 amount,uint48 expiration,uint48 nonce)")
-    compiled = _unchecked(compile_eip712, 
+    compiled = _unchecked(compile_eip712,
         descriptor, fixture,
         token_records=[
             (1, "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "USDC", 6)
