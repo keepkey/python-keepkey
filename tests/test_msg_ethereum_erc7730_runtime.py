@@ -767,6 +767,101 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
                     self.assertEqual(passes, 5)
                     self.assertNotIn("Inner field", [s[0] for s in self.screens])
 
+    def test_outer_bytes_changed_during_inner_review_are_refused(self):
+        start, arguments, outer_def, inner_def = self._exec_setup()
+        # The operation word belongs to the outer call, outside the inner
+        # byte range. Inner validation must still bind the whole transaction.
+        altered = bytearray(arguments)
+        altered[127] = 1
+        erc7730.preload(self.client, outer_def)
+        result, _, passes, _ = self._walk(
+            start, arguments=arguments, altered=(5, bytes(altered)),
+            catalog=erc7730.Catalog((outer_def, inner_def)))
+        assert_failure(self, result, types.Failure_SyntaxError,
+                       "ERC-7730 calldata does not match definition")
+        self.assertEqual(passes, 5)
+        self.assertNotIn("Inner field", [s[0] for s in self.screens])
+
+    def test_restoring_outer_definition_rejects_another_valid_definition(self):
+        start, arguments, outer_def, inner_def = self._exec_setup()
+        replacement = erc7730_compiler.compile_calldata(
+            {"display": {"formats": {self.EXEC: {
+                "intent": "Replacement", "fields": []}}}},
+            self.EXEC, 1, ADDRESS)
+        wrong = self._definition(replacement, self._envelope(replacement))
+        # Establish that this is a valid signed definition for the same call;
+        # the failure must come from the frozen outer definition identity.
+        erc7730.preload(self.client, wrong)
+        erc7730.preload(self.client, outer_def)
+        self._drop_setup_screenshots()
+
+        class Substituting(erc7730.Catalog):
+            substituted = False
+
+            def chunk(self, request):
+                if (request.HasField("definition_id") and
+                        not request.HasField("contract_address")):
+                    self.substituted = True
+                    return eth.EthereumClearSignDefinitionChunk(
+                        definition_id=wrong.definition_id, offset=0,
+                        total_length=len(wrong.envelope),
+                        data=wrong.envelope[:request.length])
+                return super().chunk(request)
+
+        catalog = Substituting((outer_def, inner_def))
+        result, _, _, _ = self._walk(start, arguments=arguments,
+                                      catalog=catalog)
+        self.assertTrue(catalog.substituted)
+        self.assertIn(("Inner field", "Amount:\n1.5 USDC"), self._relevant())
+        assert_failure(self, result, types.Failure_SyntaxError,
+                       "Invalid certified ERC-7730 definition")
+        self.assertNotIn(types.ButtonRequest_SignTx, self.button_codes)
+
+    def test_inner_definition_identity_cannot_change_between_chunks(self):
+        start, arguments, outer_def, inner_def = self._exec_setup()
+        erc7730.preload(self.client, outer_def)
+
+        class ChangingIdentity(erc7730.Catalog):
+            changed = False
+
+            def chunk(self, request):
+                response = super().chunk(request)
+                if request.HasField("recursion_depth"):
+                    if request.offset == 0:
+                        response.data = response.data[:31]
+                    else:
+                        self.changed = True
+                        response.definition_id = bytes(32)
+                return response
+
+        catalog = ChangingIdentity((outer_def, inner_def))
+        result, _, _, _ = self._walk(start, arguments=arguments,
+                                      catalog=catalog)
+        self.assertTrue(catalog.changed)
+        assert_failure(self, result, types.Failure_SyntaxError,
+                       "Invalid certified ERC-7730 definition")
+        self.assertNotIn("Inner action", [s[0] for s in self.screens])
+
+    def test_cancelled_inner_review_clears_preload_in_the_same_session(self):
+        for title in ("Inner signer", "Inner action", "Inner field"):
+            with self.subTest(title=title):
+                start, arguments, outer_def, inner_def = self._exec_setup()
+                erc7730.preload(self.client, outer_def)
+                self._drop_setup_screenshots()
+                result, _, _, _ = self._walk(
+                    start, arguments=arguments, cancel_title=title,
+                    catalog=erc7730.Catalog((outer_def, inner_def)))
+                assert_failure(self, result, types.Failure_ActionCancelled,
+                               "Signing cancelled by user")
+                self.assertEqual(self.screens[-1][0], title)
+                self.assertNotIn(types.ButtonRequest_SignTx, self.button_codes)
+                # No Initialize, signer reset or new preload between calls.
+                result, _, _, _ = self._walk(start, arguments=arguments)
+                self.assertIsInstance(result, eth.EthereumTxRequest)
+                self.assertTrue(result.HasField("signature_r"))
+                self.assertEqual(self.definition_requests, 0)
+                self.assertEqual(self._relevant(), [])
+
     # ---- Audit remediation: each of these used to fail mid-review, take a
     # fact from the wrong source, or was untested. ----
 

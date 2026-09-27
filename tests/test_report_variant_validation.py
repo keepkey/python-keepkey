@@ -99,6 +99,35 @@ class TestReportVariantValidation(unittest.TestCase):
              'test_attestation_does_not_replay_onto_another_transaction',
              'skipped-but-required'), failed)
 
+    def test_stack08_runtime_controls_are_required_on_full_only(self):
+        results = catalog_results_with_solana_lut_skipped('7.15.0')
+        os.environ['KK_RELEASE_MISSING_CAPABILITIES'] = 'solana-lut-attestation'
+        controls = [
+            (module, method) for section, _, _, _, _, tests in REPORT.SECTIONS
+            if section == 'EX' for identifier, module, method, _, _, _ in tests
+            if identifier in ('EX40', 'EX41', 'EX42', 'EX43', 'EX44')]
+        self.assertEqual(5, len(controls))
+        self.assertEqual((True, []),
+                         REPORT.validate_junit('7.15.0', results, 'full'))
+        for module, method in controls:
+            for status in ('missing', 'skip', 'fail'):
+                with self.subTest(method=method, status=status):
+                    changed = dict(results)
+                    key = module + '::' + method
+                    if status == 'missing':
+                        del changed[key]
+                    else:
+                        changed[key] = status
+                    ok, failures = REPORT.validate_junit(
+                        '7.15.0', changed, 'full')
+                    self.assertFalse(ok)
+                    self.assertTrue(any(item[1:3] == (module, method)
+                                        for item in failures))
+            changed = dict(results)
+            changed[module + '::' + method] = 'skip'
+            self.assertEqual((True, []), REPORT.validate_junit(
+                '7.15.0', changed, 'bitcoin-only'))
+
 
 class TestReportVariantEnvironmentIsolation(unittest.TestCase):
 
