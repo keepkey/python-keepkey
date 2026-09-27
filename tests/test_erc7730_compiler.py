@@ -260,8 +260,7 @@ def test_compiles_array_iteration_separator_and_optional_visibility():
     end = display[26:34]
     assert int.from_bytes(begin[6:8], "big") == 3
     assert int.from_bytes(end[2:4], "big") == 1
-    _firmware_validate(compiled,
-                       "path step opcode 2 is not executed")
+    _firmware_validate(compiled)
 
 
 def test_refuses_nested_array_iteration_the_device_cannot_verify():
@@ -418,8 +417,7 @@ def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
     count = int.from_bytes(display[:2], "big")
     opcodes = [display[2 + i * 8] for i in range(count)]
     assert opcodes == [1, 7, 5, 4, 4, 6, 8, 10]
-    _firmware_validate(compiled,
-                       "path step opcode 2 is not executed")
+    _firmware_validate(compiled)
 
 
 DEVICE_LIMITS = (
@@ -437,8 +435,10 @@ DEVICE_LIMITS = (
 # amount, rather than reinterpret bytes the calldata does not say are one.
 # Phase B adds the interpolated intent, shown as numbered parts: 954.
 # Phase C adds amount, nftName, date, duration, unit, enum and @.value: 1138.
-# D-G enables groups and always-visible optional fields, without iteration.
-REGISTRY_SIGNABLE = 1221
+# Phase D adds groups, single-array iteration and "optional" fields. The
+# reviewed array-binding rule refuses 21 registry programs whose auxiliary
+# formatter paths do not walk the displayed item's array.
+REGISTRY_SIGNABLE = 1273
 
 
 def test_official_registry_all_calldata_formats_reach_firmware():
@@ -554,6 +554,62 @@ def test_signed_enum_keys_are_minimal_twos_complement():
                     "params": {"$ref": "$.metadata.enums.side"}}]}}}}
         _firmware_validate(compile_calldata(descriptor, signature, 1,
                                             "0x" + "11" * 20), None)
+
+def test_refuses_scalar_value_repeated_inside_iteration():
+    descriptor = {"display": {"formats": {
+        "batch(address[] recipients,address fallback)": {
+            "intent": "Batch transfer",
+            "fields": [
+                {"path": "recipients.[]", "label": "Recipient",
+                 "format": "addressName", "separator": "Next recipient"},
+                {"path": "fallback", "label": "Fallback",
+                 "format": "addressName"},
+            ],
+        }
+    }}}
+    program = bytearray(_unchecked(
+        compile_calldata, descriptor,
+        "batch(address[] recipients,address fallback)", 1,
+        "0x1111111111111111111111111111111111111111"))
+    _firmware_validate(bytes(program))
+    # Replace the iterated formatter's path with the scalar formatter's path.
+    # The display still contains an iteration, so the device must refuse it.
+    offset = HEADER_SIZE
+    while offset < len(program):
+        kind = program[offset]
+        length = struct.unpack_from(">I", program, offset + 1)[0]
+        if kind == 6:
+            start = offset + 5
+            assert struct.unpack_from(">H", program, start)[0] == 2
+            assert program[start + 7:start + 9] != program[start + 14:start + 16]
+            program[start + 7:start + 9] = program[start + 14:start + 16]
+            break
+        offset += 5 + length
+    else:
+        pytest.fail("formatter section missing")
+    _firmware_validate(bytes(program),
+                       "a field reads another array than its iteration")
+
+
+def test_iteration_binds_every_formatter_path_to_its_array():
+    signature = (
+        "batch((uint256 amount,address token)[] items,address[] other,"
+        "address fallback)")
+    for token_path, refusal in (
+            ("items.[].token", None),
+            ("other.[]", "a field reads another array than its iteration"),
+            ("fallback", "a field reads another array than its iteration")):
+        descriptor = {"display": {"formats": {signature: {
+            "intent": "Batch", "fields": [{
+                "path": "items.[].amount", "label": "Amount",
+                "format": "tokenAmount",
+                "params": {"tokenPath": token_path}}]}}}}
+        program = _unchecked(compile_calldata, descriptor, signature, 1,
+                             "0x" + "11" * 20)
+        _firmware_validate(program, refusal)
+        if refusal:
+            with pytest.raises(DeviceCannotExecute, match=refusal):
+                compile_calldata(descriptor, signature, 1, "0x" + "11" * 20)
 
 
 def test_signer_constant_is_not_an_intent_value():
