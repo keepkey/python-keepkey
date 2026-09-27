@@ -130,6 +130,27 @@ jobs:
           ref: 2483977523d9b6beab52a69429ace9aeefd00f76
           path: keepkey-firmware
 
+      - name: Bind the staged 7.15 capability ledger to the pinned firmware
+        run: |
+          python - <<'PYCODE'
+          import os
+          import pathlib
+          import re
+          # The preceding checkout is the immutable accepted 7b commit. Its
+          # owner-reviewed omissions apply only to this staged 7.15 job;
+          # no Python test assertion or default release behavior is changed.
+          workflow = pathlib.Path('keepkey-firmware/.github/workflows/ci.yml').read_text()
+          values = re.findall(r'^  KK_RELEASE_MISSING_CAPABILITIES: ([a-z0-9,-]*)$',
+                              workflow, re.MULTILINE)
+          if len(values) != 1:
+              raise SystemExit('Expected one explicit ledger in pinned staged firmware')
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write('KK_RELEASE_MISSING_CAPABILITIES=' + values[0] + '\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('Staged 7.15 firmware 2483977523d9b6beab52a69429ace9aeefd00f76; '
+                            'deferred capabilities: `' + values[0] + '`.\n')
+          PYCODE
+
       # NOT `submodules: recursive`. trezor-firmware carries a micropython
       # vendor tree whose lib/lwip lives on git.savannah.gnu.org, which serves
       # dumb HTTP and cannot do the shallow clone actions/checkout requests --
