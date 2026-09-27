@@ -263,6 +263,42 @@ def test_compiles_array_iteration_separator_and_optional_visibility():
     _firmware_validate(compiled)
 
 
+def test_refuses_scalar_value_repeated_inside_iteration():
+    descriptor = {"display": {"formats": {
+        "batch(address[] recipients,address fallback)": {
+            "intent": "Batch transfer",
+            "fields": [
+                {"path": "recipients.[]", "label": "Recipient",
+                 "format": "addressName", "separator": "Next recipient"},
+                {"path": "fallback", "label": "Fallback",
+                 "format": "addressName"},
+            ],
+        }
+    }}}
+    program = bytearray(_unchecked(
+        compile_calldata, descriptor,
+        "batch(address[] recipients,address fallback)", 1,
+        "0x1111111111111111111111111111111111111111"))
+    _firmware_validate(bytes(program))
+    # Replace the iterated formatter's path with the scalar formatter's path.
+    # The display still contains an iteration, so the device must refuse it.
+    offset = HEADER_SIZE
+    while offset < len(program):
+        kind = program[offset]
+        length = struct.unpack_from(">I", program, offset + 1)[0]
+        if kind == 6:
+            start = offset + 5
+            assert struct.unpack_from(">H", program, start)[0] == 2
+            assert program[start + 7:start + 9] != program[start + 14:start + 16]
+            program[start + 7:start + 9] = program[start + 14:start + 16]
+            break
+        offset += 5 + length
+    else:
+        pytest.fail("formatter section missing")
+    _firmware_validate(bytes(program),
+                       "a field reads another array than its iteration")
+
+
 def test_refuses_nested_array_iteration_the_device_cannot_verify():
     # The device's catalog verifier accepts one "[]" step per path, so a
     # program iterating a nested array could never be loaded. The compiler
@@ -437,8 +473,11 @@ DEVICE_LIMITS = (
 # Phase C adds amount, nftName, date, duration, unit, enum and @.value: 1138.
 # Phase D adds groups, single-array iteration and "optional" fields. The
 # reviewed array-binding rule refuses 21 registry programs whose auxiliary
-# formatter paths do not walk the displayed item's array.
-REGISTRY_SIGNABLE = 1273
+# formatter paths do not walk the displayed item's array: 1273.
+# Phase E1 adds embedded calldata, shown under a blind-sign warning. The
+# strict formatter rule refuses 29 formerly accepted programs in this phase:
+# 1297 remain signable across the 1450 checked registry formats.
+REGISTRY_SIGNABLE = 1297
 
 
 def test_official_registry_all_calldata_formats_reach_firmware():
@@ -488,7 +527,8 @@ def test_official_registry_all_calldata_formats_reach_firmware():
     # Every other format is refused by the compiler for a named device limit:
     # 8 iterate nested arrays, 2 nest their ABI deeper than 8 levels.
     assert len(unsupported) == 10
-    # Passing the parser is not signability: only these run end to end.
+    # Passing the parser is not signability: only these pass the device's
+    # preload capability checks.
     assert signable == REGISTRY_SIGNABLE
 
 
@@ -518,6 +558,7 @@ def test_compiles_official_uniswap_eip712_fixture_through_firmware():
     # deployment + name/chain/contract domain facts + token + network
     assert int.from_bytes(binding[:2], "big") == 6
     _firmware_validate(compiled)
+
 
 def test_mirror_applies_the_devices_abi_and_text_limits():
     # Each shape the device refuses at preload is refused by the mirror too,

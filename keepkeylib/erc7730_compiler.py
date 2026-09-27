@@ -339,6 +339,7 @@ def _condition_literal(node, value):
     if node.kind == 1 and isinstance(value, int) and not isinstance(value, bool):
         return 1, _unsigned_literal(value)
     if node.kind == 2 and isinstance(value, int) and not isinstance(value, bool):
+        # Minimal two's complement, as the device requires: -128 is 0x80.
         width = max(1, ((value if value >= 0 else ~value).bit_length() + 8)
                     // 8)
         return 2, value.to_bytes(width, "big", signed=True)
@@ -778,6 +779,12 @@ class CalldataCompiler(object):
                 if not callee:
                     raise ValueError("embedded calldata requires calleePath")
                 arguments.append((15, 1, intern_path(_resolve_path(root, callee))))
+                # 17: the native value the inner call moves; 18: whose
+                # authority it runs with.
+                for role, key in ((17, "amountPath"), (18, "spenderPath")):
+                    if params.get(key):
+                        arguments.append((role, 1, intern_path(
+                            _resolve_path(root, params[key]))))
             formatter_index = len(formatters)
             formatters.append((kind, arguments))
             condition = ABSENT
@@ -994,6 +1001,8 @@ DEVICE_CAPABILITIES = {
             frozenset((1, 5))),
         8: ({1: _PATH, 10: _LITERAL}, frozenset((1, 10))),       # enum
         10: ({1: _PATH}, frozenset((1,))),                       # addressName
+        13: ({1: _PATH, 15: _PATH, 17: _PATH, 18: _PATH},        # calldata
+             frozenset((1, 15))),
     },
     "path_sources": frozenset((1, 2, 3)),
     # @.from, @.to and @.value, calldata definitions only
@@ -1005,11 +1014,14 @@ DEVICE_CAPABILITIES = {
     "conditions": True,
     "alias_set_max": 4,
     "enum_max": 16,
+    # signer text shown inside a value's screen, and unit decimals
     "signer_text_max": 64,
     "unit_decimals_max": 77,
 }
+# The verifier's table limits (erc7730_catalog.c).
 TABLE_LIMITS = {1: 96, 2: 64, 3: 64, 4: 64, 5: 32, 6: 64, 7: 64, 8: 64}
 # Value classes: 1-7 are ABI leaf kinds; literals map to what they hold.
+CLASS_BYTES = 6
 (CLASS_UINT, CLASS_INT, CLASS_ADDRESS, CLASS_BOOL, CLASS_STRING,
  CLASS_STRING_REF, CLASS_ALIAS_SET, CLASS_UINT_SMALL, CLASS_DATE_ENCODING,
  CLASS_ENUM_MAP, CLASS_FLAG) = 1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13
@@ -1023,24 +1035,27 @@ def _value_allowed(kind, role, cls):
     rules = {
         (1, 1): lambda: cls <= CLASS_STRING_REF or cls == CLASS_UINT_SMALL,
         (10, 1): lambda: cls == CLASS_ADDRESS,
-        (2, 1): lambda: cls in unsigned,
-        (6, 1): lambda: cls in unsigned,
-        (3, 1): lambda: cls in unsigned,
+        (2, 1): lambda: cls == CLASS_UINT,
+        (6, 1): lambda: cls == CLASS_UINT,
+        (3, 1): lambda: cls == CLASS_UINT,
         (3, 7): lambda: cls in unsigned,
         (3, 2): lambda: cls == CLASS_ADDRESS,
         (3, 8): lambda: cls in (CLASS_STRING, CLASS_DATE_ENCODING),
         (3, 22): lambda: cls == CLASS_ALIAS_SET,
-        (4, 1): lambda: cls in unsigned,
+        (4, 1): lambda: cls == CLASS_UINT,
         (4, 3): lambda: cls == CLASS_ADDRESS,
-        (5, 1): lambda: cls in unsigned,
+        (5, 1): lambda: cls == CLASS_UINT,
         (5, 9): lambda: cls == CLASS_DATE_ENCODING,
-        (7, 1): lambda: cls in unsigned,
+        (7, 1): lambda: cls == CLASS_UINT,
         (7, 4): lambda: cls == CLASS_UINT_SMALL,
         (7, 5): lambda: cls in (CLASS_STRING, CLASS_DATE_ENCODING),
         (7, 6): lambda: cls == CLASS_FLAG,
-        (8, 1): lambda: cls in (CLASS_UINT, CLASS_UINT_SMALL,
-                               CLASS_INT, CLASS_BOOL),
+        (8, 1): lambda: cls in (CLASS_UINT, CLASS_INT, CLASS_BOOL),
         (8, 10): lambda: cls == CLASS_ENUM_MAP,
+        (13, 1): lambda: cls == CLASS_BYTES,
+        (13, 15): lambda: cls == CLASS_ADDRESS,
+        (13, 17): lambda: cls == CLASS_UINT,
+        (13, 18): lambda: cls == CLASS_ADDRESS,
     }
     rule = rules.get((kind, role))
     return bool(rule and rule())
@@ -1108,9 +1123,30 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     abi = sections.get(2, b"\0\0")
     nodes = [struct.unpack(">BHHHH", abi[2 + 9 * i:11 + 9 * i])
              for i in range(u16(abi, 0))]
+    # A fixed array holds 1-64 elements (0xffff marks a dynamic one).
     for kind, _, _, _, length in nodes:
         if kind == 9 and (length == 0 or (length > 64 and length != 0xffff)):
             return "an ABI array exceeds the device limit"
+
+    string_table = sections.get(1, b"\0\0")
+    date_strings = set()
+    short_strings = set()
+    at = 2
+    for index in range(u16(string_table, 0)):
+        length = u16(string_table, at)
+        # Printable ASCII or well-formed UTF-8, never a control character.
+        try:
+            text = string_table[at + 2:at + 2 + length].decode("utf-8")
+        except UnicodeDecodeError:
+            return "a program string is not printable text"
+        if any(ch < " " or ch == "\x7f" for ch in text):
+            return "a program string is not printable text"
+        if length <= capabilities.get("signer_text_max", 128):
+            short_strings.add(index)
+        if string_table[at + 2:at + 2 + length] in (b"timestamp",
+                                                    b"blockheight"):
+            date_strings.add(index)
+        at += 2 + length
 
     literal_table = sections.get(4, b"\0\0")
     literal_classes = []
@@ -1123,6 +1159,10 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
         if (kind == 1 and length == 1 and
                 value[0] <= capabilities.get("unit_decimals_max", 255)):
             decimals_literals.add(literal_index)
+        if kind == 8:
+            for entry in range(u16(value, 0)):
+                if u16(value, 4 + 4 * entry) not in short_strings:
+                    return "an enum label is longer than the device shows"
         members = u16(value, 0) if kind in (8, 9) else 0
         if kind == 1:
             cls = CLASS_UINT_SMALL if length == 1 else CLASS_UINT
@@ -1140,34 +1180,6 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     def literal_class(index):
         return literal_classes[index] if index < len(literal_classes) else 0
 
-    string_table = sections.get(1, b"\0\0")
-    date_strings = set()
-    short_strings = set()
-    at = 2
-    for index in range(u16(string_table, 0)):
-        length = u16(string_table, at)
-        raw = string_table[at + 2:at + 2 + length]
-        try:
-            shown = raw.decode("utf-8")
-        except UnicodeDecodeError:
-            return "a program string is not printable text"
-        if any(ch < " " or ch == "\x7f" for ch in shown):
-            return "a program string is not printable text"
-        if length <= capabilities.get("signer_text_max", 128):
-            short_strings.add(index)
-        if string_table[at + 2:at + 2 + length] in (b"timestamp",
-                                                    b"blockheight"):
-            date_strings.add(index)
-        at += 2 + length
-    at = 2
-    for _ in range(u16(literal_table, 0)):
-        kind, length = literal_table[at], u16(literal_table, at + 1)
-        value = literal_table[at + 3:at + 3 + length]
-        if kind == 8:
-            for entry in range(u16(value, 0)):
-                if u16(value, 4 + 4 * entry) not in short_strings:
-                    return "an enum label is longer than the device shows"
-        at += 3 + length
     for kind, limit in TABLE_LIMITS.items():
         if kind in sections and u16(sections[kind], 0) > limit:
             return "program table %d exceeds the device limit" % kind
@@ -1261,9 +1273,13 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
                 return "unit decimals exceed the device limit"
             constant = (source == 1 and index < len(path_classes) and
                         isinstance(path_classes[index], tuple))
-            if constant and role == 1:
-                if kind != 1:
-                    return "only a raw field may show a signer constant"
+            if constant and kind == 13 and role in (15, 17, 18):
+                return ("an embedded call's callee, value and authority must "
+                        "come from calldata")
+            if constant and role == 1 and kind != 1:
+                return "only a raw field may show a signer constant"
+            if (role == 1 and source == 1 and index < len(path_classes) and
+                    isinstance(path_classes[index], tuple)):
                 value_literal = True
             if source == 1:
                 argument_array = path_arrays[index]
@@ -1276,8 +1292,10 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             seen.add(role)
         if not required <= seen:
             return "formatter kind %d lacks a required argument" % kind
+        if kind == 13 and not calldata:
+            return "embedded calldata is executed for calldata only"
         formatter_arrays.append((value_array, any_array, mixed_arrays,
-                                 value_literal))
+                                 kind == 13, value_literal))
 
     displays = sections.get(7, b"\0\0")
     run_closed = False
@@ -1296,10 +1314,6 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             run_closed = True
         if opcode == 4 and c != ABSENT and not capabilities["conditions"]:
             return "display conditions are not executed"
-        if opcode == 3 and a < len(formatter_arrays) and formatter_arrays[a][3]:
-            return "a signer constant cannot be an intent value"
-        if opcode == 4 and a not in short_strings:
-            return "a field label is longer than the device shows"
         if opcode == 7:
             if a not in iterable or iteration is not None or not calldata:
                 return "iteration is not executed here"
@@ -1307,8 +1321,14 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
         elif opcode == 8:
             iteration = None
         elif opcode in (3, 4):
-            value_array, any_array, mixed_arrays, _ = (
+            value_array, any_array, mixed_arrays, embedded, value_literal = (
                 formatter_arrays[a if opcode == 3 else b])
+            if opcode == 3 and embedded:
+                return "an embedded call cannot be an intent value"
+            if opcode == 3 and value_literal:
+                return "a signer constant cannot be an intent value"
+            if opcode == 4 and a not in short_strings:
+                return "a field label is longer than the device shows"
             if any_array and iteration is None:
                 return "an iterating value outside an iteration"
             if iteration is not None and (value_array != iteration or
