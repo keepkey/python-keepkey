@@ -325,7 +325,7 @@ def test_compiles_typed_if_not_in_and_must_match_conditions():
     literals = sections[4]
     assert int.from_bytes(literals[:2], "big") == 5
     _firmware_validate(compiled,
-                       "display conditions are not executed")
+                       "condition opcode 7 is not executed")
 
 
 def test_compiles_interpolated_intent_and_metadata_enum():
@@ -383,8 +383,7 @@ def test_compiles_nested_field_group_with_balanced_links():
     assert [item[0] for item in instructions] == [1, 5, 4, 4, 6, 10]
     assert int.from_bytes(instructions[1][6:8], "big") == 4
     assert int.from_bytes(instructions[4][2:4], "big") == 1
-    _firmware_validate(compiled,
-                       "display opcode 5 is not executed")
+    _firmware_validate(compiled)
 
 
 def test_loads_bounded_includes_and_compiles_array_backed_group(tmp_path):
@@ -438,7 +437,8 @@ DEVICE_LIMITS = (
 # amount, rather than reinterpret bytes the calldata does not say are one.
 # Phase B adds the interpolated intent, shown as numbered parts: 954.
 # Phase C adds amount, nftName, date, duration, unit, enum and @.value: 1138.
-REGISTRY_SIGNABLE = 1138
+# D-G enables groups and always-visible optional fields, without iteration.
+REGISTRY_SIGNABLE = 1221
 
 
 def test_official_registry_all_calldata_formats_reach_firmware():
@@ -554,3 +554,29 @@ def test_signed_enum_keys_are_minimal_twos_complement():
                     "params": {"$ref": "$.metadata.enums.side"}}]}}}}
         _firmware_validate(compile_calldata(descriptor, signature, 1,
                                             "0x" + "11" * 20), None)
+
+
+def test_signer_constant_is_not_an_intent_value():
+    signature = "pay(address recipient)"
+    descriptor = {"display": {"formats": {signature: {
+        "intent": "Pay", "fields": [
+            {"value": "Signer claim", "label": "Claim", "format": "raw"}]}}}}
+    program = bytearray(_unchecked(compile_calldata, descriptor, signature,
+                                  1, "0x" + "11" * 20))
+    _firmware_validate(bytes(program))  # a signer-owned field is allowed
+    offset = HEADER_SIZE
+    while offset < len(program):
+        kind = program[offset]
+        length = struct.unpack_from(">I", program, offset + 1)[0]
+        if kind == 7:
+            instruction = offset + 5 + 2 + 8
+            assert program[instruction] == 4
+            formatter = struct.unpack_from(">H", program, instruction + 4)[0]
+            program[instruction:instruction + 8] = struct.pack(
+                ">BBHHH", 3, 0, formatter, 0xffff, 0xffff)
+            break
+        offset += 5 + length
+    else:
+        pytest.fail("display section missing")
+    _firmware_validate(bytes(program),
+                       "a signer constant cannot be an intent value")

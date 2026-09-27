@@ -979,7 +979,7 @@ class CalldataCompiler(object):
 _PATH, _LITERAL, _STRING = frozenset((1,)), frozenset((2,)), frozenset((3,))
 DEVICE_CAPABILITIES = {
     # 2 and 3 (interpolated intent) only as one run directly after the intent
-    "display_opcodes": frozenset((1, 2, 3, 4, 10)),
+    "display_opcodes": frozenset((1, 2, 3, 4, 5, 6, 10)),
     # formatter kind -> (argument role -> permitted sources, required roles)
     "formatters": {
         1: ({1: _PATH}, frozenset((1,))),                        # raw
@@ -998,7 +998,8 @@ DEVICE_CAPABILITIES = {
     # @.from, @.to and @.value, calldata definitions only
     "containers": frozenset((1, 2, 3)),
     "path_step_opcodes": frozenset((1,)),
-    "conditions": False,
+    "condition_opcodes": frozenset((3,)),  # optional: always shown
+    "conditions": True,
     "alias_set_max": 4,
     "enum_max": 16,
     "signer_text_max": 64,
@@ -1194,6 +1195,9 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     conditions = sections.get(5, b"\0\0")
     if u16(conditions, 0) and not capabilities["conditions"]:
         return "display conditions are not executed"
+    for i in range(u16(conditions, 0)):
+        if conditions[2 + 8 * i] not in capabilities.get("condition_opcodes", ()):
+            return "condition opcode %d is not executed" % conditions[2 + 8 * i]
 
     formatters = sections.get(6, b"\0\0")
     formatter_constants = []
