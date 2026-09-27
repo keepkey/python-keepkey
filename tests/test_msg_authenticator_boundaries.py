@@ -149,7 +149,11 @@ class TestAuthenticatorBoundaries(common.KeepKeyTest):
                 '\x16generateOTPFrom:abcdefghijk:ABCDEFGHIJKX:1:30',
                 '\x16generateOTPFrom::abcdefghijk:ABCDEFGHIJK:1:30',
                 '\x18removeAccount::abcdefghijk:ABCDEFGHIJK',
-                '\x18removeAccount:abcdefghijk:ABCDEFGHIJKX'):
+                '\x18removeAccount:abcdefghijk:ABCDEFGHIJKX',
+                '\x16generateOTPFrom:abcdefghijk:ABCDEFGHIJK:+1:30',
+                '\x16generateOTPFrom:abcdefghijk:ABCDEFGHIJK:1:31',
+                '\x16generateOTPFrom:abcdefghijk:ABCDEFGHIJK:1:30junk',
+                '\x16generateOTPFrom:abcdefghijk:ABCDEFGHIJK:4294967296:30'):
             response = self.client.call_raw(proto.Ping(message=request))
             self.assertIsInstance(response, proto.Failure)
         self.assertEqual(self._auth_ping(self.GET_ACCOUNT).message,
