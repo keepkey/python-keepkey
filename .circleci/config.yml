@@ -12,7 +12,7 @@ jobs:
           name: Checkout current branch over HTTPS
           command: |
             git clone --depth 1 -b "$CIRCLE_BRANCH" \
-              https://github.com/keepkey/python-keepkey.git .
+              "https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git" .
             git submodule update --init --recursive
       - run:
           name: Validate canonical Python and EOS vector contracts
