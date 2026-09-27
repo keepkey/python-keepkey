@@ -536,6 +536,27 @@ def _v_catalog_tests(start_id=17):
 _V_CATALOG_TESTS = _v_catalog_tests(start_id=17)
 
 SECTIONS = [
+    ('AU', 'Authenticator identity and consent', '7.15.0',
+     'New credentials use bounded printable identities and 16-20 byte secrets. '
+     'Both confirmations are required; duplicates never replace an existing secret.',
+     ['Applies to full and Bitcoin-only builds. Legacy short secrets remain usable.'],
+     [('AU1', 'test_msg_authenticator_boundaries',
+       'test_block09_add_reviews_complete_identity_and_secret',
+       'Complete identity and secret review',
+       'Maximum-length identities and the entire secret appear on separate confirmations.',
+       ['Identity', 'Secret']),
+      ('AU2', 'test_msg_authenticator_boundaries',
+       'test_block09_duplicate_and_cancellation_have_exact_failures',
+       'Refusal, retry and duplicate handling',
+       'Declining either screen stores nothing; immediate retry succeeds and duplicates fail before review.', []),
+      ('AU3', 'test_msg_authenticator_boundaries',
+       'test_block09_invalid_identity_and_secret_fail_before_buttons',
+       'Malformed and aliased identities are refused',
+       'Empty, overlong, non-ASCII and control-containing identities and invalid secrets fail before consent. OTP prefix aliases fail.', []),
+      ('AU4', 'test_msg_authenticator_boundaries',
+       'test_block09_delete_decline_preserves_account_then_retry_removes',
+       'Deletion requires consent',
+       'Declining deletion preserves the account; an immediate confirmed retry removes it.', [])]),
     ('J', 'Display Binding - What the Device Signs Is What It Shows', '7.14.2',
      'The 7.14.2 security release changed what reaches the OLED on the signing paths. Every '
      'defect it fixed was a case of the device hashing bytes it never rendered, or rendering '
@@ -3884,6 +3905,7 @@ def screenshot_test_list(fw_version):
 # version-blind set would fail every older-firmware run for a module that
 # legitimately cannot exist yet.
 MUST_RUN_MODULES = {
+    'test_msg_authenticator_boundaries': '7.15.0',
     # Taproot did not exist at 7.0.0. That floor only ever held because this
     # table was applied to products that happen to carry taproot: 7.14.2
     # reports no supports_taproot and has no P2TR path in signing.c at all, so
