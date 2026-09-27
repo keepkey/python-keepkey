@@ -96,13 +96,16 @@ class Erc7730Harness(object):
                 if code != types.ButtonRequest_Other]
 
     def _walk(self, start, envelope=b"", doc=None, change_pass=None, cancel_button=None,
-              arguments=None, catalog=None, altered=None, cancel_title=None):
+              arguments=None, catalog=None, altered=None, cancel_title=None,
+              chunk_size=None):
         response = self.client.call_raw(start)
         self.definition_requests = 0
         self.button_codes = []
         self.screens = []
+        self.calldata_chunk_sizes = []
         buttons = 0
         calldata_passes = 0
+        calldata_offset = 0
         typed_passes = 0
         for _ in range(1000):
             if isinstance(response, proto.ButtonRequest):
@@ -140,15 +143,25 @@ class Erc7730Harness(object):
                          eip712_stream.encode_value(resolved[1], resolved[2]))
                 response = self.client.call_raw(eth.EthereumTypedDataValueAck(value=value))
             elif isinstance(response, eth.EthereumTxRequest) and response.HasField("data_length"):
-                calldata_passes += 1
+                if calldata_offset == 0:
+                    calldata_passes += 1
                 data = arguments
                 if altered and altered[0] == calldata_passes:
                     data = altered[1]
                 if data is None:
                     data = (43 if change_pass == calldata_passes else 42).to_bytes(32, "big")
                     data += (7).to_bytes(32, "big")
-                self.assertEqual(response.data_length, len(data))
-                response = self.client.call_raw(eth.EthereumTxAck(data_chunk=data))
+                self.assertGreater(response.data_length, 0)
+                self.assertLessEqual(response.data_length,
+                                     len(data) - calldata_offset)
+                length = min(response.data_length,
+                             chunk_size or response.data_length)
+                chunk = data[calldata_offset:calldata_offset + length]
+                self.calldata_chunk_sizes.append(length)
+                calldata_offset += length
+                if calldata_offset == len(data):
+                    calldata_offset = 0
+                response = self.client.call_raw(eth.EthereumTxAck(data_chunk=chunk))
             else:
                 return response, buttons, calldata_passes, typed_passes
         self.fail("protocol did not terminate")
@@ -573,7 +586,9 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
             "uint8 operation)")
     TRANSFER = "transfer(address to,uint256 amount)"
 
-    def _exec_setup(self, amount_path=True, spender="@.to"):
+    def _exec_setup(self, amount_path=True, spender="@.to", memo=None):
+        inner_signature = (self.TRANSFER if memo is None else
+                           "transfer(address to,uint256 amount,bytes memo)")
         params = {"calleePath": "to"}
         if spender:
             params["spenderPath"] = spender
@@ -584,7 +599,7 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
                 {"path": "data", "label": "Transaction", "format": "calldata",
                  "params": params},
                 {"path": "operation", "label": "Operation", "format": "raw"}]}}}}
-        inner_descriptor = {"display": {"formats": {self.TRANSFER: {
+        inner_descriptor = {"display": {"formats": {inner_signature: {
             "intent": "Transfer", "fields": [
                 {"path": "to", "label": "Recipient", "format": "addressName"},
                 {"path": "amount", "label": "Amount", "format": "tokenAmount",
@@ -592,7 +607,7 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         outer = erc7730_compiler.compile_calldata(
             outer_descriptor, self.EXEC, 1, ADDRESS)
         inner = erc7730_compiler.compile_calldata(
-            inner_descriptor, self.TRANSFER, 1, self.USDC)
+            inner_descriptor, inner_signature, 1, self.USDC)
         self._load_signer()
         outer_env = self._envelope(outer)
         inner_def = erc7730.Definition(self._envelope(inner), 1, 1, self.USDC,
@@ -601,6 +616,10 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         self._exec_outer = (outer, outer_def)
         call = (bytes.fromhex("a9059cbb") + self._word(OTHER_ADDRESS) +
                 self._word(1500000))
+        if memo is not None:
+            call = (inner[38:42] + self._word(OTHER_ADDRESS) +
+                    self._word(1500000) + self._word(96) +
+                    self._word(len(memo)) + memo + bytes(-len(memo) % 32))
         arguments = (self._word(self.USDC) + self._word(0) +
                      self._word(128) + self._word(0) +
                      self._word(len(call)) + call +
@@ -696,6 +715,57 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
                        "ERC-7730 calldata does not match definition")
         self.assertEqual(passes, 5)
         self.assertNotIn("Inner field", [s[0] for s in self.screens])
+
+    def test_large_inner_call_is_bound_across_transport_chunks(self):
+        # The inner bytes exceed both the capture buffer and one transport
+        # reply. A 31-byte reply splits selectors, offsets and ABI words.
+        for chunk_size in (1024, 31):
+            with self.subTest(chunk_size=chunk_size):
+                _, arguments, outer_def, inner_def = self._exec_setup(
+                    memo=b"Z" * 1200)
+                outer = self._exec_outer[0]
+                erc7730.preload(self.client, outer_def)
+                self._drop_setup_screenshots()
+                start = self._audit_start(outer, 4 + len(arguments))
+                reviewed, _, _, _ = self._walk(
+                    start, arguments=arguments, chunk_size=chunk_size,
+                    catalog=erc7730.Catalog((outer_def, inner_def)))
+                self.assertIsInstance(reviewed, eth.EthereumTxRequest)
+                self.assertTrue(reviewed.HasField("signature_r"))
+                reviewed_chunks = list(self.calldata_chunk_sizes)
+                self.assertGreater(len(reviewed_chunks), 1)
+                self.assertLessEqual(max(reviewed_chunks), chunk_size)
+                if chunk_size == 31:
+                    self.assertGreater(len(reviewed_chunks), 40)
+                self.assertIn(("Inner field", "Amount:\n1.5 USDC"),
+                              self._relevant())
+                ordinary, _, _, _ = self._walk(
+                    start, arguments=arguments, chunk_size=chunk_size)
+                self.assertIsInstance(ordinary, eth.EthereumTxRequest)
+                self.assertTrue(ordinary.HasField("signature_r"))
+                self.assertGreater(len(self.calldata_chunk_sizes), 1)
+                self.assertLessEqual(max(self.calldata_chunk_sizes), chunk_size)
+                self.assertEqual(self.definition_requests, 0)
+                self.assertEqual(
+                    (reviewed.signature_r, reviewed.signature_s,
+                     reviewed.signature_v),
+                    (ordinary.signature_r, ordinary.signature_s,
+                     ordinary.signature_v))
+                if chunk_size == 31:
+                    # Change an embedded memo byte on the inner validation
+                    # pass, after the outer review fixed the signed digest.
+                    altered = bytearray(arguments)
+                    altered[-40] ^= 1
+                    erc7730.preload(self.client, outer_def)
+                    self._drop_setup_screenshots()
+                    rejected, _, passes, _ = self._walk(
+                        start, arguments=arguments, altered=(5, bytes(altered)),
+                        chunk_size=chunk_size,
+                        catalog=erc7730.Catalog((outer_def, inner_def)))
+                    assert_failure(self, rejected, types.Failure_SyntaxError,
+                                   "ERC-7730 calldata does not match definition")
+                    self.assertEqual(passes, 5)
+                    self.assertNotIn("Inner field", [s[0] for s in self.screens])
 
     # ---- Audit remediation: each of these used to fail mid-review, take a
     # fact from the wrong source, or was untested. ----
