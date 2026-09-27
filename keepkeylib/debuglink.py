@@ -91,6 +91,12 @@ class DebugLink(object):
         obj = self._call(proto.DebugLinkGetState())
         return obj.dice_digest
 
+    def read_confirm_text(self):
+        """(title, body) of the confirmation currently or last shown, exactly
+        as the firmware formatted them, before the body is paged."""
+        obj = self._call(proto.DebugLinkGetState())
+        return (obj.confirm_title, obj.confirm_body)
+
     def read_passphrase_protection(self):
         obj = self._call(proto.DebugLinkGetState())
         return obj.passphrase_protection

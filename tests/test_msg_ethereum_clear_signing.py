@@ -29,6 +29,9 @@ import hashlib
 import struct
 
 from keepkeylib import messages_ethereum_pb2 as messages_eth
+from keepkeylib import messages_pb2 as messages
+from keepkeylib import types_pb2 as types
+from keepkeylib.tools import int_to_big_endian
 
 try:
     import common
@@ -1029,14 +1032,26 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
 
         if flow['key'] == 'erc20-approve-unlimited':
-            with self.assertRaises(CallException) as ctx:
-                self.client.ethereum_sign_tx(
-                    n=n, nonce=FLOW_NONCE, gas_price=FLOW_GAS_PRICE,
-                    gas_limit=FLOW_GAS_LIMIT, to=flow['to'],
-                    value=flow['value'], data=flow['data'],
-                    chain_id=chain_id)
-            self.assertIn('Unlimited ERC20 approval is disabled',
-                          str(ctx.exception))
+            # Drive the wire directly: the policy is refused on the FIRST
+            # response, before any ButtonRequest. Expected-response helpers
+            # would raise their own exception text containing the expected
+            # message, so they cannot prove what the device actually sent.
+            msg = messages_eth.EthereumSignTx(
+                address_n=n,
+                nonce=int_to_big_endian(FLOW_NONCE),
+                gas_price=int_to_big_endian(FLOW_GAS_PRICE),
+                gas_limit=int_to_big_endian(FLOW_GAS_LIMIT),
+                value=int_to_big_endian(flow['value']),
+                to=flow['to'], chain_id=chain_id,
+                data_length=len(flow['data']),
+                data_initial_chunk=flow['data'][:1024])
+            self.assertEqual(len(flow['data']), 68)
+            response = self.client.call_raw(msg)
+            self.assertIsInstance(response, messages.Failure)
+            self.assertEqual(response.code,
+                             types.Failure_ActionCancelled)
+            self.assertEqual(response.message,
+                             'Unlimited ERC20 approval is disabled')
             return
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
