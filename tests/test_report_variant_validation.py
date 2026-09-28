@@ -128,6 +128,29 @@ class TestReportVariantValidation(unittest.TestCase):
             self.assertEqual((True, []), REPORT.validate_junit(
                 '7.15.0', changed, 'bitcoin-only'))
 
+    def test_authenticator_contracts_cannot_skip_on_either_variant(self):
+        results = catalog_results_with_solana_lut_skipped('7.15.0')
+        for key in results:
+            results[key] = 'pass'
+        owned = [key for key in results if key.startswith(
+            'test_msg_authenticator_boundaries::test_block09_')]
+        self.assertEqual(4, len(owned))
+        for variant in ('full', 'bitcoin-only'):
+            self.assertEqual((True, []), REPORT.validate_junit(
+                '7.15.0', results, variant))
+            for key in owned:
+                for status in ('skip', 'fail', 'missing'):
+                    with self.subTest(variant=variant, key=key, status=status):
+                        changed = dict(results)
+                        if status == 'missing':
+                            del changed[key]
+                        else:
+                            changed[key] = status
+                        ok, failures = REPORT.validate_junit(
+                            '7.15.0', changed, variant)
+                        self.assertFalse(ok)
+                        self.assertEqual(1, len(failures))
+
 
 class TestReportVariantEnvironmentIsolation(unittest.TestCase):
 
