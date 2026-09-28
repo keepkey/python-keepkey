@@ -547,6 +547,31 @@ class TestSolanaSchemaRuntime(SchemaReview):
         self.assertEqual(len(response.signature), 64)
         self.assertShows(screens, "AMOUNT", "0.996374000 SOL")
 
+    def test_runtime_schema_cannot_rescue_malformed_transaction(self):
+        self._load_signers()
+        raw = relay_message(self.signer, [RELAY_IX])
+        malformed = (
+            raw + b"\x00",  # trailing bytes after a complete legacy instruction
+            b"\x80" + raw,  # v0 message missing its lookup-table count
+            b"\x80" + raw + b"\x01",  # truncated lookup-table entry
+        )
+        for payload in malformed:
+            for with_schema in (False, True):
+                with self.subTest(payload=payload.hex(), schema=with_schema):
+                    request = solana.SolanaSignTx(address_n=PATH, raw_tx=payload)
+                    if with_schema:
+                        request.schema_payload = RELAY_SCHEMA
+                        request.schema_signature = sign(RELAY_SCHEMA)
+                        request.schema_signer_key_id = 3
+                    recorder = ScreenRecorder(self.client, answer=False)
+                    with recorder, self.assertRaises(CallException) as refused:
+                        self.client.call(request)
+                    self.assertEqual(refused.exception.args[0],
+                                     proto_types.Failure_SyntaxError)
+                    self.assertIn("Malformed Solana transaction",
+                                  str(refused.exception))
+                    self.assertEqual(recorder.screens, [])
+
     def _join(self):
         """The join with account 0 set to this device's key and the Transfer
         dropped: the runtime path refuses any Transfer companion."""
