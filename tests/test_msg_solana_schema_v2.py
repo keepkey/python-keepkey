@@ -555,22 +555,26 @@ class TestSolanaSchemaRuntime(SchemaReview):
             b"\x80" + raw,  # v0 message missing its lookup-table count
             b"\x80" + raw + b"\x01",  # truncated lookup-table entry
         )
+        nonstandard_path = PATH[:3] + [0]
         for payload in malformed:
             for with_schema in (False, True):
-                with self.subTest(payload=payload.hex(), schema=with_schema):
-                    request = solana.SolanaSignTx(address_n=PATH, raw_tx=payload)
-                    if with_schema:
-                        request.schema_payload = RELAY_SCHEMA
-                        request.schema_signature = sign(RELAY_SCHEMA)
-                        request.schema_signer_key_id = 3
-                    recorder = ScreenRecorder(self.client, answer=False)
-                    with recorder, self.assertRaises(CallException) as refused:
-                        self.client.call(request)
-                    self.assertEqual(refused.exception.args[0],
-                                     proto_types.Failure_SyntaxError)
-                    self.assertIn("Malformed Solana transaction",
-                                  str(refused.exception))
-                    self.assertEqual(recorder.screens, [])
+                for path in (PATH, nonstandard_path):
+                    with self.subTest(payload=payload.hex(), schema=with_schema,
+                                      path=path):
+                        request = solana.SolanaSignTx(
+                            address_n=path, raw_tx=payload)
+                        if with_schema:
+                            request.schema_payload = RELAY_SCHEMA
+                            request.schema_signature = sign(RELAY_SCHEMA)
+                            request.schema_signer_key_id = 3
+                        recorder = ScreenRecorder(self.client, answer=False)
+                        with recorder, self.assertRaises(CallException) as refused:
+                            self.client.call(request)
+                        self.assertEqual(refused.exception.args[0],
+                                         proto_types.Failure_SyntaxError)
+                        self.assertIn("Malformed Solana transaction",
+                                      str(refused.exception))
+                        self.assertEqual(recorder.screens, [])
 
     def test_runtime_schema_requires_complete_valid_runtime_attestation(self):
         self._load_signers()
