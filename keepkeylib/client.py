@@ -491,10 +491,19 @@ class DebugLinkMixin(object):
         try:
             if layout is None:
                 layout = self.debug.read_layout()
-            if not layout or len(layout) < 1024:
+            if not layout:
+                # Firmware answers DebugLinkGetState with an empty state while
+                # a private ceremony (dice entropy, BIP-85 child mnemonic) is
+                # on screen, so no capture can carry the secret. That is the
+                # designed boundary, not a capture fault. Any NON-empty layout
+                # that is too short still raises below.
+                import sys
+                print("[SCREENSHOT] SKIPPED: empty layout (private display)",
+                      file=sys.stderr)
+                return
+            if len(layout) < 1024:
                 raise RuntimeError(
-                    "layout too small (%d bytes)" %
-                    (len(layout) if layout else 0))
+                    "layout too small (%d bytes)" % len(layout))
             layout_bytes = len(layout)
             height = 64 if layout_bytes >= 2048 else 32
             rows = []
