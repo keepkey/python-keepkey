@@ -2496,8 +2496,10 @@ SECTIONS = [
      [
          ('D1', 'test_msg_bip85', 'test_bip85_12word_flow',
           'Derive 12-word child',
-          'Derives 128 bits of child entropy -> 12-word BIP-39 mnemonic displayed on OLED.',
-          ['Derivation params', 'Mnemonic on OLED']),
+          'Derives 128 bits of child entropy -> 12-word BIP-39 mnemonic displayed on OLED. '
+          'The mnemonic pages are deliberately not captured: firmware answers DebugLink with an '
+          'empty state while a child mnemonic is on screen.',
+          ['Derivation params']),
          ('D2', 'test_msg_bip85', 'test_bip85_24word_flow',
           'Derive 24-word child', '256 bits -> 24 words.', []),
          ('D3', 'test_msg_bip85', 'test_bip85_18word_flow',
