@@ -21,6 +21,7 @@ from ecdsa.util import sigdecode_der
 
 import common
 from keepkeylib import messages_pb2 as proto
+from keepkeylib import tools
 from keepkeylib import messages_zcash_pb2 as zcash_proto
 
 from test_msg_zcash_sign_pczt_device import (
@@ -142,7 +143,14 @@ class TestZcashTransparentShielding(common.KeepKeyTest):
             self.addCleanup(self.client.close)
             raise
 
-    def _make_transparent_input(self, index=0, address_n=None, amount=VALUE):
+    def _make_transparent_input(self, index=0, address_n=None, amount=VALUE,
+                                script_pubkey=None):
+        # The device binds a P2PKH input to the key at address_n, so the
+        # script must carry that key's HASH160.
+        if script_pubkey is None:
+            script_pubkey = (b'\x76\xa9\x14' + tools.hash_160(
+                self._get_pubkey_for_path(address_n or ZEC_PATH)) +
+                             b'\x88\xac')
         return {
             'index': index,
             'address_n': address_n or ZEC_PATH,
@@ -151,7 +159,7 @@ class TestZcashTransparentShielding(common.KeepKeyTest):
                 b'python-keepkey transparent input ' + bytes([index])).digest(),
             'prevout_index': index,
             'sequence': 0xffffffff,
-            'script_pubkey': P2PKH_SCRIPT,
+            'script_pubkey': script_pubkey,
         }
 
     def _get_pubkey_for_path(self, path):
@@ -227,7 +235,8 @@ class TestZcashTransparentShielding(common.KeepKeyTest):
         self.setup_mnemonic_allallall()
         response, _ = self._start_raw_session(1)
         self._assert_first_input_requested(response)
-        item = self._make_transparent_input(address_n=bad_path)
+        item = self._make_transparent_input(address_n=bad_path,
+                                            script_pubkey=P2PKH_SCRIPT)
         response = self.client.call_raw(
             zcash_proto.ZcashTransparentInput(**item))
         self.assertIsInstance(response, proto.Failure)
@@ -339,7 +348,9 @@ class TestZcashTransparentShielding(common.KeepKeyTest):
         self.setup_mnemonic_allallall()
         response, _ = self._start_raw_session(2)
         self._assert_first_input_requested(response)
-        item = self._make_transparent_input(index=1)
+        # Built mid-session: deriving the key here would end the session.
+        item = self._make_transparent_input(index=1,
+                                            script_pubkey=P2PKH_SCRIPT)
 
         response = self.client.call_raw(
             zcash_proto.ZcashTransparentInput(**item))
