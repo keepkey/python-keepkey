@@ -186,9 +186,12 @@ PIN = "1234"
 BIP44_ADDRESS_N = [2147483692, 2147483648, 2147483648, 0, 0]  # m/44'/0'/0'/0/0
 
 
-def _storage_crc(data):
-    """STM32 CRC-32/MPEG-2 over native little-endian 32-bit words."""
-    if len(data) != STORAGE_RECORD_DATA_LEN or len(data) % 4:
+def _storage_crc(record):
+    """STM32 CRC-32/MPEG-2 over native little-endian 32-bit words, covering
+    record bytes [4, 2572): everything but the magic, which storage_commit()
+    writes last (the record is staged without it)."""
+    data = record[len(STORAGE_MAGIC):STORAGE_RECORD_DATA_LEN]
+    if len(data) != STORAGE_RECORD_DATA_LEN - len(STORAGE_MAGIC) or len(data) % 4:
         raise ValueError("storage CRC requires the complete word-aligned record")
     crc = 0xFFFFFFFF
     for pos in range(0, len(data), 4):
@@ -591,7 +594,7 @@ class Emulator(object):
                 trailer == STORAGE_RECORD_TRAILER_MAGIC
                 and struct.unpack(
                     "<I", record[STORAGE_RECORD_CRC_OFFSET:STORAGE_RECORD_LEN]
-                )[0] == _storage_crc(record[:STORAGE_RECORD_DATA_LEN]))
+                )[0] == _storage_crc(record))
             if not legacy and not verified:
                 continue
 
@@ -647,7 +650,7 @@ class Emulator(object):
             raise AssertionError("cannot refresh CRC on an unframed record")
         self.patch(
             off, STORAGE_RECORD_CRC_OFFSET,
-            struct.pack("<I", _storage_crc(record[:STORAGE_RECORD_DATA_LEN])))
+            struct.pack("<I", _storage_crc(record)))
 
 
 def _teach_pin(client, pin):
