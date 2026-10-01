@@ -162,6 +162,13 @@ class KeepKeyTest(unittest.TestCase):
         if version < semver.VersionInfo.parse(ver_required):
             self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
 
+    def requires_firmware_below(self, ver_limit):
+        """Skip on firmware at or above ver_limit: for behaviour a later
+        release deliberately removes, so the test pins the release it is
+        about rather than going red when the behaviour is retired."""
+        if self.firmware_version() >= semver.VersionInfo.parse(ver_limit):
+            self.skipTest("Behaviour retired in firmware " + ver_limit)
+
     def requires_release_capability(self, capability):
         """Skip only when staged CI explicitly declares a capability absent.
 

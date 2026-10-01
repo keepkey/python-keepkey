@@ -305,7 +305,7 @@ class TestSolanaSchemaCertified(SchemaReview):
         self.assertEqual(len(response.signature), 64)
         funding = self.assertShows(
             screens, "INSTR 2/2",
-            "Funding account\n%s" % b58encode(self.signer))
+            "Transfer from\n%s" % b58encode(self.signer))
         self.assertGreater(self.assertShows(screens, "INSTR 2/2", send),
                            funding)
 
@@ -335,7 +335,10 @@ class TestSolanaSchemaCertified(SchemaReview):
             with self.assertRaises(CallException) as refused:
                 self.client.call(
                     self._certified(relay_message(self.signer, ixs)))
-            self.assertIn("Invalid priority fee", str(refused.exception))
+            # The parser refuses the message itself (7.15 rule), before any
+            # certified check can run.
+            self.assertIn("Malformed Solana transaction",
+                          str(refused.exception))
 
     # The real SoltoshiDICE join, certified by the deployed ClearSign Worker.
 
@@ -357,7 +360,7 @@ class TestSolanaSchemaCertified(SchemaReview):
             screens.append((instr(2), "Set compute unit price to %d?" %
                             JOIN_PRICE))
         screens += [
-            (instr(total - 1), "Funding account\n" + payer),
+            (instr(total - 1), "Transfer from\n" + payer),
             (instr(total - 1), "Send 0.002000000 SOL to %s?" % SESSION_KEY),
             ("KEEPKEY CLEARSIGN", "KeepKey Vault\nSigner A9531B9D"),
             ("SOLTOSHIDICE", "Blackjack join"),
