@@ -4000,6 +4000,22 @@ def screenshot_audit(fw_version, screenshot_root, junit_path=None):
     return (len(missing) == 0, missing)
 
 
+# Tests of behaviour a release deliberately removes, by the first firmware
+# version without it. They skip there (requires_firmware_below), which is not
+# a failure even in a must-run module.
+RETIRED_FROM = {
+    ('test_msg_ethereum_erc7730_runtime', m): '7.16.0' for m in (
+        'test_embedded_call_is_shown_under_a_blind_sign_warning',
+        'test_inner_call_without_a_definition_is_blind_in_715',
+        'test_a_raw_value_too_long_to_capture_is_shown_blind',
+        'test_an_inner_definition_the_device_refuses_falls_back_to_blind',
+        'test_embedded_calls_inside_an_iteration_are_shown_blind',
+        'test_a_call_at_depth_two_is_shown_blind',
+        'test_a_refused_inner_call_does_not_blind_the_next_one',
+    )
+}
+
+
 def validate_junit(fw_version, results, variant='full'):
     """Check SECTIONS tests against JUnit results. Returns (passed, failed_list).
 
@@ -4020,6 +4036,9 @@ def validate_junit(fw_version, results, variant='full'):
                 continue
             capability = _TEST_CAPABILITY.get((mod, meth))
             if capability in missing_capabilities:
+                continue
+            if (status == 'skip' and
+                    ver_ge(fw_version, RETIRED_FROM.get((mod, meth), '99.0.0'))):
                 continue
             must_run = not (
                 variant == 'bitcoin-only' and
