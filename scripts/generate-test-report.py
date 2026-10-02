@@ -2194,24 +2194,26 @@ SECTIONS = [
           'of SDICE; neither signature covers a transaction. The certificate is issued by '
           'the alpha root, which every 7.16+ build embeds, so a build that refuses it fails '
           'rather than skips; production gets its own root after the 7.15 re-release. The '
-          'test reads the text of all 14 screens in '
-          'order: the compute-unit limit, the Transfer companion (funding account, then '
-          '0.002 SOL to the session key), the certified signer, Round 86, Revision 980, '
-          'Seat 1, Buy-in / Allowance / Max wager as 1000.000000 SDICE with the full mint, '
-          'the session key, Expires in 1 h, and the sign prompt. It then verifies the '
-          'ed25519 signature over the message.',
-          ['Instr 1/3 compute unit limit', 'Instr 2/3 funding account',
-           'Instr 2/3 send 0.002 SOL to session key', 'KeepKey ClearSign signer',
-           'SoltoshiDICE Blackjack join', 'Round 86', 'Revision 980', 'Seat 1',
-           'Buy-in 1000 SDICE + mint', 'Session key', 'Expires in 1 h',
-           'Allowance 1000 SDICE + mint', 'Max wager 1000 SDICE + mint',
+          'test reads the text of all 13 screens of the certified review (SRS-7.16 '
+          '§3.7) in order: the summary (SoltoshiDICE / Blackjack join), Limits with '
+          'the 0.002 SOL sent to the full session key, Limits with the network-fee '
+          'bound, then every value: Round 86, Revision 980, Seat 1, Buy-in, Session '
+          'key, Expires in 1 h, Allowance and Max wager as 1000.000000 SDICE with the '
+          'full mint, then "Described by KeepKey Vault A9531B9D / certified by '
+          'KeepKey" and the sign prompt. It then verifies the ed25519 signature over '
+          'the message.',
+          ['Summary: SoltoshiDICE Blackjack join',
+           'Limits: also sends 0.002 SOL to session key', 'Limits: network fee bound',
+           'Round 86', 'Revision 980', 'Seat 1', 'Buy-in 1000 SDICE + mint',
+           'Session key', 'Expires in 1 h', 'Allowance 1000 SDICE + mint',
+           'Max wager 1000 SDICE + mint', 'Described by / certified by KeepKey',
            'Sign this Solana transaction?']),
          ('S31', 'test_msg_solana_schema_v2',
           'test_certified_soltoshi_join_priority_fee_names_fee_payer',
-          'Certified join with a priority fee names the fee payer',
-          'The real join sets no compute-unit price, so it has no Fee screens. With a '
-          'SetComputeUnitPrice added, the same certified review ends with Fee payer '
-          '<device address> and Max priority fee 0.000200000 SOL before the sign prompt.',
+          'Certified join with a priority fee raises the fee bound',
+          'With a SetComputeUnitPrice added, the Limits fee screen of the same '
+          'certified review raises its bound to include the priority fee: Network fee '
+          'up to 0.000205000 SOL.',
           []),
          ('S32', 'test_msg_solana_schema_v2',
           'test_certified_soltoshi_join_untrusted_definition_shows_base_units',
