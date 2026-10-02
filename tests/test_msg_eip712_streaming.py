@@ -598,6 +598,46 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
             self._screens()[5], "Not identified\n"
                                 "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af"))
 
+    def test_permit2_name_never_outlives_a_failed_request(self):
+        """A record sent ahead of a request that FAILS is gone with it: the
+        next Permit2 says "Not identified" (Copilot r1 on #919)."""
+        self.requires_message("EthereumTxMetadata")
+        self.client.ethereum_send_tx_metadata(
+            signed_payload=self.UR_V2_NAME, metadata_version=3, key_id=0x80)
+        refused = {  # an unlimited EIP-2612 permit: the device refuses it
+            "types": {
+                "EIP712Domain": [
+                    {"name": "name", "type": "string"},
+                    {"name": "chainId", "type": "uint256"},
+                    {"name": "verifyingContract", "type": "address"},
+                ],
+                "Permit": [
+                    {"name": "owner", "type": "address"},
+                    {"name": "spender", "type": "address"},
+                    {"name": "value", "type": "uint256"},
+                    {"name": "nonce", "type": "uint256"},
+                    {"name": "deadline", "type": "uint256"},
+                ],
+            },
+            "primaryType": "Permit",
+            "domain": {"name": "USD Coin", "chainId": 1, "verifyingContract":
+                       "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"},
+            "message": {
+                "owner": "0x73d0385F4d8E00C5e6504C6030F47BF6212736A8",
+                "spender": "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af",
+                "value": str((1 << 256) - 1), "nonce": "0",
+                "deadline": "1893456000"},
+        }
+        failure = self._walk(refused)
+        self.assertIsInstance(failure, proto.Failure)
+        self.assertEqual(failure.message,
+                         'Unlimited ERC20 approval is disabled')
+        doc = self.UNISWAP_PERMIT2
+        self._assert_reference_signature(doc, self._walk(doc))
+        self.assertTrue(oled_text.shows(
+            self._screens()[5], "Not identified\n"
+                                "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af"))
+
     def test_permit2_exact_amount_and_lookalikes(self):
         """An exact amount is shown exactly. A PermitSingle outside the Permit2
         contract keeps the raw review, and its domain screens still appear in
