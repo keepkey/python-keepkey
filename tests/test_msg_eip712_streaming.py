@@ -492,9 +492,93 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         self.assertEqual(resp.domain_separator_hash.hex(), SPEC_DOMAIN_SEPARATOR)
         self._assert_reference_signature(doc, resp)
 
+    # Uniswap's request from the owner's Vault log (2026-04-10): mainnet USDC,
+    # spender 0x66a9...A8Af, an UNLIMITED allowance expiring in 30 days.
+    UNISWAP_PERMIT2 = {
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"},
+            ],
+            "PermitDetails": [
+                {"name": "token", "type": "address"},
+                {"name": "amount", "type": "uint160"},
+                {"name": "expiration", "type": "uint48"},
+                {"name": "nonce", "type": "uint48"},
+            ],
+            "PermitSingle": [
+                {"name": "details", "type": "PermitDetails"},
+                {"name": "spender", "type": "address"},
+                {"name": "sigDeadline", "type": "uint256"},
+            ],
+        },
+        "primaryType": "PermitSingle",
+        "domain": {"name": "Permit2", "chainId": "1",
+                   "verifyingContract":
+                       "0x000000000022d473030f116ddee9f6b43ac78ba3"},
+        "message": {
+            "details": {
+                "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                "amount": "1461501637330902918203684832716283019655932542975",
+                "expiration": "1778393946", "nonce": "0"},
+            "spender": "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
+            "sigDeadline": "1775803746"},
+    }
+
+    def _screens(self):
+        """(title, layout) of every screen before the final sign screen."""
+        final = self._assert_final_sign_screen('Sign PermitSingle')
+        return [layout for _, layout in self.frames[:final]]
+
+    def test_permit2_reads_as_who_what_until_when(self):
+        """SRS-7.16 §3.7: a canonical Permit2 PermitSingle is described in
+        words. No raw domain or leaf screens; an unlimited allowance is
+        allowed and stated, with exact dates from the signed timestamps."""
+        doc = self.UNISWAP_PERMIT2
+        resp = self._walk(doc)
+        self._assert_reference_signature(doc, resp)
+        want = [
+            ("PERMIT2", "Allow 0x66a9...A8Af to spend UNLIMITED USDC from "
+                        "this wallet until 2026-05-10 06:19 UTC"),
+            ("LIMITS", "Spender may take\nUNLIMITED USDC"),
+            ("LIMITS", "Allowance expires\n2026-05-10 06:19 UTC"),
+            ("LIMITS", "Signature valid until\n2026-04-10 06:49 UTC"),
+            ("TOKEN", "USDC\n0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+            ("SPENDER", "Not identified\n"
+                        "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af"),
+            ("DETAILS", "Nonce 0"),
+            ("DETAILS", "Permit2 contract on chain 1"),
+        ]
+        screens = self._screens()
+        self.assertEqual(len(screens), len(want))
+        for i, (layout, (title, body)) in enumerate(zip(screens, want)):
+            self.assertIsNotNone(
+                oled_text.find_line(layout, title, oled_text.TITLE_FONT),
+                "screen %d is not titled %r" % (i, title))
+            self.assertTrue(oled_text.shows(layout, body),
+                            "screen %d does not show %r" % (i, body))
+
+    def test_permit2_exact_amount_and_lookalikes(self):
+        """An exact amount is shown exactly. A PermitSingle outside the Permit2
+        contract keeps the raw review, and its domain screens still appear in
+        order, so nothing is hidden by the attempt to recognise it."""
+        exact = copy.deepcopy(self.UNISWAP_PERMIT2)
+        exact["message"]["details"]["amount"] = "250000000"
+        self._assert_reference_signature(exact, self._walk(exact))
+        self.assertTrue(oled_text.shows(self._screens()[1],
+                                        "Spender may take\n250 USDC"))
+        other = copy.deepcopy(exact)
+        other["domain"]["verifyingContract"] = (
+            "0x1111111111111111111111111111111111111111")
+        self._assert_reference_signature(other, self._walk(other))
+        self.assertIsNotNone(oled_text.find_line(
+            self.frames[0][1], 'EIP-712 DOMAIN', oled_text.TITLE_FONT))
+        self.assertIsNotNone(self._leaf_index("details.amount"))
+
     def test_unlimited_permits_are_refused_before_the_amount_screen(self):
-        """EIP-2612 Permit.value and Permit2 PermitDetails.amount at their
-        all-ones maximum are refused before that leaf is ever displayed."""
+        """EIP-2612 Permit.value at its all-ones maximum is refused before
+        that leaf is ever displayed."""
         permit = {
             "types": {
                 "EIP712Domain": [
@@ -549,9 +633,10 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
                 "spender": "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD",
                 "sigDeadline": "1893456000"},
         }
-        for doc, path, leaf, bits in ((permit, ("value",), "value", 256),
-                                      (permit2, ("details", "amount"),
-                                       "details.amount", 160)):
+        # Permit2 is reviewed in words instead, unlimited included
+        # (test_permit2_reads_as_who_what_until_when); only EIP-2612 is here.
+        del permit2
+        for doc, path, leaf, bits in ((permit, ("value",), "value", 256),):
             # A finite amount signs and shows the leaf; its position is where
             # the unlimited amount must stop.
             self._assert_reference_signature(doc, self._walk(doc))
