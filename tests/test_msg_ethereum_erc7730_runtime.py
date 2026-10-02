@@ -999,9 +999,10 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         return erc7730.Definition(env, 1, chain, inner_program[18:38],
                                   inner_program[38:42])
 
-    def test_an_inner_definition_the_device_refuses_falls_back_to_blind(self):
-        self.requires_firmware_below("7.16.0")  # 7.16 refuses instead
-        start, arguments, outer_def, _ = self._exec_setup()
+    def _refused_inner_catalogs(self):
+        """Inner definitions the device refuses: a program it cannot run
+        (BAD_PROGRAM), one from an unloaded signer (UNTRUSTED), and an
+        untrusted one large enough to be refused on a later chunk."""
         refused = erc7730_compiler.compile_calldata(
             {"display": {"formats": {self.TRANSFER: {
                 "intent": "Transfer", "fields": [{
@@ -1027,10 +1028,15 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         signed_large = self._exec_inner_catalog(
             large, signer=(UNKNOWN_SIGNER_KEY, unknown))
         self.assertGreater(len(signed_large.envelope), 2 * erc7730.MAX_CHUNK)
-        for inner in (self._exec_inner_catalog(refused),
-                      self._exec_inner_catalog(
-                          clear, signer=(UNKNOWN_SIGNER_KEY, unknown)),
-                      signed_large):
+        return (self._exec_inner_catalog(refused),
+                self._exec_inner_catalog(
+                    clear, signer=(UNKNOWN_SIGNER_KEY, unknown)),
+                signed_large)
+
+    def test_an_inner_definition_the_device_refuses_falls_back_to_blind(self):
+        self.requires_firmware_below("7.16.0")  # 7.16 refuses instead
+        start, arguments, outer_def, _ = self._exec_setup()
+        for inner in self._refused_inner_catalogs():
             self._exec_certified(arguments,
                                  erc7730.Catalog((outer_def, inner)))
             shown = self._relevant()
@@ -1038,6 +1044,13 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
                            "The inner call is not clear-signed"), shown)
             self.assertNotIn("Inner action", [s[0] for s in shown])
             self.assertEqual(shown[-1], ("Signer field", "Operation:\n0"))
+
+    def test_an_inner_definition_the_device_refuses_is_refused_from_716(self):
+        self.requires_firmware("7.16.0")
+        for inner in self._refused_inner_catalogs():
+            _, arguments, outer_def, _ = self._exec_setup()
+            self._exec_refused(arguments, erc7730.Catalog((outer_def, inner)))
+            self.assertNotIn("Inner action", [s[0] for s in self.screens])
 
     def test_inner_definition_for_another_callee_or_chain_is_refused(self):
         start, arguments, outer_def, inner_def = self._exec_setup()
