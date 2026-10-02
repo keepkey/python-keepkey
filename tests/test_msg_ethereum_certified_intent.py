@@ -88,9 +88,10 @@ class TestEthereumCertifiedIntent(common.KeepKeyTest):
             screens, "DEPOSITOR", "0x909Ef6B32DfDc12CA86aA710b54c991af3C5F82E")
         who = next(i for i, sc in enumerate(screens)
                    if find_line(sc, "KEEPKEY CLEARSIGN", TITLE_FONT))
-        for line in ("Described by KeepKey Alpha 716", "A9531B9D",
-                     "certified by KeepKey"):
-            self.assertIsNotNone(find_line(screens[who], line), line)
+        # The root-authenticated id is the 8-char short form, as on Solana.
+        self.assertTrue(shows(
+            screens[who],
+            "Described by KeepKey Alpha 716 A9531B9D\ncertified by KeepKey"))
         # Summary, limits, contract, depositor, orderId x2, who, fee.
         self.assertEqual(len(screens), 8)
         self.assertEqual([summary, limits, contract, depositor],
