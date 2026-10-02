@@ -559,6 +559,45 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
             self.assertTrue(oled_text.shows(layout, body),
                             "screen %d does not show %r" % (i, body))
 
+    # signedPayload from the deployed ClearSign Worker (source d2849aaf8),
+    # POST /v1/evm/name {chainId 1, address 0x66a9...a8af}; deterministic.
+    UR_V2_NAME = bytes.fromhex(
+        "030101000000016b359b004b6565704b657920416c7068612037313600000000"
+        "00000000000000000000000342f5f9704494b3f9bd72295eecaf29d783d23ea0"
+        "2b2dc9f48abcd2e46d4850cffc4364672f0172aa70ed21eacc2ea8bd0d333119"
+        "ddf048b096686e1a8e56bda438f9e70b9cfc229a1e93e2d91846c31c4083d8b1"
+        "76e225d76341069dd22826cf060000000166a9893cc07d91d95644aedd05d03f"
+        "95e1dba8af18556e697377617020556e6976657273616c20526f757465720100"
+        "000000806d645ca60ffadfd620a8abda7a77f84dbbf4770644e51c234937f715"
+        "12d2019b30068dfd95e88e2ebbdd2186db629012a9d861b55b14d3ef9000c99f"
+        "ef5de4811b")
+
+    def test_permit2_names_a_vouched_spender_beside_its_address(self):
+        """A KeepKey-certified name record names the spender; the full address
+        is still shown, and the voucher is identified."""
+        self.requires_message("EthereumTxMetadata")
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=self.UR_V2_NAME, metadata_version=3, key_id=0x80)
+        self.assertEqual(resp.classification, 1)  # VERIFIED
+        doc = self.UNISWAP_PERMIT2
+        self._assert_reference_signature(doc, self._walk(doc))
+        screens = self._screens()
+        self.assertEqual(len(screens), 9)
+        self.assertTrue(oled_text.shows(
+            screens[0], "Allow Uniswap Universal Router to spend UNLIMITED "
+                        "USDC from this wallet until 2026-05-10 06:19 UTC"))
+        self.assertTrue(oled_text.shows(
+            screens[5], "Uniswap Universal Router\n"
+                        "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af"))
+        self.assertTrue(oled_text.shows(
+            screens[8], "Spender named by KeepKey Alpha 716 A9531B9D\n"
+                        "certified by KeepKey"))
+        # One review per record: the next request is not named.
+        self._walk(doc)
+        self.assertTrue(oled_text.shows(
+            self._screens()[5], "Not identified\n"
+                                "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af"))
+
     def test_permit2_exact_amount_and_lookalikes(self):
         """An exact amount is shown exactly. A PermitSingle outside the Permit2
         contract keeps the raw review, and its domain screens still appear in
