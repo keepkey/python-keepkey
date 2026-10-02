@@ -291,7 +291,7 @@ class TestSolanaSchemaCertified(SchemaReview):
                       str(refused.exception))
 
     def test_certified_v1_schema_reviews_static_transfer_companion(self):
-        send = "Send 0.002000000 SOL to %s?" % b58encode(DESTINATION)
+        send = "Also sends 0.002000000 SOL to\n%s" % b58encode(DESTINATION)
         base, base_screens = self._review(
             self._certified(relay_message(self.signer, [RELAY_IX])),
             "relay")
@@ -303,31 +303,29 @@ class TestSolanaSchemaCertified(SchemaReview):
                                           [RELAY_IX, TRANSFER_IX])),
             "relay_transfer")
         self.assertEqual(len(response.signature), 64)
-        funding = self.assertShows(
-            screens, "INSTR 2/2",
-            "Transfer from\n%s" % b58encode(self.signer))
-        self.assertGreater(self.assertShows(screens, "INSTR 2/2", send),
-                           funding)
+        # SRS-7.16 R-7.3: a companion transfer is a limit, in firmware words.
+        self.assertShows(screens, "LIMITS",
+                         "Also sends 0.002000000 SOL to\n%s" %
+                         b58encode(DESTINATION))
 
     def test_certified_review_shows_priority_fee(self):
-        fee_payer = "Fee payer\n%s" % b58encode(self.signer)
-        # 1,000,000 micro-lamports x 200,000 units = 200,000 lamports.
-        max_fee = "Max priority fee\n0.000200000 SOL"
+        """The network-fee bound is base fee (5,000 lamports per signature)
+        plus the maximum priority fee: 1,000,000 micro-lamports x 200,000
+        units = 200,000 lamports. The payer is named only when it is not
+        this device's key (SRS-7.16 R-7.3)."""
         _, plain = self._review(
             self._certified(relay_message(self.signer,
                                           [limit(200000), RELAY_IX])),
             "relay_no_price")
-        self.assertNotShown(plain, fee_payer)
-        self.assertNotShown(plain, max_fee)
+        self.assertShows(plain, "LIMITS", "Network fee up to 0.000005000 SOL")
 
         response, priced = self._review(
             self._certified(relay_message(
                 self.signer, [limit(200000), price(1000000), RELAY_IX])),
             "relay_price")
         self.assertEqual(len(response.signature), 64)
-        payer_at = self.assertShows(priced, "FEE", fee_payer)
-        self.assertEqual(self.assertShows(priced, "FEE", max_fee),
-                         payer_at + 1)
+        self.assertShows(priced, "LIMITS", "Network fee up to 0.000205000 SOL")
+        self.assertNotShown(priced, "paid by")
 
     def test_certified_duplicate_compute_budget_refused(self):
         for ixs in ([price(1), price(2), RELAY_IX],
@@ -352,18 +350,16 @@ class TestSolanaSchemaCertified(SchemaReview):
         """Every screen of the join's certified review, in order, as (title,
         body). The real join sets no compute-unit price, so it has no Fee
         screens; its fee payer is the Transfer's funding account."""
-        payer = b58encode(self.signer)
-        total = 4 if priced else 3
-        instr = lambda i: "INSTR %d/%d" % (i, total)
-        screens = [(instr(1), "Set compute unit limit to 200000?")]
-        if priced:
-            screens.append((instr(2), "Set compute unit price to %d?" %
-                            JOIN_PRICE))
-        screens += [
-            (instr(total - 1), "Transfer from\n" + payer),
-            (instr(total - 1), "Send 0.002000000 SOL to %s?" % SESSION_KEY),
-            ("KEEPKEY CLEARSIGN", "KeepKey Vault\nSigner A9531B9D"),
+        # SRS-7.16 R-7.4: summary, limits, (no side effects), details, who.
+        # A v2 schema has no template or roles: the summary is the
+        # instruction name and every value stays on a details screen.
+        priority = (JOIN_PRICE * 200000 + 999999) // 1000000 if priced else 0
+        fee = 5000 + priority
+        screens = [
             ("SOLTOSHIDICE", "Blackjack join"),
+            ("LIMITS", "Also sends 0.002000000 SOL to\n%s" % SESSION_KEY),
+            ("LIMITS", "Network fee up to %d.%09d SOL" % (fee // 10**9,
+                                                          fee % 10**9)),
             ("ROUND", "86"),
             ("REVISION", "980"),
             ("SEAT", "1"),
@@ -372,9 +368,9 @@ class TestSolanaSchemaCertified(SchemaReview):
             ("EXPIRES IN", "1 h"),
             ("ALLOWANCE", amount),
             ("MAX WAGER", amount),
+            ("KEEPKEY CLEARSIGN",
+             "Described by KeepKey Vault A9531B9D\ncertified by KeepKey"),
         ]
-        if priced:
-            screens += [("FEE", "Fee payer\n" + payer), ("FEE", JOIN_MAX_FEE)]
         return screens + [("SOLANA", "Sign this Solana transaction?")]
 
     def assertScreens(self, screens, expected):
@@ -403,8 +399,9 @@ class TestSolanaSchemaCertified(SchemaReview):
         self.assertSignedBy(response, raw)
 
     def test_certified_soltoshi_join_priority_fee_names_fee_payer(self):
-        """With a compute-unit price added, the fee payer and the maximum
-        priority fee follow the join's values, before the final screen."""
+        """With a compute-unit price added, the network-fee bound includes
+        the maximum priority fee; the payer is this key, so it is not named
+        separately."""
         raw = soltoshi_join(self.signer, priced=True)
         response, screens = self._review(
             self._join_request(raw, [sdice_definition()]), "join_priced")
