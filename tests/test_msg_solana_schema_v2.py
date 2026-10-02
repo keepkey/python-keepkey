@@ -693,6 +693,24 @@ class TestClearsignAttestorTokenAmount(SchemaReview):
                 proto.ClearsignAttestorSign(payload=payload))
         return response, recorder.screens
 
+    def test_v3_schema_with_roles_and_template_is_refused(self):
+        """The attestor's screens show no roles or intent template, so it must
+        not sign a v3 schema whose wording it never displayed."""
+        payload = bytearray(b"KKSOLSC1\x03") + RELAY_PROGRAM + b"\x01\x0d"
+        for text in (b"Attest Probe", b"join"):
+            payload += bytes([len(text)]) + text
+        payload += b"\x01" + bytes([1, len(b"Round")]) + b"Round" + b"\x00"
+        payload += b"\x00"  # no accounts
+        template = b"Join round {0}"
+        payload += bytes([len(template)]) + template
+        with self.assertRaises(CallException) as refused:
+            self.client.call(proto.ClearsignAttestorSign(payload=bytes(payload)))
+        self.assertIn("Attestor cannot review this schema version",
+                      str(refused.exception))
+        # Control: the same schema as v2 (no role, no template) is reviewable.
+        response, _ = self._attest(schema_v2([(1, b"Round", None)]), "v2")
+        self.assertEqual(len(response.signature), 64)
+
     def test_token_amount_mint_account_is_attested_before_signing(self):
         """A TOKEN_AMOUNT's mint account decides which token definition may
         name its amount, so the operator confirms it on its own screen right
