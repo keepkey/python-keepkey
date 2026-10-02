@@ -367,5 +367,45 @@ class TestClearSignAdditiveInvariant(common.KeepKeyTest):
         self.assertTrue(added >= 3 + len(v2_args))
 
 
+    def test_runtime_intent_heading_and_limits_precede_the_unchanged_review(self):
+        """A runtime-signed 0x05 intent schema (SRS-7.15 R-1.5) adds a "NOT
+        verified by KeepKey" heading and its Limits IN FRONT of the review,
+        and every baseline screen still follows, unchanged and in order."""
+        import struct
+        import oled_text
+        self.requires_firmware("7.16.0")
+        self._load_signer()
+        self._drop_setup_screenshots()
+        baseline, sig = self._record_supply()
+        self._assert_recovers(sig)
+
+        def text(b):
+            return bytes([len(b)]) + b
+        body = bytearray([0x05]) + struct.pack('>I', TX['chain_id'])
+        body += AAVE_V3_POOL + AAVE_SUPPLY_SELECTOR
+        body += struct.pack('>H', 6) + b'supply' + bytes([4])
+        body += text(b'asset') + bytes([ARG_FORMAT_ADDRESS, 0])
+        body += text(b'amount') + bytes([ARG_FORMAT_TOKEN_AMOUNT, 18, 3]) + \
+            b'DAI' + bytes([3])  # spend exact
+        body += text(b'onBehalfOf') + bytes([ARG_FORMAT_ADDRESS, 0])
+        body += text(b'referral') + bytes([3, 0])  # BYTES, no role
+        body += bytes([0]) + text(b'Aave') + text(b'Supply {1} to Aave for {2}')
+        body += bytes([CLASSIFICATION_VERIFIED]) + struct.pack('>I', 0) + \
+            bytes([TEST_KEY_ID])
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=sign_metadata(bytes(body)), metadata_version=1,
+            key_id=TEST_KEY_ID)
+        self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
+
+        observed, sig = self._record_supply()
+        self._assert_recovers(sig)
+        title = oled_text.TITLE_FONT
+        self.assertIsNotNone(oled_text.find_line(observed.frames[0][1],
+                                                 'UNVERIFIED', title))
+        self.assertIsNotNone(oled_text.find_line(observed.frames[1][1],
+                                                 'LIMITS', title))
+        self._assert_baseline_survives(baseline, observed)
+
+
 if __name__ == '__main__':
     unittest.main()
