@@ -40,29 +40,24 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 
-        # Unlimited approval is deliberately disabled on canonical 7.15.
-        # This legacy vector must be refused, not skipped or signed.
-        with self.assertRaises(CallException) as caught:
-            self.client.ethereum_sign_tx(
-                n=[2147483692,2147483708,2147483648,0,0],
-                nonce=0xf,
-                gas_price=0x2980872680,
-                gas_limit=0xbd0e,
-                value=0x0,
-                to=binascii.unhexlify('470e8de2ebaef52014a47cb5e6af86884947f08c'),     # fox pool
-                address_type=0,
-                chain_id=1,
-                # The data below is generally broken into 32-byte chunks except for the function selector (4 bytes_ and
-                # keccak signatures (4 bytes)
-                data=binascii.unhexlify('095ea7b3' +                                      # approve
-                    '0000000000000000000000007a250d5630b4cf539739df2c5dacb4c659f2488d' +  # uniswap v2: router 2 contract address
-                    'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')   # approve amount
-
-            )
-        self.assertEqual(caught.exception.args[0],
-                         proto_types.Failure_ActionCancelled)
-        self.assertIn("Unlimited ERC20 approval is disabled",
-                      str(caught.exception))
+        # Unlimited approval is reviewed, then signed (owner policy 2026-10-03).
+        # Signature vector from pre-7.15 firmware, which signed the same tx.
+        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+            n=[2147483692,2147483708,2147483648,0,0],
+            nonce=0xf,
+            gas_price=0x2980872680,
+            gas_limit=0xbd0e,
+            value=0x0,
+            to=binascii.unhexlify('470e8de2ebaef52014a47cb5e6af86884947f08c'),     # fox pool
+            address_type=0,
+            chain_id=1,
+            data=binascii.unhexlify('095ea7b3' +                                      # approve
+                '0000000000000000000000007a250d5630b4cf539739df2c5dacb4c659f2488d' +  # uniswap v2: router 2 contract address
+                'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')   # approve amount
+        )
+        self.assertEqual(sig_v, 38)
+        self.assertEqual(binascii.hexlify(sig_r), '7f7a5ce501371a01ead394d2186385742d5fbdc3d85da98249d2a05043ac6d5a')
+        self.assertEqual(binascii.hexlify(sig_s), '329954b284ed1df9a6242820e793b9719c0c6c21cae5f90190ce61c7f73c731e')
 
     def test_sign_uni_add_liquidity_ETH(self):
         self.requires_release_capability("evm-unknown-token-review")
