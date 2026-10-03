@@ -101,8 +101,8 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
 
 
     def test_sign_with_thorchain_memo(self):
-        self.requires_release_capability("ripple-memo-policy")
         self.requires_fullFeature()
+        self.requires_release_capability("ripple-memo-policy")
         self.requires_firmware("7.15.0")
 
         self.setup_mnemonic_allallall()
@@ -153,8 +153,8 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
         )
 
     def test_memo_length_prefix_boundaries(self):
-        self.requires_release_capability("ripple-memo-policy")
         self.requires_fullFeature()
+        self.requires_release_capability("ripple-memo-policy")
         self.requires_firmware("7.15.0")
         self.setup_mnemonic_allallall()
 
@@ -183,8 +183,8 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
             )
 
     def test_unsupported_memo_is_rejected(self):
-        self.requires_release_capability("ripple-memo-policy")
         self.requires_fullFeature()
+        self.requires_release_capability("ripple-memo-policy")
         self.requires_firmware("7.14.3")
         if self.firmware_at_least("7.15.0"):
             self.skipTest("Ripple memos are implemented in 7.15")
