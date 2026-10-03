@@ -162,6 +162,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         AdvancedMode. Printable text that never contains the signer's key
         cannot authorize a transaction: a tx signature only verifies when the
         signer's key is in the message's account keys."""
+        self.requires_release_capability("solana-runtime-review")
         self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.requires_message("SolanaSignMessage")
@@ -904,6 +905,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         accounts (no address lookup table references) is exactly as
         verifiable as a legacy message — it clear-signs without requiring
         AdvancedMode."""
+        self.requires_release_capability("solana-runtime-review")
         self.requires_firmware("7.15.0")  # Solana versioned (v0) parsing landed in 7.15
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
@@ -1013,6 +1015,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         payment is TransferChecked, and payTo is supplied separately so the
         device must derive and verify its associated token account itself.
         """
+        self.requires_release_capability("solana-runtime-review")
         self.requires_firmware("7.15.0")
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
@@ -1080,6 +1083,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         lookup table (an account index at or beyond the static account
         count) cannot be verified on-device — requires AdvancedMode for
         blind/opaque signing."""
+        self.requires_release_capability("solana-runtime-review")
         self.requires_firmware("7.15.0")  # Solana versioned (v0) parsing landed in 7.15
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()

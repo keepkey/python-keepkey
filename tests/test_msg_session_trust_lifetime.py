@@ -479,6 +479,7 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
         one that was written while the signer was live — if a build ever did
         persist signers, this is the record it would have persisted them into.
         """
+        self.requires_release_capability("session-trust-lifetime")
         self._arm_session()
         self._persist_marker_across_all_sectors()
 
