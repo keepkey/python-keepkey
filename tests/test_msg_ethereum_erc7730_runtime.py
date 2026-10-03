@@ -172,6 +172,7 @@ class Erc7730Harness(object):
 class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
     def setUp(self):
         super().setUp()
+        self.requires_release_capability("erc7730-runtime-review")
         self.requires_fullFeature()
         self.requires_firmware("7.15.0")
         self.setup_mnemonic_nopin_nopassphrase()

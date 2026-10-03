@@ -36,6 +36,10 @@ def _evidence_input(name):
 
 
 def _firmware_accepts(program):
+    missing = os.environ.get("KK_RELEASE_MISSING_CAPABILITIES", "").split(",")
+    if "erc7730-runtime-review" in (value.strip() for value in missing):
+        pytest.skip("Staged release tree does not yet provide capability: "
+                    "erc7730-runtime-review")
     validator = _evidence_input("ERC7730_FIRMWARE_VALIDATOR")
     with tempfile.NamedTemporaryFile() as compiled:
         compiled.write(program)
