@@ -3619,6 +3619,11 @@ _TEST_CAPABILITY = {
         'solana-lut-attestation',
 }
 
+# Modules whose every row is gated in setUp on one staged capability.
+_MODULE_CAPABILITY = {
+    'test_msg_ethereum_erc7730_runtime': 'erc7730-runtime-review',
+}
+
 
 def _missing_release_capabilities():
     return {
@@ -4018,7 +4023,8 @@ def validate_junit(fw_version, results, variant='full'):
             if status in ('fail', 'error'):
                 failures.append((tid, mod, meth, status))
                 continue
-            capability = _TEST_CAPABILITY.get((mod, meth))
+            capability = (_TEST_CAPABILITY.get((mod, meth)) or
+                          _MODULE_CAPABILITY.get(mod))
             if capability in missing_capabilities:
                 continue
             must_run = not (

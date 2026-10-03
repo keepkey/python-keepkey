@@ -245,6 +245,7 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
         """Seed the device, turn AdvancedMode on, load the CI signer, and prove
         the signer really is live before anything tries to revoke it."""
         self.requires_fullFeature()
+        self.requires_release_capability("session-trust-lifetime")
         self.setup_mnemonic_nopin_nopassphrase()
         self._apply_policy_raw("AdvancedMode", True)
         self.client.load_clearsign_signer(
@@ -419,7 +420,6 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
     # ── 2. Loaded-signer lifetime ──────────────────────────────────────
 
     def test_signer_dropped_by_initialize(self):
-        self.requires_release_capability("session-trust-lifetime")
         """Session teardown revokes the signer while the policy stays armed.
 
         The MALFORMED here is unambiguous: AdvancedMode is asserted still ON
@@ -444,7 +444,6 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
             "outlive the session that consented to it")
 
     def test_signer_dropped_by_clear_session(self):
-        self.requires_release_capability("session-trust-lifetime")
         """ClearSession revokes both halves of the trust.
 
         Right after the lock the metadata message is refused outright, because
@@ -479,7 +478,6 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
         one that was written while the signer was live — if a build ever did
         persist signers, this is the record it would have persisted them into.
         """
-        self.requires_release_capability("session-trust-lifetime")
         self._arm_session()
         self._persist_marker_across_all_sectors()
 
@@ -500,7 +498,6 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
             "the signer came back after a power cycle — it was written to flash")
 
     def test_disabling_advanced_mode_revokes_the_signer(self):
-        self.requires_release_capability("session-trust-lifetime")
         """Turning the policy off DROPS the provider, it does not suspend it.
 
         Every consumer in signed_metadata.c already refuses a runtime slot

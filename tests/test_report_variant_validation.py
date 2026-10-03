@@ -81,6 +81,23 @@ class TestReportVariantValidation(unittest.TestCase):
             (True, []),
             REPORT.validate_junit('7.15.0', results, 'full'))
 
+    def test_staged_erc7730_runtime_skips_only_with_its_capability(self):
+        results = catalog_results_with_solana_lut_skipped('7.15.0')
+        runtime = [key for key in results
+                   if key.startswith('test_msg_ethereum_erc7730_runtime::')]
+        self.assertTrue(runtime)
+        for key in runtime:
+            results[key] = 'skip'
+        os.environ['KK_RELEASE_MISSING_CAPABILITIES'] = (
+            'solana-lut-attestation,erc7730-runtime-review')
+        self.assertEqual((True, []),
+                         REPORT.validate_junit('7.15.0', results, 'full'))
+        os.environ['KK_RELEASE_MISSING_CAPABILITIES'] = 'solana-lut-attestation'
+        ok, failures = REPORT.validate_junit('7.15.0', results, 'full')
+        self.assertFalse(ok)
+        self.assertEqual({'skipped-but-required'},
+                         {status for _, _, _, status in failures})
+
     def test_complete_release_still_requires_staged_controls(self):
         results = catalog_results_with_solana_lut_skipped('7.15.0')
         for method in (
