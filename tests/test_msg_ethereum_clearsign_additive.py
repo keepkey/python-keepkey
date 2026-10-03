@@ -371,6 +371,7 @@ class TestClearSignAdditiveInvariant(common.KeepKeyTest):
         """A runtime-signed 0x05 intent schema (SRS-7.15 R-1.5) adds a "NOT
         verified by KeepKey" heading and its Limits IN FRONT of the review,
         and every baseline screen still follows, unchanged and in order."""
+        self.requires_release_capability("evm-certified-intent")
         import struct
         import oled_text
         self.requires_firmware("7.16.0")

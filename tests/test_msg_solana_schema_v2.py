@@ -291,6 +291,7 @@ class TestSolanaSchemaCertified(SchemaReview):
                       str(refused.exception))
 
     def test_certified_v1_schema_reviews_static_transfer_companion(self):
+        self.requires_release_capability("solana-certified-review")
         send = "Also sends 0.002000000 SOL to\n%s" % b58encode(DESTINATION)
         base, base_screens = self._review(
             self._certified(relay_message(self.signer, [RELAY_IX])),
@@ -313,6 +314,7 @@ class TestSolanaSchemaCertified(SchemaReview):
         plus the maximum priority fee: 1,000,000 micro-lamports x 200,000
         units = 200,000 lamports. The payer is named only when it is not
         this device's key (SRS-7.16 R-7.3)."""
+        self.requires_release_capability("solana-certified-review")
         _, plain = self._review(
             self._certified(relay_message(self.signer,
                                           [limit(200000), RELAY_IX])),
@@ -391,6 +393,7 @@ class TestSolanaSchemaCertified(SchemaReview):
         """The Worker's schema and SDICE definition name every value of the
         join, AdvancedMode off. These frames are the report's evidence, so
         the setUp policy screen is dropped first."""
+        self.requires_release_capability("solana-certified-review")
         raw = soltoshi_join(self.signer)
         self.client.reset_screenshots()
         response, screens = self._review(
@@ -402,6 +405,7 @@ class TestSolanaSchemaCertified(SchemaReview):
         """With a compute-unit price added, the network-fee bound includes
         the maximum priority fee; the payer is this key, so it is not named
         separately."""
+        self.requires_release_capability("solana-certified-review")
         raw = soltoshi_join(self.signer, priced=True)
         response, screens = self._review(
             self._join_request(raw, [sdice_definition()]), "join_priced")
@@ -414,6 +418,7 @@ class TestSolanaSchemaCertified(SchemaReview):
         """No definition, or one with one byte of its signature changed: the
         three amounts are raw base units beside the mint, nothing else
         changes, and the join still signs."""
+        self.requires_release_capability("solana-certified-review")
         raw = soltoshi_join(self.signer)
         response, missing = self._review(self._join_request(raw),
                                          "join_no_definition")
@@ -431,6 +436,7 @@ class TestSolanaSchemaCertified(SchemaReview):
     def test_certified_soltoshi_join_ignores_blind_sign_policy(self):
         """AdvancedMode on changes nothing: the same certified review, frame
         for frame, and never the Blind Sign screen."""
+        self.requires_release_capability("solana-certified-review")
         raw = soltoshi_join(self.signer)
         request = self._join_request(raw, [sdice_definition()])
         _, off = self._review(request, "join_policy_off")
@@ -697,6 +703,7 @@ class TestClearsignAttestorTokenAmount(SchemaReview):
     def test_v3_schema_with_roles_and_template_is_refused(self):
         """The attestor's screens show no roles or intent template, so it must
         not sign a v3 schema whose wording it never displayed."""
+        self.requires_release_capability("solana-certified-review")
         payload = bytearray(b"KKSOLSC1\x03") + RELAY_PROGRAM + b"\x01\x0d"
         for text in (b"Attest Probe", b"join"):
             payload += bytes([len(text)]) + text

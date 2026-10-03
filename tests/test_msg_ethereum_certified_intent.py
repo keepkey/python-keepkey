@@ -68,6 +68,7 @@ class TestEthereumCertifiedIntent(common.KeepKeyTest):
         self.fail("no screen titled %r shows %r" % (title, body))
 
     def test_relay_bridge_deposit_reads_as_a_sentence_with_limits(self):
+        self.requires_release_capability("evm-certified-intent")
         resp = self.client.ethereum_send_tx_metadata(
             signed_payload=RELAY_ENVELOPE, metadata_version=3,
             key_id=KEYID_DELEGATE)
