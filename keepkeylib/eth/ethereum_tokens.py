@@ -29,7 +29,7 @@ class ETHTokenTable(object):
             fullpath = os.path.join(dirname, filename)
 
             if not os.path.isfile(fullpath):
-                return
+                continue
 
             with open(fullpath, 'r') as f:
                 token = json.load(f)
@@ -37,14 +37,44 @@ class ETHTokenTable(object):
                 self.tokens.append(ETHToken(token, network))
 
     def build(self):
+        source = HERE + '/ethereum-lists/src/tokens'
+        if not os.path.isdir(source):
+            raise RuntimeError(
+                'vetted ethereum-lists token source is missing; initialize '
+                'submodules recursively before generating firmware tables')
+
         with open(HERE + '/ethereum_networks.json', 'r') as f:
             networks = json.load(f)
 
             for network in networks:
                 self.add_tokens(network)
 
+        if not self.tokens:
+            raise RuntimeError(
+                'vetted ethereum-lists token source produced zero candidates')
+
     def serialize_c(self, outf):
-        for token in sorted(self.tokens, key=lambda t: t.token['address']):
+        # Flash budget: this table is the largest read-only symbol in the ARM
+        # image. See token_policy for why it is capped rather than complete.
+        # Run as a standalone script by the build, so there is no package
+        # context for a relative import.
+        import os as _os, sys as _s
+        _s.path.insert(0, _os.path.dirname(_os.path.realpath(__file__)))
+        import token_policy
+        chosen, ambiguous = token_policy.select(
+            self.tokens,
+            token_policy.BUDGET_ETHEREUM_LISTS,
+            symbol_of=lambda t: t.token.get('symbol', ''),
+            address_of=lambda t: t.token['address'].lower(),
+            chain_of=lambda t: t.network['chain_id'])
+        print('ethereum_tokens: %d of %d kept (budget %d)'
+              % (len(chosen), len(self.tokens),
+                 token_policy.BUDGET_ETHEREUM_LISTS), file=sys.stderr)
+        if ambiguous:
+            print('ethereum_tokens: priority symbols DROPPED as ambiguous '
+                  '(>1 address, a scam token can inherit a real label): %s'
+                  % ', '.join(sorted(ambiguous)), file=sys.stderr)
+        for token in sorted(chosen, key=lambda t: t.token['address']):
             token.serialize_c(outf)
 
 def is_ascii(s):

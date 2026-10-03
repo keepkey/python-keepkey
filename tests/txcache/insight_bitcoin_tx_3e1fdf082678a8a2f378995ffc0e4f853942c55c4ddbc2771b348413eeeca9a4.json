@@ -1,0 +1,29 @@
+{
+ "txid": "3e1fdf082678a8a2f378995ffc0e4f853942c55c4ddbc2771b348413eeeca9a4",
+ "version": 1,
+ "locktime": 0,
+ "vin": [
+  {
+   "txid": "0000000000000000000000000000000000000000000000000000000000000000",
+   "vout": 0,
+   "sequence": 4294967295,
+   "scriptSig": {"hex": ""}
+  }
+ ],
+ "vout": [
+  {
+   "value": "0.00100000",
+   "n": 0,
+   "scriptPubKey": {
+    "hex": "5120a60869f0dbcf1dc659c9cecbaf8050135ea9e8cdc487053f1dc6880949dc684c"
+   }
+  },
+  {
+   "value": "0.00050000",
+   "n": 1,
+   "scriptPubKey": {
+    "hex": "76a914d986ed01b7a22225a70edbf2ba7cfb63a15cb3aa88ac"
+   }
+  }
+ ]
+}

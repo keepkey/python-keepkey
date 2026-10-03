@@ -153,6 +153,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """Test that incomplete structured fields are rejected."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
+        # Same 7.14.2 AdvancedMode gate as the signing tests above, but this is
+        # a reject-path test: with the gate CLOSED the firmware refuses every
+        # TonSignTx, so the assertion below would pass without the parser ever
+        # validating anything. Opt in so the rejection proves what it claims.
+        self.client.apply_policy("AdvancedMode", 1)
 
         msg = ton_messages.TonSignTx(
             address_n=parse_path(TON_PATH),
@@ -201,6 +206,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """Empty raw_tx (0 bytes) should be rejected by firmware."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
+        # Same 7.14.2 AdvancedMode gate as the signing tests above, but this is
+        # a reject-path test: with the gate CLOSED the firmware refuses every
+        # TonSignTx, so the assertion below would pass without the parser ever
+        # validating anything. Opt in so the rejection proves what it claims.
+        self.client.apply_policy("AdvancedMode", 1)
 
         msg = ton_messages.TonSignTx(
             address_n=parse_path(TON_PATH),
@@ -214,6 +224,11 @@ class TestMsgTonSignTx(common.KeepKeyTest):
         """raw_tx of 1025 bytes exceeds proto max (1024) and should be rejected."""
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
+        # Same 7.14.2 AdvancedMode gate as the signing tests above, but this is
+        # a reject-path test: with the gate CLOSED the firmware refuses every
+        # TonSignTx, so the assertion below would pass without the parser ever
+        # validating anything. Opt in so the rejection proves what it claims.
+        self.client.apply_policy("AdvancedMode", 1)
 
         raw_tx = b'\xAB' * 1025
 

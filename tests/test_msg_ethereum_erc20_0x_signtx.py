@@ -166,16 +166,24 @@ class TestMsgEthereum0xtxERC20(common.KeepKeyTest):
         self.requires_fullFeature()
         self.requires_firmware("7.1.5")
         self.setup_mnemonic_nopin_nopassphrase()
-
         # This payload is 1480 bytes, so it exceeds one 1024-byte chunk and the
         # 0x decoder no longer claims it: the bytes past the initial chunk are
         # hashed without being decoded, so describing them as a token swap would
         # be a screen the device cannot vouch for. It falls to the generic
-        # contract-data path, which requires AdvancedMode.
+        # contract-data path (blind contract data, no recognized token /
+        # contract handler), which since 7.15.0 the device hard-rejects unless
+        # AdvancedMode is on (Insight clear-signing policy) — same as
+        # test_sign_longdata_swap above.
         #
         # This test is about SIGNING CORRECTNESS, not about the gate, so enable
         # the policy and keep asserting the signature. The gate itself is
         # covered by test_msg_ethereum_signing_guards.
+        #
+        # SUPERSEDED, kept so the behaviour change stays visible: transformERC20
+        # was once pinned to the 0x ExchangeProxy and bounded by its displayed
+        # input/min-output amounts, and on that basis clear-signed WITHOUT
+        # AdvancedMode at any calldata size (the transformations[] tail exceeds
+        # one chunk). That claim was withdrawn for payloads past the first chunk.
         self.client.apply_policy("AdvancedMode", 1)
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(

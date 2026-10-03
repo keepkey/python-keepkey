@@ -27,6 +27,26 @@ from keepkeylib import types_pb2 as proto_types
 
 class TestPing(common.KeepKeyTest):
 
+    def test_protected_ping_preserves_message_presence_after_debug_read(self):
+        self.requires_release_capability("protected-ping-presence")
+        self.requires_firmware("7.14.2")
+        for message in (None, '', 'ping response'):
+            with self.subTest(message=message):
+                request = proto.Ping(button_protection=True)
+                if message is not None:
+                    request.message = message
+                response = self.client.call_raw(request)
+                self.assertIsInstance(response, proto.ButtonRequest)
+                # Read the screen while the normal response is suspended.
+                self.client.debug.read_layout()
+                self.client.debug.press_yes()
+                response = self.client.call_raw(proto.ButtonAck())
+                self.assertIsInstance(response, proto.Success)
+                self.assertEqual(response.HasField('message'), message is not None)
+                if message is not None:
+                    self.assertEqual(response.message, message)
+
+
     def test_ping(self):
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()
@@ -142,7 +162,8 @@ class TestPing(common.KeepKeyTest):
         # local cache. This is the precondition that made the stale-data path
         # reachable after ClearSession.
         self.client.ping('\x19wipeAuthdata:')
-        init_auth = '\x15initializeAuth:example.com:alice:JBSWY3DPEHPK3PXP'
+        init_auth = ('\x15initializeAuth:example.com:alice:'
+                     'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP')
         self.client.ping(init_auth)
         self.client.clear_session()
         # The wipe/add-account confirmations establish the stale-cache

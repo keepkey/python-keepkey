@@ -68,6 +68,7 @@ class TestProtectionLevels(common.KeepKeyTest):
     def test_get_entropy(self):
         with self.client:
             self.setup_mnemonic_pin_passphrase()
+            self.client.clear_session()
             self.client.set_expected_responses([proto.ButtonRequest(),
                                       proto.Entropy()])
             self.client.get_entropy(10)
