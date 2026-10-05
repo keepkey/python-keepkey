@@ -161,11 +161,12 @@ class TestClearSignAdditiveInvariant(common.KeepKeyTest):
 
     def setUp(self):
         super().setUp()
-        # Runtime EVM transaction metadata, not the ERC-7730 interpreter.
-        self.requires_release_capability("evm-tx-metadata")
+        # Version, then message availability, then the firmware-reported
+        # capability (runtime EVM transaction metadata, not ERC-7730).
         self.requires_firmware("7.15.0")
         self.requires_message("EthereumTxMetadata")
         self.requires_message("LoadClearsignSigner")
+        self.requires_release_capability("evm-tx-metadata")
         self.setup_mnemonic_nopin_nopassphrase()
         # AdvancedMode is required both for the raw-calldata review to be
         # reachable at all and for a runtime signer to verify anything.
