@@ -57,6 +57,45 @@ def reset_screenshot_capture(client):
             os.unlink(os.path.join(screenshot_dir, name))
     client.screenshot_id = 0
 
+# Firmware before this release does not report Features.capabilities; there,
+# version gates alone decide.
+CAPABILITIES_SINCE = "7.15.0"
+
+
+def capability_names(features):
+    """Features.capabilities as names such as 'permit2-review', or None for
+    firmware that predates the list."""
+    version = semver.VersionInfo.parse("%s.%s.%s" % (
+        features.major_version, features.minor_version, features.patch_version))
+    if version < semver.VersionInfo.parse(CAPABILITIES_SINCE):
+        return None
+    enum = messages_pb2.Features.Capability
+    return set(enum.Name(value)[len("CAPABILITY_"):].lower().replace("_", "-")
+               for value in features.capabilities)
+
+
+_DEVICE_CAPABILITIES = []
+
+
+def device_capabilities():
+    """For host-side tests: the connected firmware's capabilities, read once,
+    or None when the firmware predates the list or no device is attached."""
+    if not _DEVICE_CAPABILITIES:
+        names = None
+        try:
+            client = KeepKeyClient(config.TRANSPORT(
+                *config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS))
+            try:
+                client.init_device()
+                names = capability_names(client.features)
+            finally:
+                client.close()
+        except Exception:
+            names = None  # no device: nothing to gate on
+        _DEVICE_CAPABILITIES.append(names)
+    return _DEVICE_CAPABILITIES[0]
+
+
 class KeepKeyTest(unittest.TestCase):
     def setUp(self):
         transport = config.TRANSPORT(*config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS)
@@ -170,19 +209,11 @@ class KeepKeyTest(unittest.TestCase):
         if self.firmware_version() >= semver.VersionInfo.parse(ver_limit):
             self.skipTest("Behaviour retired in firmware " + ver_limit)
 
-    # Firmware before this release does not report Features.capabilities;
-    # there, version gates alone decide.
-    CAPABILITIES_SINCE = "7.15.0"
-
     def firmware_capabilities(self):
         """The capabilities the connected firmware reports, as names such as
         'permit2-review', or None for firmware that predates the list."""
-        if not self.firmware_at_least(self.CAPABILITIES_SINCE):
-            return None
         self.client.init_device()
-        enum = messages_pb2.Features.Capability
-        return set(enum.Name(value)[len("CAPABILITY_"):].lower().replace("_", "-")
-                   for value in self.client.features.capabilities)
+        return capability_names(self.client.features)
 
     def requires_release_capability(self, capability):
         """Skip unless the firmware reports `capability`.

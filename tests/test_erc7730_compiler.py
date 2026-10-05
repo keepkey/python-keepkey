@@ -9,6 +9,8 @@ import tempfile
 
 import pytest
 
+import common
+
 from keepkeylib.erc7730_compiler import (
     HEADER_SIZE, DeviceCannotExecute, compile_calldata, compile_eip712,
     device_refusal, eip712_encode_type, load_descriptor,
@@ -36,8 +38,10 @@ def _evidence_input(name):
 
 
 def _firmware_accepts(program):
-    missing = os.environ.get("KK_RELEASE_MISSING_CAPABILITIES", "").split(",")
-    if "erc7730-runtime-review" in (value.strip() for value in missing):
+    # The firmware under test must implement the interpreter the validator
+    # is built from; it says so in Features.capabilities.
+    reported = common.device_capabilities()
+    if reported is not None and "erc7730-runtime-review" not in reported:
         pytest.skip("Staged release tree does not yet provide capability: "
                     "erc7730-runtime-review")
     validator = _evidence_input("ERC7730_FIRMWARE_VALIDATOR")
