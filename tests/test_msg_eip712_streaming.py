@@ -607,12 +607,13 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         self.requires_message("EthereumTxMetadata")
         self.client.ethereum_send_tx_metadata(
             signed_payload=self.UR_V2_NAME, metadata_version=3, key_id=0x80)
-        refused = {  # an unlimited EIP-2612 permit: the device refuses it
+        # An unlimited EIP-2612 permit whose domain names no token
+        # (no verifyingContract): ambiguous, so the device still refuses it.
+        refused = {
             "types": {
                 "EIP712Domain": [
                     {"name": "name", "type": "string"},
                     {"name": "chainId", "type": "uint256"},
-                    {"name": "verifyingContract", "type": "address"},
                 ],
                 "Permit": [
                     {"name": "owner", "type": "address"},
@@ -623,8 +624,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
                 ],
             },
             "primaryType": "Permit",
-            "domain": {"name": "USD Coin", "chainId": 1, "verifyingContract":
-                       "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"},
+            "domain": {"name": "USD Coin", "chainId": 1},
             "message": {
                 "owner": "0x73d0385F4d8E00C5e6504C6030F47BF6212736A8",
                 "spender": "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af",
@@ -659,78 +659,224 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
             self.frames[0][1], 'EIP-712 DOMAIN', oled_text.TITLE_FONT))
         self.assertIsNotNone(self._leaf_index("details.amount"))
 
-    def test_unlimited_permits_are_refused_before_the_amount_screen(self):
-        """EIP-2612 Permit.value at its all-ones maximum is refused before
-        that leaf is ever displayed."""
-        permit = {
+    USDC_PERMIT = {
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "version", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"},
+            ],
+            "Permit": [
+                {"name": "owner", "type": "address"},
+                {"name": "spender", "type": "address"},
+                {"name": "value", "type": "uint256"},
+                {"name": "nonce", "type": "uint256"},
+                {"name": "deadline", "type": "uint256"},
+            ],
+        },
+        "primaryType": "Permit",
+        "domain": {"name": "USD Coin", "version": "2", "chainId": 1,
+                   "verifyingContract":
+                       "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"},
+        "message": {
+            "owner": "0x73d0385F4d8E00C5e6504C6030F47BF6212736A8",
+            "spender": "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD",
+            "value": "1000000", "nonce": "0", "deadline": "1893456000"},
+    }
+
+    # The canonical DAI permit (all-or-nothing `allowed`, `expiry` 0 = never).
+    DAI_PERMIT = {
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "version", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"},
+            ],
+            "Permit": [
+                {"name": "holder", "type": "address"},
+                {"name": "spender", "type": "address"},
+                {"name": "nonce", "type": "uint256"},
+                {"name": "expiry", "type": "uint256"},
+                {"name": "allowed", "type": "bool"},
+            ],
+        },
+        "primaryType": "Permit",
+        "domain": {"name": "Dai Stablecoin", "version": "1", "chainId": 1,
+                   "verifyingContract":
+                       "0x6B175474E89094C44Da98b954EedeAC495271d0F"},
+        "message": {
+            "holder": "0x73d0385F4d8E00C5e6504C6030F47BF6212736A8",
+            "spender": "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD",
+            "nonce": "0", "expiry": "0", "allowed": True},
+    }
+
+    def _warnings(self):
+        """Indexes of the "UNLIMITED allowance" screens (F-D, D-010)."""
+        return [i for i, (_, layout) in enumerate(self.frames)
+                if oled_text.find_line(layout, 'UNLIMITED ALLOWANCE',
+                                       oled_text.TITLE_FONT) is not None]
+
+    def _assert_unlimited_warning(self, ticker, token, deadline):
+        """Every leaf was shown; then the two warning screens, then the sign
+        screen. Screen 1: "Allow <spender> to spend an UNLIMITED amount of
+        <ticker>. It does not expire."; screen 2: ticker, token address,
+        "Signature valid until", deadline, one per line. The device pages a
+        long body by characters, so each drawn line is checked on the warning
+        pages."""
+        warnings = self._warnings()
+        self.assertGreaterEqual(len(warnings), 2)
+        final = self._assert_final_sign_screen('Sign Permit')
+        self.assertEqual(warnings[-1], final - 1)
+        pages = [self.frames[i][1] for i in warnings]
+        spender = self.USDC_PERMIT["message"]["spender"]
+        first = oled_text.wrap("Allow %s to spend an UNLIMITED amount of %s. "
+                               "It does not expire." % (spender, ticker))
+        second = oled_text.wrap("%s\n%s\nSignature valid until\n%s" %
+                                (ticker, token, deadline))
+        for line in first[:3] + ["It does not expire."] + second:
+            self.assertTrue(any(oled_text.find_line(page, line) is not None
+                                for page in pages), line)
+
+    def test_canonical_unlimited_permits_sign_after_a_warning(self):
+        """D-010 for permits (F-D): a canonical EIP-2612 permit of 2^255 or
+        more, or a canonical DAI permit with allowed=true, is signed after
+        two "UNLIMITED allowance" screens naming spender, token and deadline.
+        2^255 - 1 is an exact amount: no warning."""
+        self.requires_release_capability("erc20-unlimited-permit-review")
+        usdc = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+        for value in ((1 << 256) - 1, 1 << 255):
+            doc = copy.deepcopy(self.USDC_PERMIT)
+            doc["message"]["value"] = str(value)
+            self._assert_reference_signature(doc, self._walk(doc))
+            self._assert_unlimited_warning("USDC", usdc,
+                                           "2030-01-01 00:00 UTC")
+            # The amount leaf itself was still disclosed.
+            self.assertIsNotNone(self._leaf_index("value"))
+
+        exact = copy.deepcopy(self.USDC_PERMIT)
+        exact["message"]["value"] = str((1 << 255) - 1)
+        self._assert_reference_signature(exact, self._walk(exact))
+        self.assertEqual(self._warnings(), [])
+
+        dai = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+        doc = copy.deepcopy(self.DAI_PERMIT)
+        self._assert_reference_signature(doc, self._walk(doc))
+        self._assert_unlimited_warning("DAI", dai, "no deadline")
+        doc["message"]["expiry"] = "1893456000"
+        self._assert_reference_signature(doc, self._walk(doc))
+        self._assert_unlimited_warning("DAI", dai, "2030-01-01 00:00 UTC")
+        # allowed=false revokes: nothing to warn about.
+        doc["message"]["allowed"] = False
+        self._assert_reference_signature(doc, self._walk(doc))
+        self.assertEqual(self._warnings(), [])
+
+    def test_declining_the_unlimited_warning_signs_nothing(self):
+        self.requires_release_capability("erc20-unlimited-permit-review")
+        doc = copy.deepcopy(self.USDC_PERMIT)
+        doc["message"]["value"] = str((1 << 256) - 1)
+        msg = eth.EthereumSignTypedData()
+        for n in PATH:
+            msg.address_n.append(n)
+        msg.primary_type = doc['primaryType']
+        msg.metamask_v4_compat = True
+        resp = self.client.call_raw(msg)
+        for _ in range(400):
+            if isinstance(resp, proto.ButtonRequest):
+                time.sleep(SETTLE)
+                layout = bytes(self.client.debug.read_layout())
+                if oled_text.find_line(layout, 'UNLIMITED ALLOWANCE',
+                                       oled_text.TITLE_FONT) is not None:
+                    self.client.debug.press_no()
+                else:
+                    self.client.debug.press_yes()
+                resp = self.client.call_raw(proto.ButtonAck())
+            elif isinstance(resp, eth.EthereumTypedDataStructRequest):
+                resp = self.client.call_raw(
+                    es.build_struct_ack(es.struct_members(doc, resp.name)))
+            elif isinstance(resp, eth.EthereumTypedDataValueRequest):
+                r = es.resolve_member_path(doc, list(resp.member_path))
+                ack = eth.EthereumTypedDataValueAck()
+                ack.value = (es.encode_array_length(r[1]) if r[0] == 'length'
+                             else es.encode_value(r[1], r[2]))
+                resp = self.client.call_raw(ack)
+            else:
+                break
+        self.assertIsInstance(resp, proto.Failure)
+        self.assertEqual(resp.code, types.Failure_ActionCancelled)
+
+    def test_ambiguous_unlimited_permits_are_refused_before_the_amount_screen(
+            self):
+        """An unlimited permit the device cannot attribute is refused before
+        that leaf is ever displayed: a Permit whose type hash is not
+        EIP-2612's or DAI's, an EIP-2612 permit whose domain names no token,
+        and an unlimited Permit2-shaped amount outside canonical
+        PermitSingle."""
+        no_nonce = copy.deepcopy(self.USDC_PERMIT)  # another type hash
+        no_nonce["types"]["Permit"] = [
+            m for m in no_nonce["types"]["Permit"] if m["name"] != "nonce"]
+        del no_nonce["message"]["nonce"]
+        no_token = copy.deepcopy(self.USDC_PERMIT)
+        no_token["types"]["EIP712Domain"] = [
+            m for m in no_token["types"]["EIP712Domain"]
+            if m["name"] != "verifyingContract"]
+        del no_token["domain"]["verifyingContract"]
+        no_token_dai = copy.deepcopy(self.DAI_PERMIT)
+        no_token_dai["types"]["EIP712Domain"] = [
+            m for m in no_token_dai["types"]["EIP712Domain"]
+            if m["name"] != "verifyingContract"]
+        del no_token_dai["domain"]["verifyingContract"]
+        transfer = {  # Permit2 SignatureTransfer: not reviewed in words
             "types": {
                 "EIP712Domain": [
                     {"name": "name", "type": "string"},
-                    {"name": "version", "type": "string"},
                     {"name": "chainId", "type": "uint256"},
                     {"name": "verifyingContract", "type": "address"},
                 ],
-                "Permit": [
-                    {"name": "owner", "type": "address"},
+                "TokenPermissions": [
+                    {"name": "token", "type": "address"},
+                    {"name": "amount", "type": "uint256"},
+                ],
+                "PermitTransferFrom": [
+                    {"name": "permitted", "type": "TokenPermissions"},
                     {"name": "spender", "type": "address"},
-                    {"name": "value", "type": "uint256"},
                     {"name": "nonce", "type": "uint256"},
                     {"name": "deadline", "type": "uint256"},
                 ],
             },
-            "primaryType": "Permit",
-            "domain": {"name": "USD Coin", "version": "2", "chainId": 1,
-                       "verifyingContract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"},
+            "primaryType": "PermitTransferFrom",
+            "domain": {"name": "Permit2", "chainId": 1, "verifyingContract":
+                       "0x000000000022D473030F116dDEE9F6B43aC78BA3"},
             "message": {
-                "owner": "0x73d0385F4d8E00C5e6504C6030F47BF6212736A8",
-                "spender": "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD",
-                "value": "1000000", "nonce": "0", "deadline": "1893456000"},
-        }
-        permit2 = {
-            "types": {
-                "EIP712Domain": [
-                    {"name": "name", "type": "string"},
-                    {"name": "chainId", "type": "uint256"},
-                    {"name": "verifyingContract", "type": "address"},
-                ],
-                "PermitDetails": [
-                    {"name": "token", "type": "address"},
-                    {"name": "amount", "type": "uint160"},
-                    {"name": "expiration", "type": "uint48"},
-                    {"name": "nonce", "type": "uint48"},
-                ],
-                "PermitSingle": [
-                    {"name": "details", "type": "PermitDetails"},
-                    {"name": "spender", "type": "address"},
-                    {"name": "sigDeadline", "type": "uint256"},
-                ],
-            },
-            "primaryType": "PermitSingle",
-            "domain": {"name": "Permit2", "chainId": 1,
-                       "verifyingContract": "0x000000000022D473030F116dDEE9F6B43aC78BA3"},
-            "message": {
-                "details": {
+                "permitted": {
                     "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-                    "amount": "250000000", "expiration": "1893456000",
-                    "nonce": "1"},
+                    "amount": "1000000"},
                 "spender": "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD",
-                "sigDeadline": "1893456000"},
+                "nonce": "0", "deadline": "1893456000"},
         }
-        # Permit2 is reviewed in words instead, unlimited included
-        # (test_permit2_reads_as_who_what_until_when); only EIP-2612 is here.
-        del permit2
-        for doc, path, leaf, bits in ((permit, ("value",), "value", 256),):
+        cases = (
+            (no_nonce, ("value",), "value", str((1 << 256) - 1)),
+            (no_token, ("value",), "value", str(1 << 255)),
+            (no_token_dai, ("allowed",), "allowed", True),
+            (transfer, ("permitted", "amount"), "permitted.amount",
+             str((1 << 256) - 1)),
+        )
+        for doc, path, leaf, unlimited_value in cases:
+            finite = copy.deepcopy(doc)
+            if leaf == "allowed":
+                finite["message"]["allowed"] = False
             # A finite amount signs and shows the leaf; its position is where
             # the unlimited amount must stop.
-            self._assert_reference_signature(doc, self._walk(doc))
+            self._assert_reference_signature(finite, self._walk(finite))
             before_leaf = self._leaf_index(leaf)
             unlimited = copy.deepcopy(doc)
             target = unlimited["message"]
             for key in path[:-1]:
                 target = target[key]
-            target[path[-1]] = str((1 << bits) - 1)
+            target[path[-1]] = unlimited_value
             resp = self._walk(unlimited)
-            self.assertIsInstance(resp, proto.Failure)
+            self.assertIsInstance(resp, proto.Failure, leaf)
             self.assertEqual((resp.code, resp.message),
                              (types.Failure_SyntaxError,
                               'Unlimited ERC20 approval is disabled'))
