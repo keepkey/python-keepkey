@@ -161,7 +161,8 @@ class TestClearSignAdditiveInvariant(common.KeepKeyTest):
 
     def setUp(self):
         super().setUp()
-        self.requires_release_capability("erc7730-runtime-review")
+        # Runtime EVM transaction metadata, not the ERC-7730 interpreter.
+        self.requires_release_capability("evm-tx-metadata")
         self.requires_firmware("7.15.0")
         self.requires_message("EthereumTxMetadata")
         self.requires_message("LoadClearsignSigner")
