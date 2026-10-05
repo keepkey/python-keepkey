@@ -53,7 +53,7 @@ class ETHTokenTable(object):
             raise RuntimeError(
                 'vetted ethereum-lists token source produced zero candidates')
 
-    def serialize_c(self, outf):
+    def serialize_c(self, outf, profile=None):
         # Flash budget: this table is the largest read-only symbol in the ARM
         # image. See token_policy for why it is capped rather than complete.
         # Run as a standalone script by the build, so there is no package
@@ -66,10 +66,12 @@ class ETHTokenTable(object):
             token_policy.BUDGET_ETHEREUM_LISTS,
             symbol_of=lambda t: t.token.get('symbol', ''),
             address_of=lambda t: t.token['address'].lower(),
-            chain_of=lambda t: t.network['chain_id'])
-        print('ethereum_tokens: %d of %d kept (budget %d)'
+            chain_of=lambda t: t.network['chain_id'],
+            profile=profile or token_policy.DEFAULT_PROFILE)
+        print('ethereum_tokens: %d of %d kept (budget %d, profile %s)'
               % (len(chosen), len(self.tokens),
-                 token_policy.BUDGET_ETHEREUM_LISTS), file=sys.stderr)
+                 token_policy.BUDGET_ETHEREUM_LISTS,
+                 profile or token_policy.DEFAULT_PROFILE), file=sys.stderr)
         if ambiguous:
             print('ethereum_tokens: priority symbols DROPPED as ambiguous '
                   '(>1 address, a scam token can inherit a real label): %s'
@@ -103,16 +105,22 @@ class ETHToken(object):
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage:\n\tpython %s ethereum_tokens.def" % (__file__,))
+    # `<out.def> [--profile fill|priority-only]` -- see token_policy.
+    args = sys.argv[1:]
+    profile = None
+    if len(args) == 3 and args[1] == '--profile':
+        profile = args[2]
+        args = args[:1]
+    if len(args) != 1:
+        print("Usage:\n\tpython %s ethereum_tokens.def [--profile fill|priority-only]" % (__file__,))
         sys.exit(-1)
 
-    out_filename = sys.argv[1]
+    out_filename = args[0]
     outf = StringIO()
 
     table = ETHTokenTable()
     table.build()
-    table.serialize_c(outf)
+    table.serialize_c(outf, profile)
     print('#undef X', file=outf)
 
     if os.path.isfile(out_filename):

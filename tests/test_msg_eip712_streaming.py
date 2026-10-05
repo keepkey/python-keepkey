@@ -739,11 +739,36 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
             self.assertTrue(any(oled_text.find_line(page, line) is not None
                                 for page in pages), line)
 
+    def test_unlimited_permits_are_refused_before_the_amount_screen(self):
+        """7.15: EIP-2612 Permit.value at its all-ones maximum is refused
+        before that leaf is ever displayed. 7.16 reviews a canonical one
+        instead (F-D, D-010): test_canonical_unlimited_permits_sign_after_a_
+        warning."""
+        self.requires_firmware_below("7.16.0")
+        permit = copy.deepcopy(self.USDC_PERMIT)
+        for doc, path, leaf, bits in ((permit, ("value",), "value", 256),):
+            # A finite amount signs and shows the leaf; its position is where
+            # the unlimited amount must stop.
+            self._assert_reference_signature(doc, self._walk(doc))
+            before_leaf = self._leaf_index(leaf)
+            unlimited = copy.deepcopy(doc)
+            target = unlimited["message"]
+            for key in path[:-1]:
+                target = target[key]
+            target[path[-1]] = str((1 << bits) - 1)
+            resp = self._walk(unlimited)
+            self.assertIsInstance(resp, proto.Failure)
+            self.assertEqual((resp.code, resp.message),
+                             (types.Failure_SyntaxError,
+                              'Unlimited ERC20 approval is disabled'))
+            self.assertEqual(len(self.frames), before_leaf)
+
     def test_canonical_unlimited_permits_sign_after_a_warning(self):
         """D-010 for permits (F-D): a canonical EIP-2612 permit of 2^255 or
         more, or a canonical DAI permit with allowed=true, is signed after
         two "UNLIMITED allowance" screens naming spender, token and deadline.
         2^255 - 1 is an exact amount: no warning."""
+        self.requires_firmware("7.16.0")
         self.requires_release_capability("erc20-unlimited-permit-review")
         usdc = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
         for value in ((1 << 256) - 1, 1 << 255):
@@ -773,6 +798,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         self.assertEqual(self._warnings(), [])
 
     def test_declining_the_unlimited_warning_signs_nothing(self):
+        self.requires_firmware("7.16.0")
         self.requires_release_capability("erc20-unlimited-permit-review")
         doc = copy.deepcopy(self.USDC_PERMIT)
         doc["message"]["value"] = str((1 << 256) - 1)
@@ -813,6 +839,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         EIP-2612's or DAI's, an EIP-2612 permit whose domain names no token,
         and an unlimited Permit2-shaped amount outside canonical
         PermitSingle."""
+        self.requires_firmware("7.16.0")
         self.requires_release_capability("erc20-unlimited-permit-review")
         no_nonce = copy.deepcopy(self.USDC_PERMIT)  # another type hash
         no_nonce["types"]["Permit"] = [

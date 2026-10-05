@@ -33,10 +33,42 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         # authorized raw review. Exercise that path instead of an emulator skip.
         self.requires_firmware("7.15.0")
 
+    def test_sign_uni_approve_liquidity_ETH_refused(self):
+        self.requires_release_capability("erc7730-runtime-review")
+        self.requires_fullFeature()
+        self.requires_firmware_below("7.16.0")
+        self.setup_mnemonic_nopin_nopassphrase()
+        self.client.apply_policy("AdvancedMode", 1)
+
+        # Unlimited approval is deliberately disabled on canonical 7.15.
+        # This legacy vector must be refused, not skipped or signed.
+        with self.assertRaises(CallException) as caught:
+            self.client.ethereum_sign_tx(
+                n=[2147483692,2147483708,2147483648,0,0],
+                nonce=0xf,
+                gas_price=0x2980872680,
+                gas_limit=0xbd0e,
+                value=0x0,
+                to=binascii.unhexlify('470e8de2ebaef52014a47cb5e6af86884947f08c'),     # fox pool
+                address_type=0,
+                chain_id=1,
+                # The data below is generally broken into 32-byte chunks except for the function selector (4 bytes_ and
+                # keccak signatures (4 bytes)
+                data=binascii.unhexlify('095ea7b3' +                                      # approve
+                    '0000000000000000000000007a250d5630b4cf539739df2c5dacb4c659f2488d' +  # uniswap v2: router 2 contract address
+                    'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')   # approve amount
+
+            )
+        self.assertEqual(caught.exception.args[0],
+                         proto_types.Failure_ActionCancelled)
+        self.assertIn("Unlimited ERC20 approval is disabled",
+                      str(caught.exception))
+
     def test_sign_uni_approve_liquidity_ETH(self):
         self.requires_release_capability("erc7730-runtime-review")
         self.requires_fullFeature()
-        self.requires_firmware("7.1.0")
+        self.requires_firmware("7.16.0")
+        self.requires_release_capability("erc20-unlimited-approve-review")
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 

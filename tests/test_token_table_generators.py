@@ -3,8 +3,11 @@
 lib/firmware/CMakeLists.txt in keepkey-firmware builds `ethereum_tokens.def`
 and `uniswap_tokens.def` by running
 
-    python3 deps/python-keepkey/keepkeylib/eth/ethereum_tokens.py <out>.def
-    python3 deps/python-keepkey/keepkeylib/eth/uniswap_tokens.py  <out>.def
+    python3 deps/python-keepkey/keepkeylib/eth/ethereum_tokens.py <out>.def [--profile P]
+    python3 deps/python-keepkey/keepkeylib/eth/uniswap_tokens.py  <out>.def [--profile P]
+
+(7.15 passes no profile and gets the `fill` table; 7.16 passes
+`--profile priority-only`, D-014.)
 
 and `kkfirmware` depends on that target. So a change in this repository CAN
 break the firmware C++ build: if either generator crashes, emits a malformed
@@ -17,9 +20,9 @@ asked for on that change: an equivalent generator/firmware contract gate that
 lives where the change originates, runs in seconds, and does not fail this
 repository for unrelated firmware C++ churn.
 
-It deliberately asserts the BUILD contract (the generators run and emit a
-well-formed, budget-conforming table), not the token SELECTION, which is
-policy and moves.
+It deliberately asserts the BUILD contract of each profile (the generators
+run and emit a well-formed, budget-conforming table), not the individual token
+SELECTION, which is policy and moves.
 """
 
 import ast
@@ -72,12 +75,13 @@ class TestTokenTableGenerators(unittest.TestCase):
             finally:
                 module.HERE = original_here
 
-    def _run(self, script):
+    def _run(self, script, profile=None):
         """Run one generator into a temp file and return its rows."""
         with tempfile.TemporaryDirectory() as tmp:
             out = os.path.join(tmp, 'out.def')
+            extra = ['--profile', profile] if profile else []
             proc = subprocess.run(
-                [sys.executable, os.path.join(_ETH, script), out],
+                [sys.executable, os.path.join(_ETH, script), out] + extra,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 universal_newlines=True, cwd=_PYKEEPKEY)
             self.assertEqual(
@@ -107,12 +111,12 @@ class TestTokenTableGenerators(unittest.TestCase):
             rows.append((int(chain_id), address, symbol.strip(), int(decimals)))
         return rows
 
-    def _check(self, script, budget_name):
+    def _check(self, script, budget_name, profile=None):
         if script == 'ethereum_tokens.py' and not _vetted_source_present():
             self.skipTest('keepkeylib/eth/ethereum-lists submodule not checked out')
         from keepkeylib.eth import token_policy
 
-        text, log = self._run(script)
+        text, log = self._run(script, profile)
         rows = self._rows(text, script)
         self.assertTrue(rows, '%s emitted an empty table' % script)
 
@@ -127,30 +131,47 @@ class TestTokenTableGenerators(unittest.TestCase):
         # min(M, B) catches SHRINKAGE too: a change that silently drops most
         # candidates still respects the ceiling, so `<= budget` alone would
         # let the device's token table quietly collapse.
-        kept = re.search(r'(\d+) of (\d+) kept \(budget (\d+)\)', log)
+        kept = re.search(
+            r'(\d+) of (\d+) kept \(budget (\d+), profile ([\w-]+)\)', log)
         self.assertIsNotNone(
             kept, '%s no longer reports its keep/candidate counts: %r'
                   % (script, log[-500:]))
-        n_kept, n_candidates, reported_budget = (int(g) for g in kept.groups())
+        n_kept, n_candidates, reported_budget = (
+            int(g) for g in kept.groups()[:3])
+        expected_profile = profile or token_policy.DEFAULT_PROFILE
+        self.assertEqual(kept.group(4), expected_profile,
+                         '%s ran profile %s, not %s'
+                         % (script, kept.group(4), expected_profile))
         self.assertEqual(reported_budget, budget,
                          '%s reports a budget that is not %s' % (script, budget_name))
-        # D-014: the table is stablecoins plus what coins[] and the fixtures
-        # need -- priority symbols only, no fill to the budget (the budget is
-        # a ceiling). Everything else is named by signed ClearSign metadata.
-        self.assertLessEqual(
-            n_kept, min(n_candidates, budget),
-            '%s kept %d of %d candidates, over its budget of %d'
-            % (script, n_kept, n_candidates, budget))
+        if expected_profile == token_policy.PROFILE_FILL:
+            # 7.15: fill the budget when the source has the entries.
+            self.assertEqual(
+                n_kept, min(n_candidates, budget),
+                '%s kept %d of %d candidates against a budget of %d -- it must '
+                'fill the budget when the source has the entries'
+                % (script, n_kept, n_candidates, budget))
+        else:
+            # D-014 (7.16): stablecoins plus what coins[] and the fixtures
+            # need -- priority symbols only, no fill to the budget (the budget
+            # is a ceiling). Everything else is named by signed ClearSign
+            # metadata.
+            self.assertLessEqual(
+                n_kept, min(n_candidates, budget),
+                '%s kept %d of %d candidates, over its budget of %d'
+                % (script, n_kept, n_candidates, budget))
         self.assertEqual(
             len(rows), n_kept,
             '%s reported %d kept but emitted %d rows'
             % (script, n_kept, len(rows)))
 
         for chain_id, address, symbol, decimals in rows:
-            self.assertIn(
-                symbol, token_policy.PRIORITY_SYMBOLS,
-                '%s: %s is not a D-014 priority symbol (stablecoin or '
-                'required by coins[]/fixtures)' % (script, symbol))
+            if expected_profile == token_policy.PROFILE_PRIORITY_ONLY:
+                self.assertIn(
+                    symbol,
+                    token_policy.PRIORITY_SYMBOLS[expected_profile],
+                    '%s: %s is not a D-014 priority symbol (stablecoin or '
+                    'required by coins[]/fixtures)' % (script, symbol))
             # The C string is 20 raw bytes; anything else silently shifts the
             # packed token struct the firmware reads.
             raw = ast.literal_eval('b"%s"' % address)
@@ -168,6 +189,10 @@ class TestTokenTableGenerators(unittest.TestCase):
     def test_ethereum_tokens_generator_builds_a_valid_table(self):
         self._check('ethereum_tokens.py', 'BUDGET_ETHEREUM_LISTS')
 
+    def test_ethereum_tokens_generator_priority_only_profile(self):
+        self._check('ethereum_tokens.py', 'BUDGET_ETHEREUM_LISTS',
+                    'priority-only')
+
     def test_ethereum_tokens_closes_the_x_macro(self):
         """ethereum_tokens.def is #included after a #define X; leaving the
         macro defined leaks it into the next translation unit."""
@@ -178,14 +203,21 @@ class TestTokenTableGenerators(unittest.TestCase):
     def test_uniswap_tokens_generator_builds_a_valid_table(self):
         self._check('uniswap_tokens.py', 'BUDGET_UNISWAP_LIST')
 
+    def test_uniswap_tokens_generator_priority_only_profile(self):
+        self._check('uniswap_tokens.py', 'BUDGET_UNISWAP_LIST',
+                    'priority-only')
+
     def test_generators_are_deterministic(self):
         """The firmware build compares digests to decide whether to rewrite the
         .def; a non-deterministic generator would churn the table every build."""
         for script, _ in GENERATORS:
             if script == 'ethereum_tokens.py' and not _vetted_source_present():
                 continue
-            self.assertEqual(self._run(script)[0], self._run(script)[0],
-                             '%s is not deterministic' % script)
+            for profile in (None, 'priority-only'):
+                self.assertEqual(self._run(script, profile)[0],
+                                 self._run(script, profile)[0],
+                                 '%s (%s) is not deterministic'
+                                 % (script, profile))
 
 
 if __name__ == '__main__':

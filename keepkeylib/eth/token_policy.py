@@ -22,12 +22,22 @@ schema away.
 
 POLICY
   1. A budget, because flash is finite and this symbol is the biggest one.
-  2. Priority symbols only -- coins[] and fixture needs, then stablecoins.
+  2. Priority symbols first.
   3. A priority symbol is only taken when the vetted source gives it exactly
      ONE address. Two entries sharing a symbol is how a scam token inherits a
      real one's label, and the device would render the attacker's name.
-  4. No fill: since 2026-10-04 (DECISIONS.md D-014) nothing beyond the
-     priority symbols is taken, however much budget is left.
+  4. What happens after the priority pass is chosen per firmware line by a
+     PROFILE, because one canonical python-keepkey head generates the table
+     for every firmware line that pins it:
+
+       fill           (default) priority = coins[] needs, fixtures,
+                      stablecoins, majors; the remaining budget is filled in
+                      the deterministic order (by address). This is the 7.15
+                      table, byte for byte; a build that passes no profile
+                      gets it.
+       priority-only  priority = coins[] needs, fixtures, stablecoins; no fill
+                      (DECISIONS.md D-014, 2026-10-04). Opted into by the 7.16
+                      firmware build with `--profile priority-only`.
 
 Addresses are NEVER written here. They come from the vetted source, matched by
 symbol. A hand-typed address in a token table is a mislabelling defect waiting
@@ -60,9 +70,22 @@ REQUIRED_BY_COINS = [
     "0xBTC", "1ST", "AE", "ANT", "CVC", "DGD", "ELF", "FOX", "FUN", "GNT",
     "GUP", "ICN", "MLN", "MTL", "PAY", "POLY", "PPT", "RCN", "RLC", "SALT",
     "SNGLS", "SNT", "SPANK", "SWT", "TRST", "WINGS",
-    # Previously reached through the majors list or the address-order fill.
+]
+
+# Also required by coins[]. The fill profile reaches these through MAJORS or
+# the address-order fill; priority-only has no fill, so it names them.
+REQUIRED_BY_COINS_VIA_FILL = [
     "BAT", "BNT", "DNT", "EDG", "GNO", "MANA", "MKR", "NMR", "OMG", "REP",
     "STORJ", "ZRX",
+]
+
+MAJORS = [
+    "WETH", "WBTC", "stETH", "wstETH", "rETH", "cbETH", "LINK", "UNI", "AAVE",
+    "MKR", "LDO", "CRV", "SNX", "COMP", "ENS", "GRT", "MATIC", "ARB", "OP",
+    "SHIB", "PEPE", "APE", "SAND", "MANA", "AXS", "IMX", "INJ", "RNDR", "FET",
+    "STG", "BAL", "1INCH", "SUSHI", "YFI", "BAT", "ZRX", "KNC", "LRC", "GNO",
+    "RPL", "FXS", "CVX", "PAXG", "AMPL", "OMG", "REP", "ZIL", "ENJ", "STORJ",
+    "GUSD",
 ]
 
 # Required by a TEST FIXTURE rather than by the product. ADT (AdToken) is a
@@ -77,19 +100,37 @@ REQUIRED_BY_COINS = [
 # because changing a signature fixture is a change to what the test proves.
 REQUIRED_BY_TESTS = ["ADT"]
 
-# Owner decision 2026-10-04 (DECISIONS.md D-014): stablecoins plus what
+PROFILE_FILL = 'fill'
+PROFILE_PRIORITY_ONLY = 'priority-only'
+PROFILES = (PROFILE_FILL, PROFILE_PRIORITY_ONLY)
+DEFAULT_PROFILE = PROFILE_FILL
+
+# The 7.15 selection. Order matters: it decides which records survive the
+# budget cut, so it is kept exactly as 7.15 shipped it.
+FILL_PRIORITY_SYMBOLS = (REQUIRED_BY_COINS + REQUIRED_BY_TESTS
+                         + STABLECOINS + MAJORS)
+
+# Owner decision 2026-10-04 (DECISIONS.md D-014, 7.16): stablecoins plus what
 # coins[] and the fixtures still need. Majors and the long tail are described
 # by signed ClearSign metadata instead of firmware flash.
-PRIORITY_SYMBOLS = REQUIRED_BY_COINS + REQUIRED_BY_TESTS + STABLECOINS
+PRIORITY_ONLY_SYMBOLS = (REQUIRED_BY_COINS + REQUIRED_BY_COINS_VIA_FILL
+                         + REQUIRED_BY_TESTS + STABLECOINS)
+
+PRIORITY_SYMBOLS = {
+    PROFILE_FILL: FILL_PRIORITY_SYMBOLS,
+    PROFILE_PRIORITY_ONLY: PRIORITY_ONLY_SYMBOLS,
+}
 
 
-def select(records, budget, symbol_of, address_of, chain_of=None):
+def select(records, budget, symbol_of, address_of, chain_of=None,
+           profile=DEFAULT_PROFILE):
     """Return `records` trimmed to `budget`, priority symbols first.
 
     `records` is any iterable; `symbol_of`/`address_of` pull the two fields.
     Priority symbols with more than one address in `records` are DROPPED from
-    the priority pass -- see rule 3 -- though they may still be picked up by
-    the deterministic fill, where they carry no special standing.
+    the priority pass -- see rule 3 -- though under the fill profile they may
+    still be picked up by the deterministic fill, where they carry no special
+    standing.
 
     `chain_of` supplies the chain id. A token's identity is (chain_id,
     address), NOT address alone: the vetted source carries the same address on
@@ -99,6 +140,8 @@ def select(records, budget, symbol_of, address_of, chain_of=None):
     None the key falls back to address alone, which is only correct for a
     single-chain source.
     """
+    if profile not in PROFILES:
+        raise ValueError('unknown token profile %r' % (profile,))
     if chain_of is None:
         chain_of = lambda r: None
 
@@ -111,12 +154,21 @@ def select(records, budget, symbol_of, address_of, chain_of=None):
 
     chosen, seen = [], set()
     ambiguous = []
-    for sym in PRIORITY_SYMBOLS:
+    for sym in PRIORITY_SYMBOLS[profile]:
         hits = by_symbol.get(sym, [])
         if len(hits) > 1:
             ambiguous.append(sym)
             continue
         for r in hits:
+            key = key_of(r)
+            if key not in seen:
+                seen.add(key)
+                chosen.append(r)
+
+    if profile == PROFILE_FILL:
+        for r in sorted(records, key=address_of):
+            if len(chosen) >= budget:
+                break
             key = key_of(r)
             if key not in seen:
                 seen.add(key)

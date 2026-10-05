@@ -67,8 +67,33 @@ class TestMsgEthereumSigntxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_r), 'a6898a6fec0b063ce2809d783ba5524216c49b27e6514d5ef703bc9bc3a152fd')
         self.assertEqual(binascii.hexlify(sig_s), '5b8b0e5b7b8f6d5269ce4dc266e6901f3284079fa1f0cd358d2987336dc8ba3a')
 
+    def test_approve_all_refused(self):
+        # 7.14.2 through 7.15.x refuse an unlimited approve outright. 7.16
+        # reviews and signs it instead (D-010): test_approve_all.
+        self.requires_fullFeature()
+        self.requires_firmware("7.14.2")
+        self.requires_firmware_below("7.16.0")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        with self.assertRaises(CallException):
+            self.client.ethereum_sign_tx(
+                n=[2147483692,2147483708,2147483648,0,0],
+                nonce=1,
+                gas_price=20,
+                gas_limit=20,
+                value=0,
+                to=binascii.unhexlify('41e5560054824ea6b0732e656e3ad64e20e94e45'),
+                chain_id=1,
+                data=binascii.unhexlify('095ea7b3000000000000000000000000' + '1d1c328764a41bda0492b66baa30c4a339ff85ef' + 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
+                )
+
     def test_approve_all(self):
         self.requires_fullFeature()
+        if self.firmware_at_least("7.14.2"):
+            # Refused on 7.14.2-7.15.x (test_approve_all_refused);
+            # reviewed and signed from 7.16 (D-010).
+            self.requires_firmware("7.16.0")
+            self.requires_release_capability("erc20-unlimited-approve-review")
         self.setup_mnemonic_nopin_nopassphrase()
 
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(

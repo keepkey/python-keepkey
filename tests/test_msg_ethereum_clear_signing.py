@@ -1031,6 +1031,34 @@ class TestEthereumClearSigning(common.KeepKeyTest):
             metadata_version=1, key_id=TEST_KEY_ID)
         self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
 
+        if (flow['key'] == 'erc20-approve-unlimited'
+                and not self.firmware_at_least("7.16.0")):
+            # 7.15 refuses an unlimited approve. 7.16 reviews and signs it
+            # (D-010), handled by the common path below.
+            # Drive the wire directly: the policy is refused on the FIRST
+            # response, before any ButtonRequest. Expected-response helpers
+            # would raise their own exception text containing the expected
+            # message, so they cannot prove what the device actually sent.
+            msg = messages_eth.EthereumSignTx(
+                address_n=n,
+                nonce=int_to_big_endian(FLOW_NONCE),
+                gas_price=int_to_big_endian(FLOW_GAS_PRICE),
+                gas_limit=int_to_big_endian(FLOW_GAS_LIMIT),
+                value=int_to_big_endian(flow['value']),
+                to=flow['to'], chain_id=chain_id,
+                data_length=len(flow['data']),
+                data_initial_chunk=flow['data'][:1024])
+            self.assertEqual(len(flow['data']), 68)
+            response = self.client.call_raw(msg)
+            self.assertIsInstance(response, messages.Failure)
+            self.assertEqual(response.code,
+                             types.Failure_ActionCancelled)
+            self.assertEqual(response.message,
+                             'Unlimited ERC20 approval is disabled')
+            return
+        if flow['key'] == 'erc20-approve-unlimited':
+            self.requires_release_capability("erc20-unlimited-approve-review")
+
         sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
             n=n, nonce=FLOW_NONCE, gas_price=FLOW_GAS_PRICE,
             gas_limit=FLOW_GAS_LIMIT, to=flow['to'], value=flow['value'],
