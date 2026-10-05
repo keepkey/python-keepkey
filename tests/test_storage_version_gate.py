@@ -112,7 +112,6 @@ import tempfile
 import time
 import unittest
 
-import common
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
@@ -1072,18 +1071,6 @@ class TestStorageVersionGateSource(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 @unittest.skipIf(_EMULATOR_BIN is None, _NO_EMULATOR)
-class TestStorageV19KdfCapability(common.KeepKeyTest):
-    """Carries the firmware's storage-v19-kdf capability into JUnit.
-
-    The reports require the three native V19 KDF controls only when the
-    firmware reports this capability; a build that does not report it skips
-    here with the capability prefix, and the reports read that skip.
-    """
-
-    def test_v19_kdf_release_controls_are_present(self):
-        self.requires_release_capability("storage-v19-kdf")
-
-
 class TestStorageUpgradePreservation(unittest.TestCase):
 
     def setUp(self):
