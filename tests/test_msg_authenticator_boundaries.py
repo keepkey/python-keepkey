@@ -92,6 +92,7 @@ class TestAuthenticatorBoundaries(common.KeepKeyTest):
         self.fail('authenticator did not terminate within 12 screens')
 
     def test_block09_add_reviews_complete_identity_and_secret(self):
+        self.requires_firmware("7.15.0")  # confirm text over DebugLink
         self._reset_accounts()
         secret = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP'
         response, screens = self._walk_auth(
@@ -105,6 +106,7 @@ class TestAuthenticatorBoundaries(common.KeepKeyTest):
                          'abcdefghijk:ABCDEFGHIJK')
 
     def test_block09_duplicate_and_cancellation_have_exact_failures(self):
+        self.requires_firmware("7.15.0")  # confirm text over DebugLink
         self._reset_accounts()
         for reject in (1, 2):
             response, screens = self._walk_auth(self.ADD_ACCOUNT, reject=reject)
@@ -125,6 +127,7 @@ class TestAuthenticatorBoundaries(common.KeepKeyTest):
         self.assertEqual(self._auth_ping(self.GET_ACCOUNT).message, 'example:alice')
 
     def test_block09_invalid_identity_and_secret_fail_before_buttons(self):
+        self.requires_firmware("7.15.0")  # confirm text over DebugLink
         self._reset_accounts()
         secret = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP'
         credentials = [
