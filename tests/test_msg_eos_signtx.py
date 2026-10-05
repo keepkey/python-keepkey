@@ -564,12 +564,13 @@ class TestMsgEosSignTx(common.KeepKeyTest):
         # wait entries instead of waits_count. This SLIP-48 vector has one
         # delegated account and zero waits, so older firmware hashes a phantom
         # 6-byte zero wait that was neither present nor confirmed on-device
-        # (the known-bad digest fb936ef1...). The fix is on the 7.14.3, 7.15
-        # and 7.16 release heads. 5938294e... is checked against two
+        # (the known-bad digest fb936ef1...). The fix is on the 7.15 and 7.16
+        # release heads; 7.14.3 is a bitcoin-only release and its full image
+        # keeps the 7.14.2 EOS serializer. 5938294e... is checked against two
         # independent EOSIO ABI serializers and against mainnet updateauth
         # transactions of the same shape.
-        if not self.firmware_at_least("7.14.3"):
-            self.skipTest("Firmware before 7.14.3 hashes a phantom updateauth "
+        if not self.firmware_at_least("7.15.0"):
+            self.skipTest("Firmware before 7.15.0 hashes a phantom updateauth "
                           "wait (fork #568/#563)")
 
         res = self.client.eos_sign_tx_raw(

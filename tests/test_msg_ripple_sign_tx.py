@@ -185,7 +185,9 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
     def test_unsupported_memo_is_rejected(self):
         self.requires_fullFeature()
         self.requires_release_capability("ripple-memo-policy")
-        self.requires_firmware("7.14.3")
+        # The memo refusal was a 7.14.3 full-image change; 7.14.3 ships
+        # bitcoin-only and its full image keeps 7.14.2's Ripple handler.
+        self.requires_firmware("7.15.0")
         if self.firmware_at_least("7.15.0"):
             self.skipTest("Ripple memos are implemented in 7.15")
         self.setup_mnemonic_allallall()
