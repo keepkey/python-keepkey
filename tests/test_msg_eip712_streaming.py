@@ -535,6 +535,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         """SRS-7.16 §3.7: a canonical Permit2 PermitSingle is described in
         words. No raw domain or leaf screens; an unlimited allowance is
         allowed and stated, with exact dates from the signed timestamps."""
+        self.requires_firmware("7.16.0")
         self.requires_release_capability("permit2-review")
         doc = self.UNISWAP_PERMIT2
         resp = self._walk(doc)
@@ -576,6 +577,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
     def test_permit2_names_a_vouched_spender_beside_its_address(self):
         """A KeepKey-certified name record names the spender; the full address
         is still shown, and the voucher is identified."""
+        self.requires_firmware("7.16.0")
         self.requires_release_capability("permit2-review")
         self.requires_message("EthereumTxMetadata")
         resp = self.client.ethereum_send_tx_metadata(
@@ -603,6 +605,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
     def test_permit2_name_never_outlives_a_failed_request(self):
         """A record sent ahead of a request that FAILS is gone with it: the
         next Permit2 says "Not identified" (Copilot r1 on #919)."""
+        self.requires_firmware("7.16.0")
         self.requires_release_capability("permit2-review")
         self.requires_message("EthereumTxMetadata")
         self.client.ethereum_send_tx_metadata(
@@ -645,6 +648,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         """An exact amount is shown exactly. A PermitSingle outside the Permit2
         contract keeps the raw review, and its domain screens still appear in
         order, so nothing is hidden by the attempt to recognise it."""
+        self.requires_firmware("7.16.0")
         self.requires_release_capability("permit2-review")
         exact = copy.deepcopy(self.UNISWAP_PERMIT2)
         exact["message"]["details"]["amount"] = "250000000"
