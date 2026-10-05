@@ -22,12 +22,12 @@ schema away.
 
 POLICY
   1. A budget, because flash is finite and this symbol is the biggest one.
-  2. Priority symbols first -- stablecoins, then majors.
+  2. Priority symbols only -- coins[] and fixture needs, then stablecoins.
   3. A priority symbol is only taken when the vetted source gives it exactly
      ONE address. Two entries sharing a symbol is how a scam token inherits a
      real one's label, and the device would render the attacker's name.
-  4. Remaining budget filled in the existing deterministic order (by address),
-     so the result is reproducible and diffable.
+  4. No fill: since 2026-10-04 (DECISIONS.md D-014) nothing beyond the
+     priority symbols is taken, however much budget is left.
 
 Addresses are NEVER written here. They come from the vetted source, matched by
 symbol. A hand-typed address in a token table is a mislabelling defect waiting
@@ -46,15 +46,6 @@ STABLECOINS = [
     "EURS", "EURT", "sUSD", "USDS", "FRAX", "LUSD", "PYUSD", "crvUSD", "USDe",
 ]
 
-MAJORS = [
-    "WETH", "WBTC", "stETH", "wstETH", "rETH", "cbETH", "LINK", "UNI", "AAVE",
-    "MKR", "LDO", "CRV", "SNX", "COMP", "ENS", "GRT", "MATIC", "ARB", "OP",
-    "SHIB", "PEPE", "APE", "SAND", "MANA", "AXS", "IMX", "INJ", "RNDR", "FET",
-    "STG", "BAL", "1INCH", "SUSHI", "YFI", "BAT", "ZRX", "KNC", "LRC", "GNO",
-    "RPL", "FXS", "CVX", "PAXG", "AMPL", "OMG", "REP", "ZIL", "ENJ", "STORJ",
-    "GUSD",
-]
-
 # Required by coins[] in the firmware, not by popularity. Each of these is a
 # display-only entry in the device's own coin table carrying a contract
 # address, and unittests/firmware/coins.cpp (Coins.TableSanity) asserts every
@@ -69,6 +60,9 @@ REQUIRED_BY_COINS = [
     "0xBTC", "1ST", "AE", "ANT", "CVC", "DGD", "ELF", "FOX", "FUN", "GNT",
     "GUP", "ICN", "MLN", "MTL", "PAY", "POLY", "PPT", "RCN", "RLC", "SALT",
     "SNGLS", "SNT", "SPANK", "SWT", "TRST", "WINGS",
+    # Previously reached through the majors list or the address-order fill.
+    "BAT", "BNT", "DNT", "EDG", "GNO", "MANA", "MKR", "NMR", "OMG", "REP",
+    "STORJ", "ZRX",
 ]
 
 # Required by a TEST FIXTURE rather than by the product. ADT (AdToken) is a
@@ -83,8 +77,10 @@ REQUIRED_BY_COINS = [
 # because changing a signature fixture is a change to what the test proves.
 REQUIRED_BY_TESTS = ["ADT"]
 
-PRIORITY_SYMBOLS = (REQUIRED_BY_COINS + REQUIRED_BY_TESTS
-                    + STABLECOINS + MAJORS)
+# Owner decision 2026-10-04 (DECISIONS.md D-014): stablecoins plus what
+# coins[] and the fixtures still need. Majors and the long tail are described
+# by signed ClearSign metadata instead of firmware flash.
+PRIORITY_SYMBOLS = REQUIRED_BY_COINS + REQUIRED_BY_TESTS + STABLECOINS
 
 
 def select(records, budget, symbol_of, address_of, chain_of=None):
@@ -125,13 +121,5 @@ def select(records, budget, symbol_of, address_of, chain_of=None):
             if key not in seen:
                 seen.add(key)
                 chosen.append(r)
-
-    for r in sorted(records, key=address_of):
-        if len(chosen) >= budget:
-            break
-        key = key_of(r)
-        if key not in seen:
-            seen.add(key)
-            chosen.append(r)
 
     return chosen[:budget], ambiguous
