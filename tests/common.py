@@ -28,6 +28,7 @@ import os
 import semver
 
 from keepkeylib.client import KeepKeyClient, KeepKeyDebuglinkClient, KeepKeyDebuglinkClientVerbose
+from keepkeylib import messages_pb2
 from keepkeylib import tx_api
 
 TX_FIXTURE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -169,21 +170,33 @@ class KeepKeyTest(unittest.TestCase):
         if self.firmware_version() >= semver.VersionInfo.parse(ver_limit):
             self.skipTest("Behaviour retired in firmware " + ver_limit)
 
-    def requires_release_capability(self, capability):
-        """Skip only when staged CI explicitly declares a capability absent.
+    # Firmware before this release does not report Features.capabilities;
+    # there, version gates alone decide.
+    CAPABILITIES_SINCE = "7.15.0"
 
-        A released firmware, a developer invocation, and older firmware all
-        receive the canonical suite's normal version/device gates.  Only the
-        stacked-release workflow sets ``KK_RELEASE_MISSING_CAPABILITIES`` for
-        deliberately incomplete intermediate trees.  This keeps one canonical
-        multi-release branch without weakening the final release assertions.
+    def firmware_capabilities(self):
+        """The capabilities the connected firmware reports, as names such as
+        'permit2-review', or None for firmware that predates the list."""
+        if not self.firmware_at_least(self.CAPABILITIES_SINCE):
+            return None
+        self.client.init_device()
+        enum = messages_pb2.Features.Capability
+        return set(enum.Name(value)[len("CAPABILITY_"):].lower().replace("_", "-")
+                   for value in self.client.features.capabilities)
+
+    def requires_release_capability(self, capability):
+        """Skip unless the firmware reports `capability`.
+
+        Two levels, so every firmware passes: version first (firmware before
+        CAPABILITIES_SINCE reports no list, and the test's version gates
+        decide), then the firmware's own Features.capabilities, which tells
+        apart builds of the same version such as staged release blocks.
         """
-        missing_raw = os.environ.get('KK_RELEASE_MISSING_CAPABILITIES')
-        if missing_raw is None:
-            return
-        missing = set(value.strip() for value in missing_raw.split(',')
-                      if value.strip())
-        if capability in missing:
+        enum = messages_pb2.Features.Capability
+        # A misspelt name must fail loudly, never skip quietly.
+        enum.Value("CAPABILITY_" + capability.upper().replace("-", "_"))
+        reported = self.firmware_capabilities()
+        if reported is not None and capability not in reported:
             self.skipTest(
                 "Staged release tree does not yet provide capability: " +
                 capability)

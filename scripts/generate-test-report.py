@@ -388,7 +388,12 @@ def parse_junit(path):
         cls = tc.get('classname', '')
         if tc.find('failure') is not None: status = 'fail'
         elif tc.find('error') is not None: status = 'error'
-        elif tc.find('skipped') is not None: status = 'skip'
+        elif tc.find('skipped') is not None:
+            status = 'skip'
+            reason = tc.find('skipped').get('message', '')
+            if reason.startswith(CAPABILITY_SKIP_PREFIX):
+                JUNIT_MISSING_CAPABILITIES.add(
+                    reason[len(CAPABILITY_SKIP_PREFIX):].strip())
         else: status = 'pass'
         JUNIT_CENSUS['ran'] += 1
         # 'ran' counts every collected testcase, skips included. A version-gated
@@ -3598,10 +3603,12 @@ _TEST_MIN_VERSION = {
 }
 
 # Intermediate release-stack trees deliberately omit controls that land in a
-# later adjacent slice.  The firmware workflow records those omissions in the
-# JUnit artifact with the same capability names used by the integration tests.
-# Only these exact catalog rows are exempt while their capability is declared
-# absent; the complete release tree sets no omissions and remains strict.
+# later adjacent slice.  The firmware reports the behaviours it implements
+# (Features.capabilities); a capability-gated test skips with
+# CAPABILITY_SKIP_PREFIX + name when the device does not report it, and
+# parse_junit collects those names. Only these exact catalog rows are exempt
+# while their capability is absent; a complete release reports every
+# capability and remains strict.
 _TEST_CAPABILITY = {
     ('Storage', 'PinKdfRewrapsToActiveVersionAfterCorrectPin'):
         'storage-v19-kdf',
@@ -3627,12 +3634,10 @@ _MODULE_CAPABILITY = {
 }
 
 
-def _missing_release_capabilities():
-    return {
-        value.strip() for value in
-        os.environ.get('KK_RELEASE_MISSING_CAPABILITIES', '').split(',')
-        if value.strip()
-    }
+CAPABILITY_SKIP_PREFIX = 'Staged release tree does not yet provide capability: '
+# Capabilities the firmware under test did not report, from the skip reasons
+# parse_junit read (never from the environment: the device decides).
+JUNIT_MISSING_CAPABILITIES = set()
 
 
 def _active_sections(fw_version):
@@ -4023,7 +4028,8 @@ RETIRED_FROM = {
 }
 
 
-def validate_junit(fw_version, results, variant='full'):
+def validate_junit(fw_version, results, variant='full',
+                   missing_capabilities=None):
     """Check SECTIONS tests against JUnit results. Returns (passed, failed_list).
 
     A test is considered failed if it appears in SECTIONS for this firmware version
@@ -4033,7 +4039,8 @@ def validate_junit(fw_version, results, variant='full'):
     unless their module is in MUST_RUN_MODULES.
     """
     active = _active_sections(fw_version)
-    missing_capabilities = _missing_release_capabilities()
+    if missing_capabilities is None:
+        missing_capabilities = JUNIT_MISSING_CAPABILITIES
     failures = []
     for letter, title, mf, bg, fl, tests in active:
         for tid, mod, meth, ttl, ctx, scr in tests:

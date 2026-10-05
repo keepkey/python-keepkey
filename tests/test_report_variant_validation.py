@@ -26,18 +26,6 @@ def catalog_results_with_solana_lut_skipped(fw_version):
 
 class TestReportVariantValidation(unittest.TestCase):
 
-    def setUp(self):
-        self._original_missing_capabilities = os.environ.get(
-            'KK_RELEASE_MISSING_CAPABILITIES')
-        os.environ.pop('KK_RELEASE_MISSING_CAPABILITIES', None)
-
-    def tearDown(self):
-        if self._original_missing_capabilities is None:
-            os.environ.pop('KK_RELEASE_MISSING_CAPABILITIES', None)
-        else:
-            os.environ['KK_RELEASE_MISSING_CAPABILITIES'] = (
-                self._original_missing_capabilities)
-
     def test_full_7143_accepts_unimplemented_solana_lut_skip(self):
         result = REPORT.validate_junit(
             '7.14.3', catalog_results_with_solana_lut_skipped('7.14.3'),
@@ -75,11 +63,10 @@ class TestReportVariantValidation(unittest.TestCase):
                 'PinUnlocksAfterRebootUnderV17',
                 'PinKdfV2FlagIsVersionedInV19'):
             del results['Storage::' + method]
-        os.environ['KK_RELEASE_MISSING_CAPABILITIES'] = (
-            'solana-lut-attestation,storage-v19-kdf')
         self.assertEqual(
             (True, []),
-            REPORT.validate_junit('7.15.0', results, 'full'))
+            REPORT.validate_junit('7.15.0', results, 'full', {
+                'solana-lut-attestation', 'storage-v19-kdf'}))
 
     def test_staged_erc7730_runtime_skips_only_with_its_capability(self):
         results = catalog_results_with_solana_lut_skipped('7.15.0')
@@ -88,12 +75,11 @@ class TestReportVariantValidation(unittest.TestCase):
         self.assertTrue(runtime)
         for key in runtime:
             results[key] = 'skip'
-        os.environ['KK_RELEASE_MISSING_CAPABILITIES'] = (
-            'solana-lut-attestation,erc7730-runtime-review')
-        self.assertEqual((True, []),
-                         REPORT.validate_junit('7.15.0', results, 'full'))
-        os.environ['KK_RELEASE_MISSING_CAPABILITIES'] = 'solana-lut-attestation'
-        ok, failures = REPORT.validate_junit('7.15.0', results, 'full')
+        self.assertEqual((True, []), REPORT.validate_junit(
+            '7.15.0', results, 'full',
+            {'solana-lut-attestation', 'erc7730-runtime-review'}))
+        ok, failures = REPORT.validate_junit(
+            '7.15.0', results, 'full', {'solana-lut-attestation'})
         self.assertFalse(ok)
         self.assertEqual({'skipped-but-required'},
                          {status for _, _, _, status in failures})
@@ -118,14 +104,14 @@ class TestReportVariantValidation(unittest.TestCase):
 
     def test_stack08_runtime_controls_are_required_on_full_only(self):
         results = catalog_results_with_solana_lut_skipped('7.15.0')
-        os.environ['KK_RELEASE_MISSING_CAPABILITIES'] = 'solana-lut-attestation'
+        lut = {'solana-lut-attestation'}
         controls = [
             (module, method) for section, _, _, _, _, tests in REPORT.SECTIONS
             if section == 'EX' for identifier, module, method, _, _, _ in tests
             if identifier in ('EX40', 'EX41', 'EX42', 'EX43', 'EX44')]
         self.assertEqual(5, len(controls))
         self.assertEqual((True, []),
-                         REPORT.validate_junit('7.15.0', results, 'full'))
+                         REPORT.validate_junit('7.15.0', results, 'full', lut))
         for module, method in controls:
             for status in ('missing', 'skip', 'fail'):
                 with self.subTest(method=method, status=status):
@@ -136,14 +122,14 @@ class TestReportVariantValidation(unittest.TestCase):
                     else:
                         changed[key] = status
                     ok, failures = REPORT.validate_junit(
-                        '7.15.0', changed, 'full')
+                        '7.15.0', changed, 'full', lut)
                     self.assertFalse(ok)
                     self.assertTrue(any(item[1:3] == (module, method)
                                         for item in failures))
             changed = dict(results)
             changed[module + '::' + method] = 'skip'
             self.assertEqual((True, []), REPORT.validate_junit(
-                '7.15.0', changed, 'bitcoin-only'))
+                '7.15.0', changed, 'bitcoin-only', lut))
 
     def test_authenticator_contracts_cannot_skip_on_either_variant(self):
         results = catalog_results_with_solana_lut_skipped('7.15.0')
@@ -167,29 +153,6 @@ class TestReportVariantValidation(unittest.TestCase):
                             '7.15.0', changed, variant)
                         self.assertFalse(ok)
                         self.assertEqual(1, len(failures))
-
-
-class TestReportVariantEnvironmentIsolation(unittest.TestCase):
-
-    def test_fixture_cleanup_restores_staged_capabilities(self):
-        key = 'KK_RELEASE_MISSING_CAPABILITIES'
-        original = os.environ.get(key)
-        try:
-            os.environ[key] = 'prompt-workflow-unwind,storage-v19-kdf'
-            case = TestReportVariantValidation(
-                'test_staged_capabilities_accept_only_their_mapped_controls')
-            case.setUp()
-            self.assertNotIn(key, os.environ)
-            os.environ[key] = 'temporary-test-value'
-            case.tearDown()
-            self.assertEqual(
-                'prompt-workflow-unwind,storage-v19-kdf',
-                os.environ.get(key))
-        finally:
-            if original is None:
-                os.environ.pop(key, None)
-            else:
-                os.environ[key] = original
 
 
 if __name__ == '__main__':

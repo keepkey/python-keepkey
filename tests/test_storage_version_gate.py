@@ -112,6 +112,8 @@ import tempfile
 import time
 import unittest
 
+import common
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
@@ -781,22 +783,6 @@ class TestStorageVersionGateSource(unittest.TestCase):
         self.burned = _burned_declared(self.inc)
         self.arms = _from_flash_arms(self.c)
 
-    def test_v19_kdf_release_controls_are_present(self):
-        missing = {
-            value.strip() for value in
-            os.environ.get("KK_RELEASE_MISSING_CAPABILITIES", "").split(",")
-            if value.strip()
-        }
-        if "storage-v19-kdf" in missing:
-            self.skipTest(
-                "Staged release tree does not yet provide capability: "
-                "storage-v19-kdf")
-        # This marker transports the staged capability declaration into JUnit.
-        # The report catalog itself still requires all three native controls
-        # when this capability is present; duplicating firmware-source
-        # inspection here would couple canonical python-keepkey to whichever
-        # firmware checkout happens to surround it.
-        self.assertTrue(True)
 
     # -- helpers ------------------------------------------------------------
 
@@ -1086,6 +1072,18 @@ class TestStorageVersionGateSource(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 @unittest.skipIf(_EMULATOR_BIN is None, _NO_EMULATOR)
+class TestStorageV19KdfCapability(common.KeepKeyTest):
+    """Carries the firmware's storage-v19-kdf capability into JUnit.
+
+    The reports require the three native V19 KDF controls only when the
+    firmware reports this capability; a build that does not report it skips
+    here with the capability prefix, and the reports read that skip.
+    """
+
+    def test_v19_kdf_release_controls_are_present(self):
+        self.requires_release_capability("storage-v19-kdf")
+
+
 class TestStorageUpgradePreservation(unittest.TestCase):
 
     def setUp(self):
