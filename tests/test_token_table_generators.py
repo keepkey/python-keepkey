@@ -134,10 +134,12 @@ class TestTokenTableGenerators(unittest.TestCase):
         n_kept, n_candidates, reported_budget = (int(g) for g in kept.groups())
         self.assertEqual(reported_budget, budget,
                          '%s reports a budget that is not %s' % (script, budget_name))
-        self.assertEqual(
+        # D-014: the table is stablecoins plus what coins[] and the fixtures
+        # need -- priority symbols only, no fill to the budget (the budget is
+        # a ceiling). Everything else is named by signed ClearSign metadata.
+        self.assertLessEqual(
             n_kept, min(n_candidates, budget),
-            '%s kept %d of %d candidates against a budget of %d -- it must '
-            'fill the budget when the source has the entries'
+            '%s kept %d of %d candidates, over its budget of %d'
             % (script, n_kept, n_candidates, budget))
         self.assertEqual(
             len(rows), n_kept,
@@ -145,6 +147,10 @@ class TestTokenTableGenerators(unittest.TestCase):
             % (script, n_kept, len(rows)))
 
         for chain_id, address, symbol, decimals in rows:
+            self.assertIn(
+                symbol, token_policy.PRIORITY_SYMBOLS,
+                '%s: %s is not a D-014 priority symbol (stablecoin or '
+                'required by coins[]/fixtures)' % (script, symbol))
             # The C string is 20 raw bytes; anything else silently shifts the
             # packed token struct the firmware reads.
             raw = ast.literal_eval('b"%s"' % address)

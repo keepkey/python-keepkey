@@ -813,6 +813,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         EIP-2612's or DAI's, an EIP-2612 permit whose domain names no token,
         and an unlimited Permit2-shaped amount outside canonical
         PermitSingle."""
+        self.requires_release_capability("erc20-unlimited-permit-review")
         no_nonce = copy.deepcopy(self.USDC_PERMIT)  # another type hash
         no_nonce["types"]["Permit"] = [
             m for m in no_nonce["types"]["Permit"] if m["name"] != "nonce"]
