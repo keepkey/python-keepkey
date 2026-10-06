@@ -225,11 +225,23 @@ _NO_SCREEN_FROM = {
 }
 
 
+# From this release the dice ceremony is private over DebugLink.
+DICE_PRIVATE_FROM = '7.15.0'
+
+
+def _ctx_for(fw_version, ctx):
+    """A case description; a {'private': ..., 'public': ...} pair is picked by
+    whether this firmware keeps the dice ceremony private."""
+    if isinstance(ctx, dict):
+        return ctx['private' if ver_ge(fw_version, DICE_PRIVATE_FROM) else 'public']
+    return ctx
+
+
 def _screens_for(fw_version, mod, meth, screens):
     # Private dice displays cannot be captured through the interface whose
     # non-disclosure is being tested. Native known-draw fixtures cover device
     # page content; full integration still requires both wire tests to execute.
-    if (os.environ.get('KK_DICE_DEBUG_PRIVATE') == '1' and
+    if (ver_ge(fw_version, DICE_PRIVATE_FROM) and
             mod == 'test_msg_resetdevice' and meth in (
                 'test_reset_device_dice_mixed_is_verifiable',
                 'test_reset_device_dice_only_is_verifiable')):
@@ -880,35 +892,31 @@ SECTIONS = [
      [
          ('K1', 'test_msg_resetdevice', 'test_reset_device_dice_mixed_is_verifiable',
           'Dice + device entropy, verified offline',
-          ('Strict privacy profile: the wire test checks every DebugLinkState is empty through '
+          {'private': ('Strict privacy profile: the wire test checks every DebugLinkState is empty through '
            'consent, device-word pages, input, digest, entropy acknowledgement and backup. '
            'It checks successful commit and a valid mnemonic. The firmware native '
            'DiceCeremonyPrivacy fixture supplies a known draw and independently verifies '
-           'MIXED derivation and device-side logical pages. Private screens are not captured.'
-           if os.environ.get('KK_DICE_DEBUG_PRIVATE') == '1' else
-          'Host selects MIXED (dice_entropy alone). The device shows the consent screen naming the '
+           'MIXED derivation and device-side logical pages. Private screens are not captured.'),
+           'public': ('Host selects MIXED (dice_entropy alone). The device shows the consent screen naming the '
           'mode, then its own 32-byte draw as 24 BIP-39 words BEFORE any roll, then collects 99 rolls '
           'over DebugLink with undo exercised. The test decodes the 24 words with its own '
           'checksum-verified BIP-39 decoder, recomputes '
           'seed = SHA256d(tag || draw || SHA256(tag || rolls)) from the published formula -- with the '
           'host\'s EntropyAck bytes nowhere in it -- and requires the backup words to match. That is '
           'the proof a user can repeat with tools/verify_dice_seed.py: the rolls reached the seed, '
-          'the device draw was the one it committed to, and the host contributed nothing.'),
-          ([] if os.environ.get('KK_DICE_DEBUG_PRIVATE') == '1' else
-           ['Mode consent', 'Dice entry screen', 'Digest confirmation'])),
+          'the device draw was the one it committed to, and the host contributed nothing.')},
+          ['Mode consent', 'Dice entry screen', 'Digest confirmation']),
          ('K1b', 'test_msg_resetdevice', 'test_reset_device_dice_only_is_verifiable',
           'Dice only, verified offline',
-          ('Strict privacy profile: every DebugLinkState is empty until commit. The host '
+          {'private': ('Strict privacy profile: every DebugLinkState is empty until commit. The host '
            'injects 50 rolls, sends nonzero host entropy, and verifies the committed mnemonic '
            'equals BIP39(SHA256(rolls)). Native fixtures verify the private device-side pages. '
-           'Private screens are not captured.'
-           if os.environ.get('KK_DICE_DEBUG_PRIVATE') == '1' else
-          'Host selects DICE ONLY (dice_entropy + dice_only), 50 rolls for a 12-word seed. No device '
+           'Private screens are not captured.'),
+           'public': ('Host selects DICE ONLY (dice_entropy + dice_only), 50 rolls for a 12-word seed. No device '
           'words are shown -- the rolls are the entire derivation -- and the test requires the backup '
           'words to equal BIP39(SHA256(rolls)) while sending a nonzero EntropyAck that must be '
-          'ignored. Byte-identical to Coldcard\'s Dice-Rolls-Only.'),
-          ([] if os.environ.get('KK_DICE_DEBUG_PRIVATE') == '1' else
-           ['Mode consent', 'Dice entry screen', 'Digest confirmation'])),
+          'ignored. Byte-identical to Coldcard\'s Dice-Rolls-Only.')},
+          ['Mode consent', 'Dice entry screen', 'Digest confirmation']),
          ('K1c', 'test_msg_resetdevice', 'test_reset_device_dice_rejects_biased_rolls',
           'Loaded die is refused',
           'Fifty ones -- one face on 100% of the rolls. Refused with SyntaxError before any digest '
@@ -3675,7 +3683,8 @@ def _audit_catalog():
             assert tid not in ids, 'duplicate test id %s' % tid
             ids.add(tid)
             assert (ttl or '').strip(), '%s has no title' % tid
-            assert (ctx or '').strip(), '%s has no context -- it would render as a bare name' % tid
+            for text in (ctx.values() if isinstance(ctx, dict) else (ctx,)):
+                assert (text or '').strip(), '%s has no context -- it would render as a bare name' % tid
 
 
 def render(output_path, fw_version, results, screenshot_dir=None):
@@ -3799,7 +3808,7 @@ def render(output_path, fw_version, results, screenshot_dir=None):
             r = _lookup(results, mod, meth)
             pb.check(9, f'{tid} {meth}', r)
             pb.text(7, f'{title}  ({mod}.py)')
-            for cline in _w(ctx, 95): pb.text(7, cline)
+            for cline in _w(_ctx_for(fw_version, ctx), 95): pb.text(7, cline)
             # Embed OLED screenshots -- use _pick_best_frame for the primary image,
             # then show up to 2 more frames for multi-screen flows (signing, swaps)
             if screenshot_dir:

@@ -298,7 +298,9 @@ class TestDeviceReset(common.KeepKeyTest):
         (device_words, rolls, mnemonic, final_resp); device_words is the
         24-word device-entropy sentence MIXED shows before rolling, else ''.
         """
-        if os.environ.get("KK_DICE_DEBUG_PRIVATE") == "1":
+        # 7.15 keeps the ceremony private over DebugLink: nothing the device
+        # drew is readable, so drive the private flow there.
+        if self.firmware_at_least("7.15.0"):
             return self._private_dice_reset(dice_only, strength, external_entropy)
 
         rolls_needed = {128: 50, 192: 75, 256: 99}[strength]
