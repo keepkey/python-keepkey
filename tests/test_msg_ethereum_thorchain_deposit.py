@@ -119,6 +119,7 @@ class TestMsgEthereumThorchainDeposit(common.KeepKeyTest):
         """
         self.requires_fullFeature()
         self.requires_firmware("7.14.2")
+        self.requires_release_capability('thor-deposit-review')
         self.setup_mnemonic_allallall()
 
         memo = "malicious memo"
@@ -154,6 +155,7 @@ class TestMsgEthereumThorchainDeposit(common.KeepKeyTest):
         """
         self.requires_fullFeature()
         self.requires_firmware("7.15.0")
+        self.requires_release_capability('thor-deposit-review')
         self.setup_mnemonic_allallall()
 
         from keepkeylib.signed_metadata import eth_sighash_legacy, keccak256
@@ -190,6 +192,7 @@ class TestMsgEthereumThorchainDeposit(common.KeepKeyTest):
         (where it may hold attacker code) cannot inherit the deposit UX."""
         self.requires_fullFeature()
         self.requires_firmware("7.15.0")
+        self.requires_release_capability('thor-deposit-review')
         self.setup_mnemonic_allallall()
 
         from keepkeylib.client import CallException

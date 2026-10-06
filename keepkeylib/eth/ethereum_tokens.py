@@ -67,11 +67,11 @@ class ETHTokenTable(object):
             symbol_of=lambda t: t.token.get('symbol', ''),
             address_of=lambda t: t.token['address'].lower(),
             chain_of=lambda t: t.network['chain_id'],
-            profile=profile or token_policy.DEFAULT_PROFILE)
+            profile=token_policy.DEFAULT_PROFILE if profile is None else profile)
         print('ethereum_tokens: %d of %d kept (budget %d, profile %s)'
               % (len(chosen), len(self.tokens),
                  token_policy.BUDGET_ETHEREUM_LISTS,
-                 profile or token_policy.DEFAULT_PROFILE), file=sys.stderr)
+                 token_policy.DEFAULT_PROFILE if profile is None else profile), file=sys.stderr)
         if ambiguous:
             print('ethereum_tokens: priority symbols DROPPED as ambiguous '
                   '(>1 address, a scam token can inherit a real label): %s'

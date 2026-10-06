@@ -1519,11 +1519,9 @@ class ProtocolMixin(object):
         apply_policies = proto.ApplyPolicies(policy=[policy])
 
         out = self.call(apply_policies)
-        # AdvancedMode is intentionally session-scoped on firmware 7.15+.
-        # Initialize is a session-boundary message, so issuing it here to
-        # refresh Features immediately revokes the policy this method just
-        # applied.  Callers that explicitly need fresh Features can initialize
-        # after they are done with the policy-gated operation.
+        # Refresh the cached Features with GetFeatures, which leaves session
+        # state alone (AdvancedMode survives Initialize but not ClearSession).
+        self.features = expect(proto.Features)(self.call)(proto.GetFeatures())
         return out
 
     @field('message')

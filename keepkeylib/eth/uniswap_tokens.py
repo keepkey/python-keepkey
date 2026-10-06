@@ -42,11 +42,11 @@ class USETHTokenTable(object):
             # This list is mainnet-only (serialize_c hardcodes chain_id 1),
             # so the chain component is constant rather than absent.
             chain_of=lambda t: 1,
-            profile=profile or token_policy.DEFAULT_PROFILE)
+            profile=token_policy.DEFAULT_PROFILE if profile is None else profile)
         print('uniswap_tokens: %d of %d kept (budget %d, profile %s)'
               % (len(chosen), len(self.ustoks),
                  token_policy.BUDGET_UNISWAP_LIST,
-                 profile or token_policy.DEFAULT_PROFILE), file=_sys.stderr)
+                 token_policy.DEFAULT_PROFILE if profile is None else profile), file=_sys.stderr)
         if ambiguous:
             print('uniswap_tokens: priority symbols DROPPED as ambiguous: %s'
                   % ', '.join(sorted(ambiguous)), file=_sys.stderr)

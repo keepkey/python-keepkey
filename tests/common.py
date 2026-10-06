@@ -92,6 +92,8 @@ def device_capabilities():
                 names = capability_names(client.features)
             finally:
                 client.close()
+        except EmulatorNotResponding:
+            raise  # a crashed emulator is an error, not "no device"
         except Exception:
             names = None  # no device: nothing to gate on
         _DEVICE_CAPABILITIES.append(names)
