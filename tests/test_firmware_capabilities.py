@@ -11,8 +11,8 @@
 Each passes when the firmware reports the capability and skips, with the
 capability prefix the reports read, when it does not. Release reports learn
 what a build lacks from these skips, so the device alone decides; nothing is
-declared outside the firmware. Firmware before 7.15.0 reports no list and
-every test here passes on version alone (version gates decide there).
+declared outside the firmware. Firmware before 7.15.0 sends no list, so these
+tests pass there.
 """
 
 import unittest

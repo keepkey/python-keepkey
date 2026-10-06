@@ -23,6 +23,7 @@ import common
 import binascii
 import hashlib
 
+import oled_text
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.messages_ethereum_pb2 as eth_proto
 import keepkeylib.types_pb2 as proto_types
@@ -47,6 +48,8 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             expected_frames = {
                 "transfer": (
                     "48eab4f4d0e125199325f4b5a601583250462f06b98514b4b56b3b3298169211"),
+                "approve": (
+                    "76dc40a70e5b6a95de28d57b71b40e4ca3da2c115e03c66fe03d3c0afda68c15"),
             }
         else:
             # 7.14.3 uses the pre-7.15 review layout while proving the same
@@ -156,7 +159,10 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
                         with self.assertRaises(CallException):
                             self.client.ethereum_sign_tx(**tx)
                 self.assertEqual(len(recorder.screens), 1)
-                self.assertGreater(sum(bytearray(recorder.screens[0])), 0)
+                # The full value is drawn, not blanked: its leading digits fill
+                # the first body line exactly as the firmware's font renders.
+                self.assertIsNotNone(oled_text.find_line(
+                    recorder.screens[0], str(max_uint256)[:39]))
         else:
             def assert_amount_is_safe(**tx):
                 # 7.14.x has the smaller formatter and its safe behavior is

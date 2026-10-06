@@ -27,7 +27,9 @@ import time
 import os
 import semver
 
+from google.protobuf.message import EncodeError
 from keepkeylib.client import KeepKeyClient, KeepKeyDebuglinkClient, KeepKeyDebuglinkClientVerbose
+from keepkeylib.transport_udp import EmulatorNotResponding
 from keepkeylib import messages_pb2
 from keepkeylib import tx_api
 
@@ -235,10 +237,8 @@ class KeepKeyTest(unittest.TestCase):
     def requires_taproot(self):
         """Skip unless the firmware reports taproot support.
 
-        Gates on a capability rather than a version.  Which release taproot
-        ships in is still open, and a version gate that is never reached makes
-        these tests silently green forever -- the failure mode that looks
-        exactly like passing.
+        Gates on the device flag rather than a version, so a build without
+        taproot skips instead of failing.
         """
         self.client.init_device()
         if not getattr(self.client.features, 'supports_taproot', False):
@@ -349,7 +349,7 @@ class KeepKeyTest(unittest.TestCase):
             # class exists and requires_firmware already gates the version, so
             # let the real test exercise it rather than skipping.
             msg.SerializeToString()
-        except Exception:
+        except EncodeError:
             return
         try:
             resp = self.client.call_raw(msg)
@@ -357,6 +357,10 @@ class KeepKeyTest(unittest.TestCase):
                 self.skipTest("%s not supported by this firmware build" % msg_name)
             # Re-init device state after probe (some messages may have changed state)
             self.client.call_raw(base_proto.Initialize())
+        except EmulatorNotResponding:
+            raise  # a dead emulator is an error, never a skip
+        except unittest.SkipTest:
+            raise
         except Exception:
             self.skipTest("%s not supported by this firmware build" % msg_name)
 

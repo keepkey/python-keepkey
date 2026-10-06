@@ -16,20 +16,35 @@ primitives here (_word/_addr_word) plus an explicit comment that the layout
 is a representative simplification, not a literal captured mainnet tx.
 """
 
+import re
+
 from .signed_metadata import keccak256
+
+_SIGNATURE = re.compile(r'^([A-Za-z_$][A-Za-z0-9_$]*)\((.*)\)$')
+# Selectors hash canonical types, so the bare aliases are spelled out.
+_ALIASES = {'uint': 'uint256', 'int': 'int256'}
 
 
 def parse_signature(signature):
     """'supply(address,uint256,address,uint16)' -> ('supply', ['address', 'uint256', 'address', 'uint16'])"""
-    name, rest = signature.split('(', 1)
-    rest = rest.rsplit(')', 1)[0]
+    match = _SIGNATURE.match(signature.strip())
+    if not match:
+        raise ValueError('not a function signature: %r' % signature)
+    name, rest = match.groups()
     types = [t.strip() for t in rest.split(',')] if rest.strip() else []
-    return name, types
+    if any(not t for t in types):
+        raise ValueError('empty parameter type in %r' % signature)
+    return name, [_ALIASES.get(t, t) for t in types]
+
+
+def canonical_signature(signature):
+    name, types = parse_signature(signature)
+    return '%s(%s)' % (name, ','.join(types))
 
 
 def selector(signature):
-    """4-byte function selector, always computed — never trusted as input."""
-    return keccak256(signature.encode('ascii'))[:4]
+    """4-byte function selector of the canonical signature, always computed."""
+    return keccak256(canonical_signature(signature).encode('ascii'))[:4]
 
 
 def _word(value):

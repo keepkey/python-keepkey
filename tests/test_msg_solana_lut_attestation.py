@@ -81,7 +81,7 @@ class TestSolanaLutAttestation(common.KeepKeyTest):
         tx.append(1)                # 1 instruction
         tx.extend(bytes([1]))       # program index -> SYSTEM_PROGRAM
         tx.append(1)                # 1 account index
-        tx.append(3)                # index 3: BEYOND the static table -> external
+        tx.append(2)                # index 2: past the 2 static accounts -> the LUT entry
         tx.append(4)                # data len
         tx.extend(struct.pack('<I', 2))
         # One lookup table: 1 writable index, 0 readonly.

@@ -325,10 +325,10 @@ class TestMsgHive(common.KeepKeyTest):
         self.assertEqual(single.public_key, resp.active_key)
 
     def test_hive_sign_transfer(self):
-        self.requires_release_capability("hive-release-review")
         """Transfer (op 2) signs and the signature recovers to the active key."""
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignTx")
+        self.requires_release_capability("hive-release-review")
         self.setup_mnemonic_nopin_nopassphrase()
 
         active = hive.get_public_key(self.client, hive_path(ROLE_ACTIVE), show_display=False)
@@ -367,7 +367,6 @@ class TestMsgHive(common.KeepKeyTest):
         r.assert_end()
 
     def test_hive_sign_account_create(self):
-        self.requires_release_capability("hive-release-review")
         """account_create (op 9): signs, recovers to owner key, binds the 4 keys + name.
 
         This is the attestation a Pioneer sponsor verifies before spending an ACT.
@@ -375,6 +374,7 @@ class TestMsgHive(common.KeepKeyTest):
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignAccountCreate")
         self.requires_message("HiveGetPublicKeys")
+        self.requires_release_capability("hive-release-review")
         self.setup_mnemonic_nopin_nopassphrase()
 
         # Device-derived raw keys per role, for slot-exact comparison.
@@ -572,10 +572,10 @@ class TestMsgHive(common.KeepKeyTest):
         self._assert_sign_tx_fails("memo too long", memo="x" * 441)
 
     def test_hive_sign_transfer_max_memo_ok(self):
-        self.requires_release_capability("hive-release-review")
         """A memo of exactly 440 bytes still signs (boundary check)."""
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignTx")
+        self.requires_release_capability("hive-release-review")
         self.setup_mnemonic_nopin_nopassphrase()
         active = hive.get_public_key(self.client, hive_path(ROLE_ACTIVE), show_display=False)
         resp = hive.sign_tx(self.client, **self._transfer_kwargs(memo="x" * 440))

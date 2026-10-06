@@ -394,7 +394,6 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
                          "explicitly forbids (bit 12 is burned)")
 
     def test_advanced_mode_survives_initialize_but_not_clear_session(self):
-        self.requires_release_capability("session-trust-lifetime")
         """The asymmetry in session_clear() is deliberate; pin it down.
 
         session_clear_impl() disarms AdvancedMode only when clear_pin is set.
@@ -404,6 +403,7 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
         must revoke the capability.  If this ever inverts, blind signing either
         becomes unusable or outlives the lock.
         """
+        self.requires_release_capability("session-trust-lifetime")
         self.setup_mnemonic_nopin_nopassphrase()
         self._apply_policy_raw("AdvancedMode", True)
 

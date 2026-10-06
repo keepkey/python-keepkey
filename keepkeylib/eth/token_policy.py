@@ -156,7 +156,12 @@ def select(records, budget, symbol_of, address_of, chain_of=None,
     ambiguous = []
     for sym in PRIORITY_SYMBOLS[profile]:
         hits = by_symbol.get(sym, [])
-        if len(hits) > 1:
+        # Ambiguous only when one chain lists the symbol at two addresses;
+        # one address per chain (e.g. USDC on several chains) is fine.
+        per_chain = {}
+        for r in hits:
+            per_chain.setdefault(chain_of(r), set()).add(address_of(r))
+        if any(len(addresses) > 1 for addresses in per_chain.values()):
             ambiguous.append(sym)
             continue
         for r in hits:

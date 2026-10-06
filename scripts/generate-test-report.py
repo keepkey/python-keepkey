@@ -1282,7 +1282,7 @@ SECTIONS = [
           'The screen list is EMPTY because a refusal draws nothing -- the evidence is the '
           'Failure on the wire.',
           []),
-         ('E17', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_approve_liquidity_ETH',
+         ('E17', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_approve_liquidity_ETH_refused',
           'Uniswap V2 unlimited LP-token approval refused',
           'Enables AdvancedMode, then attempts an unlimited FOX/WETH LP-token approval. '
           'The device refuses it with Failure_ActionCancelled and the explicit disabled-approval '

@@ -14,18 +14,10 @@ metadata at all. If a lying provider could suppress any of those, a runtime
 schema would be a screen-substitution oracle: "supply 10.5 DAI to Aave" on the
 glass, arbitrary calldata under the signature.
 
-lib/firmware/ethereum.c:828 is where this is enforced:
-
-    if (signed_metadata_from_loaded_signer()) {
-        needs_confirm = true;        /* forced back ON */
-        data_needs_confirm = true;   /* forced back ON */
-    } else {
-        needs_confirm = signed_metadata_schema_moves_value();
-        data_needs_confirm = false;  /* raw review SUPPRESSED */
-    }
-
-The else-branch is reserved for a future firmware-PINNED signer and must not be
-reachable by anything a host can load today.
+Firmware 7.15 has no firmware-trusted signer, so signed metadata is always
+additive: after the decoded screens are approved, ethereum_signing_init()
+still sets needs_confirm and data_needs_confirm, and the ordinary amount,
+raw-calldata and fee screens follow.
 
 HOW THESE TESTS MEASURE SCREENS
 -------------------------------
@@ -87,8 +79,7 @@ from test_msg_ethereum_clear_signing import (
 # METADATA_MAX_KEYS in include/keepkey/firmware/signed_metadata.h.
 METADATA_MAX_KEYS = 4
 
-# The canonical 7.15 product requires additive runtime provider review.
-# Do not inherit the earlier RC18 candidate's capability assumptions.
+# Additive runtime provider review ships in firmware 7.15.
 ADDITIVE_REVIEW_FIRMWARE = "7.15.0"
 
 # The Aave V3 supply() transaction every additive test signs. Real ABI
@@ -373,10 +364,10 @@ class TestClearSignAdditiveInvariant(common.KeepKeyTest):
         """A runtime-signed 0x05 intent schema (SRS-7.15 R-1.5) adds a "NOT
         verified by KeepKey" heading and its Limits IN FRONT of the review,
         and every baseline screen still follows, unchanged and in order."""
-        self.requires_release_capability("evm-certified-intent")
         import struct
         import oled_text
         self.requires_firmware("7.16.0")
+        self.requires_release_capability("evm-certified-intent")
         self._load_signer()
         self._drop_setup_screenshots()
         baseline, sig = self._record_supply()

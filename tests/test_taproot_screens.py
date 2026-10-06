@@ -36,7 +36,9 @@ class TestTaprootScreens(KeepKeyTest):
         addr = self.client.get_address(
             "Testnet", parse_path("999'/1'/1'/2/0"), True, multisig,
             script_type=proto_types.SPENDWITNESS)
-        print("\nP2WSH address (%d chars): %s" % (len(addr), addr))
+        self.assertEqual(
+            addr,
+            'tb1qr6xa5v60zyt3ry9nmfew2fk5g9y3gerkjeu6xxdz7qga5kknz2ssld9z2z')
 
 
 if __name__ == '__main__':

@@ -92,6 +92,11 @@ class UDPTransport(Transport):
         while len(self.buffer) < length:
             try:
                 data = self.socket.recv(64)
+            except ConnectionRefusedError:
+                # A closed emulator port usually refuses rather than times out.
+                raise EmulatorNotResponding(
+                    'The emulator at %s:%d refused the connection -- it is not '
+                    'running or has crashed.' % (self.device[0], self.device[1]))
             except socket.timeout:
                 # Name the cause. "timed out" alone sends people looking at the
                 # test; the device is what stopped answering.

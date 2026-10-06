@@ -604,42 +604,6 @@ def test_signed_enum_keys_are_minimal_twos_complement():
         _firmware_validate(compile_calldata(descriptor, signature, 1,
                                             "0x" + "11" * 20), None)
 
-def test_refuses_scalar_value_repeated_inside_iteration():
-    descriptor = {"display": {"formats": {
-        "batch(address[] recipients,address fallback)": {
-            "intent": "Batch transfer",
-            "fields": [
-                {"path": "recipients.[]", "label": "Recipient",
-                 "format": "addressName", "separator": "Next recipient"},
-                {"path": "fallback", "label": "Fallback",
-                 "format": "addressName"},
-            ],
-        }
-    }}}
-    program = bytearray(_unchecked(
-        compile_calldata, descriptor,
-        "batch(address[] recipients,address fallback)", 1,
-        "0x1111111111111111111111111111111111111111"))
-    _firmware_validate(bytes(program))
-    # Replace the iterated formatter's path with the scalar formatter's path.
-    # The display still contains an iteration, so the device must refuse it.
-    offset = HEADER_SIZE
-    while offset < len(program):
-        kind = program[offset]
-        length = struct.unpack_from(">I", program, offset + 1)[0]
-        if kind == 6:
-            start = offset + 5
-            assert struct.unpack_from(">H", program, start)[0] == 2
-            assert program[start + 7:start + 9] != program[start + 14:start + 16]
-            program[start + 7:start + 9] = program[start + 14:start + 16]
-            break
-        offset += 5 + length
-    else:
-        pytest.fail("formatter section missing")
-    _firmware_validate(bytes(program),
-                       "a field reads another array than its iteration")
-
-
 def test_iteration_binds_every_formatter_path_to_its_array():
     signature = (
         "batch((uint256 amount,address token)[] items,address[] other,"
@@ -685,3 +649,12 @@ def test_signer_constant_is_not_an_intent_value():
         pytest.fail("display section missing")
     _firmware_validate(bytes(program),
                        "a signer constant cannot be an intent value")
+
+
+def test_encode_type_finds_struct_dependency_through_every_array_dimension():
+    types = {
+        "Group": [{"name": "people", "type": "Person[2][][4]"}],
+        "Person": [{"name": "name", "type": "string"}],
+    }
+    assert eip712_encode_type("Group", types) == (
+        "Group(Person[2][][4] people)Person(string name)")

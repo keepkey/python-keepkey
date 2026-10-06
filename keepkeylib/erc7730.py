@@ -137,6 +137,11 @@ class Catalog(object):
         key = self._lookup_key(
             definition.kind, definition.chain_id,
             definition.contract_address, definition.selector_or_type_hash)
+        if existing is not None and self._lookup_key(
+                existing.kind, existing.chain_id, existing.contract_address,
+                existing.selector_or_type_hash) != key:
+            raise ValueError(
+                "ERC-7730 definition already registered under another lookup")
         lookup_existing = self._by_lookup.get(key)
         if (lookup_existing is not None and
                 lookup_existing.definition_id != definition.definition_id):

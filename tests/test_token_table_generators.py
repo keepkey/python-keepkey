@@ -207,6 +207,22 @@ class TestTokenTableGenerators(unittest.TestCase):
         self._check('uniswap_tokens.py', 'BUDGET_UNISWAP_LIST',
                     'priority-only')
 
+    def test_priority_symbol_on_several_chains_is_not_ambiguous(self):
+        from keepkeylib.eth import token_policy
+        records = [("USDC", "0x" + "a0" * 20, 1), ("USDC", "0x" + "0b" * 20, 10)]
+        def pick(rows):
+            return token_policy.select(
+                rows, 10, symbol_of=lambda r: r[0], address_of=lambda r: r[1],
+                chain_of=lambda r: r[2],
+                profile=token_policy.PROFILE_PRIORITY_ONLY)
+
+        chosen, ambiguous = pick(records)
+        self.assertEqual(sorted(chosen), sorted(records))
+        self.assertEqual([], ambiguous)
+        # Two addresses on the same chain stay ambiguous and are dropped.
+        clash = [("USDC", "0x" + "a0" * 20, 1), ("USDC", "0x" + "0b" * 20, 1)]
+        self.assertEqual(([], ["USDC"]), pick(clash))
+
     def test_generators_are_deterministic(self):
         """The firmware build compares digests to decide whether to rewrite the
         .def; a non-deterministic generator would churn the table every build."""

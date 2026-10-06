@@ -1385,7 +1385,7 @@ def eip712_encode_type(primary_type, types):
 
     def visit(name):
         for member in types[name]:
-            base = re.sub(r"\[[0-9]*\]$", "", member["type"])
+            base = re.sub(r"(\[[0-9]*\])+$", "", member["type"])
             if base in types and base != primary_type and base not in dependencies:
                 dependencies.add(base)
                 visit(base)
