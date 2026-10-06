@@ -58,6 +58,43 @@ class TestEthereumMetadataDuringSigning(common.KeepKeyTest):
         self.assertIsInstance(ret, proto.Failure)
         self.assertEqual(ret.code, types.Failure_UnexpectedMessage)
 
+    def test_signer_load_during_signing_is_refused_and_ends_the_stream(self):
+        self.requires_firmware("7.15.0")
+        self.requires_message("LoadClearsignSigner")
+        self.requires_fullFeature()
+        self.requires_release_capability("evm-tx-metadata")
+        self.setup_mnemonic_allallall()
+        self.client.apply_policy("AdvancedMode", 1)
+
+        data = b"\xa9\x05\x9c\xbb" + b"\x00" * 1996
+        resp = self.client.call(self._streamed_sign_tx(data))
+        self.assertIsInstance(resp, eth_proto.EthereumTxRequest)
+        self.assertTrue(resp.HasField("data_length"))
+
+        # Storing a signer clears the same binding metadata does.
+        ret = self.client.call_raw(eth_proto.LoadClearsignSigner(
+            key_id=0, pubkey=b"\x02" + b"\x11" * 32, alias="test"))
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertEqual(ret.code, types.Failure_UnexpectedMessage)
+        self.assertEqual(ret.message, "Signer load not allowed during signing")
+
+        ret = self.client.call_raw(
+            eth_proto.EthereumTxAck(data_chunk=data[1024:]))
+        self.assertIsInstance(ret, proto.Failure)
+        self.assertEqual(ret.code, types.Failure_UnexpectedMessage)
+
+    def _streamed_sign_tx(self, data):
+        return eth_proto.EthereumSignTx(
+            address_n=self.client.expand_path("m/44'/60'/0'/0/0"),
+            nonce=int_to_big_endian(0),
+            gas_price=int_to_big_endian(20),
+            gas_limit=int_to_big_endian(100000),
+            value=int_to_big_endian(0),
+            to=bytes.fromhex("1d1c328764a41bda0492b66baa30c4a339ff85ef"),
+            chain_id=1,
+            data_length=len(data),
+            data_initial_chunk=data[:1024])
+
 
 if __name__ == '__main__':
     unittest.main()
