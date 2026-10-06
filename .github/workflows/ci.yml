@@ -125,10 +125,10 @@ jobs:
         with:
           repository: BitHighlander/keepkey-firmware
           # PINNED, not a moving branch, so a green result remains citeable.
-          # Tip of the staged 7.15 upstream stack (b6, #958). It reports
+          # Pinned 7.15 firmware commit (the stack tip). It reports
           # Features.capabilities, so capability-gated tests skip exactly what
           # it lacks.
-          ref: 1be43fdaf8d0385c85fe5dec30652612da1b7d69
+          ref: c1e1e7074595c9a4086529483842076fcf17810d
           path: keepkey-firmware
 
       # NOT `submodules: recursive`. trezor-firmware carries a micropython
@@ -556,7 +556,7 @@ jobs:
             firmware_ref: 4125e1c7409b1cb7b08ba595bc408e3128fc24ca
             min_fw: "7.14.3"
           - release: "7.15"
-            firmware_ref: 1be43fdaf8d0385c85fe5dec30652612da1b7d69
+            firmware_ref: c1e1e7074595c9a4086529483842076fcf17810d
             min_fw: "7.15.0"
 
     # KK_BITCOIN_ONLY=ON is a second shipping product, not a build flavour:
