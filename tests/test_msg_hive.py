@@ -490,9 +490,9 @@ class TestMsgHive(common.KeepKeyTest):
         """A path outside SLIP-0048 (e.g. BIP-44 BTC) must be rejected before
         signing — a compromised host cannot obtain a Hive signature with a
         key from another coin's derivation tree."""
-        self.requires_release_capability("hive-release-review")
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignTx")
+        self.requires_release_capability("hive-release-review")
         self.setup_mnemonic_nopin_nopassphrase()
         self._assert_sign_tx_fails(
             "Invalid Hive SLIP-0048 path",
@@ -502,9 +502,9 @@ class TestMsgHive(common.KeepKeyTest):
     def test_hive_sign_transfer_rejects_wrong_network(self):
         """Wrong SLIP-0048 network index (registry 3054' instead of the
         de-facto 13') must be rejected — keys must be Ledger-compatible."""
-        self.requires_release_capability("hive-release-review")
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignTx")
+        self.requires_release_capability("hive-release-review")
         self.setup_mnemonic_nopin_nopassphrase()
         h = 0x80000000
         self._assert_sign_tx_fails(
@@ -517,9 +517,9 @@ class TestMsgHive(common.KeepKeyTest):
         longer accepts higher-role substitution, so an owner/memo/posting
         signature would be rejected at broadcast — and the cold owner key
         must never be spent on a transfer. Unassigned roles reject too."""
-        self.requires_release_capability("hive-release-review")
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignTx")
+        self.requires_release_capability("hive-release-review")
         self.setup_mnemonic_nopin_nopassphrase()
         for role in (ROLE_OWNER, ROLE_MEMO, ROLE_POSTING, 2):  # 2' unassigned
             self._assert_sign_tx_fails(
@@ -531,11 +531,11 @@ class TestMsgHive(common.KeepKeyTest):
         """account_create/account_update must sign with the owner key ONLY —
         the sponsor's attestation check recovers to the device OWNER key, and
         account_update replaces the owner authority itself."""
-        self.requires_release_capability("hive-release-review")
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignAccountCreate")
         self.requires_message("HiveSignAccountUpdate")
         self.requires_message("HiveGetPublicKeys")
+        self.requires_release_capability("hive-release-review")
         self.setup_mnemonic_nopin_nopassphrase()
         from keepkeylib.client import CallException
         keys = hive.get_public_keys(self.client, account_index=0, show_display=False)
@@ -565,9 +565,9 @@ class TestMsgHive(common.KeepKeyTest):
     def test_hive_sign_transfer_rejects_long_memo(self):
         """Memo over the 440-byte serialization limit must fail with a
         specific error, not a generic signing failure."""
-        self.requires_release_capability("hive-release-review")
         self.requires_firmware("7.15.0")
         self.requires_message("HiveSignTx")
+        self.requires_release_capability("hive-release-review")
         self.setup_mnemonic_nopin_nopassphrase()
         self._assert_sign_tx_fails("memo too long", memo="x" * 441)
 

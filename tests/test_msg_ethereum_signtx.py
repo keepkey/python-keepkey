@@ -34,9 +34,9 @@ from test_msg_display_disclosure import ScreenRecorder
 class TestMsgEthereumSigntx(common.KeepKeyTest):
     def test_ethereum_native_pseudo_address_is_unknown_off_mainnet(self):
         """0xeeee..eeee must render as unknown for chain-257 token calls."""
-        self.requires_release_capability("evm-unknown-token-review")
         self.requires_firmware("7.14.2")
         self.requires_fullFeature()
+        self.requires_release_capability("evm-unknown-token-review")
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
         common.reset_screenshot_capture(self.client)
@@ -129,9 +129,9 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
 
     def test_ethereum_unrenderable_amounts_are_rejected(self):
         """Maximum native and token amounts must never reach a blank review."""
-        self.requires_release_capability('evm-max-amount-review')
         self.requires_firmware("7.14.2")
         self.requires_fullFeature()
+        self.requires_release_capability('evm-max-amount-review')
         self.setup_mnemonic_nopin_nopassphrase()
 
         recipient = binascii.unhexlify(

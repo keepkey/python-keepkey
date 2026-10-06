@@ -34,9 +34,9 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.requires_firmware("7.15.0")
 
     def test_sign_uni_approve_liquidity_ETH_refused(self):
-        self.requires_release_capability("erc7730-runtime-review")
         self.requires_fullFeature()
         self.requires_firmware_below("7.16.0")
+        self.requires_release_capability("erc7730-runtime-review")
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 
@@ -65,9 +65,9 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
                       str(caught.exception))
 
     def test_sign_uni_approve_liquidity_ETH(self):
-        self.requires_release_capability("erc7730-runtime-review")
         self.requires_fullFeature()
         self.requires_firmware("7.16.0")
+        self.requires_release_capability("erc7730-runtime-review")
         self.requires_release_capability("erc20-unlimited-approve-review")
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
@@ -92,9 +92,9 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '329954b284ed1df9a6242820e793b9719c0c6c21cae5f90190ce61c7f73c731e')
 
     def test_sign_uni_add_liquidity_ETH(self):
-        self.requires_release_capability("evm-unknown-token-review")
         self.requires_fullFeature()
         self.requires_firmware("7.1.0")
+        self.requires_release_capability("evm-unknown-token-review")
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 

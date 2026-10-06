@@ -522,8 +522,8 @@ class TestSolanaSchemaRuntime(SchemaReview):
 
     def setUp(self):
         super(TestSolanaSchemaRuntime, self).setUp()
-        self.requires_release_capability("solana-runtime-review")
         self.requires_message("LoadClearsignSigner")
+        self.requires_release_capability("solana-runtime-review")
         signed_metadata.assert_test_key_matches_slot3()
         self.client.apply_policy("AdvancedMode", True)
         self.signer = self._signer()

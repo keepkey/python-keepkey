@@ -102,8 +102,8 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
 
     def test_sign_with_thorchain_memo(self):
         self.requires_fullFeature()
-        self.requires_release_capability("ripple-memo-policy")
         self.requires_firmware("7.15.0")
+        self.requires_release_capability("ripple-memo-policy")
 
         self.setup_mnemonic_allallall()
 
@@ -154,8 +154,8 @@ class TestMsgRippleSignTx(common.KeepKeyTest):
 
     def test_memo_length_prefix_boundaries(self):
         self.requires_fullFeature()
-        self.requires_release_capability("ripple-memo-policy")
         self.requires_firmware("7.15.0")
+        self.requires_release_capability("ripple-memo-policy")
         self.setup_mnemonic_allallall()
 
         for length in (191, 192, 193, 199):

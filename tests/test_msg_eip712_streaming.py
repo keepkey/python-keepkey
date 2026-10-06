@@ -578,8 +578,8 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         """A KeepKey-certified name record names the spender; the full address
         is still shown, and the voucher is identified."""
         self.requires_firmware("7.16.0")
-        self.requires_release_capability("permit2-review")
         self.requires_message("EthereumTxMetadata")
+        self.requires_release_capability("permit2-review")
         resp = self.client.ethereum_send_tx_metadata(
             signed_payload=self.UR_V2_NAME, metadata_version=3, key_id=0x80)
         self.assertEqual(resp.classification, 1)  # VERIFIED
@@ -606,8 +606,8 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         """A record sent ahead of a request that FAILS is gone with it: the
         next Permit2 says "Not identified" (Copilot r1 on #919)."""
         self.requires_firmware("7.16.0")
-        self.requires_release_capability("permit2-review")
         self.requires_message("EthereumTxMetadata")
+        self.requires_release_capability("permit2-review")
         self.client.ethereum_send_tx_metadata(
             signed_payload=self.UR_V2_NAME, metadata_version=3, key_id=0x80)
         # An unlimited EIP-2612 permit whose domain names no token

@@ -50,8 +50,8 @@ class TestOsmosisValidation(common.KeepKeyTest):
     def test_present_but_empty_amount_is_rejected_as_invalid(self):
         # The fail-closed empty-string validator is part of the 7.15 audit
         # fixes; 7.14.3 predates that specific Osmosis hardening.
-        self.requires_release_capability("osmosis-wire-guards")
         self.requires_firmware("7.15.0")
+        self.requires_release_capability("osmosis-wire-guards")
         self._start_signing()
         send = osmosis_proto.OsmosisMsgSend(
             to_address="osmo1g9el7lzjwh9yun2c4jjzhy09j98vkhfx8tzcpt",
