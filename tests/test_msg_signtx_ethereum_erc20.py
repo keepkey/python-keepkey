@@ -25,6 +25,8 @@ import binascii
 import keepkeylib.messages_pb2 as proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.client import CallException
+from oled_text import TITLE_FONT, find_line, shows
+from test_msg_display_disclosure import ScreenRecorder
 from keepkeylib.tools import int_to_big_endian
 
 class TestMsgEthereumSigntxERC20(common.KeepKeyTest):
@@ -68,11 +70,13 @@ class TestMsgEthereumSigntxERC20(common.KeepKeyTest):
         self.assertEqual(binascii.hexlify(sig_s), '5b8b0e5b7b8f6d5269ce4dc266e6901f3284079fa1f0cd358d2987336dc8ba3a')
 
     def test_approve_all_refused(self):
-        # 7.14.2 through 7.15.x refuse an unlimited approve outright. 7.16
-        # reviews and signs it instead (D-010): test_approve_all.
+        # 7.14.2 through 7.15.x refuse an unlimited approve outright, until
+        # erc20-unlimited-approve-review: from then it is signed after an
+        # UNLIMITED warning (test_approve_all).
         self.requires_fullFeature()
         self.requires_firmware("7.14.2")
         self.requires_firmware_below("7.16.0")
+        self.requires_capability_absent("erc20-unlimited-approve-review")
         self.setup_mnemonic_nopin_nopassphrase()
 
         with self.assertRaises(CallException):
@@ -90,22 +94,31 @@ class TestMsgEthereumSigntxERC20(common.KeepKeyTest):
     def test_approve_all(self):
         self.requires_fullFeature()
         if self.firmware_at_least("7.14.2"):
-            # Refused on 7.14.2-7.15.x (test_approve_all_refused);
-            # reviewed and signed from 7.16 (D-010).
-            self.requires_firmware("7.16.0")
+            # Refused on 7.14.2-7.15.x (test_approve_all_refused) until
+            # erc20-unlimited-approve-review; signed after a warning since.
+            self.requires_firmware("7.15.0")
             self.requires_release_capability("erc20-unlimited-approve-review")
         self.setup_mnemonic_nopin_nopassphrase()
 
-        sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
-            n=[2147483692,2147483708,2147483648,0,0],
-            nonce=1,
-            gas_price=20,
-            gas_limit=20,
-            value=0,
-            to=binascii.unhexlify('41e5560054824ea6b0732e656e3ad64e20e94e45'),
-            chain_id=1,
-            data=binascii.unhexlify('095ea7b3000000000000000000000000' + '1d1c328764a41bda0492b66baa30c4a339ff85ef' + 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
-            )
+        recorder = ScreenRecorder(self.client)
+        with recorder:
+            sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+                n=[2147483692,2147483708,2147483648,0,0],
+                nonce=1,
+                gas_price=20,
+                gas_limit=20,
+                value=0,
+                to=binascii.unhexlify('41e5560054824ea6b0732e656e3ad64e20e94e45'),
+                chain_id=1,
+                data=binascii.unhexlify('095ea7b3000000000000000000000000' + '1d1c328764a41bda0492b66baa30c4a339ff85ef' + 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
+                )
+        if self.firmware_at_least("7.15.0"):
+            # The UNLIMITED warning is the first screen, full spender.
+            self.assertIsNotNone(find_line(recorder.screens[0],
+                                           'UNLIMITED APPROVAL', TITLE_FONT))
+            self.assertTrue(shows(recorder.screens[0],
+                                  'Allow 0x1D1C328764A41BdA0492b66bAA30C4A339FF85EF '
+                                  'to spend ALL your CVC'))
 
         self.assertEqual(sig_v, 37)
         self.assertEqual(binascii.hexlify(sig_r), '3671acb6aed5241948de56635ef64554d5e834355e99d806c4ae30bf463eae57')

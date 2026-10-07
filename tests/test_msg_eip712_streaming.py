@@ -749,6 +749,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         instead (F-D, D-010): test_canonical_unlimited_permits_sign_after_a_
         warning."""
         self.requires_firmware_below("7.16.0")
+        self.requires_capability_absent("erc20-unlimited-permit-review")
         permit = copy.deepcopy(self.USDC_PERMIT)
         for doc, path, leaf, bits in ((permit, ("value",), "value", 256),):
             # A finite amount signs and shows the leaf; its position is where
@@ -766,6 +767,41 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
                              (types.Failure_SyntaxError,
                               'Unlimited ERC20 approval is disabled'))
             self.assertEqual(len(self.frames), before_leaf)
+
+    def test_unlimited_permits_sign_with_unlimited_on_the_value_screen(self):
+        """7.15 (owner decision 2026-10-07): an unlimited EIP-2612 value, a
+        DAI allowed=true and a Permit2 amount at its uint160 maximum are
+        signed. The value's own screen is titled UNLIMITED APPROVAL and reads
+        UNLIMITED; a finite value keeps the ordinary screen."""
+        self.requires_firmware("7.15.0")
+        self.requires_firmware_below("7.16.0")
+        self.requires_release_capability("erc20-unlimited-permit-review")
+        usdc = copy.deepcopy(self.USDC_PERMIT)
+        usdc["message"]["value"] = str((1 << 256) - 1)
+        permit2 = copy.deepcopy(self.UNISWAP_PERMIT2)
+        cases = ((usdc, "value", "value\nuint256: UNLIMITED"),
+                 (self.DAI_PERMIT, "allowed",
+                  "allowed\nbool: UNLIMITED (allowed)"),
+                 (permit2, "details.amount",
+                  "details.amount\nuint160: UNLIMITED"))
+        for doc, leaf, body in cases:
+            self._assert_reference_signature(doc, self._walk(doc))
+            warnings = [i for i, (_, layout) in enumerate(self.frames)
+                        if oled_text.find_line(layout, 'UNLIMITED APPROVAL',
+                                               oled_text.TITLE_FONT)
+                        is not None]
+            with self.subTest(leaf):
+                self.assertEqual(warnings, [self._leaf_index(leaf)])
+                self.assertTrue(oled_text.shows(self.frames[warnings[0]][1],
+                                                body), body)
+        self._assert_reference_signature(self.USDC_PERMIT,
+                                         self._walk(self.USDC_PERMIT))
+        self.assertIsNone(oled_text.find_text(
+            [layout for _, layout in self.frames], "value\nuint256: UNLIMITED"))
+        self.assertTrue(all(
+            oled_text.find_line(layout, 'UNLIMITED APPROVAL',
+                                oled_text.TITLE_FONT) is None
+            for _, layout in self.frames))
 
     def test_canonical_unlimited_permits_sign_after_a_warning(self):
         """D-010 for permits (F-D): a canonical EIP-2612 permit of 2^255 or

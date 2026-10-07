@@ -11,7 +11,9 @@
 # Every document must be ACCEPTED: its hashes must equal both the embedded
 # values and this suite's own independent encoder, its signature must
 # recover to the device's address, and the final screen must name the whole
-# primary type.
+# primary type. A document with "requires_capability" (the max approvals)
+# runs only where the firmware reports it; before 7.16 its value screen is
+# titled UNLIMITED APPROVAL and shows "unlimited_screen".
 
 import json
 import os
@@ -66,6 +68,10 @@ class TestMsgEip712Corpus(common.KeepKeyTest):
         address = self.client.ethereum_get_address(streaming.PATH)
         for entry in load_corpus():
             with self.subTest(entry['id']):
+                needs = entry.get('requires_capability')
+                if needs and needs not in (self.firmware_capabilities() or ()):
+                    self.skipTest("Staged release tree does not yet provide "
+                                  "capability: " + needs)
                 doc = entry['doc']
                 resp = self._walk(doc, max_steps=2000)
                 self.assertIsInstance(resp, eth.EthereumTypedDataSignature,
@@ -86,6 +92,16 @@ class TestMsgEip712Corpus(common.KeepKeyTest):
                 self.assertIsNotNone(oled_text.find_text(
                     [layout for _, layout in self.frames[final:]],
                     'Sign ' + doc['primaryType']))
+                warned = [layout for _, layout in self.frames
+                          if oled_text.find_line(layout, 'UNLIMITED APPROVAL',
+                                                 oled_text.TITLE_FONT)
+                          is not None]
+                if 'unlimited_screen' not in entry:
+                    self.assertEqual(warned, [])
+                elif not self.firmware_at_least("7.16.0"):
+                    self.assertEqual(len(warned), 1)
+                    self.assertTrue(oled_text.shows(
+                        warned[0], entry['unlimited_screen']))
 
 
 if __name__ == '__main__':

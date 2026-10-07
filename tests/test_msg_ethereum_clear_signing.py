@@ -1032,9 +1032,12 @@ class TestEthereumClearSigning(common.KeepKeyTest):
         self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
 
         if (flow['key'] == 'erc20-approve-unlimited'
-                and not self.firmware_at_least("7.16.0")):
-            # 7.15 refuses an unlimited approve. 7.16 reviews and signs it
-            # (D-010), handled by the common path below.
+                and not self.firmware_at_least("7.16.0")
+                and "erc20-unlimited-approve-review" not in
+                (self.firmware_capabilities() or ())):
+            # 7.15 refused an unlimited approve until
+            # erc20-unlimited-approve-review; from then it is signed after a
+            # warning, handled by the common path below.
             # Drive the wire directly: the policy is refused on the FIRST
             # response, before any ButtonRequest. Expected-response helpers
             # would raise their own exception text containing the expected

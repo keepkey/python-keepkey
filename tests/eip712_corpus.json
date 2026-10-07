@@ -77,6 +77,86 @@
   }
  },
  {
+  "id": "permit2-PermitSingle-unlimited",
+  "source": [
+   "https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/libraries/PermitHash.sol",
+   "https://github.com/Uniswap/sdks/blob/main/sdks/permit2-sdk/src/constants.ts"
+  ],
+  "requires_capability": "erc20-unlimited-permit-review",
+  "unlimited_screen": "details.amount\nuint160: UNLIMITED",
+  "doc": {
+   "types": {
+    "EIP712Domain": [
+     {
+      "name": "name",
+      "type": "string"
+     },
+     {
+      "name": "chainId",
+      "type": "uint256"
+     },
+     {
+      "name": "verifyingContract",
+      "type": "address"
+     }
+    ],
+    "PermitSingle": [
+     {
+      "name": "details",
+      "type": "PermitDetails"
+     },
+     {
+      "name": "spender",
+      "type": "address"
+     },
+     {
+      "name": "sigDeadline",
+      "type": "uint256"
+     }
+    ],
+    "PermitDetails": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "amount",
+      "type": "uint160"
+     },
+     {
+      "name": "expiration",
+      "type": "uint48"
+     },
+     {
+      "name": "nonce",
+      "type": "uint48"
+     }
+    ]
+   },
+   "primaryType": "PermitSingle",
+   "domain": {
+    "name": "Permit2",
+    "chainId": 1,
+    "verifyingContract": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+   },
+   "message": {
+    "details": {
+     "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+     "amount": "1461501637330902918203684832716283019655932542975",
+     "expiration": "1778393946",
+     "nonce": "0"
+    },
+    "spender": "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af",
+    "sigDeadline": "1775803746"
+   }
+  },
+  "expected": {
+   "domain_separator": "866a5aba21966af95d6c7ab78eb2b2fc913915c28be3b9aa07cc04ff903e3f28",
+   "message_hash": "8cadbd22e396ba77b30a62c8219759ec221ed18cde6fe1c31204fb3d53c1ecf8",
+   "digest": "eb4da5f3381371818ca113f3f4697da6c5ee1bbb098effde0f8f399b208f7bd7"
+  }
+ },
+ {
   "id": "permit2-PermitBatch",
   "source": [
    "https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/libraries/PermitHash.sol"
@@ -2114,6 +2194,77 @@
   }
  },
  {
+  "id": "eip2612-Permit-unlimited",
+  "source": [
+   "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/c98b7188338e3c5fce903747894561af78863bbb/contracts/token/ERC20/extensions/ERC20Permit.sol"
+  ],
+  "requires_capability": "erc20-unlimited-permit-review",
+  "unlimited_screen": "value\nuint256: UNLIMITED",
+  "doc": {
+   "types": {
+    "EIP712Domain": [
+     {
+      "name": "name",
+      "type": "string"
+     },
+     {
+      "name": "version",
+      "type": "string"
+     },
+     {
+      "name": "chainId",
+      "type": "uint256"
+     },
+     {
+      "name": "verifyingContract",
+      "type": "address"
+     }
+    ],
+    "Permit": [
+     {
+      "name": "owner",
+      "type": "address"
+     },
+     {
+      "name": "spender",
+      "type": "address"
+     },
+     {
+      "name": "value",
+      "type": "uint256"
+     },
+     {
+      "name": "nonce",
+      "type": "uint256"
+     },
+     {
+      "name": "deadline",
+      "type": "uint256"
+     }
+    ]
+   },
+   "primaryType": "Permit",
+   "domain": {
+    "name": "USD Coin",
+    "version": "2",
+    "chainId": 1,
+    "verifyingContract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+   },
+   "message": {
+    "owner": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
+    "spender": "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD",
+    "value": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+    "nonce": "0",
+    "deadline": "1775803746"
+   }
+  },
+  "expected": {
+   "domain_separator": "06c37168a7db5138defc7866392bb87a741f9b3d104deb5094588ce041cae335",
+   "message_hash": "33ffd631195880f28f81f273a3be51c770ca95311a3f90cf2caa81f3b338a26c",
+   "digest": "e8f07ca0d9556242ed695a7367e5ffe5d5e8b3913a82a763a83cf1be5d03ad1f"
+  }
+ },
+ {
   "id": "dai-Permit",
   "source": [
    "https://github.com/makerdao/dss/blob/fa4f6630afb0624d04a003e920b0d71a00331d98/src/dai.sol"
@@ -2180,6 +2331,77 @@
    "domain_separator": "dbb8cf42e1ecb028be3f3dbc922e1d878b963f411dc388ced501601c60f7c6f7",
    "message_hash": "ab11f761da4f18c351b557993fff3af1b5276e0ca318a34eb7ff374040587863",
    "digest": "ea585737a895795b5b84df7ff9082e15098bda1e22cc312b27ce64c6b656bde6"
+  }
+ },
+ {
+  "id": "dai-Permit-allowed",
+  "source": [
+   "https://github.com/makerdao/dss/blob/fa4f6630afb0624d04a003e920b0d71a00331d98/src/dai.sol"
+  ],
+  "requires_capability": "erc20-unlimited-permit-review",
+  "unlimited_screen": "allowed\nbool: UNLIMITED (allowed)",
+  "doc": {
+   "types": {
+    "EIP712Domain": [
+     {
+      "name": "name",
+      "type": "string"
+     },
+     {
+      "name": "version",
+      "type": "string"
+     },
+     {
+      "name": "chainId",
+      "type": "uint256"
+     },
+     {
+      "name": "verifyingContract",
+      "type": "address"
+     }
+    ],
+    "Permit": [
+     {
+      "name": "holder",
+      "type": "address"
+     },
+     {
+      "name": "spender",
+      "type": "address"
+     },
+     {
+      "name": "nonce",
+      "type": "uint256"
+     },
+     {
+      "name": "expiry",
+      "type": "uint256"
+     },
+     {
+      "name": "allowed",
+      "type": "bool"
+     }
+    ]
+   },
+   "primaryType": "Permit",
+   "domain": {
+    "name": "Dai Stablecoin",
+    "version": "1",
+    "chainId": 1,
+    "verifyingContract": "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+   },
+   "message": {
+    "holder": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94",
+    "spender": "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD",
+    "nonce": "3",
+    "expiry": "1775803746",
+    "allowed": true
+   }
+  },
+  "expected": {
+   "domain_separator": "dbb8cf42e1ecb028be3f3dbc922e1d878b963f411dc388ced501601c60f7c6f7",
+   "message_hash": "d087cc737aa821393dd824ea87dcb51376c51b9815d52c6f5102c6e843b128c0",
+   "digest": "c2b81aa8b44a91816e41ff0810a9ccb9bf0226cbdfd901493205a18fc5eb94a4"
   }
  },
  {

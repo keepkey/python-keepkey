@@ -37,6 +37,7 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
         self.requires_fullFeature()
         self.requires_firmware_below("7.16.0")
         self.requires_release_capability("erc7730-runtime-review")
+        self.requires_capability_absent("erc20-unlimited-approve-review")
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)
 
@@ -66,8 +67,6 @@ class TestMsgEthereumUniswaptxERC20(common.KeepKeyTest):
 
     def test_sign_uni_approve_liquidity_ETH(self):
         self.requires_fullFeature()
-        self.requires_firmware("7.16.0")
-        self.requires_release_capability("erc7730-runtime-review")
         self.requires_release_capability("erc20-unlimited-approve-review")
         self.setup_mnemonic_nopin_nopassphrase()
         self.client.apply_policy("AdvancedMode", 1)

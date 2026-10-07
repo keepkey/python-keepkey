@@ -278,6 +278,15 @@ class KeepKeyTest(unittest.TestCase):
                 "Staged release tree does not yet provide capability: " +
                 capability)
 
+    def requires_capability_absent(self, capability):
+        """Skip when the firmware reports `capability`: for a refusal that
+        the capability's behaviour replaces within the same version."""
+        enum = messages_pb2.Features.Capability
+        enum.Value("CAPABILITY_" + capability.upper().replace("-", "_"))
+        reported = self.firmware_capabilities()
+        if reported is not None and capability in reported:
+            self.skipTest("Firmware provides capability: " + capability)
+
     def requires_taproot(self):
         """Skip unless the firmware reports taproot support.
 
