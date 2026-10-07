@@ -33,7 +33,7 @@ def var(x):
 
 auth = (
     struct.pack('<I', 1)  # threshold
-    + b'\x01\x01' + pub + struct.pack('<H', 1)  # one K1 key, weight 1
+    + b'\x01\x00' + pub + struct.pack('<H', 1)  # one key, type 0 (K1), weight 1
     + b'\x01' + name('memememememe') + name('active')
     + struct.pack('<H', 1)  # one permission-level account, weight 1
     + b'\0'  # zero waits
@@ -48,8 +48,8 @@ class UpdateAuthVector(unittest.TestCase):
     def test_zero_waits(self):
         phantom_wait = struct.pack("<IH", 0, 0)  # wait_sec=0, weight=0
         for extra, expected in [
-            (b"", "5938294e65cf9e8b5dd5f2b204503b4825f277e6f4a2d5ab7a55a31065a23af1"),
-            (phantom_wait, "fb936ef1be4bda680d93bd10b6d062357d8dd7272038a706dc0d61a91f39c5ee"),
+            (b"", "c94f1271f26492a4ca308a6cfae610ce41a3beb7354beb1747e2a2261c8c1973"),
+            (phantom_wait, "d46ec84303860c314f6fb2f40916994020197101a36941184a1f923d3b549955"),
         ]:
             with self.subTest(legacy_phantom_wait=bool(extra)):
                 data = prefix + auth + extra
