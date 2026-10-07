@@ -2068,7 +2068,9 @@ class ProtocolMixin(object):
                         expiry_height=None, transparent_outputs=None,
                         transparent_inputs=None,
                         expected_seed_fingerprint=None,
-                        return_transparent_signatures=False):
+                        return_transparent_signatures=False,
+                        ironwood_actions=None, ironwood_flags=None,
+                        ironwood_value_balance=None):
         """Sign a Zcash Orchard-family shielded transaction via PCZT protocol.
 
         Streams transparent outputs, then transparent inputs, then shielded
@@ -2089,6 +2091,9 @@ class ProtocolMixin(object):
             orchard_digest: 32-byte orchard digest
             shielded_pool: ZcashShieldedPool value (Orchard by default)
             ironwood_digest: 32-byte Ironwood digest for transaction v6
+            ironwood_actions: for a ZIP 318 pool-crossing v6 transaction, the
+                Ironwood actions, streamed after the Orchard `actions`, with
+                ironwood_flags and ironwood_value_balance for their bundle
             orchard_flags: bundle flags byte (enables digest verification)
             orchard_value_balance: signed i64 value balance
             orchard_anchor: 32-byte anchor
@@ -2106,11 +2111,13 @@ class ProtocolMixin(object):
             ZcashSignedPCZT with compact Orchard signatures and optional txid,
             or a tuple including transparent signatures when requested.
         """
-        n_actions = len(actions)
-        if n_actions == 0:
+        if len(actions) == 0:
             raise ValueError("Must have at least one action")
+        # Orchard actions first, then any Ironwood ones; indices count on.
+        stream = list(actions) + list(ironwood_actions or [])
+        n_actions = len(stream)
 
-        for idx, action in enumerate(actions):
+        for idx, action in enumerate(stream):
             if 'is_spend' not in action or not isinstance(action['is_spend'], bool):
                 raise ValueError(
                     "Orchard action %d must explicitly set boolean is_spend" % idx)
@@ -2127,7 +2134,7 @@ class ProtocolMixin(object):
         # explicitly if the caller passed it.
         kwargs = dict(
             address_n=address_n,
-            n_actions=n_actions,
+            n_actions=len(actions),
             total_amount=total_amount,
             fee=fee,
             branch_id=branch_id,
@@ -2166,6 +2173,10 @@ class ProtocolMixin(object):
             kwargs['n_transparent_inputs'] = len(transparent_inputs)
         if expected_seed_fingerprint is not None:
             kwargs['expected_seed_fingerprint'] = expected_seed_fingerprint
+        if ironwood_actions:
+            kwargs['n_ironwood_actions'] = len(ironwood_actions)
+            kwargs['ironwood_flags'] = ironwood_flags
+            kwargs['ironwood_value_balance'] = ironwood_value_balance
 
         resp = self.call(zcash_proto.ZcashSignPCZT(**kwargs))
 
@@ -2231,7 +2242,7 @@ class ProtocolMixin(object):
             # include an index.  The device controls stream order, just as it
             # does for transparent inputs and outputs above, so discard any
             # caller copy before supplying the requested index.
-            action = dict(actions[idx])
+            action = dict(stream[idx])
             action.pop('index', None)
             resp = self.call(zcash_proto.ZcashPCZTAction(index=idx, **action))
             sent_actions.add(idx)
@@ -2269,7 +2280,7 @@ class ProtocolMixin(object):
             if not signature:
                 raise Exception("Device returned an empty transparent signature")
 
-        expected_signatures = sum(1 for action in actions if action['is_spend'])
+        expected_signatures = sum(1 for action in stream if action['is_spend'])
         if len(resp.signatures) != expected_signatures:
             raise Exception(
                 "Device returned %d Orchard signatures for %d real spends"
