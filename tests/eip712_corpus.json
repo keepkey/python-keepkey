@@ -5501,5 +5501,693 @@
    "message_hash": "c52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e",
    "digest": "be609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2"
   }
+ },
+ {
+  "id": "uniswapx-V3DutchOrder-arbitrum",
+  "source": [
+   "https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/libraries/PermitHash.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/V3DutchOrderLib.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/OrderInfoLib.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/DutchOrderLib.sol",
+   "https://arbiscan.io/tx/0x1f2f270bf65d2b7f02b2a141f71e23bfcc3a84b37c9a0921577516c58031678d"
+  ],
+  "doc": {
+   "types": {
+    "EIP712Domain": [
+     {
+      "name": "name",
+      "type": "string"
+     },
+     {
+      "name": "chainId",
+      "type": "uint256"
+     },
+     {
+      "name": "verifyingContract",
+      "type": "address"
+     }
+    ],
+    "PermitWitnessTransferFrom": [
+     {
+      "name": "permitted",
+      "type": "TokenPermissions"
+     },
+     {
+      "name": "spender",
+      "type": "address"
+     },
+     {
+      "name": "nonce",
+      "type": "uint256"
+     },
+     {
+      "name": "deadline",
+      "type": "uint256"
+     },
+     {
+      "name": "witness",
+      "type": "V3DutchOrder"
+     }
+    ],
+    "NonlinearDutchDecay": [
+     {
+      "name": "relativeBlocks",
+      "type": "uint256"
+     },
+     {
+      "name": "relativeAmounts",
+      "type": "int256[]"
+     }
+    ],
+    "OrderInfo": [
+     {
+      "name": "reactor",
+      "type": "address"
+     },
+     {
+      "name": "swapper",
+      "type": "address"
+     },
+     {
+      "name": "nonce",
+      "type": "uint256"
+     },
+     {
+      "name": "deadline",
+      "type": "uint256"
+     },
+     {
+      "name": "additionalValidationContract",
+      "type": "address"
+     },
+     {
+      "name": "additionalValidationData",
+      "type": "bytes"
+     }
+    ],
+    "TokenPermissions": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "amount",
+      "type": "uint256"
+     }
+    ],
+    "V3DutchInput": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "startAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "curve",
+      "type": "NonlinearDutchDecay"
+     },
+     {
+      "name": "maxAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "adjustmentPerGweiBaseFee",
+      "type": "uint256"
+     }
+    ],
+    "V3DutchOrder": [
+     {
+      "name": "info",
+      "type": "OrderInfo"
+     },
+     {
+      "name": "cosigner",
+      "type": "address"
+     },
+     {
+      "name": "startingBaseFee",
+      "type": "uint256"
+     },
+     {
+      "name": "baseInput",
+      "type": "V3DutchInput"
+     },
+     {
+      "name": "baseOutputs",
+      "type": "V3DutchOutput[]"
+     }
+    ],
+    "V3DutchOutput": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "startAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "curve",
+      "type": "NonlinearDutchDecay"
+     },
+     {
+      "name": "recipient",
+      "type": "address"
+     },
+     {
+      "name": "minAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "adjustmentPerGweiBaseFee",
+      "type": "uint256"
+     }
+    ]
+   },
+   "primaryType": "PermitWitnessTransferFrom",
+   "domain": {
+    "name": "Permit2",
+    "chainId": 42161,
+    "verifyingContract": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+   },
+   "message": {
+    "permitted": {
+     "token": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+     "amount": "12514477"
+    },
+    "spender": "0xB274d5F4b833b61B340b654d600A864fB604a87c",
+    "nonce": "1993355410060173619975858542007397613024848003638926934372819132074995782145",
+    "deadline": "1791402675",
+    "witness": {
+     "info": {
+      "reactor": "0xB274d5F4b833b61B340b654d600A864fB604a87c",
+      "swapper": "0x7f05C94cE299Eea9FCdAE798Be34E226a0cb1e77",
+      "nonce": "1993355410060173619975858542007397613024848003638926934372819132074995782145",
+      "deadline": "1791402675",
+      "additionalValidationContract": "0x0000000000000000000000000000000000000000",
+      "additionalValidationData": "0x"
+     },
+     "cosigner": "0x4449Cd34d1eb1FEDCF02A1Be3834FfDe8E6A6180",
+     "startingBaseFee": "0",
+     "baseInput": {
+      "token": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+      "startAmount": "12514477",
+      "curve": {
+       "relativeBlocks": "32",
+       "relativeAmounts": [
+        "0"
+       ]
+      },
+      "maxAmount": "12514477",
+      "adjustmentPerGweiBaseFee": "0"
+     },
+     "baseOutputs": [
+      {
+       "token": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+       "startAmount": "10407262726",
+       "curve": {
+        "relativeBlocks": "32",
+        "relativeAmounts": [
+         "260181569"
+        ]
+       },
+       "recipient": "0x7f05C94cE299Eea9FCdAE798Be34E226a0cb1e77",
+       "minAmount": "10147081157",
+       "adjustmentPerGweiBaseFee": "0"
+      }
+     ]
+    }
+   }
+  },
+  "expected": {
+   "domain_separator": "8a6e6e19bdfb3db3409910416b47c2f8fc28b49488d6555c7fceaa4479135bc3",
+   "message_hash": "d9f38d5095c80dc8118342f144211cb537cc6b9b98027c20cefed85ffaf1cf5c",
+   "digest": "2a1fba9e8c26066eadd659350dc6e6cc17a9a63c8c4fbdbd771049adb754c33a"
+  }
+ },
+ {
+  "id": "uniswapx-V3DutchOrder-arbitrum-fee-output",
+  "source": [
+   "https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/libraries/PermitHash.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/V3DutchOrderLib.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/OrderInfoLib.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/DutchOrderLib.sol",
+   "https://arbiscan.io/tx/0x3c67c0eb31f12747d675fe1c65734b2ce7b3ce608dcc02be348285b7435e7855"
+  ],
+  "doc": {
+   "types": {
+    "EIP712Domain": [
+     {
+      "name": "name",
+      "type": "string"
+     },
+     {
+      "name": "chainId",
+      "type": "uint256"
+     },
+     {
+      "name": "verifyingContract",
+      "type": "address"
+     }
+    ],
+    "PermitWitnessTransferFrom": [
+     {
+      "name": "permitted",
+      "type": "TokenPermissions"
+     },
+     {
+      "name": "spender",
+      "type": "address"
+     },
+     {
+      "name": "nonce",
+      "type": "uint256"
+     },
+     {
+      "name": "deadline",
+      "type": "uint256"
+     },
+     {
+      "name": "witness",
+      "type": "V3DutchOrder"
+     }
+    ],
+    "NonlinearDutchDecay": [
+     {
+      "name": "relativeBlocks",
+      "type": "uint256"
+     },
+     {
+      "name": "relativeAmounts",
+      "type": "int256[]"
+     }
+    ],
+    "OrderInfo": [
+     {
+      "name": "reactor",
+      "type": "address"
+     },
+     {
+      "name": "swapper",
+      "type": "address"
+     },
+     {
+      "name": "nonce",
+      "type": "uint256"
+     },
+     {
+      "name": "deadline",
+      "type": "uint256"
+     },
+     {
+      "name": "additionalValidationContract",
+      "type": "address"
+     },
+     {
+      "name": "additionalValidationData",
+      "type": "bytes"
+     }
+    ],
+    "TokenPermissions": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "amount",
+      "type": "uint256"
+     }
+    ],
+    "V3DutchInput": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "startAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "curve",
+      "type": "NonlinearDutchDecay"
+     },
+     {
+      "name": "maxAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "adjustmentPerGweiBaseFee",
+      "type": "uint256"
+     }
+    ],
+    "V3DutchOrder": [
+     {
+      "name": "info",
+      "type": "OrderInfo"
+     },
+     {
+      "name": "cosigner",
+      "type": "address"
+     },
+     {
+      "name": "startingBaseFee",
+      "type": "uint256"
+     },
+     {
+      "name": "baseInput",
+      "type": "V3DutchInput"
+     },
+     {
+      "name": "baseOutputs",
+      "type": "V3DutchOutput[]"
+     }
+    ],
+    "V3DutchOutput": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "startAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "curve",
+      "type": "NonlinearDutchDecay"
+     },
+     {
+      "name": "recipient",
+      "type": "address"
+     },
+     {
+      "name": "minAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "adjustmentPerGweiBaseFee",
+      "type": "uint256"
+     }
+    ]
+   },
+   "primaryType": "PermitWitnessTransferFrom",
+   "domain": {
+    "name": "Permit2",
+    "chainId": 42161,
+    "verifyingContract": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+   },
+   "message": {
+    "permitted": {
+     "token": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+     "amount": "1226547455"
+    },
+    "spender": "0xB274d5F4b833b61B340b654d600A864fB604a87c",
+    "nonce": "1993355115482027011983709557485874525075304680291794092761105090895583133443",
+    "deadline": "1791393631",
+    "witness": {
+     "info": {
+      "reactor": "0xB274d5F4b833b61B340b654d600A864fB604a87c",
+      "swapper": "0xD606742f4f6a05305B59174C9DA0B3BB30987556",
+      "nonce": "1993355115482027011983709557485874525075304680291794092761105090895583133443",
+      "deadline": "1791393631",
+      "additionalValidationContract": "0x0000000000000000000000000000000000000000",
+      "additionalValidationData": "0x"
+     },
+     "cosigner": "0x4449Cd34d1eb1FEDCF02A1Be3834FfDe8E6A6180",
+     "startingBaseFee": "0",
+     "baseInput": {
+      "token": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+      "startAmount": "1226547455",
+      "curve": {
+       "relativeBlocks": "32",
+       "relativeAmounts": [
+        "0"
+       ]
+      },
+      "maxAmount": "1226547455",
+      "adjustmentPerGweiBaseFee": "0"
+     },
+     "baseOutputs": [
+      {
+       "token": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+       "startAmount": "1446161",
+       "curve": {
+        "relativeBlocks": "32",
+        "relativeAmounts": [
+         "7232"
+        ]
+       },
+       "recipient": "0xD606742f4f6a05305B59174C9DA0B3BB30987556",
+       "minAmount": "1438929",
+       "adjustmentPerGweiBaseFee": "0"
+      },
+      {
+       "token": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+       "startAmount": "23514",
+       "curve": {
+        "relativeBlocks": "32",
+        "relativeAmounts": [
+         "117"
+        ]
+       },
+       "recipient": "0x147CF09E7373B8FDA6f12021F1b0f98D6da1A566",
+       "minAmount": "23397",
+       "adjustmentPerGweiBaseFee": "0"
+      }
+     ]
+    }
+   }
+  },
+  "expected": {
+   "domain_separator": "8a6e6e19bdfb3db3409910416b47c2f8fc28b49488d6555c7fceaa4479135bc3",
+   "message_hash": "d4e97cc058c321e71216e131c51438117e2c106360aa5d893bc194c54b51bfe1",
+   "digest": "4ef893b03e07c41dad0a7811640b7fcd7eafd518099eea36a6191f7c56061595"
+  }
+ },
+ {
+  "id": "uniswapx-V3DutchOrder-arbitrum-negative-curve",
+  "source": [
+   "https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/libraries/PermitHash.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/V3DutchOrderLib.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/OrderInfoLib.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/DutchOrderLib.sol",
+   "https://arbiscan.io/tx/0xfa14890926a78bb4095b7453c97150b3dea12fe8d53d21d97fd7366dfb595b7a"
+  ],
+  "doc": {
+   "types": {
+    "EIP712Domain": [
+     {
+      "name": "name",
+      "type": "string"
+     },
+     {
+      "name": "chainId",
+      "type": "uint256"
+     },
+     {
+      "name": "verifyingContract",
+      "type": "address"
+     }
+    ],
+    "PermitWitnessTransferFrom": [
+     {
+      "name": "permitted",
+      "type": "TokenPermissions"
+     },
+     {
+      "name": "spender",
+      "type": "address"
+     },
+     {
+      "name": "nonce",
+      "type": "uint256"
+     },
+     {
+      "name": "deadline",
+      "type": "uint256"
+     },
+     {
+      "name": "witness",
+      "type": "V3DutchOrder"
+     }
+    ],
+    "NonlinearDutchDecay": [
+     {
+      "name": "relativeBlocks",
+      "type": "uint256"
+     },
+     {
+      "name": "relativeAmounts",
+      "type": "int256[]"
+     }
+    ],
+    "OrderInfo": [
+     {
+      "name": "reactor",
+      "type": "address"
+     },
+     {
+      "name": "swapper",
+      "type": "address"
+     },
+     {
+      "name": "nonce",
+      "type": "uint256"
+     },
+     {
+      "name": "deadline",
+      "type": "uint256"
+     },
+     {
+      "name": "additionalValidationContract",
+      "type": "address"
+     },
+     {
+      "name": "additionalValidationData",
+      "type": "bytes"
+     }
+    ],
+    "TokenPermissions": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "amount",
+      "type": "uint256"
+     }
+    ],
+    "V3DutchInput": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "startAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "curve",
+      "type": "NonlinearDutchDecay"
+     },
+     {
+      "name": "maxAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "adjustmentPerGweiBaseFee",
+      "type": "uint256"
+     }
+    ],
+    "V3DutchOrder": [
+     {
+      "name": "info",
+      "type": "OrderInfo"
+     },
+     {
+      "name": "cosigner",
+      "type": "address"
+     },
+     {
+      "name": "startingBaseFee",
+      "type": "uint256"
+     },
+     {
+      "name": "baseInput",
+      "type": "V3DutchInput"
+     },
+     {
+      "name": "baseOutputs",
+      "type": "V3DutchOutput[]"
+     }
+    ],
+    "V3DutchOutput": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "startAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "curve",
+      "type": "NonlinearDutchDecay"
+     },
+     {
+      "name": "recipient",
+      "type": "address"
+     },
+     {
+      "name": "minAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "adjustmentPerGweiBaseFee",
+      "type": "uint256"
+     }
+    ]
+   },
+   "primaryType": "PermitWitnessTransferFrom",
+   "domain": {
+    "name": "Permit2",
+    "chainId": 42161,
+    "verifyingContract": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+   },
+   "message": {
+    "permitted": {
+     "token": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+     "amount": "18453595142"
+    },
+    "spender": "0xB274d5F4b833b61B340b654d600A864fB604a87c",
+    "nonce": "1993353428323324451238365100392469529508888071612295616155122962755034285057",
+    "deadline": "1791397885",
+    "witness": {
+     "info": {
+      "reactor": "0xB274d5F4b833b61B340b654d600A864fB604a87c",
+      "swapper": "0xd603a49886c9B500f96C0d798aed10068D73bF7C",
+      "nonce": "1993353428323324451238365100392469529508888071612295616155122962755034285057",
+      "deadline": "1791397885",
+      "additionalValidationContract": "0x0000000000000000000000000000000000000000",
+      "additionalValidationData": "0x"
+     },
+     "cosigner": "0x4449Cd34d1eb1FEDCF02A1Be3834FfDe8E6A6180",
+     "startingBaseFee": "0",
+     "baseInput": {
+      "token": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+      "startAmount": "18361786211",
+      "curve": {
+       "relativeBlocks": "32",
+       "relativeAmounts": [
+        "-91808931"
+       ]
+      },
+      "maxAmount": "18453595142",
+      "adjustmentPerGweiBaseFee": "0"
+     },
+     "baseOutputs": [
+      {
+       "token": "0x0000000000000000000000000000000000000000",
+       "startAmount": "7165000000000000000",
+       "curve": {
+        "relativeBlocks": "32",
+        "relativeAmounts": [
+         "0"
+        ]
+       },
+       "recipient": "0xd603a49886c9B500f96C0d798aed10068D73bF7C",
+       "minAmount": "7165000000000000000",
+       "adjustmentPerGweiBaseFee": "0"
+      }
+     ]
+    }
+   }
+  },
+  "expected": {
+   "domain_separator": "8a6e6e19bdfb3db3409910416b47c2f8fc28b49488d6555c7fceaa4479135bc3",
+   "message_hash": "b8c2d5a7b402683b9422031588d6231566d3813eb284905088fdab5bbbfb3e27",
+   "digest": "6e576a58ecf5e234ea6fc3eae0b97fe2ac8fa90c5a8e822da53fad929b5977b2"
+  }
  }
 ]
