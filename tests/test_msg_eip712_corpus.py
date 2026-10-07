@@ -55,6 +55,7 @@ class TestMsgEip712Corpus(common.KeepKeyTest):
     # The device-driven walk from the streaming suite; borrowed, not
     # inherited, so its tests do not run twice.
     _walk = streaming.TestMsgEip712Streaming._walk
+    _chunked_values = streaming.TestMsgEip712Streaming._chunked_values
 
     def setUp(self):
         super(TestMsgEip712Corpus, self).setUp()

@@ -28,8 +28,14 @@ ADDRESS = DataType.ADDRESS
 STRUCT = DataType.STRUCT
 
 # EthereumTypedDataValueAck.value max_size in messages-ethereum.options, and
-# EIP712_MAX_LEAF on the device.
+# EIP712_MAX_LEAF on the device: one ValueAck, and one chunk of a longer value.
 MAX_LEAF_BYTES = 1024
+# EIP712_MAX_VALUE: the longest `bytes` or `string` value the device takes in
+# chunks.
+MAX_VALUE_BYTES = 1024 * 1024
+# The Features capability (as common.capability_names() spells it) of
+# firmware that takes chunked values.
+CHUNKED_VALUES = 'eip712-chunked-values'
 MAX_IDENTIFIER_BYTES = 31
 # Struct type names (EIP712_MAX_STRUCT_NAME - 1 on the device) may also use
 # ':' after the first character, as Hyperliquid's
@@ -151,13 +157,14 @@ def _hex_bytes(value, what):
     return bytes(bytearray.fromhex(h))
 
 
-def encode_value(field, value):
+def encode_value(field, value, max_bytes=MAX_LEAF_BYTES):
     """One leaf, as the exact bytes the device will hash and display.
 
     Raw big-endian at the declared width, never a decimal string: the device
     does no number parsing at all, which is what removes the old path's
     2**63-1 ceiling and any chance of the two sides disagreeing about what a
-    decimal meant.
+    decimal meant. A dynamic value may be up to `max_bytes` long; past
+    MAX_LEAF_BYTES only value_ack() can put it on the wire.
     """
     dt = field['data_type']
 
@@ -202,18 +209,18 @@ def encode_value(field, value):
             if len(b) != size:
                 raise Eip712Error('bytes%d must be %d bytes, got %d' % (size, size, len(b)))
             return b
-        if len(b) > MAX_LEAF_BYTES:
-            raise Eip712Error('bytes value is %d bytes, over the %d-byte wire limit'
-                              % (len(b), MAX_LEAF_BYTES))
+        if len(b) > max_bytes:
+            raise Eip712Error('bytes value is %d bytes, over the %d-byte limit'
+                              % (len(b), max_bytes))
         return b
 
     if dt == STRING:
         if not isinstance(value, str):
             raise Eip712Error('string field must be a string')
         b = value.encode('utf-8')
-        if len(b) > MAX_LEAF_BYTES:
-            raise Eip712Error('string value is %d bytes, over the %d-byte wire limit'
-                              % (len(b), MAX_LEAF_BYTES))
+        if len(b) > max_bytes:
+            raise Eip712Error('string value is %d bytes, over the %d-byte limit'
+                              % (len(b), max_bytes))
         return b
 
     raise Eip712Error('Cannot encode data type %r as a leaf' % (dt,))
@@ -324,4 +331,48 @@ def build_struct_ack(members):
             entry.type.struct_name = m['type']['struct_name']
         for lvl in m['type']['array_levels']:
             entry.type.array_levels.append(lvl)
+    return ack
+
+
+def value_ack(typed_data, request, chunked=False):
+    """The EthereumTypedDataValueAck that answers a device ValueRequest.
+
+    A value of up to MAX_LEAF_BYTES goes whole. A longer `bytes` or `string`
+    goes in MAX_LEAF_BYTES chunks: the first carries value_total_length, and
+    each later request names a value_offset that its answer echoes. The
+    device may read a string twice from offset 0 (it counts and checks it
+    before showing it), so every chunk is served by its offset alone.
+
+    `chunked` must be True only when the firmware reports CHUNKED_VALUES.
+    Older firmware skips the chunk fields and would hash the first chunk
+    alone, so without the capability a long value is refused here.
+    """
+    resolved = resolve_member_path(typed_data, list(request.member_path))
+    ack = eth_proto.EthereumTypedDataValueAck()
+    if resolved[0] == 'length':
+        if request.HasField('value_offset'):
+            raise Eip712Error('Device asked for an array length in chunks')
+        ack.value = encode_array_length(resolved[1])
+        return ack
+    value = encode_value(resolved[1], resolved[2], MAX_VALUE_BYTES)
+    if len(value) > MAX_LEAF_BYTES and request.member_path[0] == 0:
+        raise Eip712Error('A domain value of %d bytes cannot be signed; the '
+                          'device takes at most %d' % (len(value), MAX_LEAF_BYTES))
+    if request.HasField('value_offset'):
+        offset = request.value_offset
+        if len(value) <= MAX_LEAF_BYTES or offset >= len(value):
+            raise Eip712Error('Device asked for offset %d of a %d-byte value'
+                              % (offset, len(value)))
+        ack.value = value[offset:offset + MAX_LEAF_BYTES]
+        ack.value_offset = offset
+        return ack
+    if len(value) <= MAX_LEAF_BYTES:
+        ack.value = value
+        return ack
+    if not chunked:
+        raise Eip712Error('A %d-byte value needs firmware that takes chunked '
+                          'values (%s); this one takes at most %d bytes'
+                          % (len(value), CHUNKED_VALUES, MAX_LEAF_BYTES))
+    ack.value = value[:MAX_LEAF_BYTES]
+    ack.value_total_length = len(value)
     return ack

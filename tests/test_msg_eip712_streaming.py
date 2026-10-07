@@ -158,6 +158,59 @@ class TestEip712StreamHelpers(unittest.TestCase):
         self.assertEqual(domain.hex(), SPEC_DOMAIN_SEPARATOR)
         self.assertEqual(message.hex(), SPEC_MESSAGE_HASH)
 
+    def test_long_values_are_chunked_only_for_capable_firmware(self):
+        """Over 1 KB, a value goes in 1 KB chunks: the first names the total,
+        each later one echoes the offset asked for. Without the capability,
+        or in the domain, the host refuses rather than send a value an older
+        device would truncate."""
+        doc = {
+            "types": {
+                "EIP712Domain": [{"name": "name", "type": "string"}],
+                "Msg": [{"name": "data", "type": "bytes"},
+                        {"name": "note", "type": "string"},
+                        {"name": "list", "type": "uint8[]"}],
+            },
+            "primaryType": "Msg",
+            "domain": {"name": "x" * 1025},
+            "message": {"data": "0x" + "ab" * 1025, "note": "y" * 1024,
+                        "list": [1]},
+        }
+
+        def request(path, offset=None):
+            req = eth.EthereumTypedDataValueRequest(member_path=path)
+            if offset is not None:
+                req.value_offset = offset
+            return req
+
+        with self.assertRaisesRegex(es.Eip712Error, 'chunked values'):
+            es.value_ack(doc, request([1, 0]))
+        first = es.value_ack(doc, request([1, 0]), chunked=True)
+        self.assertEqual(first.value, b'\xab' * 1024)
+        self.assertEqual(first.value_total_length, 1025)
+        self.assertFalse(first.HasField('value_offset'))
+        last = es.value_ack(doc, request([1, 0], 1024), chunked=True)
+        self.assertEqual((last.value, last.value_offset), (b'\xab', 1024))
+        self.assertFalse(last.HasField('value_total_length'))
+        # A string is read a second time from 0.
+        again = es.value_ack(doc, request([1, 0], 0), chunked=True)
+        self.assertEqual((len(again.value), again.value_offset), (1024, 0))
+        with self.assertRaises(es.Eip712Error):
+            es.value_ack(doc, request([1, 0], 1025), chunked=True)
+        # 1024 bytes still go whole, with or without the capability.
+        for chunked in (False, True):
+            whole = es.value_ack(doc, request([1, 1]), chunked)
+            self.assertEqual(whole.value, b'y' * 1024)
+            self.assertFalse(whole.HasField('value_total_length'))
+            with self.assertRaises(es.Eip712Error):
+                es.value_ack(doc, request([1, 1], 1024), chunked)
+        with self.assertRaisesRegex(es.Eip712Error, 'domain'):
+            es.value_ack(doc, request([0, 0]), chunked=True)
+        with self.assertRaises(es.Eip712Error):
+            es.value_ack(doc, request([1, 2], 0), chunked=True)
+        doc["message"]["data"] = "0x" + "00" * (es.MAX_VALUE_BYTES + 1)
+        with self.assertRaises(es.Eip712Error):
+            es.value_ack(doc, request([1, 0]), chunked=True)
+
     def test_review_identifiers_are_exact_and_unambiguous(self):
         doc = {
             'types': {
@@ -243,6 +296,8 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
             msg.address_n.append(n)
         msg.primary_type = doc['primaryType']
         msg.metamask_v4_compat = True
+        # Read before the walk: reading Features mid-walk would end it.
+        chunked = self._chunked_values()
 
         # (ButtonRequest code, framebuffer) for every screen, in order.
         self.frames = []
@@ -267,14 +322,14 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
                 resp = self.client.call_raw(
                     es.build_struct_ack(es.struct_members(doc, resp.name)))
             elif isinstance(resp, eth.EthereumTypedDataValueRequest):
-                r = es.resolve_member_path(doc, list(resp.member_path))
-                ack = eth.EthereumTypedDataValueAck()
-                ack.value = (es.encode_array_length(r[1]) if r[0] == 'length'
-                             else es.encode_value(r[1], r[2]))
-                resp = self.client.call_raw(ack)
+                resp = self.client.call_raw(es.value_ack(doc, resp, chunked))
             else:
                 return resp
         raise AssertionError('walk did not terminate')
+
+    def _chunked_values(self):
+        """Whether the firmware takes values over 1 KB in chunks."""
+        return es.CHUNKED_VALUES in (self.firmware_capabilities() or ())
 
     def _assert_final_sign_screen(self, first_line):
         """Every typed-data signature ends with ONE "Sign Typed Data" screen
@@ -862,11 +917,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
                 resp = self.client.call_raw(
                     es.build_struct_ack(es.struct_members(doc, resp.name)))
             elif isinstance(resp, eth.EthereumTypedDataValueRequest):
-                r = es.resolve_member_path(doc, list(resp.member_path))
-                ack = eth.EthereumTypedDataValueAck()
-                ack.value = (es.encode_array_length(r[1]) if r[0] == 'length'
-                             else es.encode_value(r[1], r[2]))
-                resp = self.client.call_raw(ack)
+                resp = self.client.call_raw(es.value_ack(doc, resp))
             else:
                 break
         self.assertIsInstance(resp, proto.Failure)
@@ -965,6 +1016,182 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         resp = self._walk(doc)
         self._assert_reference_signature(doc, resp)
 
+
+    # -- Values over one ValueAck ------------------------------------------
+    # Safe MultiSend data and Snapshot proposal bodies run past 1 KB. Firmware
+    # with CAPABILITY_EIP712_CHUNKED_VALUES takes them in 1 KB chunks and
+    # shows every byte, numbered over the whole value.
+
+    def _walk_text(self, doc, tamper=None, decline=None, max_steps=600):
+        """The walk, recording each confirmation's (title, body) exactly as
+        formatted (once per confirmation, however it is paged). `tamper`
+        may rewrite a value answer; `decline` names a body prefix to reject."""
+        msg = eth.EthereumSignTypedData(address_n=PATH,
+                                        primary_type=doc['primaryType'],
+                                        metamask_v4_compat=True)
+        screens = []
+        resp = self.client.call_raw(msg)
+        for _ in range(max_steps):
+            if isinstance(resp, proto.ButtonRequest):
+                text = self.client.debug.read_confirm_text()
+                if not screens or screens[-1] != text:
+                    screens.append(text)
+                if decline and text[1].startswith(decline):
+                    self.client.debug.press_no()
+                else:
+                    self.client.debug.press_yes()
+                resp = self.client.call_raw(proto.ButtonAck())
+            elif isinstance(resp, eth.EthereumTypedDataStructRequest):
+                resp = self.client.call_raw(
+                    es.build_struct_ack(es.struct_members(doc, resp.name)))
+            elif isinstance(resp, eth.EthereumTypedDataValueRequest):
+                ack = es.value_ack(doc, resp, chunked=True)
+                if tamper:
+                    tamper(ack)
+                resp = self.client.call_raw(ack)
+            else:
+                return resp, screens
+        raise AssertionError('walk did not terminate')
+
+    @staticmethod
+    def _escaped(data):
+        """A string as the review draws it: 0x21-0x7e as itself but a
+        backslash doubled, any other byte (a space too) as \\xNN."""
+        return ''.join('\\\\' if b == 0x5c else chr(b) if 0x21 <= b <= 0x7e
+                       else '\\x%02x' % b for b in data)
+
+    def _parts(self, screens, path, type_name):
+        """The parts of `path`, checked to count 1..N in order, joined."""
+        joined, total = '', None
+        for number, (_, body) in enumerate(
+                b for b in screens if b[1].startswith(path + ' (')):
+            head, _, rest = body.partition('\n')
+            index, of = head[len(path) + 2:-1].split('/')
+            self.assertEqual(int(index), number + 1)
+            self.assertIn(total, (None, int(of)))
+            total = int(of)
+            self.assertTrue(rest.startswith(type_name + ': '), body[:60])
+            joined += rest[len(type_name) + 2:]
+        self.assertIsNotNone(total, 'no part of ' + path)
+        self.assertEqual(number + 1, total)
+        return joined, total
+
+    def _assert_signed(self, doc, resp):
+        self.assertIsInstance(resp, eth.EthereumTypedDataSignature,
+                              getattr(resp, 'message', resp))
+        domain, message, digest = reference_eip712_hashes(doc)
+        self.assertEqual(resp.domain_separator_hash.hex(), domain.hex())
+        self.assertEqual(resp.message_hash.hex(), message.hex())
+        address = self.client.ethereum_get_address(PATH)
+        self.assertEqual(recover_signer(resp.signature, digest).hex(),
+                         address.hex())
+
+    @staticmethod
+    def _blob(data_type, value):
+        return {
+            "types": {
+                "EIP712Domain": [{"name": "name", "type": "string"}],
+                "Blob": [{"name": "data", "type": data_type},
+                         {"name": "n", "type": "uint256"}],
+            },
+            "primaryType": "Blob",
+            "domain": {"name": "Blob"},
+            "message": {"data": value, "n": 7},
+        }
+
+    def test_values_over_1kb_sign_in_chunks(self):
+        """1024, 1025 and 2048 bytes, and a string with a three-byte
+        character split across the first chunk boundary: each signs with the
+        independent digest, every byte is shown once and in order, and the
+        part counter covers the whole value from its first screen."""
+        self.requires_release_capability(es.CHUNKED_VALUES)
+        euro = 'a' * 1023 + '\u20ac' + 'b' * 500
+        cases = [('bytes', bytes(range(256)) * 4),
+                 ('bytes', bytes(range(256)) * 4 + b'\xfe'),
+                 ('bytes', bytes(range(256)) * 8),
+                 ('string', ('x' * 1025).encode()),
+                 ('string', euro.encode('utf-8'))]
+        for data_type, data in cases:
+            with self.subTest(type=data_type, length=len(data)):
+                value = ('0x' + data.hex() if data_type == 'bytes'
+                         else data.decode('utf-8'))
+                doc = self._blob(data_type, value)
+                resp, screens = self._walk_text(doc)
+                self._assert_signed(doc, resp)
+                shown, parts = self._parts(screens, 'data', data_type)
+                self.assertEqual(shown, '0x' + data.hex()
+                                 if data_type == 'bytes'
+                                 else self._escaped(data))
+                self.assertGreater(parts, 1)
+
+    def test_misframed_chunks_are_refused(self):
+        """A chunk at another offset than the one asked for, or one running
+        past the total, is refused, and the session is gone."""
+        self.requires_release_capability(es.CHUNKED_VALUES)
+        doc = self._blob('bytes', '0x' + 'ab' * 1500)
+
+        def wrong_offset(ack):
+            if ack.HasField('value_offset'):
+                ack.value_offset += 1
+
+        def past_total(ack):
+            if ack.HasField('value_offset'):
+                ack.value = ack.value + b'\xab' * 100
+
+        for tamper, error in ((wrong_offset, 'EIP-712 value chunk out of order'),
+                              (past_total,
+                               'EIP-712 value chunk has the wrong length')):
+            with self.subTest(error=error):
+                resp, _ = self._walk_text(doc, tamper)
+                self.assertIsInstance(resp, proto.Failure)
+                self.assertEqual((resp.code, resp.message),
+                                 (types.Failure_SyntaxError, error))
+                stale = self.client.call_raw(eth.EthereumTypedDataValueAck(
+                    value=b'\xab' * 476, value_offset=1024))
+                self.assertIsInstance(stale, proto.Failure)
+        self._assert_signed(doc, self._walk_text(doc)[0])
+
+    def test_declining_a_part_mid_value_signs_nothing(self):
+        """Rejecting a part of the second chunk cancels; the next document
+        signs with its own digest."""
+        self.requires_release_capability(es.CHUNKED_VALUES)
+        doc = self._blob('bytes', '0x' + 'cd' * 3000)
+        resp, screens = self._walk_text(doc, decline='data (8/')
+        self.assertIsInstance(resp, proto.Failure)
+        self.assertEqual(resp.code, types.Failure_ActionCancelled)
+        self.assertTrue(screens[-1][1].startswith('data (8/'))
+        self._assert_signed(doc, self._walk_text(doc)[0])
+
+    def test_unlimited_approve_in_chunked_safe_data_warns_first(self):
+        """approve(spender, 2^256-1) heading a 3 KB SafeTx.data: the
+        UNLIMITED warning is read from the first chunk and shown before any
+        screen of the bytes."""
+        self.requires_release_capability(es.CHUNKED_VALUES)
+        self.requires_release_capability("erc20-unlimited-approve-review")
+        spender = '68b3465833fb72a70ecdf485e0e4c7bd8665fc45'
+        data = ('095ea7b3' + '00' * 12 + spender + 'ff' * 32).ljust(6000, '0')
+        doc = {
+            "types": {
+                "EIP712Domain": [{"name": "chainId", "type": "uint256"}],
+                "SafeTx": [{"name": "to", "type": "address"},
+                           {"name": "data", "type": "bytes"}],
+            },
+            "primaryType": "SafeTx",
+            "domain": {"chainId": 1},
+            "message": {"to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                        "data": "0x" + data},
+        }
+        resp, screens = self._walk_text(doc)
+        self._assert_signed(doc, resp)
+        titles = [title for title, _ in screens]
+        self.assertEqual(titles.count('UNLIMITED approval'), 1)
+        warning = titles.index('UNLIMITED approval')
+        first = next(i for i, (_, body) in enumerate(screens)
+                     if body.startswith('data ('))
+        self.assertLess(warning, first)
+        self.assertIn('to spend ALL your USDC', screens[warning][1])
+        self.assertEqual(self._parts(screens, 'data', 'bytes')[0],
+                         '0x' + data)
 
 if __name__ == '__main__':
     unittest.main()
