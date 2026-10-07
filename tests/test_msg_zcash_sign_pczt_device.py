@@ -192,6 +192,88 @@ FABRICATED_BUNDLE = [
 ]
 
 
+# The same spend and change as an NU6.2 bundle (orchard 0.16.0,
+# BundleVersion::orchard_v2(), Flags::ENABLED), as wallets build today. The
+# builder pads it with a dummy spend (dummy_sk, host-signed) and a dummy
+# zero-valued output to a random address whose ciphertext really decrypts.
+PADDING_BUNDLE = [
+    {
+        'nullifier': bytes.fromhex('aed05ebddc392dda842311207fbc3fa84fb454f43fcfac292d87a3e8300ee112'),
+        'rk': bytes.fromhex('2c1b8779ac1aca3abec73dfe9b8635be2fae970dfe76237495042fed96c3849f'),
+        'alpha': bytes.fromhex('f081a5920a807a9189bc48f6ef5916b48effd77745c905def34316c2af87290c'),
+        'cv_net': bytes.fromhex('ba35dd670b2f19d39a44f2fb871e35ec8b9a444d49bf84a8e9bf6c5556e69d0c'),
+        'cmx': bytes.fromhex('087796ff6b2f7943ea69464410a8b2710c2b90316fd5c748f41e3a4793b59d0a'),
+        'epk': bytes.fromhex('81f9bbeaf78f326630fd4526ab67289a44d0d09972ef30682d4f5ffeb9417798'),
+        'enc': bytes.fromhex(
+            '7635af9d8406383ee8dd92f37ef87a8216b57a8004ea779251263d8665916e2c'
+            'ad6139ad2266484d70f79806e431c7531de4c5d620b14b585070871e1c50aeca'
+            'dda4ae9a45216132c33e3ec304c1edaa29d1a18687e546b95139bce8f57de0f1'
+            '1e200bad146f9580434d6471084df7b0cb8b54f09098923e821939c6769f33f4'
+            '1add1d82c3660dcf065c8bf43e3f69925270ef175fa2f595166dbeeb00d2eed8'
+            'd19280580081a541ff0db45894f0af53c82f85c4d83e139a98dd99b5544ab23a'
+            '0ee74c33a416bc4ab28d28d5717463f9e100f7cbe2f7334d93a6f8715e49791f'
+            '3e1efb1a6c285b9e9aaca988ea3d4dd90ec5307a7e8067d7926bbc664c049968'
+            'aac677fd0497c68555809c7f34888b5aae50ba8c4bc509a1a5773eecfaf57e32'
+            '7bbcc042059d61e60c37bbe6b9981f8c862c08714ced7143e480d33373bc2871'
+            '0a6cc670f85d68400fc49e5581b2a918bdac988ec720a9fc2196a0833db5026e'
+            '753924001effd0ca209bdf8fab61c4cbb8e666d408979ad351f9de8e3551a032'
+            'a471b1842cb2534c8f98996d964b67344a96f5baa24db77ebc581a252d242933'
+            'd413c4cfe3dc9b60b7821d4f02d95a09321cbd677e9311f0acfb6e2e97d54ca7'
+            '3280e64c2d216e3b190a44b5b6c26da1a9f8ec1dac3d5d494e4c650562ad5594'
+            '6736bb8ea447b4905a1602a67c988c5aba1fa81c03e33b1af82f60de2c23d1ac'
+            'afcd6dcfb1dddbe12b695295a694e893f2279a271039ba3eb1ab48446047bef2'
+            '9efa519bb08cb6f0c0a753f9a70c2b683e55b783a8a79310e990cb9fbef3d1fa'
+            '255602bc'),
+        'out': bytes.fromhex(
+            '72d9526061fc8f2088c225996dde720ab8f19502950b052f9c8d9e8e00f06532'
+            'ba4ffff2ecd176e5836af72a44a1d58cefd03dd089b66b4dc0d92d3860e1d437'
+            '5595655e7abbb43afcea3a8b570f1987'),
+        'recipient': bytes.fromhex(
+            'ddae703de8aee25d4e439b8a646b2a5a86f57f802890996e2b3c1f41ff2348a0'
+            'f0bb27c032b2e7718c962e'),
+        'rseed': bytes.fromhex('c29d5ab216448f6ebf6388a6251160e7c9fe2413c85ac1cd2340363807ba8840'),
+        'value': 90000,
+    },
+    {
+        'nullifier': bytes.fromhex('82b4ace6f48bca884543cca25633e137f3791e3ed655c775f8b6f84187c8082d'),
+        'rk': bytes.fromhex('ffc4c2218a0382a530909566f44a7ab4421df95cd12e0590a19c01eb6e06b83e'),
+        'alpha': bytes.fromhex('14de74940160f3450f3f8fad83c3d50dc9fc766bcdd4d5968a13ad8245613138'),
+        'cv_net': bytes.fromhex('21f87ec22c92674f97585415535b5cdade848408fb729765bdcf2c36118e463f'),
+        'cmx': bytes.fromhex('b46b4f684d39569dcd24db0db912406dff3fbc78466e590260d729313499230d'),
+        'epk': bytes.fromhex('a7d08787142ac449a74203ccf11ad1e927b8fb4356f33ae8f81b1c9e7b3c01a6'),
+        'enc': bytes.fromhex(
+            '43fed1e4afbd93923651a18623245c91b2717cbbf89ef9a4905bd0da58f3a578'
+            'bd2330a347bc32526261273feeb11120746ce964aac12d82209183195eeafa8d'
+            '54ac7b02e4c107aee4ec1db2452a50bcf53ebb7902827bfef0ba144ca16c0f9a'
+            '1ef79116b5f86a740a68c46b28f5b1235235ed347244ff7beb65898e74f139d5'
+            '975965a2f786e60a9b081f96f576a087070bb7a8e1a182fbf7366467005a051e'
+            '28ed1509aa2177a684417e618e0a07a4f157f1152308ef7f6757533f5f45cd67'
+            'a21cb1b26944fb266fd2bd6e892bc9bc672d2eed09afcd7119074b0c8639b13c'
+            '548df077595390a7aa4b4181341804c793644d9bd19b92e0e322d87b64075eac'
+            '7e6a908c9fee485175ec7c85ffd3e010a85fb67adf6435bd66f45464f7ace727'
+            '7471eed60135e19d420fb5b9af89957b23f33e458e09c393a02d9403eabef6c8'
+            'f11f4002cd2c877197f573bc0146bd6eef0bc00283f29ad0ae500ea80c84e221'
+            '81f9470a4d1e8c60b4680efbd5dd47fa73cf82de930b304afe0686d11b963c8b'
+            'e5a3731e7f74b245958c46c3e0b591278ec8e4206f291a80193ec325f06742ee'
+            '3de56bd11121df9432eb2456ae090f64e840d2ea17365abb6c6ec9fd51f94036'
+            'c0ace903ae39ef5a0824799b1b4ba529c3403d240d7f18cb90559af4252f1fd2'
+            '27eefabfcb830b94c3c3e5114e41265cef100aad103bd25505279a39cb294db4'
+            '0ccfe4d4b8c13539b975564008c113da36d67d50568769751fb9c775f363c969'
+            '4d834ba1ea03e956a6036dc2a676918044a1fc76c777caad479de213ef856055'
+            '5407b7ca'),
+        'out': bytes.fromhex(
+            'e41a17506e1af63acd8edc563c195819e26e740b5f3fb4830242d804bcee8a56'
+            '2572f52e73d190ef270ecf7aaf309e93b2ab9eb6200b8466cd1aa7889b42cfcc'
+            '2fa9b853f9e136be5e04f9020ac82d4f'),
+        'recipient': bytes.fromhex(
+            'df8789f215ca59a4fc59ce4e9b694f87b354d01cc397c47b594db69dc0fd4ad0'
+            '0e11a41d7751189db93210'),
+        'rseed': bytes.fromhex('983d2f7efb6cbb27571832127afd4f48136bdab4ebc68bc2a7c667a4ab231030'),
+        'value': 0,
+    },
+]
+
+
 def fabricated_action(v):
     return {
         'alpha': v['alpha'],
@@ -638,6 +720,35 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         self.assertIn('0.00090000 ZEC', outputs[0])
         for _, _, body in screens:
             self.assertNotIn('0.00000000 ZEC', body)
+
+    def test_zero_value_padding_output_is_not_shown(self):
+        """A padding dummy output is not shown, even though it decrypts.
+
+        Wallets pad an Orchard bundle with a dummy zero-valued output to a
+        random address (protocol spec 4.8.3). Its cmx binds value 0, so like
+        Keystone and Ledger the device shows only the change and the fee, and
+        signs only the wallet spend.
+        """
+        self.requires_firmware(self.FABRICATED_OUTPUT_FIRMWARE)
+        actions = [fabricated_action(v) for v in PADDING_BUNDLE]
+        actions[1]['is_spend'] = False  # the dummy spend carries dummy_sk
+        kwargs = sign_kwargs(actions, fee=10000, orchard_value_balance=10000,
+                             total_amount=90000)
+        kwargs['orchard_digest'] = bundle_digest(actions, False, 5,
+                                                 value_balance=10000)
+        screens = self._capture_confirm_text()
+
+        result = self.client.zcash_sign_pczt(**kwargs)
+
+        self.assertIsInstance(result, zcash_proto.ZcashSignedPCZT)
+        self.assertEqual(len(result.signatures), 1)
+        outputs = [body for code, _, body in screens
+                   if code == proto_types.ButtonRequest_ConfirmOutput]
+        self.assertEqual(len(outputs), 2)  # the change's amount and address
+        self.assertIn('0.00090000 ZEC', outputs[0])
+        for _, _, body in screens:
+            self.assertNotIn('0.00000000 ZEC', body)
+
 
 if __name__ == '__main__':
     unittest.main()
