@@ -192,6 +192,7 @@ class KeepKeyTest(unittest.TestCase):
         function of that result."""
         screens = []
         press = self.client.callback_ButtonRequest
+        nested = 'callback_ButtonRequest' in vars(self.client)
 
         def capture(msg):
             screens.append(self.client._read_oled_after_settle())
@@ -201,7 +202,10 @@ class KeepKeyTest(unittest.TestCase):
         try:
             result = call()
         finally:
-            del self.client.callback_ButtonRequest
+            if nested:  # an enclosing check is capturing too
+                self.client.callback_ButtonRequest = press
+            else:
+                del self.client.callback_ButtonRequest
         if callable(expected):
             expected = expected(result)
         self.assertTrue(

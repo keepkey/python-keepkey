@@ -5,10 +5,15 @@ from base64 import b64encode
 from binascii import hexlify, unhexlify
 
 import keepkeylib.messages_pb2 as proto
+import keepkeylib.messages_cosmos_pb2 as cosmos_proto
 import keepkeylib.types_pb2 as proto_types
 from keepkeylib.tools import parse_path
 
 DEFAULT_BIP32_PATH = "m/44h/118h/0h/0/0"
+
+# Real 52-character operator addresses (valid bech32): three 140 px rows.
+VALIDATOR = "cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0"
+VALIDATOR_2 = "cosmosvaloper1c4k24jzduc365kywrsvf5ujz4ya6mwympnc4en"
 
 def make_send(from_address, to_address, amount):
     return {
@@ -126,6 +131,58 @@ class TestMsgCosmosSignTx(common.KeepKeyTest):
         )
 
         self.assertEqual(hexlify(signature.signature), "71295606d64f1fa987fea1af2292d0b735a5c2d5104b7cc3f818a7208ea9b1a504a386c40011242c115f77268c67af841d29137af5d608d21361ebc7e0513a11")
+
+    def _sign_staking(self, **msg):
+        path = parse_path(DEFAULT_BIP32_PATH)
+        self.client.call(cosmos_proto.CosmosSignTx(
+            address_n=path, account_number=19637, chain_id="cosmoshub-4",
+            fee_amount=5000, gas=200000, memo="", sequence=3, msg_count=1))
+        resp = self.client.call(cosmos_proto.CosmosMsgAck(**msg))
+        self.assertIsInstance(resp, cosmos_proto.CosmosSignedTx)
+        return resp
+
+    def _delegator(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+        return self.client.cosmos_get_address(parse_path(DEFAULT_BIP32_PATH))
+
+    # 7.14.x drops the third row of a validator address: these skip there.
+    def test_delegate_shows_whole_validator(self):
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        me = self._delegator()
+        self.assert_shows_address(lambda: self._sign_staking(
+            delegate=cosmos_proto.CosmosMsgDelegate(
+                delegator_address=me, validator_address=VALIDATOR,
+                amount=1000000)), VALIDATOR)
+
+    def test_undelegate_shows_whole_validator(self):
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        me = self._delegator()
+        self.assert_shows_address(lambda: self._sign_staking(
+            undelegate=cosmos_proto.CosmosMsgUndelegate(
+                delegator_address=me, validator_address=VALIDATOR,
+                amount=1000000)), VALIDATOR)
+
+    def test_redelegate_shows_both_whole_validators(self):
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        me = self._delegator()
+        # Nested: the inner check sees the same screens as the outer one.
+        self.assert_shows_address(lambda: self.assert_shows_address(
+            lambda: self._sign_staking(
+                redelegate=cosmos_proto.CosmosMsgRedelegate(
+                    delegator_address=me, validator_src_address=VALIDATOR,
+                    validator_dst_address=VALIDATOR_2, amount=1000000)),
+            VALIDATOR), VALIDATOR_2)
+
+    def test_rewards_shows_whole_validator(self):
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        me = self._delegator()
+        self.assert_shows_address(lambda: self._sign_staking(
+            rewards=cosmos_proto.CosmosMsgRewards(
+                delegator_address=me, validator_address=VALIDATOR)), VALIDATOR)
 
 if __name__ == '__main__':
     unittest.main()
