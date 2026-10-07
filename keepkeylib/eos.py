@@ -257,7 +257,7 @@ def parse_authorization(data):
 
             keys.append(
                 proto.EosAuthorizationKey(
-                    type=1,
+                    type=0,  # K1: the key derived from address_n
                     address_n=address_n,
                     weight=int(key['weight'])
                 )
