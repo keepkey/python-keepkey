@@ -146,7 +146,8 @@ class TestSolanaLutAttestation(common.KeepKeyTest):
         self._load_signer()
         pk = self._raw_pubkey()
         raw = self._build_lut_tx(pk)
-        accounts = [b'\x51' * 32, b'\x52' * 32]
+        # Exactly the one account the message's lookup table loads.
+        accounts = [b'\x51' * 32]
 
         base_codes, _ = self._screens(raw_tx=raw)
         # Reload: identities are RAM-only and a completed signing tears the
@@ -163,6 +164,23 @@ class TestSolanaLutAttestation(common.KeepKeyTest):
         # One identity screen + one per account, and the baseline flow intact.
         self.assertEqual(len(att_codes), len(base_codes) + 1 + len(accounts))
         self.assertEqual(att_codes[-len(base_codes):], base_codes)
+
+    def test_partial_or_padded_list_degrades_to_todays_flow(self):
+        """A valid attestation is shown only when it lists every account the
+        message loads: one more or one fewer would make "describes N
+        account(s)" a misleading claim, so nothing is added."""
+        self._load_signer()
+        pk = self._raw_pubkey()
+        raw = self._build_lut_tx(pk)  # loads exactly one account
+        base_codes, _ = self._screens(raw_tx=raw)
+        for accounts in ([b'\x51' * 32, b'\x52' * 32], []):
+            self._load_signer()
+            codes, resp = self._screens(
+                raw_tx=raw, lut_account=accounts,
+                lut_signature=self._attest(raw, accounts),
+                lut_signer_key_id=SLOT)
+            self.assertEqual(len(resp.signature), 64)
+            self.assertEqual(codes, base_codes)
 
     def test_bad_signature_degrades_to_todays_flow(self):
         """A signature that does not verify must change NOTHING."""
