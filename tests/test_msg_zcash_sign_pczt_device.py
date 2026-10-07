@@ -274,6 +274,170 @@ PADDING_BUNDLE = [
 ]
 
 
+# An NU6.2 bundle (orchard_v2, Flags::ENABLED) built the same way: one
+# 100000-zat spend, fee 10000, and four outputs in action order -- 20000 zat
+# to this account's own external address 0 (a self-send), 30000 zat to
+# account 1's internal address 0 (another account's change), 40000 zat change
+# to this account's internal address 0, and a zero-valued send to account 1's
+# external address 0 whose memo reads "thanks for lunch!". Only action 0
+# spends a real note; the other spends are dummies.
+MEMO_BUNDLE = [
+    {
+        'nullifier': bytes.fromhex('0b396499eafbba166a936684287c6a9a93c35684059661a365e715c6bdb80903'),
+        'rk': bytes.fromhex('0a1d22eb81961326e4d6c5dc1208f1e166cde2d52d7a4ab65b26c74d6281cd0f'),
+        'alpha': bytes.fromhex('3b977876ce497d64ec92c71e7e8c0ba25c6e831636d6f0942b7cb944cec18f35'),
+        'cv_net': bytes.fromhex('bd26a17d837f604b0834a4f6c4e0b04128d72b98d0d783ff6ad7087feb2e4d10'),
+        'cmx': bytes.fromhex('9e926d6a1e046c426c00e41c618e42040dbcb8a4122aeaec30a1558b56e3cb3d'),
+        'epk': bytes.fromhex('5d8fe257f17e600c74f9ba9bcc221c85c7074e1ef6adaf23ad884bdb52eea72a'),
+        'enc': bytes.fromhex(
+            '8b0075c256cacbebdf9dcf8db1c780c3149e9130d03fd8b509201130604d5848'
+            'ac64ec54a133fb72f09083efedd825a3b08f5f7bf5f54a85a2390ab2e37eaad0'
+            '28a3a245ce7279f4afe13e5ade9e6eda947119b68ebdc9f86fff852cbe1f0217'
+            'd4119815506d9bf3e4530c80c357e0a4910392d59b4d531ff6c318de528fb6b0'
+            '5fae9aee00fcfe88661ca4b181a96b4255a0a81ad38f21f629e47bbefe5efd1d'
+            '829d93542f4d6f6fc8e9cc9a5ae91adeeb657c0b3427a86654ee502c944ba189'
+            '95d9bb4d40de6fbf581d4a89e407e27a968cc0c168ae7f3dcf5afe3272f1dd0d'
+            'd805f01b367d93ffd8557e69d39957540e1e70e8cacb7d7a844ff234bc49c403'
+            '1f39598fcd696606eacbb267172c90f5b438dd4652e6f2ac83913bce4ca7d2ef'
+            'd1d04a4fa7eb66f8342bc2b84ff03e64c21139de5c6dc257518c0d20f48c705e'
+            '512a474d25185e54187af3d650b56ad12539b7797550bb117d12ac6d6ee9c691'
+            '684fd3c86bbfa004484d6f08574f0bb4031aa27e0599e15f8ce2b00711281f85'
+            'cb92e63fb66d0794e4dee0ce15b7e0c3851266ba8c49c9cf2abd22a488e95578'
+            '693a9c0d5e27ca808de4fc81cafeadbbbff7f83dbc4debba908510279941613c'
+            'f9ee909eb5b922b2333f48422cd0bceb61625d21c6b3107cb676e60ad681c4a1'
+            '51c1b24734ed1f3ec096785c45641fdad75697abdf66e9553ec51af468f90ec8'
+            'aeec7cc04e1f6c03656da3389a4fdb287bde0e01bfde5f125803f604a5f38d12'
+            '482155475a651f76c56eff1777403c5a48499cb196fe7bb0c98e59af720c6090'
+            '48939155'),
+        'out': bytes.fromhex(
+            '93d14b5a4bc9dd72c1559c0073dd621c184af991a87c75215fecc816f20b83bf'
+            '3673bab907166ef00ac8b8f67b2be681ebec1b8f49ea0918a0796bbe4ae02925'
+            '8a6fec6129eb71fc611a7944b9625b7f'),
+        'recipient': bytes.fromhex(
+            'da973031634a8938ad1c480f978780693ec7709ba5caf58d8a7eb945586cbed6'
+            '45520f17387437bcfdc216'),
+        'rseed': bytes.fromhex('19d1dbfb752c1bbc9ec9a5c44fd2d8a9d79c404e299127d3ad5f34a2b52f4a94'),
+        'value': 20000,
+    },
+    {
+        'nullifier': bytes.fromhex('f8ba50efc52be70daca605a52065c1f1f58feeff3fdb41ce608a18e529326905'),
+        'rk': bytes.fromhex('7282993aed2a09e3d374bc473dd16ec6a760fd8a667b3cb32521f50b80fc3928'),
+        'alpha': bytes.fromhex('1cb2601e62e5bf33186b33ea9acbe76d31509cc5e5826ab7b549189b55cc903f'),
+        'cv_net': bytes.fromhex('34fd5c6923a81270493d8d8e517044305f7595217d8e3bea2f473b35b0a78017'),
+        'cmx': bytes.fromhex('9b020d8c509de25cb2c04955725669284951e081ca602d27b6986f4c0349e93e'),
+        'epk': bytes.fromhex('85f4e893d37fbbee4ea43e7cb447c38d1f31669930f8d800e39d3fcac48ae3a9'),
+        'enc': bytes.fromhex(
+            '54d68d62720be92d6c4697751bde5ab39c3de61aaafab88161765cf4aa27a151'
+            'b0f5be29d7fcc7f30c6a9301cbfbc4dc348a30a8821fe56c73c8e9c799cf9f50'
+            '64f8c5778a218123bcacd4b43d971d2a96452a69de0c48b3d9b6cb7a11967851'
+            '04c7077ae08d0be113696c6f34c41f339c5cee68611856f627553f41e511ff43'
+            '90a80c74fc31dcc4d1a10b8bc02706ecd187d02aef6fc39f166815c7a12afd39'
+            'b6fbde42959672fb508df5432848e5061acf62263046784e3f252a57604f4d3c'
+            'c8a295e5bacbaab6f4b0f5aa7b3790abf576260b7d40da6266818f22b4e75a53'
+            '1b6e565a87ceb0f2a01d70c764de4545c4d5707394af31752b2c30f0fcfd64c3'
+            '5102558160449a78e3887053d63f015650dcc7f1f56114739bd6f1e730eaf0d8'
+            'e2a5755c3424ba6b205145ded3620702c853226945fd8dfddffb359016c24784'
+            'c8ce7edac0f02345f6240b4a055b712777f344e4f176082ec27e07ada09473cc'
+            '7868836a98f7f1de99cade6bb9c1daa9e54c591202f83e90eee76054e76b45e9'
+            '89caac1005cc961af5111a46c11a41311f6e94540e67f2005d618e731d4792f0'
+            '5b31ef94ed6d73216991c1ffbd0645bfeafb64554ad082fad7286af5e88ca721'
+            'ebb6e89a8aaa097c33c3d3c00b645a5b6e9d892417624d9b58e5157c4f9406e7'
+            'ec81cd89028d8969f54feffb4825017676044d5e3ae6603f058f772953c714b1'
+            '1ed1523d2aa37d36f51bec1a36268bb0953f6836534df86ab196929d5b916781'
+            '071680fb04d6d27f38399a952bcdb7a459f4fb74d5dfd73c6a0a51c58ea00a53'
+            'bc4fb482'),
+        'out': bytes.fromhex(
+            'b95c75498fd39fe8ffb67803469bb183e6746b7126550c0d56f248d5a3bb2485'
+            '19ffbac31035d28a29b5295e929bc026f8f321bab87245f47ad4c4604bdd6efe'
+            '4f77fcbe2fdaa78a5ebd58263a7f6d0e'),
+        'recipient': bytes.fromhex(
+            'e96953bda73d114cb7bc026036b695c23fb2b80b0c34f217ed3b4e6fd3766efc'
+            '090a17663191a15eba81ba'),
+        'rseed': bytes.fromhex('b7a8c118ceb43470d6a78bcb0eabecdf96b3977bb99506442df3c1db52a0b58c'),
+        'value': 30000,
+    },
+    {
+        'nullifier': bytes.fromhex('a75bf6e26992c5a04856020a69caa517ba5b0f6dc026e8e8713ae606f2be330e'),
+        'rk': bytes.fromhex('b0aba46130d9dfa7e5a1260d134958d5caefed021551c1832fe07cea52ade4ba'),
+        'alpha': bytes.fromhex('a16c4408414428dc4e614b56f9bcb7bff36ed395ff25f556327ed877556fef3d'),
+        'cv_net': bytes.fromhex('7cc907eea8e6bb1eec198132f122fb9ff7f0797df56fecf63b7d2f2e4fd283b3'),
+        'cmx': bytes.fromhex('15c4fafb44b3aa5ef021ec25208136a785139f61a2dc69c1bfa2280e7dc46f08'),
+        'epk': bytes.fromhex('34737234bf9190c4a909a96b58f66843fc1ae968851d9dcfe8b9d8a0b1b8042f'),
+        'enc': bytes.fromhex(
+            'd2c52957269904d95aad1058335d2b431d46e3702b28496752c5d07fb5fdac1f'
+            'bbb6e798057939f1b732416f0717f72a037402e6cb6c520c785f87c5eea9655a'
+            '654936d982329d9f637998e6909b947ede5f3c0844c72d291607bc2dfc0d37e0'
+            '1e32cb8637244aa02c33ffb95e9b9b99e2936614cc8c95bed046b44fe18c2aad'
+            'bb2dfa950de507fd49774343f24ae5329904e7e4b526769a7c3dcebb473d2224'
+            '76c480d96335b9f3be0e8ae62137d43dc508c7dbe44cd402514aabc2fa8fa81f'
+            'cec38e74aefe8ad0defbcdccb091b50b27c0f2abd5622f3cf9d6a0272b7700fe'
+            'df22cdcd208c0b6eb94f7ecacbf6af61be4d581efae66b30b7b39d3806ec247c'
+            '4e16282839725d0eb0836f26500552c7bd98795325888f8626f0214eaf429c6a'
+            '55cfd7fc564e468103fc577bcf69a5d9f64894262d80731629977972ccf9c962'
+            '871720149b9db9e4088f061ccae62619827e31b7ae7a7d878bc51b9d63e73613'
+            'dd0352e4dffc62fbcf6435b72ff1c2460bf9c5609db734a59ab3a274e0de8dd5'
+            '2002f787135b9120c02947e62c0fdc4d633248f0098cafecfc8b5ff165392292'
+            '205c68d13f6e8bc261b6863770c1fdf9715ab0553f8cacf07b20146f815af9a3'
+            '6664e90df7bacb0ad412e4cd363cbb2a0936d89afd5a228687f9b192b4043a54'
+            '1341ab18a82405a57e24986d227d8e5c285c0708843adbf2a29293d30e4e9b61'
+            'ceddff354e24427e6d2a34cbc1bc6057ec6748387305ecb9ca7b70926e672104'
+            '900779a167ff00024e3cc6e1cf05636eb7cfb34a2c289bab49f411a9cee2701f'
+            'd44d2d13'),
+        'out': bytes.fromhex(
+            '8e6250a506ea4b52188f10ac0ee0e0210ced8f7f8ccda7069f70ed8ed675a953'
+            'cae9a37666f191921050a3da74636c907e3c7c36a75ec459255c9ed828718a8c'
+            'b31e6ffeb3946f1fbcee60568ccceffe'),
+        'recipient': bytes.fromhex(
+            'ddae703de8aee25d4e439b8a646b2a5a86f57f802890996e2b3c1f41ff2348a0'
+            'f0bb27c032b2e7718c962e'),
+        'rseed': bytes.fromhex('2a6913ff3dcb6d496a92b8d5cfccd29afba7b48fc1e21940b55739c5ff950d6d'),
+        'value': 40000,
+    },
+    {
+        'nullifier': bytes.fromhex('9c8426bcbc3202267606069136500c06aa2e40c378ba22a898aeff0626c75036'),
+        'rk': bytes.fromhex('9e74449a938707718574712d19923a0a48820aa17f53491007f873fc3f902902'),
+        'alpha': bytes.fromhex('a6e1c02c22a34f14a0a82c221489f26136081ed39b3ef34ac2df17c08aa2e235'),
+        'cv_net': bytes.fromhex('15fb882089e16d2f696b2964c8d13fcfbbe66a1e645bf08afdfef2a15352a3a4'),
+        'cmx': bytes.fromhex('5d491d6e064e67343e179ee680182a04eca8a9c73b504e17439f695b989d8d35'),
+        'epk': bytes.fromhex('266dcf5ffab1cadd4fbc6f030b702f535c49b0971c79f6d581491b5e727eb797'),
+        'enc': bytes.fromhex(
+            '8c7b608859f1c6b4a1b3e304f9ac0319680d53950d98ad1e36216abf62870bc8'
+            '69195aae61e811cc559a3a06df605489027763cc10731e262dc477c40589c9ac'
+            '6350ead8f31d6f37d8eb698c7afdb8f835b108d554e97753a8838fb47f0fc1cd'
+            '989ed1190517a4f455267458b8c9329f846bed3993db930520ab71ade3e5256d'
+            'ac93ebdb7abff16cf88030df72fa90db30d3745480c914d501579a6ab93b8472'
+            'a52137f13917657037fc458546a1e41af7f12d8b5b492e69c9d595d4e886627c'
+            '6656b5a3ee37ebc3689290bc88707c91e026d95859d88c5e2187339e4b3e6bff'
+            '924a0934468e64b86dec35b26c6d2cb750d13f21101e1992cf64eae8547ab462'
+            '9ad4c7e88264c4a2f04adcbd2cd050038239498b306572494920bdfc7a1bbee9'
+            'b190ba82f88e670d7c690b069bfd073c9c4222da760bd347c4e4d321fcddc057'
+            '88114a34b9bf3b4054381c8595c7ec80140968741d55f1939a9121b3369afaef'
+            '4c5ce10e662e13b2c0ecd8deb4469a92b66ee8ec2ddc0c600700f1e39cfca631'
+            'fef6920a7af021715fe51c178b1665c5d0a261dbcc5ad171613402ff29d883f5'
+            '12f8a488d23bd4401781997e4dc0d7b62b8bb66f64ace822c08177544dab0a46'
+            '930ab73eb589460e9e19a77eed8f0a494b92f41dc1dc70572548e755a2023444'
+            '9ec6d30af18d58d1f0a2752bb8d8a4d201232d3bb3ec3d6fe3fff3cbbcc7e350'
+            'e65808cb45bd1d367e447b728ac6a1445a6c7bae6eece7e2b3ecaab583a9ca58'
+            'e41cca24d08366be4516fea9dbce82e4de6845b268708b96a572d619e808bb11'
+            '06ae8a55'),
+        'out': bytes.fromhex(
+            'eacafd6869e89e8312a0a7caff1e8baf61be383e17db1e61017eaa5842091a05'
+            'ec776f4b7fdf85b1f90aa0197118d355ed1f73ac5795f8296afc5f4b87916b2a'
+            '7cad4d62b2f8c75acafec1ed5bc5248d'),
+        'recipient': bytes.fromhex(
+            '8ee82cdff5120a00cb089ff8acdaa517958971d69d1852dca01fd25e88609ff9'
+            'ca7b154dcb2c01a8bc18aa'),
+        'rseed': bytes.fromhex('337ce21a2c63debee0bfed8ad8c373d7d5f3fbfd44bed30f2addd92130ef5605'),
+        'value': 0,
+    },
+]
+# The Orchard-only mainnet Unified Address of the memo send's receiver
+# (zcash_address 0.13.0): the address the user entered.
+MEMO_USER_ADDRESS = (
+    'u1u2e4d2ctdr0sq2rtglp3myfzpewgtslzjss0p4jtldylakd8dm5n9rtflehnykkq6c0g5rf'
+    'zrswl5tx02uzulwa4xqdpmm9pnuuslzs8')
+
+
 def fabricated_action(v):
     return {
         'alpha': v['alpha'],
@@ -1497,8 +1661,9 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         From NU6.3 every Orchard spend is paired with a fabricated zero-valued
         output whose ciphertext is random bytes (ZIP 326), so it cannot decrypt
         to its note. Its cmx still binds value 0, so it pays no one: the device
-        accepts it without a screen, shows only the change output and the fee,
-        and signs both wallet spends.
+        accepts it without a screen. The change, proven to pay this account's
+        internal address, is shown as the change total; then the fee, and
+        both wallet spends are signed.
         """
         self.requires_firmware(self.FABRICATED_OUTPUT_FIRMWARE)
         actions = [fabricated_action(v) for v in FABRICATED_BUNDLE]
@@ -1514,8 +1679,7 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         self.assertEqual(len(result.signatures), 2)
         outputs = [body for code, _, body in screens
                    if code == proto_types.ButtonRequest_ConfirmOutput]
-        self.assertEqual(len(outputs), 2)  # the change's amount and address
-        self.assertIn('0.00090000 ZEC', outputs[0])
+        self.assertEqual(outputs, ['Change back to your wallet:\n0.00090000 ZEC'])
         for _, _, body in screens:
             self.assertNotIn('0.00000000 ZEC', body)
 
@@ -1524,8 +1688,8 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
 
         Wallets pad an Orchard bundle with a dummy zero-valued output to a
         random address (protocol spec 4.8.3). Its cmx binds value 0, so like
-        Keystone and Ledger the device shows only the change and the fee, and
-        signs only the wallet spend.
+        Keystone and Ledger the device does not show it: only the change total
+        and the fee, and it signs only the wallet spend.
         """
         self.requires_firmware(self.FABRICATED_OUTPUT_FIRMWARE)
         actions = [fabricated_action(v) for v in PADDING_BUNDLE]
@@ -1542,8 +1706,7 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         self.assertEqual(len(result.signatures), 1)
         outputs = [body for code, _, body in screens
                    if code == proto_types.ButtonRequest_ConfirmOutput]
-        self.assertEqual(len(outputs), 2)  # the change's amount and address
-        self.assertIn('0.00090000 ZEC', outputs[0])
+        self.assertEqual(outputs, ['Change back to your wallet:\n0.00090000 ZEC'])
         for _, _, body in screens:
             self.assertNotIn('0.00000000 ZEC', body)
 
@@ -1554,8 +1717,9 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
 
         From NU6.3 Orchard funds can only leave the Orchard pool. The transfer
         spends an Orchard note and creates an Ironwood note in one v6
-        transaction; the device verifies both bundles, shows the Ironwood
-        output and the fee, and signs the one wallet spend.
+        transaction; the device verifies both bundles. The Ironwood note pays
+        the account's own internal address (ZIP 318), so it is shown as change
+        back to the wallet, then the fee, and the one wallet spend is signed.
         """
         self.requires_firmware(self.MIGRATION_FIRMWARE)
         screens = self._capture_confirm_text()
@@ -1567,8 +1731,7 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         self.assertEqual(len(result.signatures), 1)
         outputs = [body for code, _, body in screens
                    if code == proto_types.ButtonRequest_ConfirmOutput]
-        self.assertEqual(len(outputs), 2)  # the Ironwood amount and address
-        self.assertIn('0.01000000 ZEC', outputs[0])
+        self.assertEqual(outputs, ['Change back to your wallet:\n0.01000000 ZEC'])
         for _, _, body in screens:
             self.assertNotIn('0.00000000 ZEC', body)
 
@@ -1576,7 +1739,8 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         """A ZIP 318 note-preparation transaction of 16 actions signs.
 
         Every action carries a wallet spend (one real, fifteen fabricated), so
-        the device returns sixteen signatures.
+        the device returns sixteen signatures. All fifteen notes pay the
+        account's internal address and are shown as one change total.
         """
         self.requires_firmware(self.MIGRATION_FIRMWARE)
         screens = self._capture_confirm_text()
@@ -1588,7 +1752,74 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         self.assertEqual(len(result.signatures), 16)
         outputs = [body for code, _, body in screens
                    if code == proto_types.ButtonRequest_ConfirmOutput]
-        self.assertEqual(len(outputs), 30)  # fifteen notes, two screens each
+        self.assertEqual(outputs, ['Change back to your wallet:\n0.15225000 ZEC'])
+
+    def test_migration_preparation_needs_three_confirmations(self):
+        """The 16-action preparation transaction is three confirmations.
+
+        The summary, the change total and the fee: its fifteen notes all return
+        to the wallet's internal address, so none is reviewed on its own (it
+        was 32 confirmations when each note took two screens).
+        """
+        self.requires_firmware(self.MIGRATION_FIRMWARE)
+        screens = self._capture_confirm_text()
+
+        self.client.zcash_sign_pczt(
+            **migration_kwargs(MIGRATION_PREP, fee=80000))
+
+        self.assertEqual([title for _, title, _ in screens],
+                         ['Zcash Shielded', 'Zcash Change', 'Zcash Fee'])
+        self.assertIn('0.00080000 ZEC', screens[2][2])
+
+    def test_only_proven_change_is_folded_and_memo_send_is_shown(self):
+        """Only an output proven to pay this account's change address is hidden.
+
+        The device recomputes the account's internal-scope viewing key and
+        folds an output into the change total only if its recipient is that
+        key's address. A self-send to the account's external address, and a
+        payment to another account's change address, are shown like any other
+        output. A zero-valued memo-only send that carries the address the user
+        entered is shown with it, at 0 ZEC; the same output without it is
+        taken for padding and not shown.
+        """
+        self.requires_firmware(self.FABRICATED_OUTPUT_FIRMWARE)
+        for with_user_address in (True, False):
+            actions = [fabricated_action(v) for v in MEMO_BUNDLE]
+            for action in actions[1:]:
+                action['is_spend'] = False  # dummy spends carry dummy_sk
+            if with_user_address:
+                actions[3]['user_address'] = MEMO_USER_ADDRESS
+            kwargs = sign_kwargs(actions, fee=10000, orchard_value_balance=10000,
+                                 total_amount=90000)
+            kwargs['orchard_digest'] = bundle_digest(actions, False, 5,
+                                                     value_balance=10000)
+            screens = self._capture_confirm_text()
+
+            result = self.client.zcash_sign_pczt(**kwargs)
+
+            self.assertIsInstance(result, zcash_proto.ZcashSignedPCZT)
+            self.assertEqual(len(result.signatures), 1)
+            outputs = [(title, body) for code, title, body in screens
+                       if code == proto_types.ButtonRequest_ConfirmOutput]
+            expected = [
+                ('Zcash Output', 'Send shielded ZEC?\nAmount: 0.00020000 ZEC'),
+                ('Orchard address', None),
+                ('Zcash Output', 'Send shielded ZEC?\nAmount: 0.00030000 ZEC'),
+                ('Orchard address', None),
+            ]
+            if with_user_address:
+                expected += [
+                    ('Zcash Output', 'Send shielded ZEC?\nAmount: 0.00000000 ZEC'),
+                    ('Shielded recipient', MEMO_USER_ADDRESS),
+                ]
+            expected.append(('Zcash Change',
+                             'Change back to your wallet:\n0.00040000 ZEC'))
+            self.assertEqual([t for t, _ in outputs], [t for t, _ in expected])
+            for (_, body), (_, want) in zip(outputs, expected):
+                if want is not None:
+                    self.assertEqual(body, want)
+            # The two rebuilt addresses differ: neither output was folded.
+            self.assertNotEqual(outputs[1][1], outputs[3][1])
 
 
 if __name__ == '__main__':
