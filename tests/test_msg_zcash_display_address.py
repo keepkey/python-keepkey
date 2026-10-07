@@ -40,12 +40,16 @@ class TestMsgZcashDisplayAddress(common.KeepKeyTest):
 
         # The device derives its OWN unified address from address_n/account
         # (the host does not supply address/FVK — those fields are reserved).
-        resp = self.client.call(
-            zcash_proto.ZcashDisplayAddress(
-                address_n=[H + 32, H + 133, H + 0],
-                account=0,
-            )
-        )
+        # No message returns the UA without displaying it and there is no
+        # independent vector, so this proves only that the screen shows all of
+        # the address the device returns.
+        resp = self.assert_shows_address(
+            lambda: self.client.call(
+                zcash_proto.ZcashDisplayAddress(
+                    address_n=[H + 32, H + 133, H + 0],
+                    account=0,
+                )
+            ), lambda resp: resp.address)
 
         # Device returns the confirmed UA bound to its seed.
         self.assertIsInstance(resp, zcash_proto.ZcashAddress)

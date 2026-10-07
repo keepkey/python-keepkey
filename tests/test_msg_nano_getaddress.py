@@ -47,7 +47,8 @@ class TestMsgNanoGetAddress(common.KeepKeyTest):
         ]
 
         for path, show, address in vec:
-            res = self.client.nano_get_address('Nano', path, show)
+            call = lambda: self.client.nano_get_address('Nano', path, show)
+            res = self.assert_shows_address(call, address) if show else call()
             self.assertEqual(res.address, address)
 
 if __name__ == '__main__':

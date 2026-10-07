@@ -308,6 +308,23 @@ class TestMsgHive(common.KeepKeyTest):
         self.assertEqual(len(resp.raw_public_key), 33)
         self.assertIn(resp.raw_public_key[0], (2, 3), "compressed pubkey prefix")
 
+    def test_hive_show_public_key(self):
+        """The whole STM key is on the screen: confirm_ethereum_address() had
+        room for two 140 px rows and silently dropped the tail of the key."""
+        self.requires_firmware("7.15.0")
+        self.requires_message("HiveGetPublicKey")
+        self.requires_release_capability("hive-release-review")
+        self.setup_mnemonic_nopin_nopassphrase()
+
+        for role in (ROLE_OWNER, ROLE_ACTIVE, ROLE_MEMO, ROLE_POSTING):
+            expected = hive.get_public_key(
+                self.client, hive_path(role), show_display=False).public_key
+            resp = self.assert_shows_address(
+                lambda: hive.get_public_key(
+                    self.client, hive_path(role), show_display=True),
+                expected)
+            self.assertEqual(resp.public_key, expected)
+
     def test_hive_get_public_keys_all_roles(self):
         """All four role keys derive, are distinct, and STM-formatted."""
         self.requires_firmware("7.15.0")

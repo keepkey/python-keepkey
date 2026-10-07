@@ -64,12 +64,13 @@ class TestMsgGetaddressTaproot(common.KeepKeyTest):
         self.requires_taproot()
         self.setup_mnemonic_abandon()
         self.client.clear_session()
-        address = self.client.get_address(
-            "Bitcoin", parse_path("86'/0'/0'/0/0"), True, None,
-            script_type=proto.SPENDTAPROOT)
-        self.assertEqual(
-            address,
-            'bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr')
+        expected = 'bc1p5cyxnuxmeuwuvkwfem96lqzszd02n6xdcjrs20cac6yqjjwudpxqkedrcr'
+        address = self.assert_shows_address(
+            lambda: self.client.get_address(
+                "Bitcoin", parse_path("86'/0'/0'/0/0"), True, None,
+                script_type=proto.SPENDTAPROOT),
+            expected)
+        self.assertEqual(address, expected)
 
 
 if __name__ == '__main__':

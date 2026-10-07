@@ -29,7 +29,10 @@ class TestMsgGetaddressSegwitNative(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.client.clear_session()
-        self.assertEqual(self.client.get_address("Testnet", parse_path("49'/1'/0'/0/0"), True, None, script_type=proto.SPENDWITNESS), 'tb1qqzv60m9ajw8drqulta4ld4gfx0rdh82un5s65s')
+        address = 'tb1qqzv60m9ajw8drqulta4ld4gfx0rdh82un5s65s'
+        self.assertEqual(self.assert_shows_address(
+            lambda: self.client.get_address("Testnet", parse_path("49'/1'/0'/0/0"), True, None, script_type=proto.SPENDWITNESS),
+            address), address)
         self.assertEqual(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), False, None, script_type=proto.SPENDWITNESS), 'tb1q694ccp5qcc0udmfwgp692u2s2hjpq5h407urtu')
         self.assertEqual(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDWITNESS), 'tb1q54un3q39sf7e7tlfq99d6ezys7qgc62a6rxllc')
         self.assertEqual(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDADDRESS), 'mvbu1Gdy8SUjTenqerxUaZyYjmveZvt33q')

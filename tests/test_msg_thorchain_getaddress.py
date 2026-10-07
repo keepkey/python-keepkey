@@ -18,5 +18,16 @@ class TestMsgThorChainGetAddress(common.KeepKeyTest):
         address = self.client.thorchain_get_address(parse_path(DEFAULT_BIP32_PATH), testnet=True)
         self.assertEqual(address, "tthor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8")
 
+    def test_thorchain_show_address(self):
+        self.requires_fullFeature()
+        self.requires_firmware("7.0.2")
+        self.setup_mnemonic_nopin_nopassphrase()
+        expected = "tthor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8"
+        address = self.assert_shows_address(
+            lambda: self.client.thorchain_get_address(
+                parse_path(DEFAULT_BIP32_PATH), show_display=True, testnet=True),
+            expected)
+        self.assertEqual(address, expected)
+
 if __name__ == '__main__':
     unittest.main()
