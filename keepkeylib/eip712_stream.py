@@ -31,10 +31,15 @@ STRUCT = DataType.STRUCT
 # EIP712_MAX_LEAF on the device.
 MAX_LEAF_BYTES = 1024
 MAX_IDENTIFIER_BYTES = 31
+# Struct type names (EIP712_MAX_STRUCT_NAME - 1 on the device) may also use
+# ':' after the first character, as Hyperliquid's
+# "HyperliquidTransaction:ApproveBuilderFee" does.
+MAX_TYPE_NAME_BYTES = 47
 
 _ARRAY_GROUP = re.compile(r'\[([0-9]*)\]')
 _CANONICAL_DIGITS = re.compile(r'^[1-9][0-9]*$')
 _IDENTIFIER = re.compile(r'^[A-Za-z_$][A-Za-z0-9_$]*$')
+_TYPE_NAME = re.compile(r'^[A-Za-z_$][A-Za-z0-9_$:]*$')
 
 
 class Eip712Error(Exception):
@@ -116,7 +121,7 @@ def parse_solidity_type(type_str):
             'array_levels': levels,
         }
 
-    if not _IDENTIFIER.match(base) or len(base) > MAX_IDENTIFIER_BYTES:
+    if not _TYPE_NAME.match(base) or len(base) > MAX_TYPE_NAME_BYTES:
         raise Eip712Error('Unparseable EIP-712 type: %s' % type_str)
     return {'data_type': STRUCT, 'struct_name': base, 'array_levels': levels}
 
@@ -227,7 +232,7 @@ def struct_members(typed_data, name):
     Order is part of the signature: it sets both encodeType and the order
     encodeData concatenates members.
     """
-    if not isinstance(name, str) or not _IDENTIFIER.match(name) or len(name) > MAX_IDENTIFIER_BYTES:
+    if not isinstance(name, str) or not _TYPE_NAME.match(name) or len(name) > MAX_TYPE_NAME_BYTES:
         raise Eip712Error('Struct name is not a canonical EIP-712 identifier')
     members = typed_data['types'].get(name)
     if members is None:
