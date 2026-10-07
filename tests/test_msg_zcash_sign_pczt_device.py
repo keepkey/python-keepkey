@@ -11,12 +11,11 @@ Nothing had ever rendered it. The RC run captured 1037 OLED frames and not one
 came from a shielded flow, which is how a confirm that could not physically fit
 its amount line shipped unnoticed.
 
-The note fixtures are the known-answer vectors from
-unittests/firmware/zcash.cpp (OrchardNoteCommitment_KnownVectorAndProgress,
-IronwoodNoteCommitment_V3KnownVector, OrchardReceiverToUnifiedAddress_KnownVector),
-so the device's own cmx recomputation accepts them. Same note under both pools,
-with a different commitment each -- which is what lets us prove the device
-actually honours shielded_pool instead of ignoring it.
+The note fixture is note 0 of the zcash-test-vectors Orchard note-encryption
+vectors, with a real ciphertext, so the device's cmx recomputation and its
+note-ciphertext check both accept it. Same note under both pools, with a
+different commitment and ciphertext each -- which is what lets us prove the
+device actually honours shielded_pool instead of ignoring it.
 """
 
 import hashlib
@@ -34,26 +33,70 @@ from keepkeylib import messages_zcash_pb2 as zcash_proto
 H = 0x80000000
 ADDRESS_N = [H + 32, H + 133, H]
 
-# --- known-answer note, from unittests/firmware/zcash.cpp -------------------
+# --- note 0 of zcash-test-vectors orchard_note_encryption.py ---------------
+# As carried by the orchard 0.15.4 crate (src/test_vectors/note_encryption.rs).
+# The device recomputes cmx AND decrypts the note ciphertext, so every field
+# below must be a real encryption of this note; rho is the vector's nf_old.
+# The Ironwood (V3, lead byte 0x03) cmx and ciphertext re-encrypt the same note
+# with orchard 0.15.4's IronwoodNoteEncryption; epk is unchanged.
 RECIPIENT = bytes.fromhex(
-    '3c150e6098b861716cc7f62835f69feb302193c92660444f26624fd13e00ea7a'
-    'c774cd55074d6367efef37')                                    # 43 bytes
-RHO = bytes.fromhex(
-    '112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00')
-RSEED = bytes.fromhex(
-    'cafebabedeadbeef0102030405060708090a0b0c0d0e0f101112131415161718')
-VALUE = 12345678
+    '56e84b1adc9423c3676c0463f7125df4836fd2816b024ee70efe09fb9a7b3863'
+    'c6eacdf95e03894950692c')  # d || pk_d, 43 bytes
+RHO = bytes.fromhex('c596fbd32ebbcbadae60d285c7d75fa836f9d2fa86100ab858ea2de1f11c8306')
+RSEED = bytes.fromhex('bf69b8250c18ef41294ca97993db546c1fe01f7e9c8e36d6a5e29d4e30a73594')
+VALUE = 8567075990963576717
 
-CMX_ORCHARD = bytes.fromhex(
-    '02defb39c8f2e1ecc945189373cf2a8e21d4e154398efa1621d5fb989e1deb36')
-CMX_IRONWOOD = bytes.fromhex(
-    '896ee345d8b0409872172537666a482409661a22ad77c09896a3e71765f18633')
+CMX_ORCHARD = bytes.fromhex('a5706f3d1b688e9dc634eee4e65b028a43eeaed2435bea2ae3d5160575c11a3b')
+CMX_IRONWOOD = bytes.fromhex('07a8d0edab5130bcdb265d8efed333514c2c9b180df70ba3963ca8fc1166bd14')
+EPK = bytes.fromhex('addb47b6ac5dfc16558923d3a8f376095c695c047c4e3266ae676987f7e31381')
+# enc_ciphertext = compact (52) || memo (512) || AEAD tag (16).
+C_ENC_ORCHARD = bytes.fromhex(
+    '1a9adb142498e3dcc76fed778614dd316c02fbb8ba9244ae4c2e32a07daeeca4'
+    '1226b98bfe74f9fcb228cfc100f3180f5775ece38be7ed45d94021f4401b2a4d'
+    '7582b428d49ec7f5b5a498973e60e38e74f5c3e577827c382857d8166b54e64f'
+    '66ef5c7e8c9baa2a3fa9e37d087717d5e96bc2f73d031450dc2432ba49d8b74d'
+    'b213099ea9ba04eb63b6574d46c03ce7900d4ac4bb188ee9030d7f69c895a94f'
+    'c182f225a94f0cde1b49886871a376341ea94171befd95a830fa18407097dca5'
+    '11025463d437e9695caa079a2f68cdc7f2c13267bff4195137fa8953252a81b2'
+    'afa1582b9bfb4ac96037ed2991d3cbc7d54aff6e621b06a7b2b9caf2955efaf4'
+    'ea8efcfd023a3c1748df3cbd43e0b9a8b0945688d52056c1d16eea37e798ba31'
+    'dc3e5d4952bd51ec769d5788b6e35fe9042b95d4d21781400eaff58616ad5627'
+    '96636a50b8ed6c7f981dc7ba814eff152cb228a2ead2f832662fa4a4a50797b0'
+    'f85b62d08b1dd2d8e43b4a5bfbb159ed578ef7475de0ada13e17ad87cc230567'
+    '2bcc55a8881317fdc1bfc459b68b2df70cad3770ed0fd02d64b96f2bbf6f8f63'
+    '2e866ca5d196d248ad05c3de644148a80b51ada95bd08d73cdbb45264f3bd113'
+    '835b46f9be7b6d23a43bddfe1e7408c97031e1a8214bab46391044b700d38f51'
+    '92c57fe6f87159b55512094e29d2cebab868c8f1adbad57077cbeb5e69658582'
+    'bf98d19d64f44b0d50c7e2209ab3fc56b4f409123aaeb0263a22451bc14ed756'
+    'd048385aedbb86a84677bb2d21c52cc9494147bf0fb102745282990909726228'
+    '186e02c8')
+C_ENC_IRONWOOD = bytes.fromhex(
+    '1b9adb142498e3dcc76fed778614dd316c02fbb8ba9244ae4c2e32a07daeeca4'
+    '1226b98bfe74f9fcb228cfc100f3180f5775ece38be7ed45d94021f4401b2a4d'
+    '7582b428d49ec7f5b5a498973e60e38e74f5c3e577827c382857d8166b54e64f'
+    '66ef5c7e8c9baa2a3fa9e37d087717d5e96bc2f73d031450dc2432ba49d8b74d'
+    'b213099ea9ba04eb63b6574d46c03ce7900d4ac4bb188ee9030d7f69c895a94f'
+    'c182f225a94f0cde1b49886871a376341ea94171befd95a830fa18407097dca5'
+    '11025463d437e9695caa079a2f68cdc7f2c13267bff4195137fa8953252a81b2'
+    'afa1582b9bfb4ac96037ed2991d3cbc7d54aff6e621b06a7b2b9caf2955efaf4'
+    'ea8efcfd023a3c1748df3cbd43e0b9a8b0945688d52056c1d16eea37e798ba31'
+    'dc3e5d4952bd51ec769d5788b6e35fe9042b95d4d21781400eaff58616ad5627'
+    '96636a50b8ed6c7f981dc7ba814eff152cb228a2ead2f832662fa4a4a50797b0'
+    'f85b62d08b1dd2d8e43b4a5bfbb159ed578ef7475de0ada13e17ad87cc230567'
+    '2bcc55a8881317fdc1bfc459b68b2df70cad3770ed0fd02d64b96f2bbf6f8f63'
+    '2e866ca5d196d248ad05c3de644148a80b51ada95bd08d73cdbb45264f3bd113'
+    '835b46f9be7b6d23a43bddfe1e7408c97031e1a8214bab46391044b700d38f51'
+    '92c57fe6f87159b55512094e29d2cebab868c8f1adbad57077cbeb5e69658582'
+    'bf98d19d64f44b0d50c7e2209ab3fc56b4f409123aaeb0263a22451bc14ed756'
+    'd048385aedbb86a84677bb2d21c52cc9494147bfa197dd4326a43baa347044f2'
+    'bdb49861')
 
-# OrchardReceiverToUnifiedAddress_KnownVector. 106 characters -- three full
-# body rows on their own, which is the entire reason the confirm needs two
-# screens instead of one.
-EXPECTED_UA = ('u1ut4h93zg5670tyqss7tneru3t7h6dk62r9hhyxyrpv3nwwe9dnyj5l0ruwygf'
-               '74gp5f3zklj5xly4h8h54un3asugt9mn6gwfqsq3wq7')
+# RECIPIENT as an Orchard-only mainnet unified address, encoded with
+# librustzcash's zcash_address 0.13.0. 106 characters -- three full body rows
+# on their own, which is the entire reason the confirm needs two screens
+# instead of one.
+EXPECTED_UA = ('u17j4lvw84jd238ev9ukr0lvqhv4z32v98pxcglctaj3aqfqj7rr2wwvh73247ek'
+               'czw4smyrvm2wf2v5nfxvn3sl0ycc6w4455yg49yf2m')
 
 ORCHARD_TX = dict(tx_version=5, version_group_id=0x26A7270A, branch_id=0x5437F330)
 IRONWOOD_TX = dict(tx_version=6, version_group_id=0xD884B698, branch_id=0x37A5165B)
@@ -100,7 +143,8 @@ def bundle_digest(actions, ironwood, tx_version,
     return _b2b(pb, body)
 
 
-def note_action(cmx, recipient=RECIPIENT, value=VALUE, rseed=RSEED):
+def note_action(cmx, recipient=RECIPIENT, value=VALUE, rseed=RSEED,
+                c_enc=C_ENC_ORCHARD):
     """One action carrying real output metadata.
 
     Every field is size-checked by the firmware (fsm_msg_zcash.h:1068-1088) and
@@ -112,10 +156,10 @@ def note_action(cmx, recipient=RECIPIENT, value=VALUE, rseed=RSEED):
         'alpha': b'\x01' * 32,
         'nullifier': RHO,          # the firmware feeds this in as rho
         'cmx': cmx,
-        'epk': b'\x02' * 32,
-        'enc_compact': b'\x03' * 52,
-        'enc_memo': b'\x04' * 512,
-        'enc_noncompact': b'\x05' * 16,
+        'epk': EPK,
+        'enc_compact': c_enc[:52],
+        'enc_memo': c_enc[52:564],
+        'enc_noncompact': c_enc[564:],
         'cv_net': b'\x06' * 32,
         'rk': b'\x07' * 32,
         'out_ciphertext': b'\x08' * 80,
@@ -293,6 +337,23 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
             self.client.zcash_sign_pczt(**sign_kwargs(actions))
         self.assertIn('commitment mismatch', str(caught.exception))
 
+    def test_corrupted_note_ciphertext_is_refused(self):
+        """A note the recipient cannot decrypt must not be signed.
+
+        The commitment alone does not reach the recipient: a host could keep a
+        valid cmx and corrupt the ciphertext, recomputing the bundle digest to
+        match, and the payment would be invisible to normal wallet scanning.
+        The device decrypts with the key derived from rseed and rho and must
+        refuse before the output screens.
+        """
+        c_enc = bytearray(C_ENC_ORCHARD)
+        c_enc[52 + 100] ^= 0x01                                  # one memo bit
+        actions = [note_action(CMX_ORCHARD, c_enc=bytes(c_enc))]
+
+        with self.assertRaises(Exception) as caught:
+            self.client.zcash_sign_pczt(**sign_kwargs(actions))
+        self.assertIn('ciphertext mismatch', str(caught.exception))
+
     # Canonical release/7.15 includes Ironwood handlers and the corresponding
     # native commitment vectors. These regressions apply to that product.
     IRONWOOD_FIRMWARE = "7.15.0"
@@ -327,7 +388,7 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         Orchard bundle's valueBalance never enters the device's fee check.
         """
         self.requires_firmware(self.IRONWOOD_FIRMWARE)
-        actions = [note_action(CMX_IRONWOOD)]
+        actions = [note_action(CMX_IRONWOOD, c_enc=C_ENC_IRONWOOD)]
         kwargs = sign_kwargs(actions, ironwood=True)
         # Anything but the ZIP-229 v6 empty-bundle digest must be refused.
         kwargs['orchard_digest'] = bytes([0x11]) * 32
@@ -343,7 +404,7 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         selected by shielded_pool rather than one path serving both.
         """
         self.requires_firmware(self.IRONWOOD_FIRMWARE)
-        actions = [note_action(CMX_IRONWOOD)]
+        actions = [note_action(CMX_IRONWOOD, c_enc=C_ENC_IRONWOOD)]
         screens = self._capture_button_screens()
 
         result = self.client.zcash_sign_pczt(**sign_kwargs(actions, ironwood=True))
