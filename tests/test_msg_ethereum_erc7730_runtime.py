@@ -665,6 +665,98 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         ])
         self.assertIn("Inner signer", [s[0] for s in self.screens])
 
+    APPROVE = "approve(address spender,uint256 amount)"
+    MAX = (1 << 256) - 1
+
+    def _exec_approve(self, amount, spender=None, with_definition=True):
+        """execTransaction carrying approve(OTHER_ADDRESS, amount) on USDC."""
+        self._exec_setup()
+        inner = erc7730_compiler.compile_calldata(
+            {"display": {"formats": {self.APPROVE: {
+                "intent": "Approve", "fields": [
+                    {"path": "spender", "label": "Spender",
+                     "format": "addressName"},
+                    {"path": "amount", "label": "Amount", "format": "raw"}]}}}},
+            self.APPROVE, 1, self.USDC)
+        inner_def = erc7730.Definition(self._envelope(inner), 1, 1, self.USDC,
+                                       inner[38:42])
+        outer_def = self._exec_outer[1]
+        call = (bytes.fromhex("095ea7b3") +
+                (spender or self._word(OTHER_ADDRESS)) + self._word(amount))
+        arguments = (self._word(self.USDC) + self._word(0) +
+                     self._word(128) + self._word(0) +
+                     self._word(len(call)) + call + bytes(-len(call) % 32))
+        catalog = erc7730.Catalog(
+            (outer_def, inner_def) if with_definition else (outer_def,))
+        return arguments, catalog
+
+    UNLIMITED = ("UNLIMITED approval",
+                 "Allow 0x" + OTHER_ADDRESS.hex() + " to spend ALL your USDC")
+
+    def _approve_screens(self):
+        return [s for s in self._first_pages()
+                if s[0] in ("UNLIMITED approval", "Contract action",
+                            "Signer field", "Inner signer", "Inner action",
+                            "Blind signature")]
+
+    def test_inner_unlimited_approve_warns_before_the_inner_review(self):
+        self.requires_release_capability("erc20-unlimited-approve-review")
+        arguments, catalog = self._exec_approve(self.MAX)
+        self._exec_certified(arguments, catalog)
+        shown = self._approve_screens()
+        self.assertEqual(shown[:2], [
+            ("Contract action", "sign multisig operation"), self.UNLIMITED])
+        self.assertEqual(shown[2][0], "Signer field")
+        self.assertEqual(shown[3][0], "Inner signer")
+        self.assertEqual([s[0] for s in self._first_pages()].count(
+            "UNLIMITED approval"), 1)
+
+    def test_declining_an_inner_unlimited_approve_signs_nothing(self):
+        self.requires_release_capability("erc20-unlimited-approve-review")
+        arguments, catalog = self._exec_approve(self.MAX)
+        outer, outer_def = self._exec_outer
+
+        def preload():
+            erc7730.preload(self.client, outer_def)
+            self._drop_setup_screenshots()
+            return b""
+        self._declined(outer, arguments, "UNLIMITED approval",
+                       preload=preload, catalog=catalog)
+        self.assertNotIn("Inner signer", [s[0] for s in self.screens])
+
+    def test_inner_finite_approve_shows_no_unlimited_warning(self):
+        arguments, catalog = self._exec_approve(self.MAX - 1)
+        self._exec_certified(arguments, catalog)
+        titles = [s[0] for s in self.screens]
+        self.assertNotIn("UNLIMITED approval", titles)
+        self.assertIn("Inner action", titles)
+
+    def test_blind_inner_unlimited_approve_still_warns_in_715(self):
+        self.requires_firmware_below("7.16.0")  # 7.16 refuses blind calls
+        self.requires_release_capability("erc20-unlimited-approve-review")
+        arguments, catalog = self._exec_approve(self.MAX,
+                                                with_definition=False)
+        self._exec_certified(arguments, catalog)
+        shown = self._approve_screens()
+        self.assertEqual(shown[:3], [
+            ("Contract action", "sign multisig operation"), self.UNLIMITED,
+            ("Blind signature", "The inner call is not clear-signed")])
+
+    def test_inner_approve_with_a_dirty_spender_word_is_refused(self):
+        self.requires_release_capability("erc20-unlimited-approve-review")
+        arguments, catalog = self._exec_approve(
+            self.MAX, spender=b"\x01" + bytes(11) + OTHER_ADDRESS)
+        outer, outer_def = self._exec_outer
+        erc7730.preload(self.client, outer_def)
+        self._drop_setup_screenshots()
+        result, _, _, _ = self._walk(
+            self._audit_start(outer, 4 + len(arguments)), b"",
+            arguments=arguments, catalog=catalog)
+        assert_failure(self, result, types.Failure_SyntaxError,
+                       "Invalid ERC-7730 embedded call")
+        self.assertNotIn("UNLIMITED approval", [s[0] for s in self.screens])
+        self.assertNotIn(types.ButtonRequest_SignTx, self.button_codes)
+
     def test_inner_call_without_a_definition_is_blind_in_715(self):
         self.requires_firmware_below("7.16.0")  # 7.16 refuses instead
         start, arguments, outer_def, _ = self._exec_setup()
