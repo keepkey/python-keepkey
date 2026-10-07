@@ -326,7 +326,7 @@ class TestZcashTransparentShielding(common.KeepKeyTest):
 
     def test_rejects_bad_change(self):
         self._assert_path_rejected(
-            [H + 44, H + 133, H, 7, 0], "change must be 0 or 1")
+            [H + 44, H + 133, H, 7, 0], "change must be 0")
 
     def test_rejects_hardened_index(self):
         self._assert_path_rejected(

@@ -2101,7 +2101,9 @@ class ProtocolMixin(object):
             version_group_id: transaction version group ID
             lock_time: transaction lock time
             expiry_height: transaction expiry height
-            transparent_outputs: output dicts matching ZcashTransparentOutput
+            transparent_outputs: output dicts matching ZcashTransparentOutput;
+                is_tex shows a P2PKH output as a ZIP 320 tex1 address, and
+                address_n marks the account's own one-time address
             transparent_inputs: input dicts matching ZcashTransparentInput;
                 host-provided per-input sighashes are rejected by RC18
             return_transparent_signatures: when true, return a tuple of
@@ -2111,8 +2113,10 @@ class ProtocolMixin(object):
             ZcashSignedPCZT with compact Orchard signatures and optional txid,
             or a tuple including transparent signatures when requested.
         """
-        if len(actions) == 0:
-            raise ValueError("Must have at least one action")
+        # No action is a transparent-only transaction (ZIP 320 TEX step 2),
+        # which needs a transparent input to sign.
+        if len(actions) == 0 and not transparent_inputs:
+            raise ValueError("Must have at least one action or transparent input")
         # Orchard actions first, then any Ironwood ones; indices count on.
         stream = list(actions) + list(ironwood_actions or [])
         n_actions = len(stream)
