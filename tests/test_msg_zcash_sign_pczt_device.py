@@ -1620,6 +1620,27 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
             self.assertEqual(shown,
                              [('Shielded recipient', self.MULTI_RECEIVER_UA)])
 
+    def test_uppercase_user_address_is_shown_in_lowercase(self):
+        """An all-uppercase address, as a QR code carries it, is accepted.
+
+        BIP 350 allows all-uppercase bech32m and forbids only mixed case. The
+        device checks it like the lowercase form and shows the lowercase form
+        wallets display.
+        """
+        self.requires_firmware(self.USER_ADDRESS_FIRMWARE)
+        action = note_action(CMX_ORCHARD)
+        action['user_address'] = self.MULTI_RECEIVER_UA.upper()
+        screens = self._capture_confirm_text()
+
+        result = self.client.zcash_sign_pczt(**sign_kwargs([action]))
+
+        self.assertIsInstance(result, zcash_proto.ZcashSignedPCZT)
+        shown = [(title, body) for code, title, body in screens
+                 if code == proto_types.ButtonRequest_ConfirmOutput
+                 and title == 'Shielded recipient']
+        self.assertEqual(shown,
+                         [('Shielded recipient', self.MULTI_RECEIVER_UA)])
+
     def test_mismatched_user_address_is_refused(self):
         """A valid address that does not hold the recipient refuses signing.
 
