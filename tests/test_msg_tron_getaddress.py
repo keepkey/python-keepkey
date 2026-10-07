@@ -47,11 +47,11 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
     def test_tron_show_address(self):
         """The whole TRON address is on the screen, and in the response.
 
-        The handler builds its response before the confirm, and before 7.14.2
-        a DebugLink read during the confirm could overwrite it, so it runs
-        from 7.14.2.
+        The handler builds its response before the confirm. Before 7.15.0 a
+        DebugLink read during the confirm wiped it (fixed by firmware
+        88ae1c3be), so it runs from 7.15.0.
         """
-        self.requires_firmware("7.14.2")
+        self.requires_firmware("7.15.0")
         self.requires_message("TronGetAddress")
         self.setup_mnemonic_allallall()
 

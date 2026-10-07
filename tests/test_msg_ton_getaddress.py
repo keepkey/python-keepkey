@@ -47,11 +47,12 @@ class TestMsgTonGetAddress(common.KeepKeyTest):
     def test_ton_show_address(self):
         """The whole TON address is on the screen, and in the response.
 
-        The handler builds its response before the confirm, and before 7.14.2
-        a DebugLink read during the confirm could overwrite it (this test used
-        to swallow a raw_address UnicodeDecodeError), so it runs from 7.14.2.
+        The handler builds its response before the confirm. Before 7.15.0 a
+        DebugLink read during the confirm wiped it (firmware 88ae1c3be fixed
+        that; this test used to swallow the resulting raw_address
+        UnicodeDecodeError), so it runs from 7.15.0.
         """
-        self.requires_firmware("7.14.2")
+        self.requires_firmware("7.15.0")
         self.requires_message("TonGetAddress")
         self.setup_mnemonic_allallall()
 

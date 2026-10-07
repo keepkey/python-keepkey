@@ -189,7 +189,17 @@ class KeepKeyTest(unittest.TestCase):
         it confirms shows ALL of `expected` -- a known vector or the
         show_display=False response, never the value under test. Returns
         what `call` returns. Only where neither exists may `expected` be a
-        function of that result."""
+        function of that result.
+
+        Before 7.15.0 DebugLinkState was built in the shared response arena
+        (fixed by firmware 88ae1c3be), so reading the screen during the
+        confirm wiped a response already built -- and wedged an xpub confirm
+        on 7.14.3. There `call` runs unwatched and nothing is asserted."""
+        # Cached Features, not firmware_at_least(): its Initialize would break
+        # a caller's set_expected_responses().
+        features = self.client.features
+        if (features.major_version, features.minor_version) < (7, 15):
+            return call()
         screens = []
         press = self.client.callback_ButtonRequest
         nested = 'callback_ButtonRequest' in vars(self.client)
