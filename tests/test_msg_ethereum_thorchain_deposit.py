@@ -213,5 +213,79 @@ class TestMsgEthereumThorchainDeposit(common.KeepKeyTest):
             )
 
 
+    # (router, chain_id) pins added with the BSC, Base and Arbitrum routers.
+    NEW_ROUTER_PINS = [
+        ("b30ec53f98ff5947ede720d32ac2da7e52a5f56b", 56),     # THORChain BSC
+        ("00dc6100103bc402d490aee3f9a5560cbd91f1d4", 8453),   # THORChain Base
+        ("700e97ef07219440487840dc472e7120a7ff11f4", 42161),  # Maya Arbitrum
+    ]
+
+    def test_deposit_new_routers_native_and_token(self):
+        """Native and token deposits clear-sign on the BSC and Base THORChain
+        routers and Maya's Arbitrum router, each on its own chain. Each
+        signature is recovered against the EIP-155 pre-image."""
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        self.requires_release_capability('thor-deposit-review')
+        self.setup_mnemonic_allallall()
+
+        from keepkeylib.signed_metadata import eth_sighash_legacy, keccak256
+        from ecdsa import VerifyingKey, SECP256k1, util
+
+        memo = "=:ETH.ETH:0xabcdef1234567890abcdef1234567890abcdef12:0:t:0"
+        native = _build_deposit_with_expiry_calldata(memo)
+        token = bytearray(native)
+        token[4 + 32 + 12:4 + 64] = b"\x11" * 20  # asset = an ERC-20
+        token = bytes(token)
+
+        n = parse_path("m/44'/60'/0'/0/0")
+        me = self.client.ethereum_get_address(n)
+        nonce, gas_price, gas_limit = 6, 50000000000, 300000
+        for router, chain_id in self.NEW_ROUTER_PINS:
+            to = binascii.unhexlify(router)
+            for data, value in ((native, 500000000000000000), (token, 0)):
+                sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+                    n=n, nonce=nonce, gas_price=gas_price,
+                    gas_limit=gas_limit, to=to, value=value,
+                    chain_id=chain_id, data=data,
+                )
+                self.assertIn(sig_v, [2 * chain_id + 35, 2 * chain_id + 36])
+                digest = eth_sighash_legacy(nonce, gas_price, gas_limit, to,
+                                            value, data, chain_id)
+                keys = VerifyingKey.from_public_key_recovery_with_digest(
+                    sig_r + sig_s, digest, SECP256k1, hashfunc=None,
+                    sigdecode=util.sigdecode_string,
+                )
+                rec = sig_v - (35 + 2 * chain_id)
+                self.assertEqual(keccak256(keys[rec].to_string())[-20:], me)
+
+    def test_deposit_new_routers_wrong_chain_blocked(self):
+        """Each new router is pinned to its own chain only: the same address
+        on another chain falls to the blind-sign gate."""
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        self.requires_release_capability('thor-deposit-review')
+        self.setup_mnemonic_allallall()
+
+        from keepkeylib.client import CallException
+
+        memo = "=:ETH.ETH:0xabcdef1234567890abcdef1234567890abcdef12:0:t:0"
+        data = _build_deposit_with_expiry_calldata(memo)
+        bsc, base, arb = (r for r, _ in self.NEW_ROUTER_PINS)
+        for router, chain_id in ((bsc, 1), (bsc, 8453), (base, 1), (base, 56),
+                                 (base, 42161), (arb, 1), (arb, 8453)):
+            with self.assertRaises(CallException,
+                                   msg="router %s chain %d" % (router, chain_id)):
+                self.client.ethereum_sign_tx(
+                    n=parse_path("m/44'/60'/0'/0/0"),
+                    nonce=7,
+                    gas_price=50000000000,
+                    gas_limit=300000,
+                    to=binascii.unhexlify(router),
+                    value=500000000000000000,
+                    chain_id=chain_id,
+                    data=data,
+                )
+
 if __name__ == "__main__":
     unittest.main()
