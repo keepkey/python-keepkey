@@ -415,6 +415,93 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         self.assertTrue(len(outputs) == 2,
                         "expected 2 ConfirmOutput screens, got %d" % len(outputs))
 
+    # ZIP 374 user_address. Both addresses are real librustzcash output:
+    # MULTI_RECEIVER_UA is RECIPIENT plus a Sapling and a P2PKH receiver
+    # (zcash_address 0.13.0); OTHER_ORCHARD_UA is the "all" seed's account-0
+    # address at diversifier index 1 (zcash_keys 0.16.1), a valid mainnet UA
+    # whose Orchard receiver is not RECIPIENT.
+    USER_ADDRESS_FIRMWARE = "7.15.0"
+    MULTI_RECEIVER_UA = (
+        'u16065qzvddm89jcmzufxjs5pe6dr006tezvd7pap2nc58cctca8tt373s2he7xx76cn'
+        'lyfatutph9kfl5g35cnuw6szxlf0qhpqajh0xrujjny6rxh6wej6mx6x5zuz4auaffd5'
+        'hd56t8kwxnnquasruhg8qv3344cn6dauw00waq8ak2lmlyn8r84jumahr2nrd246gdxw'
+        '932t8uvgs')
+    OTHER_ORCHARD_UA = (
+        'u1elnjt36zcqfelwj62v8lujthlqefztqcy02jfm2p5vs9phrzr8fj68j3mpzmvlktay'
+        'k9fdz4zd4k3x6f7z3n62dw09w8sr9a8a0ka5m6xktd8hl6x5ekd0qky8h8t0an6p8eqk'
+        '3ggwnl30dkv7txlw5r2qef330j94r0lftqktn0ev70kc78h8ev43ja5x7de27rvvhf0h'
+        '4ku663uw6')
+
+    def _capture_confirm_text(self):
+        """(code, title, body) of each confirmation, as the firmware formatted it."""
+        screens = []
+        original = self.client.callback_ButtonRequest
+
+        def capture(msg):
+            title, body = self.client.debug.read_confirm_text()
+            screens.append((msg.code, title, body))
+            return original(msg)
+
+        self.client.callback_ButtonRequest = capture
+        return screens
+
+    def test_user_address_is_checked_then_shown(self):
+        """The address the user pasted is shown once it holds the recipient.
+
+        The device decodes the Unified Address, finds its single Orchard
+        receiver equal to the output's recipient, and shows the user's own
+        string -- not the Orchard-only address it would otherwise rebuild.
+        Ironwood outputs use the same Orchard receiver type.
+        """
+        self.requires_firmware(self.USER_ADDRESS_FIRMWARE)
+        for ironwood in (False, True):
+            action = (note_action(CMX_IRONWOOD, c_enc=C_ENC_IRONWOOD)
+                      if ironwood else note_action(CMX_ORCHARD))
+            action['user_address'] = self.MULTI_RECEIVER_UA
+            screens = self._capture_confirm_text()
+
+            result = self.client.zcash_sign_pczt(
+                **sign_kwargs([action], ironwood=ironwood))
+
+            self.assertIsInstance(result, zcash_proto.ZcashSignedPCZT)
+            shown = [(title, body) for code, title, body in screens
+                     if code == proto_types.ButtonRequest_ConfirmOutput
+                     and title == 'Shielded recipient']
+            self.assertEqual(shown,
+                             [('Shielded recipient', self.MULTI_RECEIVER_UA)])
+
+    def test_mismatched_user_address_is_refused(self):
+        """A valid address that does not hold the recipient refuses signing.
+
+        Nothing about the output is shown: the refusal comes before the output
+        screens, so the user is never asked to approve the wrong address.
+        """
+        self.requires_firmware(self.USER_ADDRESS_FIRMWARE)
+        action = note_action(CMX_ORCHARD)
+        action['user_address'] = self.OTHER_ORCHARD_UA
+        screens = self._capture_confirm_text()
+
+        with self.assertRaises(Exception) as caught:
+            self.client.zcash_sign_pczt(**sign_kwargs([action]))
+        self.assertIn('does not match output', str(caught.exception))
+        self.assertEqual([c for c, _, _ in screens
+                          if c == proto_types.ButtonRequest_ConfirmOutput], [])
+
+    def test_absent_user_address_shows_the_orchard_address(self):
+        """Without user_address the device rebuilds an Orchard-only address.
+
+        It is labelled as exactly that, since it is not what the user pasted.
+        """
+        self.requires_firmware(self.USER_ADDRESS_FIRMWARE)
+        screens = self._capture_confirm_text()
+
+        self.client.zcash_sign_pczt(**sign_kwargs([note_action(CMX_ORCHARD)]))
+
+        shown = [(title, body) for code, title, body in screens
+                 if code == proto_types.ButtonRequest_ConfirmOutput
+                 and title == 'Orchard address']
+        self.assertEqual(shown, [('Orchard address', EXPECTED_UA)])
+
 
 if __name__ == '__main__':
     unittest.main()
