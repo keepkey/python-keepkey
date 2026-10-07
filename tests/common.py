@@ -27,6 +27,8 @@ import time
 import os
 import semver
 
+import oled_text
+
 from google.protobuf.message import EncodeError
 from keepkeylib.client import KeepKeyClient, KeepKeyDebuglinkClient, KeepKeyDebuglinkClientVerbose
 from keepkeylib.transport_udp import EmulatorNotResponding
@@ -181,6 +183,31 @@ class KeepKeyTest(unittest.TestCase):
 
     def tearDown(self):
         self.client.close()
+
+    def assert_shows_address(self, call, expected):
+        """Run `call`, a show_display request, and assert one of the screens
+        it confirms shows ALL of `expected` -- a known vector or the
+        show_display=False response, never the value under test. Returns
+        what `call` returns. Only where neither exists may `expected` be a
+        function of that result."""
+        screens = []
+        press = self.client.callback_ButtonRequest
+
+        def capture(msg):
+            screens.append(self.client._read_oled_after_settle())
+            return press(msg)
+
+        self.client.callback_ButtonRequest = capture
+        try:
+            result = call()
+        finally:
+            del self.client.callback_ButtonRequest
+        if callable(expected):
+            expected = expected(result)
+        self.assertTrue(
+            any(oled_text.shows_address(s, expected) for s in screens),
+            "none of %d screens shows all of %r" % (len(screens), expected))
+        return result
 
     def assertEqual(self, lhs, rhs):
         if type(lhs) == type(b'') and type(rhs) == type(''):

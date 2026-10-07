@@ -15,7 +15,8 @@ A body is found the way confirm() draws it: broken into lines as
 draw_string_walk() in lib/board/draw.c breaks them (a 44-character Solana
 address always wraps), each line whole -- nothing drawn just before or after
 it -- and the lines left-aligned on consecutive rows of ONE screen. A body
-that pages is not found; assert each page's part instead.
+that pages is not found; assert each page's part instead. shows_address()
+finds an address or key the way the QR-code address screens draw it.
 """
 
 from __future__ import print_function
@@ -145,16 +146,23 @@ def _render(line, font):
     return x, rows
 
 
-def _at(rows, want, width, x, y, whole):
+def _at(rows, want, width, x, y, whole, end=256):
     """`want` drawn at (x, y); if `whole`, with nothing lit within a glyph's
-    width on either side of it (a longer line is not this line)."""
+    width on either side of it (a longer line is not this line) -- short of
+    `end`, the wrap limit, past which the line cannot continue and an icon
+    may sit. A row with no ink in `want` is not compared: layout_address()
+    draws the QR code after the text, and its border may cover the line's
+    blank top row."""
     mask = (1 << width) - 1
-    if any((rows[y + r] >> x) & mask != want[r] for r in range(GLYPH_HEIGHT)):
+    if any(want[r] and (rows[y + r] >> x) & mask != want[r]
+           for r in range(GLYPH_HEIGHT)):
         return False
     if not whole:
         return True
     before = min(x, 9)
-    edges = ((1 << before) - 1) << (x - before) | 0x1ff << (x + width)
+    after = max(0, min(end - x - width, 9))
+    edges = ((1 << before) - 1) << (x - before) | \
+        ((1 << after) - 1) << (x + width)
     return not any(rows[y + r] & edges for r in range(GLYPH_HEIGHT))
 
 
@@ -170,17 +178,42 @@ def find_line(layout, line, font=BODY_FONT):
     return None
 
 
-def shows(layout, text, font=BODY_FONT, width=BODY_WIDTH):
-    """Whether this screen shows `text` as confirm() draws a body."""
+def shows(layout, text, font=BODY_FONT, width=BODY_WIDTH,
+          pitch=BODY_LINE_PITCH):
+    """Whether this screen shows `text` as confirm() draws a body, or as
+    draw_string() draws it at another wrap width and line pitch."""
     lines = [_render(line, font) for line in wrap(text, font, width)]
     rows = _rows(layout)
-    height = (len(lines) - 1) * BODY_LINE_PITCH + GLYPH_HEIGHT
+    height = (len(lines) - 1) * pitch + GLYPH_HEIGHT
     for y in range(64 - height + 1):
         for x in range(256 - lines[0][0] + 1):
-            if all(_at(rows, want, w, x, y + i * BODY_LINE_PITCH, True)
+            if all(_at(rows, want, w, x, y + i * pitch, True, x + width)
                    for i, (w, want) in enumerate(lines)):
                 return True
     return False
+
+
+# How lib/firmware/app_layout.c draws an address or key beside its QR code,
+# as (font, wrap width, line pitch):
+ADDRESS_LAYOUTS = (
+    # layout_address_notification(): bold while it fits TRANSACTION_WIDTH...
+    (TITLE_FONT, 250, BODY_LINE_PITCH),
+    # ...else the body font, its lines closed up to the font height.
+    (BODY_FONT, 250, GLYPH_HEIGHT),
+    # layout_{ethereum,cosmos,nano}_address_notification(); two lines fit.
+    (BODY_FONT, 140, BODY_LINE_PITCH),
+    # layout_osmosis_address_notification()
+    (BODY_FONT, 160, BODY_LINE_PITCH),
+    # confirm() bodies and layout_xpub_notification() (TRANSACTION_WIDTH - 25)
+    (BODY_FONT, BODY_WIDTH, BODY_LINE_PITCH),
+)
+
+
+def shows_address(layout, text):
+    """Whether this screen shows ALL of `text` in one of ADDRESS_LAYOUTS. A
+    layout that drops the lines past the bottom of the screen does not."""
+    return any(shows(layout, text, font, width, pitch)
+               for font, width, pitch in ADDRESS_LAYOUTS)
 
 
 def find_text(screens, text, font=BODY_FONT, width=BODY_WIDTH, start=0):
