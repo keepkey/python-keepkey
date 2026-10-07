@@ -8,7 +8,7 @@
 # firmware repository, whose "expected" hashes were computed by a reference
 # encoder and cross-checked against @metamask/eth-sig-util and ethers.
 #
-# Every document must be ACCEPTED: its hashes must equal both the embedded
+# Each document is its own test (test_doc_<id>). Every one must be ACCEPTED: its hashes must equal both the embedded
 # values and this suite's own independent encoder, its signature must
 # recover to the device's address, and the final screen must name the whole
 # primary type. A document with "requires_capability" (the max approvals)
@@ -17,6 +17,7 @@
 
 import json
 import os
+import re
 import unittest
 
 import common
@@ -64,45 +65,60 @@ class TestMsgEip712Corpus(common.KeepKeyTest):
         self.client.apply_policy('AdvancedMode', 0)
         self.client.reset_screenshots()
 
-    def test_every_real_world_document_signs(self):
+    def _sign_and_check(self, entry):
+        needs = entry.get('requires_capability')
+        if needs and needs not in (self.firmware_capabilities() or ()):
+            self.skipTest("Staged release tree does not yet provide "
+                          "capability: " + needs)
         address = self.client.ethereum_get_address(streaming.PATH)
-        for entry in load_corpus():
-            with self.subTest(entry['id']):
-                needs = entry.get('requires_capability')
-                if needs and needs not in (self.firmware_capabilities() or ()):
-                    self.skipTest("Staged release tree does not yet provide "
-                                  "capability: " + needs)
-                doc = entry['doc']
-                resp = self._walk(doc, max_steps=2000)
-                self.assertIsInstance(resp, eth.EthereumTypedDataSignature,
-                                      getattr(resp, 'message', resp))
-                self.assertEqual(resp.domain_separator_hash.hex(),
-                                 entry['expected']['domain_separator'])
-                self.assertEqual(resp.message_hash.hex(),
-                                 entry['expected']['message_hash'])
-                digest = bytes.fromhex(entry['expected']['digest'])
-                self.assertEqual(
-                    streaming.recover_signer(resp.signature, digest).hex(),
-                    address.hex())
-                # The final screen (and its continuation pages) names the
-                # whole primary type, however long.
-                codes = [code for code, _ in self.frames]
-                self.assertEqual(codes.count(types.ButtonRequest_SignTx), 1)
-                final = codes.index(types.ButtonRequest_SignTx)
-                self.assertIsNotNone(oled_text.find_text(
-                    [layout for _, layout in self.frames[final:]],
-                    'Sign ' + doc['primaryType']))
-                warned = [layout for _, layout in self.frames
-                          if oled_text.find_line(layout, 'UNLIMITED APPROVAL',
-                                                 oled_text.TITLE_FONT)
-                          is not None]
-                if 'unlimited_screen' not in entry:
-                    self.assertEqual(warned, [])
-                elif not self.firmware_at_least("7.16.0"):
-                    self.assertEqual(len(warned), 1)
-                    self.assertTrue(oled_text.shows(
-                        warned[0], entry['unlimited_screen']))
+        doc = entry['doc']
+        resp = self._walk(doc, max_steps=2000)
+        self.assertIsInstance(resp, eth.EthereumTypedDataSignature,
+                              getattr(resp, 'message', resp))
+        self.assertEqual(resp.domain_separator_hash.hex(),
+                         entry['expected']['domain_separator'])
+        self.assertEqual(resp.message_hash.hex(),
+                         entry['expected']['message_hash'])
+        digest = bytes.fromhex(entry['expected']['digest'])
+        self.assertEqual(
+            streaming.recover_signer(resp.signature, digest).hex(),
+            address.hex())
+        # The final screen (and its continuation pages) names the whole
+        # primary type, however long.
+        codes = [code for code, _ in self.frames]
+        self.assertEqual(codes.count(types.ButtonRequest_SignTx), 1)
+        final = codes.index(types.ButtonRequest_SignTx)
+        self.assertIsNotNone(oled_text.find_text(
+            [layout for _, layout in self.frames[final:]],
+            'Sign ' + doc['primaryType']))
+        warned = [layout for _, layout in self.frames
+                  if oled_text.find_line(layout, 'UNLIMITED APPROVAL',
+                                         oled_text.TITLE_FONT)
+                  is not None]
+        if 'unlimited_screen' not in entry:
+            self.assertEqual(warned, [])
+        elif not self.firmware_at_least("7.16.0"):
+            self.assertEqual(len(warned), 1)
+            self.assertTrue(oled_text.shows(
+                warned[0], entry['unlimited_screen']))
 
+
+# One test per document, so each gets its own timeout and failure line:
+# test_doc_seaport_OrderComponents_bundle_10x6, ...
+def _add_document_tests():
+    for entry in load_corpus():
+        spelled = entry['id'].replace('[]', '_array')
+        name = 'test_doc_' + re.sub(r'[^0-9A-Za-z]+', '_', spelled).strip('_')
+        assert not hasattr(TestMsgEip712Corpus, name), name
+
+        def test(self, entry=entry):
+            self._sign_and_check(entry)
+        test.__name__ = name
+        test.__doc__ = entry['id'] + ' signs with the expected hashes.'
+        setattr(TestMsgEip712Corpus, name, test)
+
+
+_add_document_tests()
 
 if __name__ == '__main__':
     unittest.main()
