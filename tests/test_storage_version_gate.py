@@ -482,6 +482,10 @@ def _free_port_pair():
     raise RuntimeError("no free UDP port pair for the emulator")
 
 
+class _PortTaken(Exception):
+    pass
+
+
 class Emulator(object):
     """One kkemu process over one flash image, restartable.
 
@@ -511,7 +515,21 @@ class Emulator(object):
             s.close()
 
     def boot(self):
+        # _free_port_pair() can only say the pair was free a moment ago;
+        # another process may bind it before kkemu does. kkemu then exits
+        # with "Failed to bind socket", and the image is untouched, so try
+        # a fresh pair rather than fail the test on a port race.
+        for _ in range(5):
+            try:
+                return self._boot_once()
+            except _PortTaken:
+                self.port = _free_port_pair()
+        raise RuntimeError("emulator could not bind a UDP port pair")
+
+    def _boot_once(self):
         assert self.proc is None, "already booted"
+        log_path = os.path.join(self.workdir, "emu.log")
+        log_start = os.path.getsize(log_path) if os.path.exists(log_path) else 0
         env = dict(os.environ, KEEPKEY_UDP_PORT=str(self.port))
         with open(os.path.join(self.workdir, "emu.log"), "ab") as log:
             self.proc = subprocess.Popen(
@@ -524,6 +542,10 @@ class Emulator(object):
             for _ in range(100):
                 time.sleep(0.1)
                 if self.proc.poll() is not None:
+                    with open(log_path, "rb") as log:
+                        log.seek(log_start)
+                        if b"Failed to bind socket" in log.read():
+                            raise _PortTaken()
                     raise RuntimeError(
                         "emulator exited rc=%s before answering; see %s"
                         % (self.proc.returncode, os.path.join(self.workdir, "emu.log")))
