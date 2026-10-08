@@ -243,6 +243,14 @@ class TestDisplayDisclosesSignedContent(common.KeepKeyTest):
 
     # ── the property, at each place an implementation stops looking ─────
 
+    def test_pipe_is_distinguishable_from_lowercase_l(self):
+        self._assert_distinguishable(
+            'lowercase letters', b'allow', 'vertical bars', b'a||ow')
+
+    def test_double_quote_is_distinguishable_from_two_apostrophes(self):
+        self._assert_distinguishable(
+            'one double quote', b'"', 'two apostrophes', b"''")
+
     def test_bytes_past_an_embedded_nul_are_disclosed(self):
         """A protobuf `bytes` field is not a C string.
 
