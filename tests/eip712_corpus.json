@@ -6278,6 +6278,95 @@
   }
  },
  {
+  "id": "safe-SafeTx-multisend-approve-unlimited",
+  "source": [
+   "https://github.com/safe-global/safe-smart-account/blob/v1.3.0/contracts/GnosisSafe.sol",
+   "https://github.com/safe-global/safe-smart-account/blob/v1.3.0/contracts/libraries/MultiSendCallOnly.sol",
+   "https://api.safe.global/tx-service/eth/api/v1/multisig-transactions/0xc5a2fac8f82fb6185796bf07e1c1d17b52538414c6e87c3dbc7b4f1bb2e16c12/",
+   "https://etherscan.io/tx/0x171f08630810946c52d3b379839e66b2dcb67db91f1be9ab3acbe74bac16af06"
+  ],
+  "requires_capability": "eip712-chunked-values",
+  "unlimited_screen": "Allow 0xC92E8bdf79f0507f65a392b0ab4667716BFE0110 to spend ALL your WETH",
+  "doc": {
+   "types": {
+    "EIP712Domain": [
+     {
+      "name": "chainId",
+      "type": "uint256"
+     },
+     {
+      "name": "verifyingContract",
+      "type": "address"
+     }
+    ],
+    "SafeTx": [
+     {
+      "name": "to",
+      "type": "address"
+     },
+     {
+      "name": "value",
+      "type": "uint256"
+     },
+     {
+      "name": "data",
+      "type": "bytes"
+     },
+     {
+      "name": "operation",
+      "type": "uint8"
+     },
+     {
+      "name": "safeTxGas",
+      "type": "uint256"
+     },
+     {
+      "name": "baseGas",
+      "type": "uint256"
+     },
+     {
+      "name": "gasPrice",
+      "type": "uint256"
+     },
+     {
+      "name": "gasToken",
+      "type": "address"
+     },
+     {
+      "name": "refundReceiver",
+      "type": "address"
+     },
+     {
+      "name": "nonce",
+      "type": "uint256"
+     }
+    ]
+   },
+   "primaryType": "SafeTx",
+   "domain": {
+    "chainId": 1,
+    "verifyingContract": "0x245cc372C84B3645Bf0Ffe6538620B04a217988B"
+   },
+   "message": {
+    "to": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
+    "value": "0",
+    "data": "0x8d80ff0a0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000019200c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044095ea7b3000000000000000000000000c92e8bdf79f0507f65a392b0ab4667716bfe0110ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff009008d19f58aabd9ed0d60971565aa8510560ab41000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a4ec6cb13f0000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000380c22c8071c7af43fd1f72d8f076e5ca5ef1bc341cd07607f2eef6a63d5940c80245cc372c84b3645bf0ffe6538620b04a217988b692df75700000000000000000000000000000000000000000000",
+    "operation": 1,
+    "safeTxGas": 0,
+    "baseGas": 0,
+    "gasPrice": "0",
+    "gasToken": "0x0000000000000000000000000000000000000000",
+    "refundReceiver": "0x0000000000000000000000000000000000000000",
+    "nonce": "1802"
+   }
+  },
+  "expected": {
+   "domain_separator": "962a762e4486fcd558237b6934e27ec2383bc843e1bba8996935225f84c910ec",
+   "message_hash": "9b200c822d235c9321d93e495fa4e3b53eb7aa570ea8746e886b96a8a72386f0",
+   "digest": "c5a2fac8f82fb6185796bf07e1c1d17b52538414c6e87c3dbc7b4f1bb2e16c12"
+  }
+ },
+ {
   "id": "snapshot-Proposal-body-3929",
   "source": [
    "https://github.com/snapshot-labs/snapshot.js/blob/ae2a8209e03ca1fa133a9105949a9386f3b539ed/src/sign/types.ts",
