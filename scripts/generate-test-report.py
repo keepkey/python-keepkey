@@ -1013,6 +1013,28 @@ SECTIONS = [
           'A byte outside \'1\'-\'6\' anywhere inside the counted rolls is refused regardless of the '
           'distribution of the rest.',
           []),
+         ('K8', 'Storage', 'PinKdfRewrapsToActiveVersionAfterCorrectPin',
+          'Correct PIN unlocks and rewraps to the ACTIVE KDF',
+          'The migration path for the hardened PIN KDF: an existing device must still unlock with '
+          'its current PIN, and any rewrap must target whatever KDF the build actually has '
+          'enabled. Renamed from PinKdfV16RewrapsToV19AfterCorrectPin because it is no longer '
+          'v19-specific -- the test now asserts BOTH sides of the STORAGE_PIN_KDF_V19 gate, so it '
+          'is meaningful in the shipping build where v19 is off. If this regressed, every '
+          'upgrading device would be locked out of its own seed.',
+          []),
+         ('K8b', 'Storage', 'PinUnlocksAfterRebootUnderV17',
+          'The PIN still opens the wallet after a reboot',
+          'The whole round trip in device order: create, set a PIN, serialize the V17 record as '
+          'storage_commit() does, reload into fresh state as a boot would, unlock, decrypt. Every '
+          'other storage test stays in RAM, and the wallet lockout this guards against lived '
+          'exactly on the serialize/reboot boundary -- a wrap the persisted record could not '
+          'describe, so the next boot derived the wrong KDF and every PIN failed.',
+          []),
+         ('K9', 'Storage', 'PinKdfV2FlagIsVersionedInV19',
+          'KDF version flag is recorded in v19',
+          'The new KDF is marked in the storage version band, so firmware can tell which derivation '
+          'a blob was written with instead of guessing.',
+          []),
          ('K10', 'Storage', 'StorageUpgrade_Normal',
           'Normal storage upgrade path',
           'Baseline upgrade across storage versions with policies and cache preserved.',
@@ -4154,6 +4176,12 @@ def main():
         os.environ['KK_BUILD_LABEL'] = ' | '.join(supplied)
 
     results = parse_report_junit(args.junit) if args.junit else {}
+    # A staged control has no row of its own in a tree whose firmware reports
+    # its capability missing; show it withheld rather than pending. Rendering
+    # only: validate_junit applies the same exemption itself.
+    for (mod, meth), cap in _TEST_CAPABILITY.items():
+        if cap in JUNIT_MISSING_CAPABILITIES:
+            results.setdefault('%s::%s' % (mod, meth), 'skip')
     render(args.output, fw, results, args.screenshots)
 
 if __name__ == '__main__':
