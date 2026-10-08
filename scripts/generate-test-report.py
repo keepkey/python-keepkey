@@ -920,7 +920,8 @@ SECTIONS = [
          ('K1c', 'test_msg_resetdevice', 'test_reset_device_dice_rejects_biased_rolls',
           'Loaded die is refused',
           'Fifty ones -- one face on 100% of the rolls. Refused with SyntaxError before any digest '
-          'is drawn, per Coldcard\'s 30%-per-face rule, so a biased die never becomes a wallet.',
+          'is drawn: this exceeds the one-in-a-million fair-die frequency threshold. '
+          'The frequency check detects severe bias; it is not an entropy guarantee.',
           []),
          ('K1d', 'test_msg_resetdevice', 'test_reset_device_dice_only_requires_dice_entropy',
           'dice_only without dice_entropy is refused',
@@ -982,10 +983,11 @@ SECTIONS = [
           'Bytes past the declared roll count must not affect the result, so uninitialized tail '
           'bytes of the roll buffer can never leak into seed material.',
           []),
-         ('K7b', 'Dice', 'BiasGateIsThirtyPercentPerFace',
+         ('K7b', 'Dice', 'BiasGateRefusesOnlyAtOneInAMillion',
           'Loaded-die gate threshold',
-          'Coldcard\'s rule: any face over 30% of the rolls is refused. 30/99 fails, 29/99 passes; '
-          '16/50 fails, 15/50 (exactly 30%) passes.',
+          'For every face, 25/50, 32/75, and 39/99 rolls are refused; one fewer passes. '
+          'Each threshold bounds the fair-die probability of any face reaching that count '
+          'below one in a million. This avoids rejecting ordinary fair-die sequences.',
           []),
          ('K7c', 'Dice', 'BiasGateRejectsNonDiceBytes',
           'Non-d6 bytes are refused',
