@@ -384,6 +384,41 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         # The report entries describe typed-data fields, not the policy prompt.
         self.client.reset_screenshots()
 
+    def _assert_strings_have_distinct_screens(self, first, second):
+        doc = {
+            'types': {
+                'EIP712Domain': [],
+                'Message': [{'name': 'note', 'type': 'string'}],
+            },
+            'primaryType': 'Message', 'domain': {}, 'message': {'note': first},
+        }
+        responses, screens = [], []
+        for value in (first, second):
+            doc['message']['note'] = value
+            response = self._walk(doc)
+            self._assert_reference_signature(doc, response)
+            responses.append(response)
+            screens.append(tuple(self.frames))
+        self.assertNotEqual(responses[0].message_hash, responses[1].message_hash)
+        self.assertNotEqual(responses[0].signature, responses[1].signature)
+        self.assertFalse(screens[0] == screens[1],
+                         'Different signed values produced identical OLED screens')
+
+    def test_pipe_is_distinguishable_from_lowercase_l(self):
+        self._assert_strings_have_distinct_screens('allow', 'a||ow')
+
+    def test_pipe_after_chunk_boundary_is_distinguishable_from_lowercase_l(self):
+        if not self._chunked_values():
+            self.skipTest('firmware does not support chunked EIP-712 values')
+        self._assert_strings_have_distinct_screens(
+            'a' * 1024 + 'allow', 'a' * 1024 + 'a||ow')
+
+    def test_distinct_visible_character_changes_review_pixels(self):
+        self._assert_strings_have_distinct_screens('allow', 'a!!ow')
+
+    def test_double_quote_is_distinguishable_from_two_apostrophes(self):
+        self._assert_strings_have_distinct_screens('"', "''")
+
     def test_spec_example_matches_the_published_hashes(self):
         """The device's own hashes equal the EIP-712 reference implementation's.
 
