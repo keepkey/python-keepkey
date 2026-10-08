@@ -5728,6 +5728,264 @@
   }
  },
  {
+  "id": "uniswapx-V3DutchOrder-arbitrum-curve16",
+  "source": [
+   "https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/libraries/PermitHash.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/V3DutchOrderLib.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/OrderInfoLib.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/DutchOrderLib.sol",
+   "https://arbiscan.io/tx/0x1f2f270bf65d2b7f02b2a141f71e23bfcc3a84b37c9a0921577516c58031678d",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/lib/NonlinearDutchDecayLib.sol",
+   "https://github.com/Uniswap/UniswapX/blob/eb7ce077036258b9510b42ad37aa920cf3aaf308/src/types/Uint16Array.sol"
+  ],
+  "requires_capability": "eip712-chunked-values",
+  "doc": {
+   "types": {
+    "EIP712Domain": [
+     {
+      "name": "name",
+      "type": "string"
+     },
+     {
+      "name": "chainId",
+      "type": "uint256"
+     },
+     {
+      "name": "verifyingContract",
+      "type": "address"
+     }
+    ],
+    "PermitWitnessTransferFrom": [
+     {
+      "name": "permitted",
+      "type": "TokenPermissions"
+     },
+     {
+      "name": "spender",
+      "type": "address"
+     },
+     {
+      "name": "nonce",
+      "type": "uint256"
+     },
+     {
+      "name": "deadline",
+      "type": "uint256"
+     },
+     {
+      "name": "witness",
+      "type": "V3DutchOrder"
+     }
+    ],
+    "NonlinearDutchDecay": [
+     {
+      "name": "relativeBlocks",
+      "type": "uint256"
+     },
+     {
+      "name": "relativeAmounts",
+      "type": "int256[]"
+     }
+    ],
+    "OrderInfo": [
+     {
+      "name": "reactor",
+      "type": "address"
+     },
+     {
+      "name": "swapper",
+      "type": "address"
+     },
+     {
+      "name": "nonce",
+      "type": "uint256"
+     },
+     {
+      "name": "deadline",
+      "type": "uint256"
+     },
+     {
+      "name": "additionalValidationContract",
+      "type": "address"
+     },
+     {
+      "name": "additionalValidationData",
+      "type": "bytes"
+     }
+    ],
+    "TokenPermissions": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "amount",
+      "type": "uint256"
+     }
+    ],
+    "V3DutchInput": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "startAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "curve",
+      "type": "NonlinearDutchDecay"
+     },
+     {
+      "name": "maxAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "adjustmentPerGweiBaseFee",
+      "type": "uint256"
+     }
+    ],
+    "V3DutchOrder": [
+     {
+      "name": "info",
+      "type": "OrderInfo"
+     },
+     {
+      "name": "cosigner",
+      "type": "address"
+     },
+     {
+      "name": "startingBaseFee",
+      "type": "uint256"
+     },
+     {
+      "name": "baseInput",
+      "type": "V3DutchInput"
+     },
+     {
+      "name": "baseOutputs",
+      "type": "V3DutchOutput[]"
+     }
+    ],
+    "V3DutchOutput": [
+     {
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "name": "startAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "curve",
+      "type": "NonlinearDutchDecay"
+     },
+     {
+      "name": "recipient",
+      "type": "address"
+     },
+     {
+      "name": "minAmount",
+      "type": "uint256"
+     },
+     {
+      "name": "adjustmentPerGweiBaseFee",
+      "type": "uint256"
+     }
+    ]
+   },
+   "primaryType": "PermitWitnessTransferFrom",
+   "domain": {
+    "name": "Permit2",
+    "chainId": 42161,
+    "verifyingContract": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+   },
+   "message": {
+    "permitted": {
+     "token": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+     "amount": "12514477"
+    },
+    "spender": "0xB274d5F4b833b61B340b654d600A864fB604a87c",
+    "nonce": "1993355410060173619975858542007397613024848003638926934372819132074995782145",
+    "deadline": "1791402675",
+    "witness": {
+     "info": {
+      "reactor": "0xB274d5F4b833b61B340b654d600A864fB604a87c",
+      "swapper": "0x7f05C94cE299Eea9FCdAE798Be34E226a0cb1e77",
+      "nonce": "1993355410060173619975858542007397613024848003638926934372819132074995782145",
+      "deadline": "1791402675",
+      "additionalValidationContract": "0x0000000000000000000000000000000000000000",
+      "additionalValidationData": "0x"
+     },
+     "cosigner": "0x4449Cd34d1eb1FEDCF02A1Be3834FfDe8E6A6180",
+     "startingBaseFee": "0",
+     "baseInput": {
+      "token": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+      "startAmount": "12514477",
+      "curve": {
+       "relativeBlocks": "56539914882827008174051697847791522700364166669018632573655171137406238722",
+       "relativeAmounts": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+       ]
+      },
+      "maxAmount": "12514477",
+      "adjustmentPerGweiBaseFee": "0"
+     },
+     "baseOutputs": [
+      {
+       "token": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+       "startAmount": "10407262726",
+       "curve": {
+        "relativeBlocks": "56539914882827008174051697847791522700364166669018632573655171137406238722",
+        "relativeAmounts": [
+         "16261348",
+         "32522696",
+         "48784044",
+         "65045392",
+         "81306740",
+         "97568088",
+         "113829436",
+         "130090784",
+         "146352132",
+         "162613480",
+         "178874828",
+         "195136176",
+         "211397524",
+         "227658872",
+         "243920220",
+         "260181568"
+        ]
+       },
+       "recipient": "0x7f05C94cE299Eea9FCdAE798Be34E226a0cb1e77",
+       "minAmount": "10147081157",
+       "adjustmentPerGweiBaseFee": "0"
+      }
+     ]
+    }
+   }
+  },
+  "expected": {
+   "domain_separator": "8a6e6e19bdfb3db3409910416b47c2f8fc28b49488d6555c7fceaa4479135bc3",
+   "message_hash": "1b7a77c239ffc05a83f3ac787234661b980a447d8791a54a785d9bb8950f3255",
+   "digest": "95fbdb5178abf6c7d90c1f5d463cc767e7b08ae701238bde83b16d002e2d5a5a"
+  }
+ },
+ {
   "id": "uniswapx-V3DutchOrder-arbitrum-fee-output",
   "source": [
    "https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/libraries/PermitHash.sol",
@@ -6480,6 +6738,231 @@
    "domain_separator": "484fce18f892e8535a4b6700e197a8026f4213f809d23ae117da03b497e18670",
    "message_hash": "19195d2352d10330a4ad01c832298eea9b353e113154932be82e856eb3aa87c1",
    "digest": "a69fce8c756ac96160ddb6ac09653d3254415d046fdd43e5876663e9f343f183"
+  }
+ },
+ {
+  "id": "evmos-MsgSend",
+  "source": [
+   "https://github.com/evmos/evmosjs/blob/e47e44b1683ffa57737cee2f6abbd138436d9fc3/packages/eip712/src/messages/base.ts",
+   "https://github.com/evmos/evmosjs/blob/e47e44b1683ffa57737cee2f6abbd138436d9fc3/packages/eip712/src/messages/bank/send.ts",
+   "https://github.com/evmos/evmosjs/blob/e47e44b1683ffa57737cee2f6abbd138436d9fc3/packages/eip712/src/tests/utils.ts"
+  ],
+  "requires_capability": "eip712-chunked-values",
+  "doc": {
+   "types": {
+    "EIP712Domain": [
+     {
+      "name": "name",
+      "type": "string"
+     },
+     {
+      "name": "version",
+      "type": "string"
+     },
+     {
+      "name": "chainId",
+      "type": "uint256"
+     },
+     {
+      "name": "verifyingContract",
+      "type": "string"
+     },
+     {
+      "name": "salt",
+      "type": "string"
+     }
+    ],
+    "Tx": [
+     {
+      "name": "account_number",
+      "type": "string"
+     },
+     {
+      "name": "chain_id",
+      "type": "string"
+     },
+     {
+      "name": "fee",
+      "type": "Fee"
+     },
+     {
+      "name": "memo",
+      "type": "string"
+     },
+     {
+      "name": "msgs",
+      "type": "Msg[]"
+     },
+     {
+      "name": "sequence",
+      "type": "string"
+     }
+    ],
+    "Fee": [
+     {
+      "name": "feePayer",
+      "type": "string"
+     },
+     {
+      "name": "amount",
+      "type": "Coin[]"
+     },
+     {
+      "name": "gas",
+      "type": "string"
+     }
+    ],
+    "Coin": [
+     {
+      "name": "denom",
+      "type": "string"
+     },
+     {
+      "name": "amount",
+      "type": "string"
+     }
+    ],
+    "Msg": [
+     {
+      "name": "type",
+      "type": "string"
+     },
+     {
+      "name": "value",
+      "type": "MsgValue"
+     }
+    ],
+    "MsgValue": [
+     {
+      "name": "from_address",
+      "type": "string"
+     },
+     {
+      "name": "to_address",
+      "type": "string"
+     },
+     {
+      "name": "amount",
+      "type": "TypeAmount[]"
+     }
+    ],
+    "TypeAmount": [
+     {
+      "name": "denom",
+      "type": "string"
+     },
+     {
+      "name": "amount",
+      "type": "string"
+     }
+    ]
+   },
+   "primaryType": "Tx",
+   "domain": {
+    "name": "Cosmos Web3",
+    "version": "1.0.0",
+    "chainId": 9001,
+    "verifyingContract": "cosmos",
+    "salt": "0"
+   },
+   "message": {
+    "account_number": "10",
+    "chain_id": "evmos_9001-2",
+    "fee": {
+     "feePayer": "evmos1pmk2r32ssqwps42y3c9d4clqlca403yd9wymgr",
+     "amount": [
+      {
+       "denom": "aevmos",
+       "amount": "4000000000000000"
+      }
+     ],
+     "gas": "200000"
+    },
+    "memo": "Transaction Memo",
+    "msgs": [
+     {
+      "type": "cosmos-sdk/MsgSend",
+      "value": {
+       "from_address": "evmos1pmk2r32ssqwps42y3c9d4clqlca403yd9wymgr",
+       "to_address": "evmos12nml2w93uva0smjw3c36stczfay0k67ny94ecz",
+       "amount": [
+        {
+         "denom": "aevmos",
+         "amount": "1000000000000000000"
+        }
+       ]
+      }
+     }
+    ],
+    "sequence": "6"
+   }
+  },
+  "expected": {
+   "domain_separator": "1633cfb1cf33b8790808cb60604cfd1f261c59a367ccb3aaff568a000149ace9",
+   "message_hash": "57c04fd23163cd0f2f0d20d6e9228010f7b111e0a499c208bc798b6e1aae9d0c",
+   "digest": "a475e759cc3637f92de75029aeb2eee6e410efae4a0b1834d8529853f06cf5f8"
+  }
+ },
+ {
+  "id": "injective-MsgSend-v2",
+  "source": [
+   "https://github.com/InjectiveLabs/injective-ts/blob/f8373753d6fe0662c1a8af7fb88192ad126e2e2e/packages/sdk-ts/src/core/tx/eip712/eip712.spec.ts",
+   "https://github.com/InjectiveLabs/injective-ts/blob/f8373753d6fe0662c1a8af7fb88192ad126e2e2e/packages/sdk-ts/src/core/tx/eip712/utils.ts",
+   "https://github.com/InjectiveLabs/injective-ts/blob/f8373753d6fe0662c1a8af7fb88192ad126e2e2e/packages/utils/src/test-utils/mocks/index.ts"
+  ],
+  "requires_capability": "eip712-chunked-values",
+  "doc": {
+   "types": {
+    "EIP712Domain": [
+     {
+      "name": "name",
+      "type": "string"
+     },
+     {
+      "name": "version",
+      "type": "string"
+     },
+     {
+      "name": "chainId",
+      "type": "uint256"
+     },
+     {
+      "name": "verifyingContract",
+      "type": "address"
+     },
+     {
+      "name": "salt",
+      "type": "string"
+     }
+    ],
+    "Tx": [
+     {
+      "name": "context",
+      "type": "string"
+     },
+     {
+      "name": "msgs",
+      "type": "string"
+     }
+    ]
+   },
+   "primaryType": "Tx",
+   "domain": {
+    "name": "Injective Web3",
+    "version": "1.0.0",
+    "chainId": "0x5",
+    "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+    "salt": "0"
+   },
+   "message": {
+    "context": "{\"account_number\":11,\"chain_id\":\"injective-777\",\"fee\":{\"amount\":[{\"denom\":\"inj\",\"amount\":\"64000000000000\"}],\"gas\":400000,\"payer\":\"inj18j2myhaf2at75kwwaqxfstk4q28n4am45nlfg7\",\"granter\":\"inj1granter\"},\"memo\":\"\",\"sequence\":88,\"timeout_height\":1896}",
+    "msgs": "[{\"@type\":\"/cosmos.bank.v1beta1.MsgSend\",\"from_address\":\"inj14au322k9munkmx5wrchz9q30juf5wjgz2cfqku\",\"to_address\":\"inj14au322k9munkmx5wrchz9q30juf5wjgz2cfqku\",\"amount\":[{\"denom\":\"inj\",\"amount\":\"10000000000000000\"}]}]"
+   }
+  },
+  "expected": {
+   "domain_separator": "a908147858193dcbc852a78aa9ab32d35da72e7229292dd41a6d1b02b305d1cd",
+   "message_hash": "699085c19a1eae36c57c33a44f907a1e805ce9f7c5ee1a0cdec62057839e85fb",
+   "digest": "0a599095745e1057fe40b2c5e36bcf753d38d1fcb8106f12c15c51aed3237e2e"
   }
  }
 ]
