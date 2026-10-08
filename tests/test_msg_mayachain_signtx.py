@@ -138,6 +138,33 @@ class TestMsgMayaChainSignTx(common.KeepKeyTest):
         self.assertTrue(vk.verify_digest(resp.signature, digest,
                                          sigdecode=sigdecode_string))
 
+    def _confirm_bodies(self):
+        bodies = []
+        original = self.client.callback_ButtonRequest
+
+        def capture(msg):
+            bodies.append(self.client.debug.read_confirm_text()[1])
+            return original(msg)
+
+        self.client.callback_ButtonRequest = capture
+        return bodies
+    def test_fee_is_shown_in_whole_cacao(self):
+        """fee_amount is in 1e-10 CACAO; the sign screen must not print the
+        raw count."""
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        self.setup_mnemonic_nopin_nopassphrase()
+        bodies = self._confirm_bodies()
+        self.client.mayachain_sign_tx(
+            address_n=parse_path(DEFAULT_BIP32_PATH), account_number=92,
+            chain_id="mayachain", fee=2000000, gas=200000,
+            msgs=[make_send(self.client.mayachain_get_address(
+                                parse_path(DEFAULT_BIP32_PATH)),
+                            "maya1jvt443rvhq5h8yrna55yjysvhtju0el7mdujp3",
+                            10000)],
+            memo="foobar", sequence=3, testnet=False)
+        self.assertIn("Fee: 0.0002 cacao. Gas: 200000.", "\n".join(bodies))
+
     def test_mayachain_sign_tx(self):
         """Native CACAO MsgSend with a plain memo; the full raw memo is paged
         on the OLED before signing (thorchain_confirm_full_memo is the sole

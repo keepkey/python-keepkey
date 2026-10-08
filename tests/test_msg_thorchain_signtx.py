@@ -142,6 +142,32 @@ class TestMsgThorChainSignTx(common.KeepKeyTest):
                     asset="THOR.RUNE", amount=1, memo="unused",
                     signer="thor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8")))
 
+    def _confirm_bodies(self):
+        bodies = []
+        original = self.client.callback_ButtonRequest
+
+        def capture(msg):
+            bodies.append(self.client.debug.read_confirm_text()[1])
+            return original(msg)
+
+        self.client.callback_ButtonRequest = capture
+        return bodies
+    def test_fee_is_shown_in_whole_rune(self):
+        """fee_amount is in 1e-8 RUNE. The sign screen once printed the raw
+        count, so a 0.02 RUNE fee read as "Fee: 2000000 rune"."""
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        self.setup_mnemonic_nopin_nopassphrase()
+        bodies = self._confirm_bodies()
+        self.client.thorchain_sign_tx(
+            address_n=parse_path(DEFAULT_BIP32_PATH), account_number=92,
+            chain_id="thorchain", fee=2000000, gas=200000,
+            msgs=[make_send("tthor1ls33ayg26kmltw7jjy55p32ghjna09zp6z69y8",
+                            "tthor1jvt443rvhq5h8yrna55yjysvhtju0el7ldnwwy",
+                            10000)],
+            memo="foobar", sequence=3, testnet=True)
+        self.assertIn("Fee: 0.02 RUNE. Gas: 200000.", "\n".join(bodies))
+
     def test_thorchain_sign_tx(self):
         self.requires_fullFeature()
         self.requires_firmware("7.0.2")
