@@ -202,6 +202,23 @@ class PB:
     def finish(self):
         self._flush()
 
+def parse_report_junit(path):
+    """parse_junit, plus section L from the bitcoin-only JUnit CI writes
+    beside it: those tests only run on the bitcoin-only image and skip on
+    the full one, so the full JUnit alone shows them as withheld."""
+    results = parse_junit(path)
+    btc = os.path.join(os.path.dirname(path), 'junit-merged-bitcoin-only.xml')
+    if os.path.abspath(btc) != os.path.abspath(path) and os.path.isfile(btc):
+        # The census and missing capabilities describe the full run only.
+        census, missing = dict(JUNIT_CENSUS), set(JUNIT_MISSING_CAPABILITIES)
+        btc_results = parse_junit(btc)
+        JUNIT_CENSUS.clear(); JUNIT_CENSUS.update(census)
+        JUNIT_MISSING_CAPABILITIES.clear(); JUNIT_MISSING_CAPABILITIES.update(missing)
+        for key, status in btc_results.items():
+            if key.startswith('test_msg_bitcoin_only_variant::'):
+                results[key] = status
+    return results
+
 def _lookup(results, mod, meth):
     """Look up a test result by module::method. Every SECTIONS module is a
     test_msg_* module, so parse_junit always emits a 'mod::meth' key -- there is
@@ -220,8 +237,11 @@ def ver_ge(a, b): return ver_t(a) >= ver_t(b)
 # Tests whose newer fail-closed behavior deliberately returns before drawing a
 # confirmation screen. Keep their historical catalog text, but do not schedule
 # or audit an OLED capture once the refusal behavior is active.
+# (floor, ceiling): no capture from floor up to, not including, ceiling.
 _NO_SCREEN_FROM = {
-    ('test_msg_signtx_ethereum_erc20', 'test_approve_all'): '7.14.2',
+    # 7.14.x refuses an unlimited approve before drawing; from 7.15 it signs
+    # after an UNLIMITED APPROVAL warning, which is the evidence to capture.
+    ('test_msg_signtx_ethereum_erc20', 'test_approve_all'): ('7.14.2', '7.15.0'),
 }
 
 
@@ -246,8 +266,8 @@ def _screens_for(fw_version, mod, meth, screens):
                 'test_reset_device_dice_mixed_is_verifiable',
                 'test_reset_device_dice_only_is_verifiable')):
         return []
-    floor = _NO_SCREEN_FROM.get((mod, meth))
-    if floor and ver_ge(fw_version, floor):
+    window = _NO_SCREEN_FROM.get((mod, meth))
+    if window and ver_ge(fw_version, window[0]) and not ver_ge(fw_version, window[1]):
         return []
     return screens
 
@@ -490,9 +510,8 @@ def _v_catalog_tests(start_id=17):
     silently go stale (as happened when the old hand-written V17-V23 test
     names drifted from the dynamically-generated ones).
 
-    Signing entries get screenshot hints. The unlimited-approval refusal is
-    deliberately screenless: its wire assertion requires immediate Failure,
-    so setup or home frames must never be used as approval evidence.
+    Signing entries get screenshot hints, the unlimited approval included:
+    from 7.15 it signs after a warning screen.
     """
     if not CLEARSIGN_FLOWS:
         return []
@@ -505,12 +524,12 @@ def _v_catalog_tests(start_id=17):
         if f['key'] == 'erc20-approve-unlimited':
             out.append((
                 'V%d' % i, 'test_msg_ethereum_clear_signing', method,
-                'Unlimited ERC-20 approval refused before confirmation',
-                'Even with AdvancedMode and valid runtime metadata, unlimited '
-                'approval returns Failure before any ButtonRequest or signature. '
-                'The wire test requires that immediate refusal; no OLED approval '
-                'screen is expected.',
-                [],
+                'Unlimited ERC-20 approval signs after a warning',
+                'From 7.15 an unlimited approval is signed after an UNLIMITED '
+                'APPROVAL warning naming the spender and token; the signature is '
+                'checked against the device address. 7.14.x refused it before '
+                'any ButtonRequest.',
+                ['Unlimited approval warning'],
             ))
             i += 1
             continue
@@ -994,28 +1013,6 @@ SECTIONS = [
           'A byte outside \'1\'-\'6\' anywhere inside the counted rolls is refused regardless of the '
           'distribution of the rest.',
           []),
-         ('K8', 'Storage', 'PinKdfRewrapsToActiveVersionAfterCorrectPin',
-          'Correct PIN unlocks and rewraps to the ACTIVE KDF',
-          'The migration path for the hardened PIN KDF: an existing device must still unlock with '
-          'its current PIN, and any rewrap must target whatever KDF the build actually has '
-          'enabled. Renamed from PinKdfV16RewrapsToV19AfterCorrectPin because it is no longer '
-          'v19-specific -- the test now asserts BOTH sides of the STORAGE_PIN_KDF_V19 gate, so it '
-          'is meaningful in the shipping build where v19 is off. If this regressed, every '
-          'upgrading device would be locked out of its own seed.',
-          []),
-         ('K8b', 'Storage', 'PinUnlocksAfterRebootUnderV17',
-          'The PIN still opens the wallet after a reboot',
-          'The whole round trip in device order: create, set a PIN, serialize the V17 record as '
-          'storage_commit() does, reload into fresh state as a boot would, unlock, decrypt. Every '
-          'other storage test stays in RAM, and the wallet lockout this guards against lived '
-          'exactly on the serialize/reboot boundary -- a wrap the persisted record could not '
-          'describe, so the next boot derived the wrong KDF and every PIN failed.',
-          []),
-         ('K9', 'Storage', 'PinKdfV2FlagIsVersionedInV19',
-          'KDF version flag is recorded in v19',
-          'The new KDF is marked in the storage version band, so firmware can tell which derivation '
-          'a blob was written with instead of guessing.',
-          []),
          ('K10', 'Storage', 'StorageUpgrade_Normal',
           'Normal storage upgrade path',
           'Baseline upgrade across storage versions with policies and cache preserved.',
@@ -1248,8 +1245,8 @@ SECTIONS = [
           ['Approval screen']),
          ('E11', 'test_msg_signtx_ethereum_erc20', 'test_approve_all',
           'ERC-20 approve unlimited',
-          'MAX_UINT256 approval. Older firmware showed an "UNLIMITED" warning; 7.14.2 and later '
-          'refuse it before drawing a confirmation screen.',
+          'MAX_UINT256 approval. 7.14.2 through 7.14.x refuse it before drawing anything. From '
+          '7.15 it signs after an UNLIMITED APPROVAL warning that names the spender and token.',
           ['Unlimited approval warning']),
          ('E12', 'test_msg_ethereum_makerdao', 'test_generate',
           'MakerDAO generate DAI', 'Complex DeFi contract interaction (MakerDAO CDP).', []),
@@ -1285,10 +1282,10 @@ SECTIONS = [
           'Failure on the wire.',
           []),
          ('E17', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_approve_liquidity_ETH_refused',
-          'Uniswap V2 unlimited LP-token approval refused',
+          'Uniswap V2 unlimited LP-token approval refused (7.14.x)',
           'Enables AdvancedMode, then attempts an unlimited FOX/WETH LP-token approval. '
-          'The device refuses it with Failure_ActionCancelled and the explicit disabled-approval '
-          'reason before any signing consent. The refusal itself is checked on the wire.',
+          '7.14.x refuses it with Failure_ActionCancelled before any signing consent, checked on '
+          'the wire. From 7.15 unlimited approvals sign after a warning, so this skips there.',
           ['Enable Policy: AdvancedMode']),
          ('E18', 'test_msg_ethereum_erc20_uniswap_liquidity', 'test_sign_uni_add_liquidity_ETH',
           'Uniswap V2 add liquidity ETH+token',
@@ -2819,17 +2816,11 @@ SECTIONS = [
           []),
          ('L3', 'test_msg_bitcoin_only_variant', 'test_firmware_variant_names_the_bitcoin_only_product',
           'features.firmware_variant must name the product',
-          'FAILED ON THE BITCOIN-ONLY IMAGE AS MEASURED, and the failure is the finding. '
-          'firmware_variant is the only wire-visible product identifier and the whole pyk suite '
-          'gates on it: common.requires_fullFeature() skips a test when it reads "KeepKeyBTC" or '
-          '"EmulatorBTC". The bitcoin-only emulator reported plain "Emulator", so '
-          'requires_fullFeature() is dead code and every altcoin test in the directory runs '
-          'against a bitcoin-only image and fails instead of skipping. Section X of this report '
-          'states the KeepKeyBTC contract as fact. variant_getName() has two arms and only the '
-          'EMULATOR one returns a literal; the hardware arm takes the model variant name from '
-          'variant_getInfo() and has no BITCOIN_ONLY case at all, so bitcoin-only HARDWARE reports '
-          'exactly what a multi-chain device of the same model reports. The assertion is by '
-          'suffix, not against a fixed string, so it stays honest for both arms.',
+          'The bitcoin-only emulator once reported plain "Emulator", so '
+          'common.requires_fullFeature(), which skips on "KeepKeyBTC" or "EmulatorBTC", was dead '
+          'code and altcoin tests failed against the bitcoin-only image instead of skipping. The '
+          'variant now names the product on both the emulator and hardware arms. The assertion is '
+          'by suffix, not a fixed string, so it holds for both.',
           []),
          ('L4', 'test_msg_bitcoin_only_variant', 'test_altcoin_message_handlers_are_absent',
           'Every stripped chain refuses without drawing',
@@ -2905,24 +2896,14 @@ SECTIONS = [
           []),
          ('L11', 'test_msg_bitcoin_only_variant', 'test_op_return_does_not_poison_the_duplicate_detector',
           'An OP_RETURN output must not poison the duplicate detector',
-          'FAILS ON BOTH PRODUCTS, and the failure is the finding. Sign a transaction whose last '
-          'output is OP_RETURN, then sign the transaction L10 just proved is allowed, and the '
-          'device answers "WARNING: DUPLICATE TRANSACTION! Already signed a tx with the same '
-          'outputs. To try again, unplug/replug KeepKey." and aborts. signing.c calls '
-          'txin_dgst_final() once per output, but txin_dgst_save_and_reset() -- the only thing that '
-          're-initialises the SHA-256 context -- is reached only on the pay-to-address path; an '
-          'OP_RETURN output returns before it. So a transaction ending in OP_RETURN leaves the '
-          'context finalised and never re-initialised, the next transaction\'s inputs are hashed '
-          'into a finalised context, and its digest no longer matches while amount and address '
-          'still do -- precisely the (same outputs, different inputs) pattern the check exists to '
-          'flag. Fail-safe, in that it refuses rather than signs, but it refuses a legitimate '
-          'transaction and demands a replug, and every OP_RETURN-terminated transaction arms it: '
-          'that is every THORChain and Maya swap the wallet builds. Nothing had caught it because '
-          'common.KeepKeyTest wipes the device in setUp, so no existing test signs two transactions '
-          'in one session.',
+          'Sign a transaction whose last output is OP_RETURN, then sign the transaction L10 proved '
+          'is allowed: it must sign. It once failed on both products with "WARNING: DUPLICATE '
+          'TRANSACTION!", because an OP_RETURN output returned before txin_dgst_save_and_reset() '
+          're-initialised the digest context, so the next transaction hashed its inputs into a '
+          'finalised context. Every THORChain and Maya swap ends in OP_RETURN and armed it. The '
+          'common setUp wipes the device, so no other test signs two transactions in one session.',
           ['Send 0.0038 BTC to 1MJ2tj2ThBE62zXbBYA5ZaN3fdve5CPAz1 (first transaction)',
-           'CONFIRM OP_RETURN: the memo that arms the detector',
-           'WARNING: DUPLICATE TRANSACTION! Already signed a tx with the same outputs']),
+           'CONFIRM OP_RETURN: the memo that used to arm the detector']),
      ]),
     ('U', 'Storage Upgrade Preservation', '7.15.0',
      'A signed UPGRADE must never wipe. An older firmware must never parse a newer storage '
@@ -4150,7 +4131,7 @@ def main():
         if not args.junit:
             print('ERROR: --validate-junit requires --junit=<path>', file=sys.stderr)
             sys.exit(2)
-        results = parse_junit(args.junit)
+        results = parse_report_junit(args.junit)
         ok, failures = validate_junit(fw, results, args.variant)
         if ok:
             print(f'SECTIONS validation passed: all tests for fw {fw} are pass or skip')
@@ -4172,7 +4153,7 @@ def main():
     if supplied:
         os.environ['KK_BUILD_LABEL'] = ' | '.join(supplied)
 
-    results = parse_junit(args.junit) if args.junit else {}
+    results = parse_report_junit(args.junit) if args.junit else {}
     render(args.output, fw, results, args.screenshots)
 
 if __name__ == '__main__':
