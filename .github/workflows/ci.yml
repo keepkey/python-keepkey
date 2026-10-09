@@ -128,7 +128,7 @@ jobs:
           # Pinned 7.15 firmware commit (the stack tip). It reports
           # Features.capabilities, so capability-gated tests skip exactly what
           # it lacks.
-          ref: c1e1e7074595c9a4086529483842076fcf17810d
+          ref: d5469f8b9fcb298abd9ea954f6a52d08d5f7b19e
           path: keepkey-firmware
 
       # NOT `submodules: recursive`. trezor-firmware carries a micropython
@@ -364,7 +364,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: BitHighlander/keepkey-firmware
-          ref: 4125e1c7409b1cb7b08ba595bc408e3128fc24ca
+          ref: 5af4f5c63633181009cc6c0613665a0aa7fe5d8f
           path: keepkey-firmware
 
       - name: Init the submodules the emulator build needs
@@ -553,10 +553,10 @@ jobs:
       matrix:
         include:
           - release: "7.14.3"
-            firmware_ref: 4125e1c7409b1cb7b08ba595bc408e3128fc24ca
+            firmware_ref: 5af4f5c63633181009cc6c0613665a0aa7fe5d8f
             min_fw: "7.14.3"
           - release: "7.15"
-            firmware_ref: c1e1e7074595c9a4086529483842076fcf17810d
+            firmware_ref: d5469f8b9fcb298abd9ea954f6a52d08d5f7b19e
             min_fw: "7.15.0"
 
     # KK_BITCOIN_ONLY=ON is a second shipping product, not a build flavour:
