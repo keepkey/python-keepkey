@@ -99,7 +99,7 @@ jobs:
   integration:
     needs: [lint]
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
 
     # NO published emulator image. This job BUILDS one from current firmware.
     #
@@ -236,8 +236,8 @@ jobs:
       # Step-level timeout, deliberately: a JOB-level timeout ends the job as
       # "cancelled", which reads as an infra blip. A step timeout is a FAILURE.
       - name: Run integration tests
-        # The 7.15 suite runs ~16 min locally, real-world EIP-712 corpus included.
-        timeout-minutes: 45
+        # The 7.15 suite runs ~16 min locally and 35+ on a hosted runner (real-world EIP-712 corpus).
+        timeout-minutes: 90
         env:
           KK_TRANSPORT_MAIN: "127.0.0.1:11044"
           KK_TRANSPORT_DEBUG: "127.0.0.1:11045"
