@@ -1,0 +1,159 @@
+import importlib.util
+import os
+import unittest
+
+
+REPORT_SCRIPT = os.path.join(
+    os.path.dirname(__file__), '..', 'scripts', 'generate-test-report.py')
+SPEC = importlib.util.spec_from_file_location('generate_test_report',
+                                               REPORT_SCRIPT)
+REPORT = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(REPORT)
+
+
+def catalog_results_with_solana_lut_skipped(fw_version):
+    results = {}
+    for _, _, min_fw, _, _, tests in REPORT.SECTIONS:
+        if not REPORT.ver_ge(fw_version, min_fw):
+            continue
+        for _, module, method, _, _, _ in tests:
+            results['%s::%s' % (module, method)] = 'pass'
+    for key in list(results):
+        if key.startswith('test_msg_solana_lut_attestation::'):
+            results[key] = 'skip'
+    return results
+
+
+class TestReportVariantValidation(unittest.TestCase):
+
+    def test_full_7143_accepts_unimplemented_solana_lut_skip(self):
+        result = REPORT.validate_junit(
+            '7.14.3', catalog_results_with_solana_lut_skipped('7.14.3'),
+            'full')
+        self.assertEqual((True, []), result)
+
+    def test_full_715_requires_solana_lut_coverage(self):
+        ok, failures = REPORT.validate_junit(
+            '7.15.0', catalog_results_with_solana_lut_skipped('7.15.0'),
+            'full')
+        self.assertFalse(ok)
+        self.assertEqual(4, len(failures))
+        self.assertTrue(all(item[3] == 'skipped-but-required'
+                            for item in failures))
+
+    def test_full_716_requires_solana_lut_coverage(self):
+        ok, failures = REPORT.validate_junit(
+            '7.16.0', catalog_results_with_solana_lut_skipped('7.16.0'),
+            'full')
+        self.assertFalse(ok)
+        self.assertEqual(4, len(failures))
+        self.assertTrue(all(item[3] == 'skipped-but-required'
+                            for item in failures))
+
+    def test_bitcoin_only_accepts_absent_solana_lut_handlers(self):
+        result = REPORT.validate_junit(
+            '7.16.0', catalog_results_with_solana_lut_skipped('7.16.0'),
+            'bitcoin-only')
+        self.assertEqual((True, []), result)
+
+    def test_staged_capabilities_accept_only_their_mapped_controls(self):
+        results = catalog_results_with_solana_lut_skipped('7.15.0')
+        for method in (
+                'PinKdfRewrapsToActiveVersionAfterCorrectPin',
+                'PinUnlocksAfterRebootUnderV17',
+                'PinKdfV2FlagIsVersionedInV19'):
+            del results['Storage::' + method]
+        self.assertEqual(
+            (True, []),
+            REPORT.validate_junit('7.15.0', results, 'full', {
+                'solana-lut-attestation', 'storage-v19-kdf'}))
+
+    def test_staged_erc7730_runtime_skips_only_with_its_capability(self):
+        results = catalog_results_with_solana_lut_skipped('7.15.0')
+        runtime = [key for key in results
+                   if key.startswith('test_msg_ethereum_erc7730_runtime::')]
+        self.assertTrue(runtime)
+        for key in runtime:
+            results[key] = 'skip'
+        self.assertEqual((True, []), REPORT.validate_junit(
+            '7.15.0', results, 'full',
+            {'solana-lut-attestation', 'erc7730-runtime-review'}))
+        ok, failures = REPORT.validate_junit(
+            '7.15.0', results, 'full', {'solana-lut-attestation'})
+        self.assertFalse(ok)
+        self.assertEqual({'skipped-but-required'},
+                         {status for _, _, _, status in failures})
+
+    def test_complete_release_still_requires_staged_controls(self):
+        results = catalog_results_with_solana_lut_skipped('7.15.0')
+        for method in (
+                'PinKdfRewrapsToActiveVersionAfterCorrectPin',
+                'PinUnlocksAfterRebootUnderV17',
+                'PinKdfV2FlagIsVersionedInV19'):
+            del results['Storage::' + method]
+        ok, failures = REPORT.validate_junit('7.15.0', results, 'full')
+        self.assertFalse(ok)
+        failed = {(module, method, status)
+                  for _, module, method, status in failures}
+        self.assertIn(
+            ('Storage', 'PinKdfV2FlagIsVersionedInV19', 'missing'), failed)
+        self.assertIn(
+            ('test_msg_solana_lut_attestation',
+             'test_attestation_does_not_replay_onto_another_transaction',
+             'skipped-but-required'), failed)
+
+    def test_stack08_runtime_controls_are_required_on_full_only(self):
+        results = catalog_results_with_solana_lut_skipped('7.15.0')
+        lut = {'solana-lut-attestation'}
+        controls = [
+            (module, method) for section, _, _, _, _, tests in REPORT.SECTIONS
+            if section == 'EX' for identifier, module, method, _, _, _ in tests
+            if identifier in ('EX40', 'EX41', 'EX42', 'EX43', 'EX44')]
+        self.assertEqual(5, len(controls))
+        self.assertEqual((True, []),
+                         REPORT.validate_junit('7.15.0', results, 'full', lut))
+        for module, method in controls:
+            for status in ('missing', 'skip', 'fail'):
+                with self.subTest(method=method, status=status):
+                    changed = dict(results)
+                    key = module + '::' + method
+                    if status == 'missing':
+                        del changed[key]
+                    else:
+                        changed[key] = status
+                    ok, failures = REPORT.validate_junit(
+                        '7.15.0', changed, 'full', lut)
+                    self.assertFalse(ok)
+                    self.assertTrue(any(item[1:3] == (module, method)
+                                        for item in failures))
+            changed = dict(results)
+            changed[module + '::' + method] = 'skip'
+            self.assertEqual((True, []), REPORT.validate_junit(
+                '7.15.0', changed, 'bitcoin-only', lut))
+
+    def test_authenticator_contracts_cannot_skip_on_either_variant(self):
+        results = catalog_results_with_solana_lut_skipped('7.15.0')
+        for key in results:
+            results[key] = 'pass'
+        owned = [key for key in results if key.startswith(
+            'test_msg_authenticator_boundaries::test_block09_')]
+        self.assertEqual(4, len(owned))
+        for variant in ('full', 'bitcoin-only'):
+            self.assertEqual((True, []), REPORT.validate_junit(
+                '7.15.0', results, variant))
+            for key in owned:
+                for status in ('skip', 'fail', 'missing'):
+                    with self.subTest(variant=variant, key=key, status=status):
+                        changed = dict(results)
+                        if status == 'missing':
+                            del changed[key]
+                        else:
+                            changed[key] = status
+                        ok, failures = REPORT.validate_junit(
+                            '7.15.0', changed, variant)
+                        self.assertFalse(ok)
+                        self.assertEqual(1, len(failures))
+
+
+if __name__ == '__main__':
+    unittest.main()

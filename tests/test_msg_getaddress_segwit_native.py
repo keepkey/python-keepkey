@@ -26,13 +26,22 @@ from keepkeylib.tools import parse_path
 class TestMsgGetaddressSegwitNative(common.KeepKeyTest):
 
     def test_show_segwit(self):
-        self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.client.clear_session()
-        self.assertEqual(self.client.get_address("Testnet", parse_path("49'/1'/0'/0/0"), True, None, script_type=proto.SPENDWITNESS), 'tb1qqzv60m9ajw8drqulta4ld4gfx0rdh82un5s65s')
+        address = 'tb1qqzv60m9ajw8drqulta4ld4gfx0rdh82un5s65s'
+        self.assertEqual(self.assert_shows_address(
+            lambda: self.client.get_address("Testnet", parse_path("49'/1'/0'/0/0"), True, None, script_type=proto.SPENDWITNESS),
+            address), address)
         self.assertEqual(self.client.get_address("Testnet", parse_path("49'/1'/0'/1/0"), False, None, script_type=proto.SPENDWITNESS), 'tb1q694ccp5qcc0udmfwgp692u2s2hjpq5h407urtu')
         self.assertEqual(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDWITNESS), 'tb1q54un3q39sf7e7tlfq99d6ezys7qgc62a6rxllc')
         self.assertEqual(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDADDRESS), 'mvbu1Gdy8SUjTenqerxUaZyYjmveZvt33q')
+
+    def test_groestlcoin_segwit(self):
+        # Groestlcoin is not in bitcoin-only firmware; Bitcoin bech32 display
+        # above runs on every build.
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        self.client.clear_session()
         self.assertEqual(self.client.get_address("Groestlcoin", parse_path("84'/17'/0'/0/0"), False, None, script_type=proto.SPENDWITNESS), 'grs1qw4teyraux2s77nhjdwh9ar8rl9dt7zww8r6lne')
         self.assertEqual(self.client.get_address("GRS Testnet", parse_path("84'/1'/0'/0/0"), False, None, script_type=proto.SPENDWITNESS), 'tgrs1qkvwu9g3k2pdxewfqr7syz89r3gj557l3ued7ja')
 

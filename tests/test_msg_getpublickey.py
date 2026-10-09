@@ -51,7 +51,10 @@ class TestMsgGetpublic_key(common.KeepKeyTest):
         self.assertEqual(self.client.get_public_node([], coin_name="Bitcoin", script_type=proto_types.SPENDADDRESS).xpub, "xpub661MyMwAqRbcF1zGijBb2K6x9YiJPh58xpcCeLvTxMX6spkY3PcpJ4ABcCyWfskq5DDxM3e6Ez5ePCqG5bnPUXR4wL8TZWyoDaUdiWW7bKy")
         self.assertEqual(self.client.get_public_node([], coin_name="Bitcoin", script_type=proto_types.SPENDP2SHWITNESS).xpub, "ypub6QqdH2c5z7966KBPZ5yDEQCTKWrkLK4dsw8RRjpMLMtyvvZmJ3nNv7pKdQw6fnQkUrLm6XEeheSCGVSpoJCQGm6fofpt9RoHVJYH72ecmVm")
         self.assertEqual(self.client.get_public_node([], coin_name="Bitcoin", script_type=proto_types.SPENDWITNESS).xpub, "zpub6jftahH18ngZwcNWPSkqSVHxVV1CGw48o3eeD8iEiNGrz2NzYhwwYBUTectgfh4ftVTZqzqDAJnk9n4PWzcR4znGg1XJjLcmm2bvVc3Honv")
-        self.assertEqual(self.client.get_public_node([], coin_name="Bitcoin", script_type=proto_types.SPENDWITNESS, show_display=True).xpub, "zpub6jftahH18ngZwcNWPSkqSVHxVV1CGw48o3eeD8iEiNGrz2NzYhwwYBUTectgfh4ftVTZqzqDAJnk9n4PWzcR4znGg1XJjLcmm2bvVc3Honv")
+        zpub = "zpub6jftahH18ngZwcNWPSkqSVHxVV1CGw48o3eeD8iEiNGrz2NzYhwwYBUTectgfh4ftVTZqzqDAJnk9n4PWzcR4znGg1XJjLcmm2bvVc3Honv"
+        self.assertEqual(self.assert_shows_address(
+            lambda: self.client.get_public_node([], coin_name="Bitcoin", script_type=proto_types.SPENDWITNESS, show_display=True),
+            zpub).xpub, zpub)
 
 if __name__ == '__main__':
     unittest.main()

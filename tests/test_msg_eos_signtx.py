@@ -247,7 +247,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 threshold=1,
                 keys=[
                     proto.EosAuthorizationKey(
-                        type=1,
+                        type=0,
                         address_n=parse_path("m/48'/4'/1'/0'/0'"),
                         weight=1)
                 ],
@@ -267,7 +267,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 threshold=2,
                 keys=[
                     proto.EosAuthorizationKey(
-                        type=1,
+                        type=0,
                         address_n=parse_path("m/44'/194'/0'/0/0"),
                         weight=2)
                 ],
@@ -331,7 +331,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                     threshold=1,
                     keys=[
                         proto.EosAuthorizationKey(
-                            type=1,
+                            type=0,
                             address_n=parse_path("m/44'/194'/0'/0/0"),
                             weight=1)
                     ],
@@ -558,7 +558,19 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 num_actions=1),
             [self.action_updateauth(False)])
 
-        self.assertEqual(binascii.hexlify(res.hash), "0282c00575f451a47e99902ab2a51243499ea004df309148d1f2e23c007520b7")
+        self.assertEqual(binascii.hexlify(res.hash), "bf6f207d8f79500180aa5025d1f4a44d36bdd1136f093979d6975c20b2319a07")
+
+        # Fork #568/#563: eos_hashAuthorization() used to emit accounts_count
+        # wait entries instead of waits_count. This SLIP-48 vector has one
+        # delegated account and zero waits, so older firmware hashes a phantom
+        # 6-byte zero wait that was neither present nor confirmed on-device
+        # (the known-bad digest d46ec843...). The fix is on the 7.15 and 7.16
+        # release heads; 7.14.3 is a bitcoin-only release and its full image
+        # keeps the 7.14.2 EOS serializer. c94f1271... is checked against an
+        # independent EOSIO ABI serializer; the derived key is K1 (type 0).
+        if not self.firmware_at_least("7.15.0"):
+            self.skipTest("Firmware before 7.15.0 hashes a phantom updateauth "
+                          "wait (fork #568/#563)")
 
         res = self.client.eos_sign_tx_raw(
             proto.EosSignTx(
@@ -568,7 +580,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 num_actions=1),
             [self.action_updateauth(True)])
 
-        self.assertEqual(binascii.hexlify(res.hash), "fb936ef1be4bda680d93bd10b6d062357d8dd7272038a706dc0d61a91f39c5ee")
+        self.assertEqual(binascii.hexlify(res.hash), "c94f1271f26492a4ca308a6cfae610ce41a3beb7354beb1747e2a2261c8c1973")
 
     def test_deleteauth(self):
         self.requires_fullFeature()
@@ -624,7 +636,7 @@ class TestMsgEosSignTx(common.KeepKeyTest):
                 num_actions=1),
             [self.action_newaccount()])
 
-        self.assertEqual(binascii.hexlify(res.hash), "8e0accde9fb6529b5d72b4d9a9859e1dae0c6ae9a159bb1ea8c8f579f942c291")
+        self.assertEqual(binascii.hexlify(res.hash), "0f2c85cfc957eda7e37d6d006f98a56948fe4ab34ecea64d1a1462f4c6fbb387")
 
     def test_unknown_advanced(self):
         self.requires_fullFeature()
@@ -1405,9 +1417,10 @@ class TestMsgEosSignTx(common.KeepKeyTest):
             json.loads(data))
 
         assert isinstance(actionResp, proto.EosSignedTx)
-        self.assertEqual(binascii.hexlify(actionResp.signature_r), "61317ec7dc5c6e62ef7e45b4961ad89fe748c5a9076f23e0c6afc90ad1f93f47")
-        self.assertEqual(binascii.hexlify(actionResp.signature_s), "056996515e6c6e28be136821859cf2092f719a8da25171ce6534c2bf9a013d3d")
-        self.assertEqual(actionResp.signature_v, 32)
+        self.assertEqual(binascii.hexlify(actionResp.hash), "584a5c3ded379ce4f3d3f6ea3364726e0e608214170eb9f7b25baa3010255cb1")
+        self.assertEqual(binascii.hexlify(actionResp.signature_r), "2db69cbe5f1600ca5d54c77b6f79426cde215531ee84d90eada8de310d07292f")
+        self.assertEqual(binascii.hexlify(actionResp.signature_s), "6d113bbdb017b95f4d9fb7e8fc3493b763576193409ed19d6e0d9b42c0cf754a")
+        self.assertEqual(actionResp.signature_v, 31)
 
     def test_eos_signtx_setcontract(self):
         self.requires_fullFeature()

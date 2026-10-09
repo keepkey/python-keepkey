@@ -39,10 +39,15 @@ class TestMsgRippleGetAddress(KeepKeyTest):
         self.requires_fullFeature()
         self.requires_firmware("6.4.0")
         self.setup_mnemonic_allallall()
-        # The legacy display response is empty after the ButtonAck; address
-        # correctness is covered above. This case retains the actual OLED.
-        self.client.ripple_get_address(
-            parse_path("m/44'/144'/0'/0/0"), show_display=True)
+        address = self.assert_shows_address(
+            lambda: self.client.ripple_get_address(
+                parse_path("m/44'/144'/0'/0/0"), show_display=True),
+            "rNaqKtKrMSwpwZSzRckPf7S96DkimjkF4H")
+        # 7.14.2 and later preserve the response across DebugLinkGetState
+        # requests made during screenshot capture; the same fix is on all three
+        # products, so the floor is the release the fix first shipped in.
+        if self.firmware_at_least("7.14.2"):
+            self.assertEqual(address, "rNaqKtKrMSwpwZSzRckPf7S96DkimjkF4H")
 
     def test_ripple_get_address_other(self):
         self.requires_fullFeature()

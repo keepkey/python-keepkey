@@ -28,9 +28,12 @@ class TestMsgGetaddress(common.KeepKeyTest):
 
     def test_show(self):
         self.setup_mnemonic_nopin_nopassphrase()
-        self.assertEqual(self.client.get_address('Bitcoin', [1], show_display=True), '1CK7SJdcb8z9HuvVft3D91HLpLC6KSsGb')
-        self.assertEqual(self.client.get_address('Bitcoin', [2], show_display=True), '15AeAhtNJNKyowK8qPHwgpXkhsokzLtUpG')
-        self.assertEqual(self.client.get_address('Bitcoin', [3], show_display=True), '1CmzyJp9w3NafXMSEFH4SLYUPAVCSUrrJ5')
+        for n, address in ((1, '1CK7SJdcb8z9HuvVft3D91HLpLC6KSsGb'),
+                           (2, '15AeAhtNJNKyowK8qPHwgpXkhsokzLtUpG'),
+                           (3, '1CmzyJp9w3NafXMSEFH4SLYUPAVCSUrrJ5')):
+            self.assertEqual(self.assert_shows_address(
+                lambda: self.client.get_address('Bitcoin', [n], show_display=True),
+                address), address)
 
     def test_show_multisig_3(self):
         self.setup_mnemonic_nopin_nopassphrase()
@@ -45,7 +48,10 @@ class TestMsgGetaddress(common.KeepKeyTest):
                             )
 
         for i in [1, 2, 3]:
-            self.assertEqual(self.client.get_address('Bitcoin', [i], show_display=True, multisig=multisig), '3E7GDtuHqnqPmDgwH59pVC7AvySiSkbibz')
+            address = '3E7GDtuHqnqPmDgwH59pVC7AvySiSkbibz'
+            self.assertEqual(self.assert_shows_address(
+                lambda: self.client.get_address('Bitcoin', [i], show_display=True, multisig=multisig),
+                address), address)
 
     def test_show_multisig_15(self):
         self.setup_mnemonic_nopin_nopassphrase()
@@ -63,7 +69,10 @@ class TestMsgGetaddress(common.KeepKeyTest):
                         )
 
         for i in range(15):
-            self.assertEqual(self.client.get_address('Bitcoin', [i], show_display=True, multisig=multisig), '3QaKF8zobqcqY8aS6nxCD5ZYdiRfL3RCmU')
+            address = '3QaKF8zobqcqY8aS6nxCD5ZYdiRfL3RCmU'
+            self.assertEqual(self.assert_shows_address(
+                lambda: self.client.get_address('Bitcoin', [i], show_display=True, multisig=multisig),
+                address), address)
 
 if __name__ == '__main__':
     unittest.main()

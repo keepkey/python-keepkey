@@ -26,9 +26,32 @@ class USETHTokenTable(object):
         for token in ustoksjson:
             self.ustoks.append(USETHToken(token))
 
-    def serialize_c(self):
+    def serialize_c(self, profile=None):
+        # Flash budget -- see token_policy.
+        # Run as a standalone script by the build, so there is no package
+        # context for a relative import.
+        import os as _os, sys as _s
+        _s.path.insert(0, _os.path.dirname(_os.path.realpath(__file__)))
+        import token_policy
+        import sys as _sys
+        chosen, ambiguous = token_policy.select(
+            self.ustoks,
+            token_policy.BUDGET_UNISWAP_LIST,
+            symbol_of=lambda t: t.token.get('symbol', ''),
+            address_of=lambda t: t.token['contractAddress'].lower(),
+            # This list is mainnet-only (serialize_c hardcodes chain_id 1),
+            # so the chain component is constant rather than absent.
+            chain_of=lambda t: 1,
+            profile=token_policy.DEFAULT_PROFILE if profile is None else profile)
+        print('uniswap_tokens: %d of %d kept (budget %d, profile %s)'
+              % (len(chosen), len(self.ustoks),
+                 token_policy.BUDGET_UNISWAP_LIST,
+                 token_policy.DEFAULT_PROFILE if profile is None else profile), file=_sys.stderr)
+        if ambiguous:
+            print('uniswap_tokens: priority symbols DROPPED as ambiguous: %s'
+                  % ', '.join(sorted(ambiguous)), file=_sys.stderr)
         ser_list = []
-        for token in sorted(self.ustoks, key=lambda t: t.token['contractAddress']):
+        for token in sorted(chosen, key=lambda t: t.token['contractAddress']):
             ser_list.append(token.serialize_c())
         return(ser_list)
 
@@ -64,17 +87,23 @@ class USETHToken(object):
         return(line)
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage:\n\tpython %s uniswap_tokens.def" % (__file__,))
+    # `<out.def> [--profile fill|priority-only]` -- see token_policy.
+    args = sys.argv[1:]
+    profile = None
+    if len(args) == 3 and args[1] == '--profile':
+        profile = args[2]
+        args = args[:1]
+    if len(args) != 1:
+        print("Usage:\n\tpython %s uniswap_tokens.def [--profile fill|priority-only]" % (__file__,))
         sys.exit(-1)
 
-    out_filename = sys.argv[1]
+    out_filename = args[0]
     outf = StringIO()
 
     table = USETHTokenTable()
     table.build()
 
-    usset = table.serialize_c()
+    usset = table.serialize_c(profile)
     writeout(usset, outf)
 
     if os.path.isfile(out_filename):

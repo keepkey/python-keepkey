@@ -72,13 +72,17 @@ class TestMsgSolanaGetAddress(common.KeepKeyTest):
         self.requires_message("SolanaGetAddress")
         self.setup_mnemonic_allallall()
 
-        resp = self.client.call(
-            solana_proto.SolanaGetAddress(
-                address_n=[H + 44, H + 501, H + 0, H + 0],
-                show_display=True,
-            )
-        )
+        expected = self.client.solana_get_address(
+            [H + 44, H + 501, H + 0, H + 0]).address
+        resp = self.assert_shows_address(
+            lambda: self.client.call(
+                solana_proto.SolanaGetAddress(
+                    address_n=[H + 44, H + 501, H + 0, H + 0],
+                    show_display=True,
+                )
+            ), expected)
         self.assertIsInstance(resp, solana_proto.SolanaAddress)
+        self.assertEqual(resp.address, expected)
 
     def test_solana_different_accounts(self):
         """Different account indices must produce different addresses."""

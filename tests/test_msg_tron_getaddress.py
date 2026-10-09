@@ -45,23 +45,24 @@ class TestMsgTronGetAddress(common.KeepKeyTest):
         self.assertTrue(address.startswith('T'), "Tron address must start with 'T', got '%s'" % address)
 
     def test_tron_show_address(self):
-        """Display TRON address on OLED (triggers ButtonRequest for screenshot).
+        """The whole TRON address is on the screen, and in the response.
 
-        In screenshot mode, DebugLink read_layout() can race with the
-        show_display response. Address correctness verified by test_tron_get_address.
+        The handler builds its response before the confirm. Before 7.15.0 a
+        DebugLink read during the confirm wiped it (fixed by firmware
+        88ae1c3be), so it runs from 7.15.0.
         """
-        self.requires_firmware("7.14.0")
+        self.requires_firmware("7.15.0")
         self.requires_message("TronGetAddress")
         self.setup_mnemonic_allallall()
 
-        try:
-            resp = self.client.tron_get_address(
+        expected = self.client.tron_get_address(
+            parse_path(TRON_DEFAULT_PATH)).address
+        resp = self.assert_shows_address(
+            lambda: self.client.tron_get_address(
                 parse_path(TRON_DEFAULT_PATH),
                 show_display=True
-            )
-            self.assertIsNotNone(resp)
-        except Exception:
-            pass  # Screenshot race -- OLED display still worked
+            ), expected)
+        self.assertEqual(resp.address, expected)
 
     def test_tron_different_accounts(self):
         """Different derivation paths must produce different addresses."""
