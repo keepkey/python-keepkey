@@ -24,10 +24,10 @@ from keepkeylib import types_pb2 as proto_types
 from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
 
-COIN_A = bytes.fromhex(
-    "20912f98ea3ed849042efed0fdac8cb4fc301961c5988cba56902d8ffb61c337")
-COIN_B = bytes.fromhex(
-    "e5040e1bc1ae7667ffb9e5248e90b2fb93cd9150234151ce90e14ab2f5933bcd")
+# Made-up outpoints: the device never asks for a segwit input's previous
+# transaction, which is the point, so no fixture is involved.
+COIN_A = bytes([0xA1]) * 32
+COIN_B = bytes([0xB2]) * 32
 PAYMENT = 2000000000
 
 
