@@ -38,7 +38,7 @@ class TestReportRendering(unittest.TestCase):
                 self.assertGreater(len(text), 1)
                 rendered = re.sub(r'\s+', '', ''.join(item[2] for item in text))
                 self.assertEqual(label.replace(' ', ''),
-                                 rendered.removeprefix('--'))
+                                 rendered[2:] if rendered.startswith('--') else rendered)
                 self.assertTrue(all(item[4] == color for item in text))
                 symbols = [item for item in builder.lines if item[3] == 'ding']
                 self.assertEqual(int(status in ('pass', 'fail')), len(symbols))
