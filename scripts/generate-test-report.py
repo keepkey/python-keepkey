@@ -476,6 +476,11 @@ FULL_SEQUENCE_TESTS = {
      'test_v2_schema_decode_still_runs_the_raw_review'),
     ('test_msg_ethereum_clearsign_additive',
      'test_failed_signature_falls_back_to_the_unverified_review'),
+    # The claim is the order: name, then the full address.
+    ('test_msg_ethereum_certified_contacts',
+     'test_certifying_shows_every_contact_and_signs_only_the_commitment'),
+    ('test_msg_ethereum_certified_contacts',
+     'test_a_send_to_a_contact_names_it_and_still_shows_the_address'),
     ('test_msg_ethereum_clear_signing', 'test_binding_happy_path_signs_and_recovers'),
     ('test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v2_eth_to_token'),
     # ERC-7730 runtime: the order of the screens is the claim.
@@ -2682,6 +2687,88 @@ SECTIONS = [
           'draws no screen, so the empty screenshot list below is the assertion.',
           []),
      ]),
+    ('AB', 'Certified Contacts - The User\'s Own Address Book', '7.15.0',
+     'A recipient address is forty characters that nobody reads twice. A label in the wallet '
+     'software helps, but the software is the thing a hardware wallet exists not to trust. With '
+     'certified contacts the user approves each contact on the device once - name, network and '
+     'full address - and the device signs a commitment to the list with a key derived from the '
+     'seed. Nothing is stored on the device. On a later send, the host hands back a proof for the '
+     'recipient, the device checks it against its own key, names the contact, and then shows the '
+     'full address as well. No server and no outside signer is involved, so this is not live '
+     'signing.',
+     [
+         'RULE: a name is shown only for an address the user approved on this device under that',
+         'name, on that network, and the full address is always shown as well.',
+         '',
+         '- Certify: one summary screen, then a name screen and an address screen for EVERY contact.',
+         '  The device signs only the 46-byte commitment, never bytes it did not parse and show.',
+         '- Send:    "Send <amount> to <name>", then "Contact Address" with the full address.',
+         '- Shown for a plain send or a transfer of a known token. Never for an approval, a contract',
+         '  call, an unknown token, or when a contract description is loaded.',
+         '- A proof that fails, or is for another address or network, changes nothing: the review',
+         '  is the ordinary one, frame count included.',
+         '',
+         'KNOWN LIMIT: the device keeps no state, so a contact certified once stays provable for that',
+         'seed. Removing a contact in the host does not revoke the earlier certification.',
+         '',
+         'The request, the commitment and the proof are built in the test from the format alone,',
+         'and the device signature is checked with python-ecdsa.',
+     ],
+     [
+         ('AB1', 'test_msg_ethereum_certified_contacts',
+          'test_certifying_shows_every_contact_and_signs_only_the_commitment',
+          'Every contact is reviewed before anything is signed',
+          'Three contacts on two networks are certified with AdvancedMode off. The device shows a '
+          'summary with the count and revision, then each contact\'s name with its network and, on '
+          'its own screen, the full address. The signature it returns verifies, with an independent '
+          'library, over the commitment the test computed itself.',
+          ['Address Book: Approve 3 contacts? Revision 7',
+           'Certify Contact: Alice / eip155:1',
+           'Destination: Alice\'s full address',
+           'Certify Contact: Bob at the bank / eip155:8453',
+           'Destination: Bob\'s full address',
+           'Certify Contact: Carol / eip155:1',
+           'Destination: Carol\'s full address']),
+         ('AB2', 'test_msg_ethereum_certified_contacts',
+          'test_a_send_to_a_contact_names_it_and_still_shows_the_address',
+          'A send to a contact names it, then shows the full address',
+          'The same 1 ETH send is signed three times. Without a proof the send screen shows the '
+          'address. With Alice\'s proof it reads "Send 1 ETH to Alice" and one extra screen follows '
+          'with her full address, so the review is the baseline plus one screen. The third send, '
+          'with no new proof, is the baseline again: one proof names one send.',
+          ['Send 1 ETH to the full address (baseline)',
+           'Send 1 ETH to Alice',
+           'Contact Address: the full address']),
+         ('AB3', 'test_msg_ethereum_certified_contacts',
+          'test_a_known_token_transfer_names_the_recipient',
+          'A token transfer names the recipient, not the token contract',
+          'A USDC transfer to Alice. The label applies to the recipient inside the transfer call; '
+          'the token contract is what the device already knows.',
+          ['Send 0.000001 USDC to Alice',
+           'Contact Address: the full address']),
+         ('AB4', 'test_msg_ethereum_certified_contacts',
+          'test_a_proof_names_only_its_own_address_and_network',
+          'A proof is for one address on one network',
+          'Carol\'s proof on a send to Alice names nobody. Bob is a contact on Base only, so a send '
+          'to his address on Ethereum shows the address.',
+          ['Send 1 ETH to the full address, with another contact\'s proof loaded',
+           'Send 1 ETH to Bob\'s full address on a network he was not certified for']),
+         ('AB5', 'test_msg_ethereum_certified_contacts',
+          'test_an_altered_proof_is_refused_and_the_send_is_unchanged',
+          'An altered proof is refused and the send is the ordinary one',
+          'Four alterations: one letter of the label, the address, one bit of the signature, and a '
+          'proof computed over a different list. Each is answered "Invalid contact" and the send '
+          'that follows has the baseline number of screens and no name.',
+          ['Send 1 ETH to the full address after a refused proof']),
+         ('AB6', 'test_msg_ethereum_certified_contacts',
+          'test_a_book_the_device_cannot_vouch_for_is_refused_unreviewed',
+          'A list the device could not stand behind is refused before any screen',
+          'One address under two names, one name on two addresses, a label ending in a space, a '
+          'label padded to push text onto another line, and a non-EVM network. Each is refused with '
+          '"Invalid address book" and no confirmation is ever requested, so the empty screenshot '
+          'list is the assertion.',
+          []),
+     ]),
     ('I', 'Session and Trust Lifetime', '7.15.0',
      'Clear-signing works by trusting somebody else. A provider key loaded with LoadClearsignSigner '
      'decides which transactions the device is willing to describe in words, and AdvancedMode decides '
@@ -3637,6 +3724,7 @@ _TEST_CAPABILITY = {
 # Modules whose every row is gated in setUp on one staged capability.
 _MODULE_CAPABILITY = {
     'test_msg_ethereum_erc7730_runtime': 'erc7730-runtime-review',
+    'test_msg_ethereum_certified_contacts': 'certified-contacts',
 }
 
 
@@ -3965,6 +4053,8 @@ MUST_RUN_MODULES = {
     'test_msg_solana_lut_attestation': '7.15.0',
     # Block 7b: every ERC-7730 runtime row in section EX is part of 7.15.
     'test_msg_ethereum_erc7730_runtime': '7.15.0',
+    # Certified contacts: every row in section AB.
+    'test_msg_ethereum_certified_contacts': '7.15.0',
 }
 
 # A module can be mandatory for the regular product while being intentionally
@@ -3975,6 +4065,7 @@ FULL_FEATURE_ONLY_MUST_RUN_MODULES = {
     'test_msg_ethereum_erc20_uniswap_liquidity',
     'test_msg_solana_lut_attestation',
     'test_msg_ethereum_erc7730_runtime',
+    'test_msg_ethereum_certified_contacts',
 }
 
 
