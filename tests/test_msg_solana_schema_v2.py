@@ -725,6 +725,9 @@ class TestClearsignAttestorTokenAmount(SchemaReview):
         after the argument, before the attestation is signed. The same schema
         with a u64 there is the control: one screen fewer, nothing else
         different before or after."""
+        # ClearsignAttestorSign alone does not mean schemas: a 7.15 build
+        # answers it for address books only.
+        self.requires_release_capability("solana-certified-review")
         token_payload = schema_v2([(6, b"Buy-in", 3)])
         u64_payload = schema_v2([(1, b"Buy-in", None)])
 
