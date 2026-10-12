@@ -77,6 +77,14 @@ jobs:
       - name: Verify offline transaction fixture manifest
         run: python tests/tx_fixture_manifest.py --check
 
+      - name: Run report layout and coverage regressions
+        env:
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python
+        run: |
+          python -m pytest -q \
+            tests/test_report_rendering.py \
+            tests/test_report_variant_validation.py
+
       - name: Lint summary
         run: |
           echo "## 🔑 KeepKey python-keepkey — Lint" >> "$GITHUB_STEP_SUMMARY"

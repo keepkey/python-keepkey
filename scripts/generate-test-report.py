@@ -167,6 +167,53 @@ def _ascii(s):
             s = s.replace(k, v)
     return s
 
+# Widths of printable ASCII in the two PDF core fonts, in 1/1000 em.
+# Keep layout independent of optional font/PDF packages: these are also the
+# fonts declared by PDF.write(). Unknown glyphs get a conservative full em.
+_HELVETICA_WIDTHS = (
+    278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,
+    556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,
+    1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,
+    667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,
+    333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,
+    556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,
+)
+_HELVETICA_BOLD_WIDTHS = (
+    278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,
+    556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,
+    975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,
+    667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,
+    333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,
+    611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,
+)
+
+def _text_width(text, size, bold=False):
+    widths = _HELVETICA_BOLD_WIDTHS if bold else _HELVETICA_WIDTHS
+    return sum(widths[ord(c) - 32] if 32 <= ord(c) <= 126 else 1000
+               for c in _ascii(text)) * size / 1000
+
+def _fit_text(text, size, bold=False, width=532):
+    """Wrap to the PDF content width, including URLs and long test names."""
+    output = []
+    for line in _ascii(text).split('\n'):
+        while _text_width(line, size, bold) > width:
+            length, used = 0, 0
+            for char in line:
+                advance = _text_width(char, size, bold)
+                if used + advance > width:
+                    break
+                used += advance
+                length += 1
+            if not length:
+                raise ValueError('font size exceeds PDF content width')
+            split = line.rfind(' ', 0, length + 1)
+            if split <= 0:
+                split = length
+            output.append(line[:split].rstrip())
+            line = line[split:].lstrip()
+        output.append(line)
+    return output
+
 class PB:
     def __init__(self, pdf):
         self.pdf = pdf; self.lines = []; self.y = 755
@@ -175,21 +222,31 @@ class PB:
     def need(self, h):
         if self.y - h < 45: self._flush()
     def text(self, sz, txt, bold=False, color=None):
-        self.need(sz + 2); self.lines.append((self.y, sz, txt, bold, color) if color else (self.y, sz, txt, bold)); self.y -= sz + 2
+        for line in _fit_text(txt, sz, bold):
+            self.need(sz + 2)
+            self.lines.append((self.y, sz, line, bold, color) if color else
+                              (self.y, sz, line, bold))
+            self.y -= sz + 2
     def check(self, sz, txt_after, passed):
         """Render checkmark/cross + text on same conceptual line"""
+        bold = passed in ('pass', 'fail', 'error')
+        prefix = '  ' if bold else '--  ' if passed == 'skip' else '    '
+        lines = _fit_text(prefix + txt_after, sz, bold)
         self.need(sz + 2)
         if passed == 'pass':
             self.lines.append((self.y, sz, CHECK, 'ding', GREEN))
-            self.lines.append((self.y, sz, f'  {txt_after}', True, GREEN))
+            self.lines.append((self.y, sz, lines[0], True, GREEN))
         elif passed in ('fail', 'error'):
             self.lines.append((self.y, sz, CROSS, 'ding', RED))
-            self.lines.append((self.y, sz, f'  {txt_after}', True, RED))
+            self.lines.append((self.y, sz, lines[0], True, RED))
         elif passed == 'skip':
-            self.lines.append((self.y, sz, f'--  {txt_after}', False, GRAY))
+            self.lines.append((self.y, sz, lines[0], False, GRAY))
         else:
-            self.lines.append((self.y, sz, f'    {txt_after}', False, GRAY))
+            self.lines.append((self.y, sz, lines[0], False, GRAY))
         self.y -= sz + 2
+        color = GREEN if passed == 'pass' else RED if bold else GRAY
+        for line in lines[1:]:
+            self.text(sz, line, bold=bold, color=color)
     def image(self, png_path, display_w=400, display_h=100):
         """Embed a 256x64 OLED screenshot, scaled to display_w x display_h"""
         self.need(display_h + 4)
@@ -467,6 +524,8 @@ def parse_junit(path):
 # Tests whose whole point is the ordered on-device review sequence — render
 # every review screen in order (who/what/why), not a single "best" thumbnail.
 FULL_SEQUENCE_TESTS = {
+    ('test_msg_zcash_sign_pczt_device',
+     'test_shielded_output_review_is_two_screens'),
     # The additive invariant IS an ordered-sequence claim: the decoded screens
     # are additional and the baseline raw review still follows them. Showing a
     # best-of-3 sample would hide exactly the thing being proved.
@@ -693,9 +752,10 @@ SECTIONS = [
     ('X', 'Device Specifications', '0.0.0',
      'The KeepKey is an open-source hardware wallet built on an ARM Cortex-M3 (STM32F205, 120MHz) '
      'with a 256x64 monochrome OLED, single confirmation button, and micro-USB interface. The '
-     'bootloader (v2.x) is flashed at manufacture and never updated - it is the immutable root of '
-     'trust. On every boot, the bootloader verifies the firmware signature using redundant F3 checks '
-     'before transferring control.',
+     'bootloader (v2.x) verifies the firmware signature using redundant F3 checks before '
+     'transferring control. Supported bootloaders can be updated by the protected bootloader '
+     'updater, which checks the existing version and verifies the update bytes before and '
+     'after writing; the bootloader is not immutable.',
      [
          'BOOT SEQUENCE:',
          '1. USB connect -> bootloader executes (always first)',
@@ -1805,19 +1865,18 @@ SECTIONS = [
      'NEW: Hive (Graphene) support with SLIP-0048 role derivation. Four role keys per account '
      '(owner, active, posting, memo), each an STM-prefixed secp256k1 key. Signs Graphene '
      'transactions — transfer, the account-create / account-update authority operations '
-     'Pioneer uses to onboard sponsored accounts, Keychain signBuffer message signing (dApp '
-     'login), and parsed generic operations (vote, comment, custom_json). Every signature '
+     'Pioneer uses to onboard sponsored accounts, and parsed generic operations '
+     '(vote, comment, custom_json). HiveSignMessage / Keychain signBuffer is not exposed '
+     'by the selected 7.15 release; its catalog cases remain skipped rather than proving '
+     'message-signing support. Every transaction signature '
      'recovers to the role key it was signed under, each serialized field is bound at its byte '
      'position, and every user-controlled string is paged IN FULL on the OLED (72-char ASCII '
-     'pages; non-ASCII shown as complete hex). Message signing is restricted to printable '
-     'ASCII: a Hive transaction digest is SHA256(chain_id || binary tx), so the printable-only '
-     'whitelist makes signable messages provably disjoint from every transaction preimage on '
-     'ANY fork chain — closing the message->transaction signature-oracle class.',
+     'pages; non-ASCII shown as complete hex).',
      [
          'KEYS: SLIP-0048 m/48\'/13\'/role\'/0\'/account\' -> STM-prefixed pubkey per role',
          'SIGN TX: Graphene serialize -> per-op confirm (amount + recipient + full memo pages) -> ECDSA sign',
          'ACCOUNT CREATE: attest 4 role authorities + new-account name -> owner-key signature',
-         'SIGN MESSAGE: printable ASCII only -> role named + full message paged -> SHA256(msg) signed',
+         'SIGN MESSAGE: unavailable in this 7.15 release; skipped message cases are not support evidence',
          'SIGN OPS: device re-parses the Graphene bytes; unrecognized ops are refused (no blind-sign)',
      ],
      [
@@ -2464,19 +2523,22 @@ SECTIONS = [
           []),
          ('Z22', 'test_msg_zcash_sign_pczt_device',
           'test_shielded_output_review_is_two_screens',
-          'Shielded output review: amount and full address (ON DEVICE)',
+          'Shielded output review: amount, full address and memo (FIRMWARE)',
           'The first test in this suite that sends ZcashSignPCZT to an actual device -- Z15-Z21 '
           'above are offline contract tests against a scripted transport. Signs a shielded-only '
           'transaction built from the firmware\'s own known-answer note vector, so the device '
-          'accepts its recomputed commitment, and asserts the output review is two screens. It '
-          'has to be: a unified address is 106 characters, three full body rows, and the body is '
+          'accepts its recomputed commitment. The current fixture requires three ConfirmOutput '
+          'screens: amount, full recipient address, then memo (non-text memo bytes are shown '
+          'by their SHA-256). Amount and address need separate screens: a unified address is '
+          '106 characters, three full body rows, and the body is '
           'three rows total, so a single confirm holding the question, the address and the amount '
           'renders 76 characters of address and silently drops the rest along with the amount. '
           'That screen is the verification gate for Orchard output values -- total_amount on the '
           'summary is a host-supplied prompt -- so the amount vanishing there is the whole trust '
-          'story. Verified as a regression test: against the shipped 7.15.0 RC emulator it fails '
-          'with "expected 2 ConfirmOutput screens, got 1".',
-          ['Shielded amount review', 'Shielded recipient address']),
+          'story. The earlier one-screen regression is historical; the current assertion '
+          'also includes the memo review. CI executes this device-facing path on the firmware '
+          'emulator, not physical hardware.',
+          ['Shielded amount review', 'Shielded recipient address', 'Shielded memo review']),
          ('Z23', 'test_msg_zcash_sign_pczt_device',
           'test_note_commitment_binds_the_recipient',
           'Tampered recipient breaks the note commitment (ON DEVICE)',
@@ -3618,10 +3680,10 @@ SECTIONS = [
      'not see a spender, an amount or a chain. Permit2 approvals, the single most common instrument '
      'in a drainer, took that path.\n'
      'Now the device walks the document itself. It asks for one struct definition, or one leaf '
-     'value, at a time, and hashes each value in the SAME call that displays it. There is no second '
-     'read that could return something different, and each member_path is requested exactly once -- '
-     'Trezor shipped this protocol with a hole there until 2.12.0, where a host could answer the '
-     'domain name one way for the summary screen and another for the hashing pass.\n'
+     'value, at a time. Small values are displayed and hashed from the same bytes. Values over '
+     'one packet are requested by member_path and byte offset. Long strings use a count/check '
+     'pass followed by a display pass; their Keccak digests must match before signing, so a '
+     'host cannot change the reviewed value between passes and still obtain a signature.\n'
      'The predecessor was withdrawn in 7.14.2 because its JSON parser could not guarantee the '
      'displayed value was the value being hashed. Here that property is structural rather than '
      'reviewed.',
@@ -3642,7 +3704,9 @@ SECTIONS = [
       '  domainSeparator and messageHash matched the published values on silicon',
       '  device address 0x73d0385F4d8E00C5e6504C6030F47BF6212736A8, same as the emulator',
       '',
-      'Behind AdvancedMode. This is new parser surface reachable from a website.'],
+      'Device-driven typed-data review is available with AdvancedMode off. Blind typed-hash',
+      'signing and runtime-provider annotation have separate policy gates.',
+      'The dated hardware observation above is historical, not acceptance of this candidate.'],
      [('TD1', 'test_msg_eip712_streaming', 'test_spec_example_matches_the_published_hashes',
        'The device\'s own hashes equal the EIP-712 reference implementation\'s',
        'The canonical Mail/Person document. Mail references Person TWICE, so the walk pushes a '
@@ -3670,10 +3734,10 @@ SECTIONS = [
        'downstream able to notice.',
        []),
       ('TD4', 'test_msg_eip712_streaming', 'test_advanced_mode_is_not_required_for_structured_review',
-       'The endpoint is gated behind AdvancedMode',
-       'Structured display is strictly MORE information than the blind path it replaces, so the '
-       'gate is not about the feature being dangerous. It is about new parser surface reachable '
-       'from a website staying closed until there is hardware evidence behind it. There now is.',
+       'Structured review works with AdvancedMode off',
+       'Disables AdvancedMode, walks the canonical Mail document, and requires a typed-data '
+       'signature with the independently published domain and message hashes. This exercises '
+       'device-driven review; it does not enable the separate blind typed-hash endpoint.',
        [])]),
 
 ]
@@ -3773,7 +3837,7 @@ def _audit_catalog():
                 assert (text or '').strip(), '%s has no context -- it would render as a bare name' % tid
 
 
-def render(output_path, fw_version, results, screenshot_dir=None):
+def render(output_path, fw_version, results, screenshot_dir=None, variant='full'):
     _audit_catalog()
     pdf = PDF(); pb = PB(pdf)
     _build_frame_census(screenshot_dir)
@@ -3818,6 +3882,8 @@ def render(output_path, fw_version, results, screenshot_dir=None):
     # Title
     pb.text(20, 'KeepKey Firmware Test Report', bold=True)
     pb.gap(2)
+    pb.text(10, 'Product: ' + ('Bitcoin-only' if variant == 'bitcoin-only' else
+                             'Full firmware; Bitcoin-only variant controls are identified separately'))
     if failed > 0:
         pb.text(11, f'Firmware {fw_version}  |  {ts}  |  {failed} FAILED of {total} tests', bold=True, color=RED)
     elif missing == 0 and total > 0:
@@ -3841,8 +3907,9 @@ def render(output_path, fw_version, results, screenshot_dir=None):
         pb.gap(3)
         for line in _w('Scope: this report is a curated catalog of %d tests. The CI run collected %d '
                        '(%d of them native firmware unit tests); %d SKIPPED and did not execute, '
-                       'usually because the emulator predates the firmware the test targets -- a skip '
-                       'is not evidence the feature works. Absence from this report is NOT '
+                       'because of version, product, capability, policy or harness gates. Exact '
+                       'skip reasons are in JUnit; a skip is not evidence the feature works. '
+                       'Absence from this report is NOT '
                        'evidence that a feature is untested -- check the JUnit artifacts.'
                        % (total, ran, JUNIT_CENSUS['native'], JUNIT_CENSUS['skipped']), 100):
             pb.text(8, line, color=GRAY)
@@ -3853,7 +3920,7 @@ def render(output_path, fw_version, results, screenshot_dir=None):
         state = _section_state((letter, title, mf, None, None, tests))
         is_new = ver_t(mf) > (7, 10, 0)
         if state == 'withheld' and not _hdr_withheld:
-            pb.text(9, '  --- Withheld on this build (build-flag gated; skipped by design) ---', bold=True, color=GRAY)
+            pb.text(9, '  --- Skipped on this candidate (see JUnit for the gating reason) ---', bold=True, color=GRAY)
             _hdr_withheld = True
         elif state == 'pending' and not _hdr_pending:
             pb.text(9, '  --- Pending (no firmware support yet) ---', bold=True, color=GRAY)
@@ -4266,7 +4333,7 @@ def main():
     for (mod, meth), cap in _TEST_CAPABILITY.items():
         if cap in JUNIT_MISSING_CAPABILITIES:
             results.setdefault('%s::%s' % (mod, meth), 'skip')
-    render(args.output, fw, results, args.screenshots)
+    render(args.output, fw, results, args.screenshots, variant=args.variant)
 
 if __name__ == '__main__':
     main()
