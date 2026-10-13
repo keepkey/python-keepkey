@@ -9,8 +9,13 @@ import pytest
 import common
 
 from keepkeylib import messages_zcash_pb2 as zcash_proto
+from keepkeylib import types_pb2 as proto_types
 from keepkeylib.client import CallException
 from keepkeylib.zcash import calculate_seed_fingerprint
+
+from test_msg_zcash_sign_pczt_device import (
+    PADDING_BUNDLE, bundle_digest, fabricated_action, sign_kwargs,
+)
 
 # Hardened offset
 H = 0x80000000
@@ -117,25 +122,64 @@ class TestMsgZcashSeedFingerprint(common.KeepKeyTest):
 
     # ── ZcashSignPCZT: through client.zcash_sign_pczt(...) ──────────────
 
-    def test_sign_pczt_helper_rejects_wrong_fingerprint(self):
-        """Helper passes expected_seed_fingerprint through; wrong fp rejected
-        before any signing crypto runs."""
+    def _signing_request(self):
+        """A complete wallet spend accepted by the current firmware."""
+        actions = [fabricated_action(v) for v in PADDING_BUNDLE]
+        actions[1]['is_spend'] = False
+        kwargs = sign_kwargs(actions, fee=10000, orchard_value_balance=10000,
+                             total_amount=90000)
+        kwargs['orchard_digest'] = bundle_digest(
+            actions, False, 5, value_balance=10000)
+        return kwargs
+
+    def test_sign_pczt_helper_accepts_matching_fingerprint(self):
+        """The same complete request signs with this seed's fingerprint."""
         self.setup_mnemonic_allallall()
+        fvk = self.client.zcash_get_orchard_fvk(
+            address_n=[H + 32, H + 133, H], account=0)
+        result = self.client.zcash_sign_pczt(
+            **self._signing_request(),
+            expected_seed_fingerprint=fvk.seed_fingerprint,
+        )
+        self.assertIsInstance(result, zcash_proto.ZcashSignedPCZT)
+        self.assertEqual(len(result.signatures), 1)
+        self.assertEqual(len(result.signatures[0]), 64)
 
-        wrong_fp = b"\x01" * 32
+    def test_sign_pczt_helper_rejects_wrong_fingerprint(self):
+        """A changed fingerprint alone causes the precise initial refusal."""
+        self.setup_mnemonic_allallall()
+        fvk = self.client.zcash_get_orchard_fvk(
+            address_n=[H + 32, H + 133, H], account=0)
+        wrong_fp = bytearray(fvk.seed_fingerprint)
+        wrong_fp[0] ^= 0x01
 
-        with pytest.raises(CallException):
-            self.client.zcash_sign_pczt(
-                address_n=[H + 32, H + 133, H + 0],
-                actions=[{"is_spend": False}],
-                # Explicit dummy action passes the helper's contract preflight;
-                # the bad fingerprint is still rejected by the initial device call.
-                account=0,
-                total_amount=100000,
-                fee=10000,
-                branch_id=0x37519621,
-                expected_seed_fingerprint=wrong_fp,
-            )
+        responses = []
+        original = self.client.call_raw
+
+        def capture(request):
+            response = original(request)
+            responses.append(response)
+            return response
+
+        self.client.call_raw = capture
+        try:
+            with pytest.raises(CallException) as caught:
+                self.client.zcash_sign_pczt(
+                    **self._signing_request(),
+                    expected_seed_fingerprint=bytes(wrong_fp),
+                )
+        finally:
+            self.client.call_raw = original
+
+        self.assertEqual(caught.value.args[0], proto_types.Failure_Other)
+        self.assertEqual(caught.value.args[1],
+                         'Seed fingerprint mismatch — wrong device')
+        self.assertFalse(any(isinstance(response, (
+            zcash_proto.ZcashPCZTActionAck,
+            zcash_proto.ZcashSignedPCZT,
+            zcash_proto.ZcashTransparentSigned,
+        )) for response in responses),
+            'a mismatched seed must not start action streaming or release signatures')
 
 
 if __name__ == '__main__':

@@ -287,5 +287,55 @@ class TestMsgEthereumThorchainDeposit(common.KeepKeyTest):
                     data=data,
                 )
 
+    def test_base_real_deposits_without_advanced_mode(self):
+        """Replay the two Base swaps with their exact calldata and recover
+        the emulator's signer; no AdvancedMode or metadata is supplied."""
+        self.requires_fullFeature()
+        self.requires_firmware("7.15.0")
+        self.requires_release_capability('thor-deposit-review')
+        self.setup_mnemonic_allallall()
+
+        import json
+        from pathlib import Path
+        from keepkeylib.signed_metadata import eth_sighash_legacy, keccak256
+        from keepkeylib.client import CallException
+        from ecdsa import VerifyingKey, SECP256k1, util
+
+        self.client.init_device()
+        advanced = [p for p in self.client.features.policies
+                    if p.policy_name == "AdvancedMode"]
+        self.assertTrue(advanced, "AdvancedMode policy must be reported")
+        self.assertFalse(advanced[0].enabled)
+        vectors = json.loads((Path(__file__).parent / "fixtures" /
+                              "base-thorchain-real-deposits.json").read_text())
+        n = parse_path("m/44'/60'/0'/0/0")
+        me = self.client.ethereum_get_address(n)
+        for tx in vectors:
+            with self.subTest(txid=tx["txid"]):
+                data = bytes.fromhex(tx["data"][2:])
+                to = bytes.fromhex(tx["to"][2:])
+                sig_v, sig_r, sig_s = self.client.ethereum_sign_tx(
+                    n=n, nonce=tx["nonce"], gas_price=tx["gas_price"],
+                    gas_limit=tx["gas_limit"], to=to, value=tx["value"],
+                    chain_id=tx["chain_id"], data=data,
+                )
+                self.assertIn(sig_v, [16941, 16942])
+                digest = eth_sighash_legacy(
+                    tx["nonce"], tx["gas_price"], tx["gas_limit"], to,
+                    tx["value"], data, tx["chain_id"])
+                keys = VerifyingKey.from_public_key_recovery_with_digest(
+                    sig_r + sig_s, digest, SECP256k1, hashfunc=None,
+                    sigdecode=util.sigdecode_string)
+                self.assertEqual(keccak256(keys[sig_v - 16941].to_string())[-20:], me)
+                # Avalanche shares the router identity; it is a valid pin.
+                for dest, chain in ((b"\x11" * 20, 8453), (to, 1), (to, 56),
+                                    (to, 42161)):
+                    with self.assertRaises(CallException):
+                        self.client.ethereum_sign_tx(
+                            n=n, nonce=tx["nonce"], gas_price=tx["gas_price"],
+                            gas_limit=tx["gas_limit"], to=dest, value=tx["value"],
+                            chain_id=chain, data=data,
+                        )
+
 if __name__ == "__main__":
     unittest.main()

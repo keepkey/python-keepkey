@@ -11,6 +11,8 @@ import unittest
 import common
 
 from keepkeylib import messages_zcash_pb2 as zcash_proto
+from keepkeylib import types_pb2 as proto_types
+from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
 
 # Hardened offset
@@ -62,15 +64,22 @@ class TestMsgZcashDisplayAddress(common.KeepKeyTest):
         is rejected with a SyntaxError (no silent wrong-account derivation)."""
         self.setup_mnemonic_allallall()
 
-        import pytest
-        from keepkeylib.client import CallException
+        # Without account=, the path itself selects the approved account.
+        valid = self.client.zcash_display_address(
+            address_n=[H + 32, H + 133, H + 0])
+        explicit = self.client.zcash_display_address(account=0)
+        self.assertIsInstance(valid, zcash_proto.ZcashAddress)
+        self.assertEqual(valid.address, explicit.address)
 
-        with pytest.raises(CallException):
+        with self.assertRaises(CallException) as caught:
             self.client.call(
                 zcash_proto.ZcashDisplayAddress(
                     address_n=[H + 44, H + 133, H + 0],  # wrong purpose (44')
                 )
             )
+        self.assertEqual(caught.exception.args[0], proto_types.Failure_SyntaxError)
+        self.assertEqual(caught.exception.args[1],
+                         "Require account field or ZIP-32 path m/32'/133'/account'")
 
 
 if __name__ == '__main__':
