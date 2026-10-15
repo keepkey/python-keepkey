@@ -845,15 +845,15 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         for doc, path, leaf, bits in ((permit, ("value",), "value", 256),):
             # A finite amount signs and shows the leaf; its position is where
             # the unlimited amount must stop.
-            self._assert_reference_signature(doc, self._walk(doc))
+            self._assert_reference_signature(finite, self._walk(finite))
             before_leaf = self._leaf_index(leaf)
             unlimited = copy.deepcopy(doc)
             target = unlimited["message"]
             for key in path[:-1]:
                 target = target[key]
-            target[path[-1]] = str((1 << bits) - 1)
+            target[path[-1]] = unlimited_value
             resp = self._walk(unlimited)
-            self.assertIsInstance(resp, proto.Failure)
+            self.assertIsInstance(resp, proto.Failure, leaf)
             self.assertEqual((resp.code, resp.message),
                              (types.Failure_SyntaxError,
                               'Unlimited ERC20 approval is disabled'))
@@ -959,13 +959,14 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         self.assertIsInstance(resp, proto.Failure)
         self.assertEqual(resp.code, types.Failure_ActionCancelled)
 
-    def test_ambiguous_unlimited_permits_are_refused_before_the_amount_screen(
+    def test_ambiguous_unlimited_permits_sign_with_unlimited_on_the_value_screen(
             self):
-        """An unlimited permit the device cannot attribute is refused before
-        that leaf is ever displayed: a Permit whose type hash is not
-        EIP-2612's or DAI's, an EIP-2612 permit whose domain names no token,
-        and an unlimited Permit2-shaped amount outside canonical
-        PermitSingle."""
+        """An unlimited permit the device cannot attribute -- a Permit whose
+        type hash is not EIP-2612's or DAI's, an EIP-2612 permit whose domain
+        names no token, an unlimited Permit2-shaped amount outside canonical
+        PermitSingle -- is signed, never refused (owner rule 2026-10-07): its
+        value screen is titled UNLIMITED APPROVAL. With no token to name, no
+        "UNLIMITED allowance" warning follows."""
         self.requires_firmware("7.16.0")
         self.requires_release_capability("erc20-unlimited-permit-review")
         no_nonce = copy.deepcopy(self.USDC_PERMIT)  # another type hash
@@ -1030,12 +1031,14 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
             for key in path[:-1]:
                 target = target[key]
             target[path[-1]] = unlimited_value
-            resp = self._walk(unlimited)
-            self.assertIsInstance(resp, proto.Failure, leaf)
-            self.assertEqual((resp.code, resp.message),
-                             (types.Failure_SyntaxError,
-                              'Unlimited ERC20 approval is disabled'))
-            self.assertEqual(len(self.frames), before_leaf)
+            self._assert_reference_signature(unlimited,
+                                             self._walk(unlimited))
+            titled = [i for i, (_, layout) in enumerate(self.frames)
+                      if oled_text.find_line(layout, 'UNLIMITED APPROVAL',
+                                             oled_text.TITLE_FONT) is not None]
+            with self.subTest(leaf):
+                self.assertEqual(titled, [before_leaf])
+                self.assertEqual(self._warnings(), [])
 
     def test_1024_byte_dynamic_bytes_leaf_signs(self):
         """A 1024-byte `bytes` leaf is reviewed in parts and signs; the digest
