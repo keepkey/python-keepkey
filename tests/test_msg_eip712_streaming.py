@@ -329,8 +329,12 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         raise AssertionError('walk did not terminate')
 
     def _chunked_values(self):
-        """Whether the firmware takes values over 1 KB in chunks."""
-        return es.CHUNKED_VALUES in (self.firmware_capabilities() or ())
+        """Whether the firmware takes values over 1 KB in chunks.
+
+        From the cached Features, not a fresh Initialize: Initialize ends the
+        session, and with it a name record sent ahead of the walk."""
+        return es.CHUNKED_VALUES in (
+            common.capability_names(self.client.features) or ())
 
     def _assert_final_sign_screen(self, first_line):
         """Every typed-data signature ends with ONE "Sign Typed Data" screen
@@ -699,36 +703,20 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         self.requires_firmware("7.16.0")
         self.requires_message("EthereumTxMetadata")
         self.requires_release_capability("permit2-review")
-        self.client.ethereum_send_tx_metadata(
+        resp = self.client.ethereum_send_tx_metadata(
             signed_payload=self.UR_V2_NAME, metadata_version=3, key_id=0x80)
-        # An unlimited EIP-2612 permit whose domain names no token
-        # (no verifyingContract): ambiguous, so the device still refuses it.
-        refused = {
-            "types": {
-                "EIP712Domain": [
-                    {"name": "name", "type": "string"},
-                    {"name": "chainId", "type": "uint256"},
-                ],
-                "Permit": [
-                    {"name": "owner", "type": "address"},
-                    {"name": "spender", "type": "address"},
-                    {"name": "value", "type": "uint256"},
-                    {"name": "nonce", "type": "uint256"},
-                    {"name": "deadline", "type": "uint256"},
-                ],
-            },
-            "primaryType": "Permit",
-            "domain": {"name": "USD Coin", "chainId": 1},
-            "message": {
-                "owner": "0x73d0385F4d8E00C5e6504C6030F47BF6212736A8",
-                "spender": "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af",
-                "value": str((1 << 256) - 1), "nonce": "0",
-                "deadline": "1893456000"},
-        }
-        failure = self._walk(refused)
+        self.assertEqual(resp.classification, 1)  # VERIFIED
+        # An EIP-2612 permit to the same spender, declined at the final sign
+        # screen. (This used an ambiguous unlimited permit, but those now sign
+        # behind an UNLIMITED warning: owner rule 2026-10-07, ledger D10.)
+        declined = copy.deepcopy(self.USDC_PERMIT)
+        declined["message"]["spender"] = (
+            "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af")
+        failure = self._walk(declined, decline_final=True)
         self.assertIsInstance(failure, proto.Failure)
-        self.assertEqual(failure.message,
-                         'Unlimited ERC20 approval is disabled')
+        self.assertEqual((failure.code, failure.message),
+                         (types.Failure_ActionCancelled,
+                          'Signing cancelled by user'))
         doc = self.UNISWAP_PERMIT2
         self._assert_reference_signature(doc, self._walk(doc))
         self.assertTrue(oled_text.shows(

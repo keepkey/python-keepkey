@@ -141,6 +141,8 @@ ROUTER = bytes.fromhex("3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad")
 ROUTER_212 = bytes.fromhex("d6145b2d3f379919e8cdeda7b97e37c4b2ca9c40")
 CLASSIFICATION_VERIFIED = 1
 KEYID_DELEGATE = 0x80
+# The fee screen names the chain off mainnet (7.15 ethereum_transactionTitle).
+FEE_TITLE = "TX ON BASE"
 
 
 class TestEthereumCertifiedUniswap(common.KeepKeyTest):
@@ -185,7 +187,7 @@ class TestEthereumCertifiedUniswap(common.KeepKeyTest):
             ("SPENDER", None),
             ("KEEPKEY CLEARSIGN", "Described by KeepKey Alpha 716 A9531B9D\n"
                                   "certified by KeepKey"),
-            ("TRANSACTION", None),
+            (FEE_TITLE, None),
         ])
 
     def test_real_base_swap_reads_as_swap_with_limits_and_allowance(self):
@@ -200,7 +202,7 @@ class TestEthereumCertifiedUniswap(common.KeepKeyTest):
             ("CONTRACT", None),
             ("KEEPKEY CLEARSIGN", "Described by KeepKey Alpha 716 A9531B9D\n"
                                   "certified by KeepKey"),
-            ("TRANSACTION", None),
+            (FEE_TITLE, None),
         ])
 
     def test_token_to_eth_past_the_first_chunk_is_reviewed_after_the_last_byte(self):
@@ -208,7 +210,7 @@ class TestEthereumCertifiedUniswap(common.KeepKeyTest):
         screens = self._sign(ROUTER_212, USDC_TO_ETH_CALLDATA, UR212_ENVELOPE)
         # The fee screen comes first: the swap is reviewed once every byte is in.
         self.assertScreens(screens, [
-            ("TRANSACTION", None),
+            (FEE_TITLE, None),
             ("UNISWAP", "Swap 26.907974 USDC for at least 0.00984050230885008 ETH"),
             ("LIMITS", "You spend\n26.907974 USDC"),
             ("LIMITS", "You receive at least\n0.00984050230885008 ETH"),
