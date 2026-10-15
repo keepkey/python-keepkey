@@ -66,12 +66,14 @@ jobs:
       # change here can break the firmware C++ build. .circleci/config.yml no
       # longer runs the firmware's own unit suite; this is the gate that
       # replaced it.
-      - name: Run ABI encoder and token-table generator contract tests
+      - name: Run host encoding, page capture, and network contract tests
         env:
           PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python
         run: |
           python -m pytest -q \
             tests/test_clearsign_abi.py \
+            tests/test_confirmation_pages.py \
+            tests/test_network_policy.py \
             tests/test_token_table_generators.py
 
       - name: Verify offline transaction fixture manifest

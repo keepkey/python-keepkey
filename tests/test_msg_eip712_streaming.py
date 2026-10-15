@@ -13,6 +13,7 @@ import time
 import unittest
 
 import common
+from confirmation_pages import ConfirmationPages
 import oled_text
 from keepkeylib import eip712_stream as es
 from keepkeylib import messages_ethereum_pb2 as eth
@@ -1064,13 +1065,13 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         msg = eth.EthereumSignTypedData(address_n=PATH,
                                         primary_type=doc['primaryType'],
                                         metamask_v4_compat=True)
-        screens = []
+        pages = ConfirmationPages()
+        screens = pages.texts
         resp = self.client.call_raw(msg)
         for _ in range(max_steps):
             if isinstance(resp, proto.ButtonRequest):
                 text = self.client.debug.read_confirm_text()
-                if not screens or screens[-1] != text:
-                    screens.append(text)
+                pages.add(resp.code, text)
                 if decline and text[1].startswith(decline):
                     self.client.debug.press_no()
                 else:
@@ -1085,6 +1086,8 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
                     tamper(ack)
                 resp = self.client.call_raw(ack)
             else:
+                if not isinstance(resp, proto.Failure):
+                    pages.finish()
                 return resp, screens
         raise AssertionError('walk did not terminate')
 

@@ -24,6 +24,7 @@ from ecdsa import SECP256k1, VerifyingKey
 from ecdsa.util import sigdecode_der
 
 import common
+from confirmation_pages import ConfirmationPages
 from keepkeylib import messages_pb2 as proto
 from keepkeylib import types_pb2 as proto_types
 from keepkeylib import messages_zcash_pb2 as zcash_proto
@@ -239,14 +240,12 @@ class TestZcashTex(common.KeepKeyTest):
         self.setup_mnemonic_allallall()
 
     def _capture_confirm_text(self):
-        screens = []
+        screens = ConfirmationPages()
         original = self.client.callback_ButtonRequest
 
         def capture(msg):
-            # A paged confirmation asks once per page; keep each one once.
             title, body = self.client.debug.read_confirm_text()
-            if not screens or screens[-1][1:] != (title, body):
-                screens.append((msg.code, title, body))
+            screens.add(msg.code, (title, body))
             return original(msg)
 
         self.client.callback_ButtonRequest = capture

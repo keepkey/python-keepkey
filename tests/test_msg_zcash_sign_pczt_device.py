@@ -24,6 +24,7 @@ import time
 import unittest
 
 import common
+from confirmation_pages import ConfirmationPages
 
 from keepkeylib import messages_pb2 as proto
 from keepkeylib import types_pb2 as proto_types
@@ -1586,13 +1587,13 @@ class TestZcashShieldedSigningDevice(common.KeepKeyTest):
         '4ku663uw6')
 
     def _capture_confirm_text(self):
-        """(code, title, body) of each confirmation, as the firmware formatted it."""
-        screens = []
+        """Complete confirmations reconstructed from every visible page."""
+        screens = ConfirmationPages()
         original = self.client.callback_ButtonRequest
 
         def capture(msg):
             title, body = self.client.debug.read_confirm_text()
-            screens.append((msg.code, title, body))
+            screens.add(msg.code, (title, body))
             return original(msg)
 
         self.client.callback_ButtonRequest = capture

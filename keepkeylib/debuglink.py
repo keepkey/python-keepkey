@@ -92,8 +92,11 @@ class DebugLink(object):
         return obj.dice_digest
 
     def read_confirm_text(self):
-        """(title, body) of the confirmation currently or last shown, exactly
-        as the firmware formatted them, before the body is paged."""
+        """(title, body) of the visible confirmation page on current firmware.
+
+        Paged titles include their n/m counter. Older firmware returned the
+        whole confirmation body on every page instead.
+        """
         obj = self._call(proto.DebugLinkGetState())
         return (obj.confirm_title, obj.confirm_body)
 

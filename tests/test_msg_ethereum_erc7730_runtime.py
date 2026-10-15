@@ -17,6 +17,7 @@ import hashlib
 import semver
 
 import common
+from confirmation_pages import ConfirmationPages
 from keepkeylib import erc7730, erc7730_compiler, eip712_stream
 from keepkeylib import messages_ethereum_pb2 as eth
 from keepkeylib import messages_pb2 as proto
@@ -90,12 +91,9 @@ class Erc7730Harness(object):
         return response
 
     def _first_pages(self):
-        """(title, body) of each confirmation's first page. A body that pages
-        continues under ButtonRequest_Other with the same text; any other
-        repeat is a second confirmation and is kept, so a double display
-        stays visible."""
-        return [screen for screen, code in zip(self.screens, self.button_codes)
-                if code != types.ButtonRequest_Other]
+        """Complete confirmations, after checking every numbered page."""
+        self.confirmations.finish()
+        return self.screens
 
     def _walk(self, start, envelope=b"", doc=None, change_pass=None, cancel_button=None,
               arguments=None, catalog=None, altered=None, cancel_title=None,
@@ -103,7 +101,8 @@ class Erc7730Harness(object):
         response = self.client.call_raw(start)
         self.definition_requests = 0
         self.button_codes = []
-        self.screens = []
+        self.confirmations = ConfirmationPages()
+        self.screens = self.confirmations.texts
         self.calldata_chunk_sizes = []
         buttons = 0
         calldata_passes = 0
@@ -113,7 +112,7 @@ class Erc7730Harness(object):
             if isinstance(response, proto.ButtonRequest):
                 buttons += 1
                 self.button_codes.append(response.code)
-                self.screens.append(self.client.debug.read_confirm_text())
+                self.confirmations.add(response.code, self.client.debug.read_confirm_text())
                 if self.screens[-1][0] not in ORDINARY_REVIEW:
                     self.client.capture_oled()
                 decline = (buttons == cancel_button or
@@ -165,6 +164,8 @@ class Erc7730Harness(object):
                     calldata_offset = 0
                 response = self.client.call_raw(eth.EthereumTxAck(data_chunk=chunk))
             else:
+                if not isinstance(response, proto.Failure):
+                    self.confirmations.finish()
                 return response, buttons, calldata_passes, typed_passes
         self.fail("protocol did not terminate")
 
