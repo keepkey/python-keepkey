@@ -196,6 +196,20 @@ def _resolve_executable(pid, comm, cwd):
     return None
 
 
+class _RebootClient(KeepKeyDebuglinkClient):
+    """Reconnect without clearing the state whose reboot lifetime we test.
+
+    ProtocolMixin.__init__ calls init_device(), so overriding it also prevents
+    the implicit Initialize sent by the normal client constructor.
+    """
+    def init_device(self):
+        self.features = self.call(proto.GetFeatures())
+        if not isinstance(self.features, proto.Features):
+            raise RuntimeError("GetFeatures did not return Features")
+        if str(self.features.vendor) not in self.VENDORS:
+            raise RuntimeError("Unsupported device")
+
+
 class TestSessionTrustLifetime(common.KeepKeyTest):
 
     # Canonical 7.15 makes AdvancedMode and runtime signer trust session-only.
@@ -349,12 +363,11 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
                                      **config.TRANSPORT_KWARGS)
         debug_transport = config.DEBUG_TRANSPORT(*config.DEBUG_TRANSPORT_ARGS,
                                                  **config.DEBUG_TRANSPORT_KWARGS)
-        client = KeepKeyDebuglinkClient(transport)
+        client = _RebootClient(transport)
         client.set_debuglink(debug_transport)
         client.screenshot_dir = getattr(self.client, 'screenshot_dir', None)
         client.screenshot_id = getattr(self.client, 'screenshot_id', 0)
         self.client = client
-        self.client.init_device()
 
     # ── 1. AdvancedMode lifetime ───────────────────────────────────────
 
