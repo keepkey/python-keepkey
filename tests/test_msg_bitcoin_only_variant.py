@@ -184,6 +184,21 @@ class TestBitcoinOnlyVariant(common.KeepKeyTest):
                                            script_type=proto_types.PAYTOADDRESS)
         return self._sign([out_pay, self._data_output(op_return_data)])
 
+    def _settled_layout(self):
+        """The framebuffer once any post-setup redraw has finished.
+
+        A device's delays complete, so the home screen may still be drawing
+        when setup returns. Compare against the screen it settles on.
+        """
+        layout = bytes(self.client.debug.read_layout())
+        for _ in range(20):
+            time.sleep(BUTTON_RENDER_SETTLE_SECONDS)
+            current = bytes(self.client.debug.read_layout())
+            if current == layout:
+                return layout
+            layout = current
+        self.fail("home screen never stopped changing")
+
     def _probe(self, msg):
         """Send one message and return the response, leaving the device idle."""
         resp = self.client.call_raw(msg)
@@ -346,7 +361,7 @@ class TestBitcoinOnlyVariant(common.KeepKeyTest):
         ]
 
         bitcoin_only = self._is_bitcoin_only()
-        home_before = self.client.debug.read_layout()
+        home_before = self._settled_layout()
 
         for name, msg in probes:
             resp = self._probe(msg)
