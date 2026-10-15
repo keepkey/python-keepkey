@@ -266,14 +266,51 @@ jobs:
           EMULATOR_IP=$(docker inspect -f \
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' kkemu)
           test -n "$EMULATOR_IP"
-          sudo iptables -I OUTPUT 1 -d "$EMULATOR_IP" -j ACCEPT
-          sudo iptables -I OUTPUT 2 ! -o lo -m conntrack --ctstate NEW -j REJECT
+          # Only the test UID loses external network access. The runner must
+          # remain able to renew its job lease and reconnect to GitHub.
+          PYTHON_BIN=$(command -v python)
+          TEST_USER=kk-offline-test
+          sudo useradd --system --user-group --create-home "$TEST_USER"
+          TEST_UID=$(id -u "$TEST_USER")
+          test "$TEST_UID" != "$(id -u)"
+          if ! command -v setfacl >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y acl
+          fi
+          # Keep runner ownership for tee/status; let pytest write its reports.
+          sudo setfacl -R -m "u:$TEST_UID:rwX" "$PWD"
+          # The runner home can be mode 750. Python module discovery and
+          # firmware build-directory globs need directory read/traverse access.
+          TEST_PARENT=$(dirname "$PWD")
+          while [ "$TEST_PARENT" != / ]; do
+            sudo setfacl -m "u:$TEST_UID:rx" "$TEST_PARENT"
+            TEST_PARENT=$(dirname "$TEST_PARENT")
+          done
           cleanup_network_gate() {
-            sudo iptables -D OUTPUT ! -o lo -m conntrack --ctstate NEW -j REJECT
-            sudo iptables -D OUTPUT -d "$EMULATOR_IP" -j ACCEPT
+            sudo ip6tables -w -D OUTPUT -m owner --uid-owner "$TEST_UID" \
+              ! -o lo -j REJECT 2>/dev/null || true
+            sudo iptables -w -D OUTPUT -m owner --uid-owner "$TEST_UID" \
+              ! -o lo -j REJECT 2>/dev/null || true
+            sudo iptables -w -D OUTPUT -m owner --uid-owner "$TEST_UID" \
+              -d "$EMULATOR_IP" -j ACCEPT 2>/dev/null || true
           }
           trap cleanup_network_gate EXIT
-          pytest -v --junitxml=junit.xml 2>&1 | tee pytest-output.txt
+          sudo iptables -w -I OUTPUT 1 -m owner --uid-owner "$TEST_UID" \
+            -d "$EMULATOR_IP" -j ACCEPT
+          sudo iptables -w -I OUTPUT 2 -m owner --uid-owner "$TEST_UID" \
+            ! -o lo -j REJECT
+          sudo ip6tables -w -I OUTPUT 1 -m owner --uid-owner "$TEST_UID" \
+            ! -o lo -j REJECT
+          run_offline_pytest() {
+            sudo -H -u "$TEST_USER" setpriv --no-new-privs env \
+              PATH="$PATH" LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" \
+              PYTHONPATH="$PYTHONPATH" PYTHONUNBUFFERED=1 \
+              KK_TRANSPORT_MAIN="$KK_TRANSPORT_MAIN" \
+              KK_TRANSPORT_DEBUG="$KK_TRANSPORT_DEBUG" \
+              KK_UDP_TIMEOUT="$KK_UDP_TIMEOUT" \
+              "$PYTHON_BIN" -m pytest "$@"
+          }
+          run_offline_pytest -v --junitxml=junit.xml 2>&1 | tee pytest-output.txt
           echo "${PIPESTATUS[0]}" > status
 
       - name: Test summary
@@ -479,14 +516,51 @@ jobs:
           EMULATOR_IP=$(docker inspect -f \
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' kkemu-7143)
           test -n "$EMULATOR_IP"
-          sudo iptables -I OUTPUT 1 -d "$EMULATOR_IP" -j ACCEPT
-          sudo iptables -I OUTPUT 2 ! -o lo -m conntrack --ctstate NEW -j REJECT
+          # Only the test UID loses external network access. The runner must
+          # remain able to renew its job lease and reconnect to GitHub.
+          PYTHON_BIN=$(command -v python)
+          TEST_USER=kk-offline-test
+          sudo useradd --system --user-group --create-home "$TEST_USER"
+          TEST_UID=$(id -u "$TEST_USER")
+          test "$TEST_UID" != "$(id -u)"
+          if ! command -v setfacl >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y acl
+          fi
+          # Keep runner ownership for tee/status; let pytest write its reports.
+          sudo setfacl -R -m "u:$TEST_UID:rwX" "$PWD"
+          # The runner home can be mode 750. Python module discovery and
+          # firmware build-directory globs need directory read/traverse access.
+          TEST_PARENT=$(dirname "$PWD")
+          while [ "$TEST_PARENT" != / ]; do
+            sudo setfacl -m "u:$TEST_UID:rx" "$TEST_PARENT"
+            TEST_PARENT=$(dirname "$TEST_PARENT")
+          done
           cleanup_network_gate() {
-            sudo iptables -D OUTPUT ! -o lo -m conntrack --ctstate NEW -j REJECT
-            sudo iptables -D OUTPUT -d "$EMULATOR_IP" -j ACCEPT
+            sudo ip6tables -w -D OUTPUT -m owner --uid-owner "$TEST_UID" \
+              ! -o lo -j REJECT 2>/dev/null || true
+            sudo iptables -w -D OUTPUT -m owner --uid-owner "$TEST_UID" \
+              ! -o lo -j REJECT 2>/dev/null || true
+            sudo iptables -w -D OUTPUT -m owner --uid-owner "$TEST_UID" \
+              -d "$EMULATOR_IP" -j ACCEPT 2>/dev/null || true
           }
           trap cleanup_network_gate EXIT
-          pytest -v --junitxml=junit-7143.xml 2>&1 | tee pytest-7143-output.txt
+          sudo iptables -w -I OUTPUT 1 -m owner --uid-owner "$TEST_UID" \
+            -d "$EMULATOR_IP" -j ACCEPT
+          sudo iptables -w -I OUTPUT 2 -m owner --uid-owner "$TEST_UID" \
+            ! -o lo -j REJECT
+          sudo ip6tables -w -I OUTPUT 1 -m owner --uid-owner "$TEST_UID" \
+            ! -o lo -j REJECT
+          run_offline_pytest() {
+            sudo -H -u "$TEST_USER" setpriv --no-new-privs env \
+              PATH="$PATH" LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" \
+              PYTHONPATH="$PYTHONPATH" PYTHONUNBUFFERED=1 \
+              KK_TRANSPORT_MAIN="$KK_TRANSPORT_MAIN" \
+              KK_TRANSPORT_DEBUG="$KK_TRANSPORT_DEBUG" \
+              KK_UDP_TIMEOUT="$KK_UDP_TIMEOUT" \
+              "$PYTHON_BIN" -m pytest "$@"
+          }
+          run_offline_pytest -v --junitxml=junit-7143.xml 2>&1 | tee pytest-7143-output.txt
           echo "${PIPESTATUS[0]}" > status-7143
 
       - name: 7.14.3 summary
@@ -716,14 +790,51 @@ jobs:
           EMULATOR_IP=$(docker inspect -f \
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' kkemu-btc)
           test -n "$EMULATOR_IP"
-          sudo iptables -I OUTPUT 1 -d "$EMULATOR_IP" -j ACCEPT
-          sudo iptables -I OUTPUT 2 ! -o lo -m conntrack --ctstate NEW -j REJECT
+          # Only the test UID loses external network access. The runner must
+          # remain able to renew its job lease and reconnect to GitHub.
+          PYTHON_BIN=$(command -v python)
+          TEST_USER=kk-offline-test
+          sudo useradd --system --user-group --create-home "$TEST_USER"
+          TEST_UID=$(id -u "$TEST_USER")
+          test "$TEST_UID" != "$(id -u)"
+          if ! command -v setfacl >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y acl
+          fi
+          # Keep runner ownership for tee/status; let pytest write its reports.
+          sudo setfacl -R -m "u:$TEST_UID:rwX" "$PWD"
+          # The runner home can be mode 750. Python module discovery and
+          # firmware build-directory globs need directory read/traverse access.
+          TEST_PARENT=$(dirname "$PWD")
+          while [ "$TEST_PARENT" != / ]; do
+            sudo setfacl -m "u:$TEST_UID:rx" "$TEST_PARENT"
+            TEST_PARENT=$(dirname "$TEST_PARENT")
+          done
           cleanup_network_gate() {
-            sudo iptables -D OUTPUT ! -o lo -m conntrack --ctstate NEW -j REJECT
-            sudo iptables -D OUTPUT -d "$EMULATOR_IP" -j ACCEPT
+            sudo ip6tables -w -D OUTPUT -m owner --uid-owner "$TEST_UID" \
+              ! -o lo -j REJECT 2>/dev/null || true
+            sudo iptables -w -D OUTPUT -m owner --uid-owner "$TEST_UID" \
+              ! -o lo -j REJECT 2>/dev/null || true
+            sudo iptables -w -D OUTPUT -m owner --uid-owner "$TEST_UID" \
+              -d "$EMULATOR_IP" -j ACCEPT 2>/dev/null || true
           }
           trap cleanup_network_gate EXIT
-          pytest -v --junitxml=junit-btc.xml test_msg_bitcoin_only_variant.py \
+          sudo iptables -w -I OUTPUT 1 -m owner --uid-owner "$TEST_UID" \
+            -d "$EMULATOR_IP" -j ACCEPT
+          sudo iptables -w -I OUTPUT 2 -m owner --uid-owner "$TEST_UID" \
+            ! -o lo -j REJECT
+          sudo ip6tables -w -I OUTPUT 1 -m owner --uid-owner "$TEST_UID" \
+            ! -o lo -j REJECT
+          run_offline_pytest() {
+            sudo -H -u "$TEST_USER" setpriv --no-new-privs env \
+              PATH="$PATH" LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" \
+              PYTHONPATH="$PYTHONPATH" PYTHONUNBUFFERED=1 \
+              KK_TRANSPORT_MAIN="$KK_TRANSPORT_MAIN" \
+              KK_TRANSPORT_DEBUG="$KK_TRANSPORT_DEBUG" \
+              KK_UDP_TIMEOUT="$KK_UDP_TIMEOUT" \
+              "$PYTHON_BIN" -m pytest "$@"
+          }
+          run_offline_pytest -v --junitxml=junit-btc.xml test_msg_bitcoin_only_variant.py \
             2>&1 | tee pytest-btc-output.txt
           echo "${PIPESTATUS[0]}" > status-btc
 
