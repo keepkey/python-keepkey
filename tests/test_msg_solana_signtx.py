@@ -568,6 +568,41 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
                 raw_tx=bytes(tx),
             ))
 
+    def test_solana_sign_oversized_account_list_blind_signs(self):
+        """7.16: more than 32 static accounts is opaque, never refused: it
+        blind-signs under AdvancedMode, and the derived key must still be one
+        of the signers (F-715-1)."""
+        self.requires_fullFeature()
+        self.requires_firmware("7.16.0")
+        self.setup_mnemonic_allallall()
+
+        def oversized(signer):
+            tx = bytearray([0, 1, 0, 1, 33])  # sig count, header, 33 accounts
+            tx.extend(signer)
+            for _ in range(32):
+                tx.extend(b'\xAA' * 32)
+            tx.extend(b'\xBB' * 32)  # blockhash
+            tx.append(0)  # 0 instructions
+            return messages.SolanaSignTx(
+                address_n=parse_path("m/44'/501'/0'/0'"), raw_tx=bytes(tx))
+
+        mine = oversized(self._get_from_pubkey())
+        self.client.apply_policy('AdvancedMode', False)
+        with pytest.raises(CallException) as exc:
+            self.client.call(mine)
+        self.assertIn("AdvancedMode", str(exc.value))
+
+        self.client.apply_policy('AdvancedMode', True)
+        try:
+            resp = self.client.call(mine)
+            self.assertEqual(len(resp.signature), 64)
+            with pytest.raises(CallException) as exc:
+                self.client.call(oversized(b'\xCC' * 32))
+            self.assertIn("Derived key is not a signer for this tx",
+                          str(exc.value))
+        finally:
+            self.client.apply_policy('AdvancedMode', False)
+
     def test_solana_sign_malformed_trailing_bytes(self):
         """Reject a valid transaction that has extra trailing bytes."""
         self.requires_fullFeature()
