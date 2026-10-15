@@ -4191,6 +4191,9 @@ RETIRED_FROM = {
         'test_a_refused_inner_call_does_not_blind_the_next_one',
     )
 }
+# Unlimited approvals sign behind a warning from 7.16 (owner rule 2026-10-07).
+RETIRED_FROM[('test_msg_ethereum_erc20_uniswap_liquidity',
+              'test_sign_uni_approve_liquidity_ETH_refused')] = '7.16.0'
 
 
 def validate_junit(fw_version, results, variant='full',
