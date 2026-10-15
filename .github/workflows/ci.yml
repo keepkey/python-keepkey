@@ -136,7 +136,7 @@ jobs:
           # Pinned 7.15 firmware commit (the stack tip). It reports
           # Features.capabilities, so capability-gated tests skip exactly what
           # it lacks.
-          ref: 1712fd3d59cb37c2860a32399a3b405cde2181db
+          ref: 7f1cdbb7611647aaff2c752d92dbb72933a1a746
           path: keepkey-firmware
 
       # NOT `submodules: recursive`. trezor-firmware carries a micropython
@@ -565,7 +565,7 @@ jobs:
             firmware_ref: 2a09cfa86eaea5be6040cb1c35b6020e5d3ab724
             min_fw: "7.14.3"
           - release: "7.15"
-            firmware_ref: 1712fd3d59cb37c2860a32399a3b405cde2181db
+            firmware_ref: 7f1cdbb7611647aaff2c752d92dbb72933a1a746
             min_fw: "7.15.0"
 
     # KK_BITCOIN_ONLY=ON is a second shipping product, not a build flavour:
