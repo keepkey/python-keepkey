@@ -2,8 +2,33 @@ import os
 import subprocess
 import sys
 import unittest
+from decimal import Decimal
+from fractions import Fraction
+
+import pytest
 
 from keepkeylib.clearsign_abi import canonical_signature, encode_static_args, selector
+
+
+@pytest.mark.parametrize('typ', ['uint8', 'int8'])
+@pytest.mark.parametrize('value', [1.9, -0.9, -1.9, Decimal('1.9'),
+                                  Decimal('-0.9'), Fraction(19, 10),
+                                  Fraction(-9, 10)])
+def test_integer_arguments_reject_fractional_values(typ, value):
+    with pytest.raises(ValueError):
+        encode_static_args([typ], [value])
+
+
+@pytest.mark.parametrize('typ,value,expected', [
+    ('uint8', '255', 255), ('int8', '-128', -128),
+    ('uint8', 1.0, 1), ('int8', -1.0, -1),
+    ('uint256', str(2**256 - 1), 2**256 - 1),
+    ('int256', str(-(2**255)), -(2**255)),
+    ('uint8', Decimal('2'), 2), ('int8', Fraction(-2, 1), -2),
+])
+def test_integer_arguments_preserve_exact_values(typ, value, expected):
+    assert encode_static_args([typ], [value]) == expected.to_bytes(
+        32, 'big', signed=typ.startswith('int'))
 
 
 class TestClearsignAbiSignedIntegers(unittest.TestCase):
@@ -43,6 +68,8 @@ invalid = (
     (['uint8'], []),
     (['uint8'], [256]),
     (['int8'], [128]),
+    (['uint8'], [-0.9]),
+    (['int8'], [-1.9]),
     (['bytes2'], [b'\x11']),
 )
 for types, values in invalid:

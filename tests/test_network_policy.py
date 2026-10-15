@@ -33,7 +33,8 @@ def test_non_emulator_local_transports_are_denied():
         requests.get("http://127.0.0.1:1/forbidden")
 
 
-def test_owned_emulator_lease_allows_only_its_udp_pair_and_expires():
+@pytest.mark.parametrize('method', ['sendto', 'send', 'sendall'])
+def test_owned_emulator_lease_allows_only_its_udp_pair_and_expires(method):
     from emulator_endpoints import owned_emulator_pair
 
     receiver = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -44,15 +45,22 @@ def test_owned_emulator_lease_allows_only_its_udp_pair_and_expires():
         port = receiver.getsockname()[1]
         if port == 65535:
             pytest.skip("allocated port has no adjacent debug port")
+        def send(payload):
+            if method == 'sendto':
+                return sender.sendto(payload, ("127.0.0.1", port))
+            return getattr(sender, method)(payload)
+
         with owned_emulator_pair(port):
-            sender.sendto(b"owned", ("127.0.0.1", port))
+            if method != 'sendto':
+                sender.connect(("127.0.0.1", port))
+            send(b"owned")
             assert receiver.recv(5) == b"owned"
             with pytest.raises(AssertionError):
                 sender.sendto(b"forbidden", ("192.0.2.1", port))
             with pytest.raises(AssertionError):
                 sender.sendto(b"forbidden", ("127.0.0.1", 1))
         with pytest.raises(AssertionError):
-            sender.sendto(b"expired", ("127.0.0.1", port))
+            send(b"expired")
     finally:
         sender.close()
         receiver.close()

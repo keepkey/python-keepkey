@@ -86,6 +86,14 @@ def _int_bits(digits, typ):
     return bits
 
 
+def _exact_integer(value):
+    """Accept decimal strings and numeric values only without truncation."""
+    n = int(value)
+    if not isinstance(value, str) and n != value:
+        raise ValueError('integer argument would lose precision: %r' % value)
+    return n
+
+
 def encode_static_args(types, values):
     """ABI-encode STATIC Solidity types into concatenated 32-byte words.
     Raises on any dynamic type (string/bytes/arrays) — build those by hand."""
@@ -104,7 +112,7 @@ def encode_static_args(types, values):
             out += _addr_word(val)
         elif typ.startswith('uint'):
             bits = _int_bits(typ[4:], typ)
-            n = int(val)
+            n = _exact_integer(val)
             if not 0 <= n < (1 << bits):
                 raise ValueError('value %r out of range for %s' % (val, typ))
             out += n.to_bytes(32, 'big')
@@ -116,7 +124,7 @@ def encode_static_args(types, values):
             # 2^(N-1), which the EVM reads back as NEGATIVE -- calldata that
             # does not mean what the declared type says.
             bits = _int_bits(typ[3:], typ)
-            n = int(val)
+            n = _exact_integer(val)
             lo, hi = -(1 << (bits - 1)), (1 << (bits - 1)) - 1
             if not lo <= n <= hi:
                 raise ValueError(

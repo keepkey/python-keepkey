@@ -1,6 +1,7 @@
 from keepkeylib import mapping
 from keepkeylib import messages_ethereum_pb2 as ethereum
 from keepkeylib import messages_pb2 as messages
+import pytest
 
 
 def test_erc7730_message_ids_and_mapping():
@@ -56,3 +57,15 @@ def test_lookup_kinds_encode_expected_context():
         length=512,
     )
     assert typed.IsInitialized()
+
+
+@pytest.mark.parametrize('chain_id', [1, 2**53 - 1, 2**53 + 1, 2**64 - 1])
+def test_lookup_chain_id_retains_full_uint64(chain_id):
+    request = ethereum.EthereumClearSignDefinitionRequest(
+        kind=ethereum.ERC7730_CALLDATA, chain_id=chain_id, offset=0, length=0)
+    wire = request.SerializeToString()
+    decoded = ethereum.EthereumClearSignDefinitionRequest.FromString(wire)
+    assert decoded.chain_id == chain_id
+    assert isinstance(decoded.chain_id, int)
+    options = request.DESCRIPTOR.fields_by_name['chain_id'].GetOptions()
+    assert options.jstype == options.JS_STRING

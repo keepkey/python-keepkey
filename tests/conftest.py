@@ -159,6 +159,8 @@ def deny_external_network(monkeypatch, request):
     original_connect = socket.socket.connect
     original_connect_ex = socket.socket.connect_ex
     original_sendto = socket.socket.sendto
+    original_send = socket.socket.send
+    original_sendall = socket.socket.sendall
     emulator_names, emulator_addresses = _configured_emulator_endpoints(
         original_getaddrinfo)
 
@@ -203,6 +205,19 @@ def deny_external_network(monkeypatch, request):
             denied(address)
         return original_sendto(sock, data, *args)
 
+    def check_connected_peer(sock):
+        address = sock.getpeername()
+        if not allowed_socket_address(sock, address):
+            denied(address)
+
+    def guarded_send(sock, data, *args):
+        check_connected_peer(sock)
+        return original_send(sock, data, *args)
+
+    def guarded_sendall(sock, data, *args):
+        check_connected_peer(sock)
+        return original_sendall(sock, data, *args)
+
     def guarded_request(session, method, url, *args, **kwargs):
         raise AssertionError(
             'authoritative test attempted HTTP access: test=%s method=%s '
@@ -212,6 +227,8 @@ def deny_external_network(monkeypatch, request):
     monkeypatch.setattr(socket.socket, 'connect', guarded_connect)
     monkeypatch.setattr(socket.socket, 'connect_ex', guarded_connect_ex)
     monkeypatch.setattr(socket.socket, 'sendto', guarded_sendto)
+    monkeypatch.setattr(socket.socket, 'send', guarded_send)
+    monkeypatch.setattr(socket.socket, 'sendall', guarded_sendall)
     monkeypatch.setattr(requests.sessions.Session, 'request', guarded_request)
 
 
