@@ -169,7 +169,10 @@ jobs:
 
       - name: Start the emulator
         run: |
+          # Certified fixtures are signed by the alpha root; 7.16+ emulators
+          # read it from here at startup (older ones ignore it).
           docker run -d --name kkemu \
+            -e KK_CLEARSIGN_TEST_ROOT=02de9231b2094433235532fb1932e324a2c7304195e12e610c675cccbbd606dae7 \
             -p 11044:11044/udp -p 11045:11045/udp -p 5000:5000 kkemu-ci
           sleep 3
           docker logs kkemu | head -5
