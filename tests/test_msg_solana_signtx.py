@@ -562,11 +562,15 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         tx.extend(b'\xBB' * 32)  # blockhash
         tx.append(0)    # 0 instructions
 
-        with pytest.raises(CallException):
+        with pytest.raises(CallException) as exc:
             self.client.call(messages.SolanaSignTx(
                 address_n=parse_path("m/44'/501'/0'/0'"),
                 raw_tx=bytes(tx),
             ))
+        if self.firmware_at_least("7.16.0"):
+            # 7.16: opaque, not refused (F-715-1); none of the keys is ours.
+            self.assertIn("Derived key is not a signer for this tx",
+                          str(exc.value))
 
     def test_solana_sign_oversized_account_list_blind_signs(self):
         """7.16: more than 32 static accounts is opaque, never refused: it
@@ -600,6 +604,36 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
                 self.client.call(oversized(b'\xCC' * 32))
             self.assertIn("Derived key is not a signer for this tx",
                           str(exc.value))
+        finally:
+            self.client.apply_policy('AdvancedMode', False)
+
+    def test_solana_sign_offchain_envelope_and_later_versions(self):
+        """7.16: SignTx refuses the 0xFF off-chain message envelope. A later
+        message version blind-signs only when it carries the derived key."""
+        self.requires_fullFeature()
+        self.requires_firmware("7.16.0")
+        self.setup_mnemonic_allallall()
+        path = parse_path("m/44'/501'/0'/0'")
+        envelope = b'\xffsolana offchain' + b'\x00\x00\x05\x00hello'
+        later = bytes([0x81, 1, 0, 0]) + b'\x00' * 4 + b'\xBB' * 32 + b'\x00\x01'
+
+        self.client.apply_policy('AdvancedMode', True)
+        try:
+            for raw_tx in (envelope, b'\x00' + envelope):
+                with pytest.raises(CallException) as exc:
+                    self.client.call(messages.SolanaSignTx(
+                        address_n=path, raw_tx=raw_tx))
+                self.assertIn("Malformed Solana transaction", str(exc.value))
+
+            with pytest.raises(CallException) as exc:
+                self.client.call(messages.SolanaSignTx(
+                    address_n=path, raw_tx=later + b'\x22' * 32))
+            self.assertIn("Derived key is not a signer for this tx",
+                          str(exc.value))
+
+            resp = self.client.call(messages.SolanaSignTx(
+                address_n=path, raw_tx=later + self._get_from_pubkey()))
+            self.assertEqual(len(resp.signature), 64)
         finally:
             self.client.apply_policy('AdvancedMode', False)
 
