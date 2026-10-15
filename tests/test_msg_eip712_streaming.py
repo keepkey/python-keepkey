@@ -845,15 +845,15 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         for doc, path, leaf, bits in ((permit, ("value",), "value", 256),):
             # A finite amount signs and shows the leaf; its position is where
             # the unlimited amount must stop.
-            self._assert_reference_signature(finite, self._walk(finite))
+            self._assert_reference_signature(doc, self._walk(doc))
             before_leaf = self._leaf_index(leaf)
             unlimited = copy.deepcopy(doc)
             target = unlimited["message"]
             for key in path[:-1]:
                 target = target[key]
-            target[path[-1]] = unlimited_value
+            target[path[-1]] = str((1 << bits) - 1)
             resp = self._walk(unlimited)
-            self.assertIsInstance(resp, proto.Failure, leaf)
+            self.assertIsInstance(resp, proto.Failure)
             self.assertEqual((resp.code, resp.message),
                              (types.Failure_SyntaxError,
                               'Unlimited ERC20 approval is disabled'))
