@@ -93,7 +93,7 @@ class Erc7730Harness(object):
     def _first_pages(self):
         """Complete confirmations, after checking every numbered page."""
         self.confirmations.finish()
-        return self.screens
+        return self.confirmations.texts
 
     def _walk(self, start, envelope=b"", doc=None, change_pass=None, cancel_button=None,
               arguments=None, catalog=None, altered=None, cancel_title=None,
@@ -102,7 +102,9 @@ class Erc7730Harness(object):
         self.definition_requests = 0
         self.button_codes = []
         self.confirmations = ConfirmationPages()
-        self.screens = self.confirmations.texts
+        # Keep one entry per physical ButtonRequest for cancellation sweeps.
+        # Complete bodies are available separately through _first_pages().
+        self.screens = []
         self.calldata_chunk_sizes = []
         buttons = 0
         calldata_passes = 0
@@ -112,7 +114,9 @@ class Erc7730Harness(object):
             if isinstance(response, proto.ButtonRequest):
                 buttons += 1
                 self.button_codes.append(response.code)
-                self.confirmations.add(response.code, self.client.debug.read_confirm_text())
+                text = self.client.debug.read_confirm_text()
+                title = self.confirmations.add(response.code, text)
+                self.screens.append((title, text[1]))
                 if self.screens[-1][0] not in ORDINARY_REVIEW:
                     self.client.capture_oled()
                 decline = (buttons == cancel_button or
