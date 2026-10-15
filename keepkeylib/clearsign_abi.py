@@ -21,8 +21,9 @@ import re
 from .signed_metadata import keccak256
 
 _SIGNATURE = re.compile(r'^([A-Za-z_$][A-Za-z0-9_$]*)\((.*)\)$')
-# Selectors hash canonical types, so the bare aliases are spelled out.
+# Selectors hash canonical types, including aliases nested in arrays/tuples.
 _ALIASES = {'uint': 'uint256', 'int': 'int256'}
+_INTEGER_ALIAS = re.compile(r'\b(?:uint|int)\b')
 
 
 def parse_signature(signature):
@@ -34,7 +35,8 @@ def parse_signature(signature):
     types = [t.strip() for t in rest.split(',')] if rest.strip() else []
     if any(not t for t in types):
         raise ValueError('empty parameter type in %r' % signature)
-    return name, [_ALIASES.get(t, t) for t in types]
+    return name, [_INTEGER_ALIAS.sub(lambda m: _ALIASES[m.group(0)], t)
+                  for t in types]
 
 
 def canonical_signature(signature):

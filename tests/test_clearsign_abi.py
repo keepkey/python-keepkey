@@ -3,7 +3,7 @@ import subprocess
 import sys
 import unittest
 
-from keepkeylib.clearsign_abi import encode_static_args
+from keepkeylib.clearsign_abi import canonical_signature, encode_static_args, selector
 
 
 class TestClearsignAbiSignedIntegers(unittest.TestCase):
@@ -36,7 +36,7 @@ class TestClearsignAbiSignedIntegers(unittest.TestCase):
     def test_validation_survives_optimized_python(self):
         """Interpreter optimization must not remove calldata validation."""
         script = r'''
-from keepkeylib.clearsign_abi import encode_static_args
+from keepkeylib.clearsign_abi import canonical_signature, encode_static_args, selector
 
 invalid = (
     (['address'], [b'\x11' * 19]),
@@ -106,6 +106,23 @@ class TestClearsignAbiTypeValidation(unittest.TestCase):
         for typ in ('uint256[]', 'address[]', 'uint256[2]'):
             with self.assertRaisesRegex(ValueError, 'dynamic/unsupported type'):
                 encode_static_args([typ], [[1]])
+
+
+class TestClearsignAbiSelectors(unittest.TestCase):
+    def test_integer_aliases_inside_composite_types(self):
+        for shorthand, canonical in (
+            ('f(uint[])', 'f(uint256[])'),
+            ('f(int[2][][4])', 'f(int256[2][][4])'),
+            ('f((uint,int[]),uint[3])', 'f((uint256,int256[]),uint256[3])'),
+            ('f((address,(uint,int)[])[])', 'f((address,(uint256,int256)[])[])'),
+        ):
+            with self.subTest(signature=shorthand):
+                self.assertEqual(canonical_signature(shorthand), canonical)
+                self.assertEqual(selector(shorthand), selector(canonical))
+
+    def test_aliases_do_not_rewrite_function_names_or_other_identifiers(self):
+        for signature in ('uint(uint8,int32)', 'f(myuint,my_int,uint256)'):
+            self.assertEqual(canonical_signature(signature), signature)
 
 
 if __name__ == '__main__':
