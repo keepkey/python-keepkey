@@ -17,6 +17,7 @@ import json
 import shutil
 import socket
 import sys
+from urllib.parse import urlparse
 
 import requests
 
@@ -151,11 +152,15 @@ def _configured_emulator_endpoints(getaddrinfo):
 @pytest.fixture(autouse=True)
 def deny_external_network(monkeypatch, request):
     """Allow only local sockets and the harness's exact UDP emulator endpoints."""
+    from emulator_endpoints import is_owned_endpoint
+
     nodeid = request.node.nodeid
     original_getaddrinfo = socket.getaddrinfo
     original_connect = socket.socket.connect
     original_connect_ex = socket.socket.connect_ex
     original_sendto = socket.socket.sendto
+    original_send = socket.socket.send
+    original_sendall = socket.socket.sendall
     emulator_names, emulator_addresses = _configured_emulator_endpoints(
         original_getaddrinfo)
 
@@ -166,7 +171,7 @@ def deny_external_network(monkeypatch, request):
 
     def guarded_getaddrinfo(host, *args, **kwargs):
         port = args[0] if args else kwargs.get('port')
-        if (host, port) not in emulator_names:
+        if (host, port) not in emulator_names and not is_owned_endpoint((host, port)):
             denied((host, port))
         return original_getaddrinfo(host, *args, **kwargs)
 
@@ -175,13 +180,14 @@ def deny_external_network(monkeypatch, request):
             return False
         # No Unix sockets, TCP loopback, or arbitrary localhost ports. The
         # authoritative suite may talk only to the two exact UDP transports
-        # configured for this emulator run.
+        # configured for this emulator run, plus explicit test-owned leases.
         if sock.family not in (socket.AF_INET, socket.AF_INET6):
             return False
         if (sock.type & 0x0f) != socket.SOCK_DGRAM:
             return False
         endpoint = (address[0], address[1])
-        return endpoint in emulator_names or endpoint in emulator_addresses
+        return (endpoint in emulator_names or endpoint in emulator_addresses
+                or is_owned_endpoint(endpoint))
 
     def guarded_connect(sock, address):
         if not allowed_socket_address(sock, address):
@@ -199,6 +205,19 @@ def deny_external_network(monkeypatch, request):
             denied(address)
         return original_sendto(sock, data, *args)
 
+    def check_connected_peer(sock):
+        address = sock.getpeername()
+        if not allowed_socket_address(sock, address):
+            denied(address)
+
+    def guarded_send(sock, data, *args):
+        check_connected_peer(sock)
+        return original_send(sock, data, *args)
+
+    def guarded_sendall(sock, data, *args):
+        check_connected_peer(sock)
+        return original_sendall(sock, data, *args)
+
     def guarded_request(session, method, url, *args, **kwargs):
         raise AssertionError(
             'authoritative test attempted HTTP access: test=%s method=%s '
@@ -208,6 +227,8 @@ def deny_external_network(monkeypatch, request):
     monkeypatch.setattr(socket.socket, 'connect', guarded_connect)
     monkeypatch.setattr(socket.socket, 'connect_ex', guarded_connect_ex)
     monkeypatch.setattr(socket.socket, 'sendto', guarded_sendto)
+    monkeypatch.setattr(socket.socket, 'send', guarded_send)
+    monkeypatch.setattr(socket.socket, 'sendall', guarded_sendall)
     monkeypatch.setattr(requests.sessions.Session, 'request', guarded_request)
 
 

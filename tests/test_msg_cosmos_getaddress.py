@@ -28,7 +28,9 @@ class TestMsgCosmosGetAddress(common.KeepKeyTest):
                     cosmos_proto.CosmosAddress(address=expected)
                 ])
 
-                self.assertEqual(expected, self.client.cosmos_get_address(path, show_display=True))
+                self.assertEqual(expected, self.assert_shows_address(
+                    lambda: self.client.cosmos_get_address(path, show_display=True),
+                    expected))
 
             with self.client:
                 self.client.set_expected_responses([
@@ -61,7 +63,9 @@ class TestMsgCosmosGetAddress(common.KeepKeyTest):
                     cosmos_proto.CosmosAddress(address=expected)
                 ])
 
-                self.assertEqual(expected, self.client.cosmos_get_address(path, show_display=True))
+                self.assertEqual(expected, self.assert_shows_address(
+                    lambda: self.client.cosmos_get_address(path, show_display=True),
+                    expected))
 
             with self.client:
                 self.client.set_expected_responses([
@@ -85,10 +89,12 @@ class TestMsgCosmosGetAddress(common.KeepKeyTest):
         address = self.client.cosmos_get_address(parse_path(DEFAULT_BIP32_PATH))
         assert address == "cosmos1jcwdsdelc4cwvall0twl974sfkpqmzrgkszu9l"
 
-        address = self.client.cosmos_get_address(
-            parse_path("m/44h/118h/1h/0/0"), show_display=True
-        )
-        assert address == "cosmos1280uphuty5rxr2m05t6xujvylkkftlrvdnw0pp"
+        expected = "cosmos1280uphuty5rxr2m05t6xujvylkkftlrvdnw0pp"
+        address = self.assert_shows_address(
+            lambda: self.client.cosmos_get_address(
+                parse_path("m/44h/118h/1h/0/0"), show_display=True),
+            expected)
+        assert address == expected
 
     def test_onchain(self):
         self.requires_fullFeature()

@@ -22,10 +22,39 @@ import binascii
 
 from keepkeylib.tools import parse_path
 import keepkeylib.binance as binance
+from keepkeylib import messages_binance_pb2 as proto_binance
+from keepkeylib import messages_pb2 as proto
+from keepkeylib import types_pb2 as proto_types
 
 class TestMsgBinanceSignTx(common.KeepKeyTest):
 
+    def test_retired_handlers_stay_unregistered(self):
+        """Current full firmware must not revive the retired signing surface."""
+        self.requires_fullFeature()
+        self.requires_firmware("7.16.0")
+
+        retired_messages = (
+            proto_binance.BinanceGetAddress(),
+            proto_binance.BinanceGetPublicKey(),
+            proto_binance.BinanceSignTx(),
+            proto_binance.BinanceTransferMsg(),
+            proto_binance.BinanceOrderMsg(),
+            proto_binance.BinanceCancelMsg(),
+        )
+        for message in retired_messages:
+            response = self.client.call_raw(message)
+            self.assertIsInstance(response, proto.Failure)
+            self.assertEqual(
+                response.code,
+                proto_types.Failure_UnexpectedMessage,
+            )
+
     def setup_binance(self):
+        # Native Binance Beacon Chain signing was deliberately removed from
+        # firmware (#541). Keep these vectors useful for older firmware, but
+        # do not treat an unregistered message on current builds as a signing
+        # regression.
+        self.requires_message("BinanceSignTx")
         self.client.load_device_by_mnemonic(
             mnemonic="offer caution gift cross surge pretty orange during eye soldier popular holiday mention east eight office fashion ill parrot vault rent devote earth cousin",
             pin=self.pin4,

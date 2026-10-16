@@ -19,6 +19,7 @@
 # The script has been modified for KeepKey Device.
 
 import unittest
+import time
 import common
 
 from keepkeylib import messages_pb2 as proto
@@ -117,6 +118,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
         ret = self.client.call_raw(proto.ButtonAck())
 
         mnemonic_words = mnemonic.split(' ')
+        captured_cipher = False
 
         for index, word in enumerate(mnemonic_words):
             for character in word:
@@ -124,6 +126,12 @@ class TestDeviceRecovery(common.KeepKeyTest):
                 self.client._capture_oled_after_animation(
                     0.35, (76, 256, 0, 64))
                 cipher = self.client.debug.read_recovery_cipher()
+                if not captured_cipher:
+                    # CharacterRequest is driven manually and never reaches
+                    # callback_ButtonRequest(); capture only after DebugLink
+                    # proves this is the active randomized cipher grid.
+                    self.client.capture_oled()
+                    captured_cipher = True
 
                 encoded_character = cipher[ord(character) - 97]
                 ret = self.client.call_raw(proto.CharacterAck(character=encoded_character))
@@ -180,7 +188,7 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
         With enforce_wordlist=True, completing a word that isn't in the
         BIP-39 wordlist must return Failure immediately.
-        Requires firmware 7.15.0+ (per-word validation).
+        The canonical 7.15 product includes per-word validation.
         """
         self.requires_firmware("7.15.0")
         ret = self.client.call_raw(proto.RecoveryDevice(word_count=12,
@@ -313,16 +321,36 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
             mnemonic = []
             while isinstance(resp, proto.ButtonRequest):
-                mnemonic.append(self.client.debug.read_reset_word())
+                words = self.client.debug.read_reset_word()
+                # The debug build raises one ButtonRequest per physical
+                # subpage, and every subpage of a word group reports the same
+                # reset_word. Whether a group spills onto a second subpage
+                # depends on glyph widths, so without this the random
+                # mnemonic made the test flaky ("Invalid mnemonic").
+                if not mnemonic or mnemonic[-1] != words:
+                    mnemonic.append(words)
                 self.client.debug.press_yes()
+                # A subpage cannot finish on debug approval alone. Its own
+                # ButtonAck is required; a stale ack from the prior subpage
+                # must not release the next request prematurely.
+                time.sleep(0.2)
+                self.assertFalse(self.client.transport.ready_to_read(),
+                    'backup page completed before its ButtonAck')
                 resp = self.client.call_raw(proto.ButtonAck())
 
+            self.assertIsInstance(resp, proto.Success,
+                                  'reset completion at %d bits' % strength)
+            self.assertEqual(resp.message, 'Device reset')
             mnemonic = ' '.join(mnemonic)
+            self.assertEqual(len(mnemonic.split()), strength // 32 * 3)
 
             # wipe device
             ret = self.client.call_raw(proto.WipeDevice())
+            self.assertIsInstance(ret, proto.ButtonRequest)
             self.client.debug.press_yes()
             ret = self.client.call_raw(proto.ButtonAck())
+            self.assertIsInstance(ret, proto.Success)
+            self.assertEqual(ret.message, 'Device wiped')
 
             # recover devce
             ret = self.client.call_raw(proto.RecoveryDevice(word_count=int(strength/32*3),
@@ -367,8 +395,11 @@ class TestDeviceRecovery(common.KeepKeyTest):
 
             # wipe device
             ret = self.client.call_raw(proto.WipeDevice())
+            self.assertIsInstance(ret, proto.ButtonRequest)
             self.client.debug.press_yes()
             ret = self.client.call_raw(proto.ButtonAck())
+            self.assertIsInstance(ret, proto.Success)
+            self.assertEqual(ret.message, 'Device wiped')
 
     def test_vuln1971(self):
         self.setup_mnemonic_allallall()

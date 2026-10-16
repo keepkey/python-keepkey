@@ -12,6 +12,9 @@
 import unittest
 import common
 import binascii
+import pytest
+from keepkeylib.client import CallException
+from keepkeylib import types_pb2 as proto_types
 
 # Pallas curve constants
 PALLAS_P = 0x40000000000000000000000000000000224698fc094cf91b992d30ed00000001
@@ -41,6 +44,30 @@ class TestZcashOrchardFVK(common.KeepKeyTest):
         super().setUp()
         self.requires_firmware("7.14.0")
         self.requires_message("ZcashGetOrchardFVK")
+
+    def test_fvk_export_requires_consent_even_when_display_is_false(self):
+        self.requires_firmware("7.15.0")
+        self.setup_mnemonic_allallall()
+        self.client.setup_debuglink(False, True)
+        try:
+            with pytest.raises(CallException) as caught:
+                self.client.zcash_get_orchard_fvk(
+                    address_n=[], account=0, show_display=False)
+            self.assertEqual(caught.value.args[0],
+                             proto_types.Failure_ActionCancelled)
+        finally:
+            self.client.setup_debuglink(True, True)
+
+    def test_explicit_account_cannot_alias_across_hardened_bit(self):
+        self.requires_firmware("7.15.0")
+        self.setup_mnemonic_allallall()
+        for account in (0x80000000, 0xffffffff):
+            with self.subTest(account=account):
+                with pytest.raises(CallException) as caught:
+                    self.client.zcash_get_orchard_fvk(
+                        address_n=[], account=account, show_display=False)
+                self.assertEqual(caught.value.args[0],
+                                 proto_types.Failure_SyntaxError)
 
     def test_fvk_field_ranges(self):
         """FVK components must be in valid field ranges.

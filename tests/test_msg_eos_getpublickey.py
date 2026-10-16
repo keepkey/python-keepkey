@@ -51,6 +51,17 @@ class TestMsgEosGetPublicKey(common.KeepKeyTest):
             res = self.client.eos_get_public_key(path, show, legacy)
             self.assertEqual(res.wif_public_key, wif)
 
+    def test_show(self):
+        self.requires_fullFeature()
+        self.requires_message("EosGetPublicKey")
+        self.setup_mnemonic_nopin_nopassphrase()
+        for legacy, prefix in ((True, 'EOS'), (False, 'EOS_K1_')):
+            wif = prefix + EOS_ACCOUNT_0_PUBKEY
+            res = self.assert_shows_address(
+                lambda: self.client.eos_get_public_key(
+                    EOS_ACCOUNT_0_PATH, True, legacy), wif)
+            self.assertEqual(res.wif_public_key, wif)
+
     def test_trezor(self):
         self.requires_fullFeature()
         self.setup_mnemonic_abandon()

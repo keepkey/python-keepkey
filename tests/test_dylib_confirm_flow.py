@@ -75,6 +75,22 @@ class TestDylibConfirmFlow(unittest.TestCase):
         self.client.init_device()
         f = self.client.features
         self.assertGreaterEqual(f.major_version, 7)
+        revision = f.revision.decode("ascii")
+        self.assertRegex(revision, r"^[0-9a-f]{40}$")
+        # GITHUB_SHA is the synthetic pull-request merge commit for PR jobs,
+        # even when the workflow deliberately checks out the PR's head commit.
+        # The caller must therefore pass the revision of the source tree that
+        # actually produced the dylib instead of relying on GitHub's ambient
+        # merge-ref value.
+        expected_revision = os.environ.get("KK_EXPECTED_FIRMWARE_REVISION")
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            self.assertIsNotNone(
+                expected_revision,
+                "GitHub Actions must bind the dylib test to its checked-out source revision",
+            )
+        if expected_revision:
+            self.assertRegex(expected_revision, r"^[0-9a-f]{40}$")
+            self.assertEqual(revision, expected_revision)
 
     @unittest.skip(
         "Pending firmware fix — confirm_helper busy-loops on a ButtonAck "

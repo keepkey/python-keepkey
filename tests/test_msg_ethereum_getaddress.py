@@ -38,9 +38,11 @@ class TestMsgEthereumGetaddress(common.KeepKeyTest):
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         # The legacy display response is empty after the ButtonAck; address
-        # correctness is covered above. This case exists to retain the actual
-        # operation-specific OLED sequence for visual review.
-        self.client.ethereum_get_address([], show_display=True)
+        # correctness is covered above. The screen must show the whole
+        # EIP-55 form of the first vector above.
+        self.assert_shows_address(
+            lambda: self.client.ethereum_get_address([], show_display=True),
+            '0x1D1C328764A41BdA0492b66bAA30C4A339FF85EF')
 
 if __name__ == '__main__':
     unittest.main()

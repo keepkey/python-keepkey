@@ -87,6 +87,19 @@ class DebugLink(object):
         obj = self._call(proto.DebugLinkGetState())
         return obj.reset_entropy
 
+    def read_dice_digest(self):
+        obj = self._call(proto.DebugLinkGetState())
+        return obj.dice_digest
+
+    def read_confirm_text(self):
+        """(title, body) of the visible confirmation page on current firmware.
+
+        Paged titles include their n/m counter. Older firmware returned the
+        whole confirmation body on every page instead.
+        """
+        obj = self._call(proto.DebugLinkGetState())
+        return (obj.confirm_title, obj.confirm_body)
+
     def read_passphrase_protection(self):
         obj = self._call(proto.DebugLinkGetState())
         return obj.passphrase_protection
@@ -126,6 +139,13 @@ class DebugLink(object):
 
     def press_yes(self):
         self.press_button(True)
+
+    def press_input(self, text):
+        """Send synthetic keyboard input to an on-device entry flow
+        (dice rolls: '1'-'6' and 'u' for undo). Keep each chunk within
+        the firmware's DebugLinkDecision.input max_size (40 chars)."""
+        self.log("Injecting input", text)
+        self._call(proto.DebugLinkDecision(yes_no=False, input=text), nowait=True)
 
     def press_no(self):
         self.press_button(False)

@@ -1,11 +1,15 @@
 name: Request Copilot Review
 
 on:
-  pull_request:
+  # This workflow never checks out or executes pull-request code. Using the
+  # base-repository context is therefore safe and is required for cross-fork
+  # PRs, whose pull_request GITHUB_TOKEN is always downgraded to read-only.
+  pull_request_target:
     types: [opened, reopened, ready_for_review, synchronize]
 
 jobs:
   request-copilot-review:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write

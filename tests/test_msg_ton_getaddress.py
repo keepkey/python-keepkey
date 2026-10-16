@@ -45,24 +45,26 @@ class TestMsgTonGetAddress(common.KeepKeyTest):
         self.assertTrue(len(address) > 0, "TON address must be non-empty")
 
     def test_ton_show_address(self):
-        """Display TON address on OLED (triggers ButtonRequest for screenshot).
+        """The whole TON address is on the screen, and in the response.
 
-        In screenshot mode, DebugLink read_layout() can race with the
-        show_display response. Known issue: raw_address field causes
-        UnicodeDecodeError. Address correctness verified by test_ton_get_address.
+        The handler builds its response before the confirm. Before 7.15.0 a
+        DebugLink read during the confirm wiped it (firmware 88ae1c3be fixed
+        that; this test used to swallow the resulting raw_address
+        UnicodeDecodeError), so it runs from 7.15.0.
         """
-        self.requires_firmware("7.14.0")
+        self.requires_firmware("7.15.0")
         self.requires_message("TonGetAddress")
         self.setup_mnemonic_allallall()
 
-        try:
-            resp = self.client.ton_get_address(
+        expected = self.client.ton_get_address(
+            parse_path(TON_DEFAULT_PATH), show_display=False)
+        resp = self.assert_shows_address(
+            lambda: self.client.ton_get_address(
                 parse_path(TON_DEFAULT_PATH),
                 show_display=True
-            )
-            self.assertIsNotNone(resp)
-        except (UnicodeDecodeError, Exception):
-            pass  # raw_address proto bug or screenshot race
+            ), expected.address)
+        self.assertEqual(resp.address, expected.address)
+        self.assertEqual(resp.raw_address, expected.raw_address)
 
     def test_ton_different_accounts(self):
         """Different derivation paths must produce different addresses."""

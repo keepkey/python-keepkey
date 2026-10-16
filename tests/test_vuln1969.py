@@ -26,6 +26,7 @@ from keepkeylib import types_pb2 as proto_types
 class TestVULN1969(common.KeepKeyTest):
 
     def test(self):
+        self.requires_release_capability("prompt-workflow-unwind")
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()
 
@@ -45,6 +46,12 @@ class TestVULN1969(common.KeepKeyTest):
 
         self.assertIsInstance(ret, proto.Failure)
         self.assertEndsWith(ret.message, "Unknown message")
+
+        # Rejecting the interrupt must also unwind the abandoned protected
+        # Ping.  Otherwise the next client remains blocked behind a prompt it
+        # cannot acknowledge, poisoning every later test in the process.
+        ret = self.client.call_raw(proto.Initialize())
+        self.assertIsInstance(ret, proto.Features)
 
 if __name__ == '__main__':
     unittest.main()
