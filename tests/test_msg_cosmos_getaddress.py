@@ -22,15 +22,28 @@ class TestMsgCosmosGetAddress(common.KeepKeyTest):
         ]
 
         for (expected, path) in vec:
-            with self.client:
-                self.client.set_expected_responses([
-                    proto.ButtonRequest(code=proto_types.ButtonRequest_Address),
-                    cosmos_proto.CosmosAddress(address=expected)
-                ])
+            # One screen when the label and address fit it; otherwise firmware
+            # pages them (label, address, QR) rather than clipping. Firmware
+            # that drew "Cosmos Account #12345678" into the confirm icon used
+            # one screen for it. Either way every screen is an Address
+            # confirm, and one of them must show the whole address.
+            codes = []
+            press = self.client.callback_ButtonRequest
 
+            def record(msg, press=press, codes=codes):
+                codes.append(msg.code)
+                return press(msg)
+
+            self.client.callback_ButtonRequest = record
+            try:
                 self.assertEqual(expected, self.assert_shows_address(
                     lambda: self.client.cosmos_get_address(path, show_display=True),
                     expected))
+            finally:
+                del self.client.callback_ButtonRequest
+            self.assertTrue(codes)
+            self.assertEqual(
+                [proto_types.ButtonRequest_Address] * len(codes), codes)
 
             with self.client:
                 self.client.set_expected_responses([
