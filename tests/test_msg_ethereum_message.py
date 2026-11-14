@@ -20,6 +20,13 @@ import common
 import binascii
 
 from keepkeylib import tools
+from oled_text import TITLE_FONT, find_line, shows
+from test_msg_display_disclosure import ScreenRecorder
+
+# A real Safe safeTxHash (Safe 0x849D...039d, nonce 2867, executed in
+# 0xcf5ce1b8...0d42), which Safe{Wallet} asks an owner to sign with eth_sign.
+SAFE_TX_HASH = bytes.fromhex(
+    'a15d670d17621751bb88f493f8b305c5bde4eeaa7aa4f9875da4d9bd2fad39b0')
 
 
 class TestMsgEthereumMessage(common.KeepKeyTest):
@@ -111,6 +118,47 @@ class TestMsgEthereumMessage(common.KeepKeyTest):
         )
         
         self.assertEqual(retval.message, 'Message verified')
+
+    def _sign_recorded(self, message):
+        recorder = ScreenRecorder(self.client)
+        with recorder:
+            retval = self.client.ethereum_sign_message(
+                n=tools.parse_path("m/44'/60'/0'/0/0"), message=message)
+        return retval, recorder.screens
+
+    def test_ethereum_sign_safe_tx_hash_shows_hex(self):
+        # 7.16 drew these bytes C-escaped ("\\xA1]g\\x0D..."), which an owner
+        # cannot compare with the hash Safe{Wallet} prints. 7.17 shows bytes
+        # that are not text as 0x hex under their own title.
+        self.requires_firmware("7.17.0")
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        retval, screens = self._sign_recorded(SAFE_TX_HASH)
+        self.assertEqual(len(screens), 1)
+        self.assertIsNotNone(
+            find_line(screens[0], "SIGN BINARY MESSAGE", TITLE_FONT))
+        self.assertTrue(shows(screens[0], "0x" + SAFE_TX_HASH.hex()))
+        self.assertEqual(retval.address.hex(),
+                         '73d0385f4d8e00c5e6504c6030f47bf6212736a8')
+        # The same signature 7.16.0 gives: only the screen changed.
+        self.assertEqual(
+            retval.signature.hex(),
+            'ca19367d305525e055c68e8f4bfe6ee0c3cb39303ae5235a1315460aaaab7e1f'
+            '777a252a246ebcf1fa27e618b6c9c8492046964506521bc612b705b6515f89851c')
+
+    def test_ethereum_sign_text_keeps_message_title(self):
+        self.requires_firmware("7.17.0")
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        _, screens = self._sign_recorded(b"0x" + SAFE_TX_HASH.hex().encode())
+        # Text that reads like the hash keeps the text title, so the two
+        # requests never draw the same screen.
+        self.assertEqual(len(screens), 1)
+        self.assertIsNotNone(
+            find_line(screens[0], "SIGN ETHEREUM MESSAGE", TITLE_FONT))
+        self.assertIsNone(
+            find_line(screens[0], "SIGN BINARY MESSAGE", TITLE_FONT))
+        self.assertTrue(shows(screens[0], "0x" + SAFE_TX_HASH.hex()))
 
 if __name__ == "__main__":
     unittest.main()

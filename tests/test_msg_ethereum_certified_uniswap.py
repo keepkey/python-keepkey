@@ -19,6 +19,7 @@ from the 2026-10-03 root ceremony. SWAP_CALLDATA is real Base transaction
 import unittest
 
 import common
+from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
 from oled_text import TITLE_FONT, find_line, shows
 from test_msg_display_disclosure import ScreenRecorder
@@ -135,6 +136,55 @@ USDC_TO_ETH_CALLDATA = bytes.fromhex(
     "970ee4740000000000000000000000000000000000000000000000000022f5e2"
     "7c87c9a0756e6978000001a104f16ff48000964c0000000c0100")
 
+# Real Base transaction
+# 0x2774799b4293d2bfed7c72948b5463b6ab634054dec92a9118cc54c68d5ca24b to
+# Universal Router 2.1.2 (V4_SWAP: SWAP_EXACT_IN, SETTLE, TAKE; 0.0004 ETH ->
+# USDC): 1,306 bytes, its TAKE past the first 1,024-byte chunk. Reviewed under
+# UR212_ENVELOPE, whose router is listed for V4 with its own V4Router layout.
+ETH_TO_USDC_V4_CALLDATA = bytes.fromhex(
+    "3593564c00000000000000000000000000000000000000000000000000000000"
+    "0000006000000000000000000000000000000000000000000000000000000000"
+    "000000a000000000000000000000000000000000000000000000000000000000"
+    "6ac2e36b00000000000000000000000000000000000000000000000000000000"
+    "0000000110000000000000000000000000000000000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "0000000100000000000000000000000000000000000000000000000000000000"
+    "0000002000000000000000000000000000000000000000000000000000000000"
+    "0000040000000000000000000000000000000000000000000000000000000000"
+    "0000004000000000000000000000000000000000000000000000000000000000"
+    "0000008000000000000000000000000000000000000000000000000000000000"
+    "00000003070b0e00000000000000000000000000000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "0000000300000000000000000000000000000000000000000000000000000000"
+    "0000006000000000000000000000000000000000000000000000000000000000"
+    "0000026000000000000000000000000000000000000000000000000000000000"
+    "000002e000000000000000000000000000000000000000000000000000000000"
+    "000001e000000000000000000000000000000000000000000000000000000000"
+    "0000002000000000000000000000000000000000000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "000000a000000000000000000000000000000000000000000000000000000000"
+    "000001a000000000000000000000000000000000000000000000000000016bcc"
+    "41e9000000000000000000000000000000000000000000000000000000000000"
+    "00103f4400000000000000000000000000000000000000000000000000000000"
+    "0000000100000000000000000000000000000000000000000000000000000000"
+    "00000020000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54"
+    "bda0291300000000000000000000000000000000000000000000000000000000"
+    "0000017700000000000000000000000000000000000000000000000000000000"
+    "0000000400000000000000000000000000000000000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "000000a000000000000000000000000000000000000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "0000006000000000000000000000000000000000000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "0000000100000000000000000000000000000000000000000000000000000000"
+    "00000060000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54"
+    "bda02913000000000000000000000000cb92e89635f248caf7f92abdc7926107"
+    "05c3004900000000000000000000000000000000000000000000000000000000"
+    "00000000756e6978000001a1092ce0948000adcc96dc8a370100")
+ETH_TO_USDC_V4_VALUE = 400000000000000
+
 USDC = bytes.fromhex("833589fcd6edb6e08f4c7c32d4f71b54bda02913")
 PERMIT2 = bytes.fromhex("000000000022d473030f116ddee9f6b43ac78ba3")
 ROUTER = bytes.fromhex("3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad")
@@ -152,7 +202,7 @@ class TestEthereumCertifiedUniswap(common.KeepKeyTest):
         self.requires_message("EthereumTxMetadata")
         self.setup_mnemonic_allallall()
 
-    def _sign(self, to, data, envelope):
+    def _sign(self, to, data, envelope, value=0):
         resp = self.client.ethereum_send_tx_metadata(
             signed_payload=envelope, metadata_version=3, key_id=KEYID_DELEGATE)
         self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
@@ -161,7 +211,7 @@ class TestEthereumCertifiedUniswap(common.KeepKeyTest):
         with recorder:
             sig = self.client.ethereum_sign_tx(
                 n=parse_path("m/44'/60'/0'/0/0"), nonce=0,
-                gas_price=10**7, gas_limit=200000, to=to, value=0, data=data,
+                gas_price=10**7, gas_limit=200000, to=to, value=value, data=data,
                 chain_id=8453)
         self.assertEqual(len(sig[1]), 32)
         return recorder.screens
@@ -179,6 +229,9 @@ class TestEthereumCertifiedUniswap(common.KeepKeyTest):
     def test_unlimited_approve_to_permit2_names_uniswap_and_the_limit(self):
         data = (bytes.fromhex("095ea7b3") + b"\0" * 12 + PERMIT2 + b"\xff" * 32)
         screens = self._sign(USDC, data, APPROVE_ENVELOPE)
+        # The certified review states the UNLIMITED allowance itself, so the
+        # device's separate warning waits for it and is not shown (SRS-7.16
+        # R-7.4; firmware ethereum.c unlimited_deferred).
         self.assertScreens(screens, [
             ("UNISWAP", "Let the Uniswap approval contract spend up to UNLIMITED "
                         "USDC for trades you sign"),
@@ -205,12 +258,18 @@ class TestEthereumCertifiedUniswap(common.KeepKeyTest):
             (FEE_TITLE, None),
         ])
 
+    def swapThenFee(self, review):
+        """A swap past the first chunk is reviewed once every byte is in. From
+        7.17 the fee screen follows it as the final confirm; 7.16.0 asked the
+        fee first."""
+        if self.firmware_at_least("7.17.0"):
+            return review + [(FEE_TITLE, None)]
+        return [(FEE_TITLE, None)] + review
+
     def test_token_to_eth_past_the_first_chunk_is_reviewed_after_the_last_byte(self):
         self.assertGreater(len(USDC_TO_ETH_CALLDATA), 1024)
         screens = self._sign(ROUTER_212, USDC_TO_ETH_CALLDATA, UR212_ENVELOPE)
-        # The fee screen comes first: the swap is reviewed once every byte is in.
-        self.assertScreens(screens, [
-            (FEE_TITLE, None),
+        self.assertScreens(screens, self.swapThenFee([
             ("UNISWAP", "Swap 26.907974 USDC for at least 0.00984050230885008 ETH"),
             ("LIMITS", "You spend\n26.907974 USDC"),
             ("LIMITS", "You receive at least\n0.00984050230885008 ETH"),
@@ -219,13 +278,52 @@ class TestEthereumCertifiedUniswap(common.KeepKeyTest):
             ("CONTRACT", None),
             ("KEEPKEY CLEARSIGN", "Described by KeepKey Alpha 716 A9531B9D\n"
                                   "certified by KeepKey"),
-        ])
+        ]))
 
     def test_token_to_eth_with_a_changed_tail_byte_is_not_the_reviewed_swap(self):
         data = bytearray(USDC_TO_ETH_CALLDATA)
         data[-33] ^= 0x01  # the unwrap minimum, past byte 1024
         screens = self._sign(ROUTER_212, bytes(data), UR212_ENVELOPE)
         self.assertFalse(any(shows(s, "0.00984050230885008 ETH") for s in screens))
+
+    def test_real_v4_eth_to_usdc_is_reviewed_with_its_router_layout(self):
+        self.assertGreater(len(ETH_TO_USDC_V4_CALLDATA), 1024)
+        screens = self._sign(ROUTER_212, ETH_TO_USDC_V4_CALLDATA, UR212_ENVELOPE,
+                             value=ETH_TO_USDC_V4_VALUE)
+        self.assertScreens(screens, self.swapThenFee([
+            ("UNISWAP", "Swap 0.0004 ETH for at least 1.064772 USDC"),
+            ("LIMITS", "You spend\n0.0004 ETH"),
+            ("LIMITS", "You receive at least\n1.064772 USDC"),
+            ("RECIPIENT", "Output goes to\n"
+                          "0xCb92e89635F248CAF7F92abDC792610705c30049"),
+            ("CONTRACT", "execute\n0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40"),
+            ("KEEPKEY CLEARSIGN", "Described by KeepKey Alpha 716 A9531B9D\n"
+                                  "certified by KeepKey"),
+        ]))
+
+    def test_real_v4_with_a_changed_take_currency_is_refused(self):
+        data = bytearray(ETH_TO_USDC_V4_CALLDATA)
+        self.assertEqual(data[1200:1220], USDC)  # TAKE's currency, past byte 1024
+        data[1219] ^= 0x01
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=UR212_ENVELOPE, metadata_version=3,
+            key_id=KEYID_DELEGATE)
+        self.assertEqual(resp.classification, CLASSIFICATION_VERIFIED)
+        recorder = ScreenRecorder(self.client, answer=True,
+                                  screenshot_group="eth-certified-uniswap")
+        # The swap's TAKE no longer takes its output: the certified entry
+        # does not describe this call, which is refused, not shown.
+        with self.assertRaises(CallException) as e:
+            with recorder:
+                self.client.ethereum_sign_tx(
+                    n=parse_path("m/44'/60'/0'/0/0"), nonce=0,
+                    gas_price=10**7, gas_limit=200000, to=ROUTER_212,
+                    value=ETH_TO_USDC_V4_VALUE, data=bytes(data),
+                    chain_id=8453)
+        self.assertEqual(e.exception.args[1],
+                         "Certified description invalid or not for this tx")
+        self.assertFalse(any(shows(s, "1.064772 USDC")
+                             for s in recorder.screens))
 
 
 if __name__ == "__main__":

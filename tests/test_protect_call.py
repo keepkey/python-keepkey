@@ -116,9 +116,23 @@ class TestProtectCall(common.KeepKeyTest):
         self.assertRaises(PinException, self._some_protected_call, False, True, False)
 
     def test_exponential_backoff_with_reboot(self):
+        """The PIN-failure delay must survive a power cycle.
+
+        pin_protect() commits the failure count to flash before checking the
+        PIN, so pulling the cable to dodge the wait must not reset it. The
+        emulator runs these delays on wall time (its clock ticks inside
+        delays), so this runs on an emulator the test owns and reboots after
+        the fourth failure; the fifth attempt must still wait 2^4 - 1 s.
+        """
+        from emulator_endpoints import boot_owned_emulator
+        emu = None
         if self.client.features.firmware_variant[0:8] == "Emulator":
-            self.skipTest("Due to a known defect in the emulator, pin timeouts don't work.")
-            return
+            emu = boot_owned_emulator(self)
+            if emu is None:
+                self.skipTest("no kkemu binary to power-cycle; set KK_EMULATOR_BIN")
+            shots = getattr(self.client, 'screenshot_dir', None)
+            self.client.close()
+            self.client = emu.client(self._testMethodName, screenshot_dir=shots)
 
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()
@@ -137,6 +151,14 @@ class TestProtectCall(common.KeepKeyTest):
             self.assertLessEqual(expected, got, msg)
 
         for attempt in range(0, 5):
+            if attempt == 4 and emu is not None:
+                # Power cycle: same flash image, fresh RAM and session.
+                self.client.close()
+                emu.halt()
+                emu.boot()
+                self.client = emu.client(self._testMethodName,
+                                         screenshot_dir=shots)
+                self.client.setup_debuglink(button=True, pin_correct=False)
             start = time.time()
             self.assertRaises(PinException, self._some_protected_call, False, True, False)
             test_backoff(attempt, start)

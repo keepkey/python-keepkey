@@ -9,6 +9,7 @@
 # misreading.
 
 import copy
+import struct
 import time
 import unittest
 
@@ -18,6 +19,7 @@ import oled_text
 from keepkeylib import eip712_stream as es
 from keepkeylib import messages_ethereum_pb2 as eth
 from keepkeylib import messages_pb2 as proto
+from keepkeylib import signed_metadata
 from keepkeylib import types_pb2 as types
 from keepkeylib.client import CallException
 
@@ -331,8 +333,9 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
     def _chunked_values(self):
         """Whether the firmware takes values over 1 KB in chunks.
 
-        From the cached Features, not a fresh Initialize: Initialize ends the
-        session, and with it a name record sent ahead of the walk."""
+        Read from the Features cached when the session opened, not with a new
+        Initialize: that ends the session a record sent ahead of the request
+        belongs to, and the device drops the record with it."""
         return es.CHUNKED_VALUES in (
             common.capability_names(self.client.features) or ())
 
@@ -697,6 +700,40 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
             self._screens()[5], "Not identified\n"
                                 "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af"))
 
+    def test_permit2_runtime_signer_name_is_refused(self):
+        """A name record is KeepKey-certified or nothing. The same body as
+        UR_V2_NAME's, signed by a runtime-loaded provider, is answered
+        Invalid: 7.16 acknowledged it as Verified and then never showed it.
+        The spender stays "Not identified"."""
+        self.requires_firmware("7.17.0")
+        self.requires_message("LoadClearsignSigner")
+        self.requires_release_capability("permit2-review")
+        signed_metadata.assert_test_key_matches_slot3()
+        # apply_policy re-Initializes, which drops RAM-only signers: first.
+        self.client.apply_policy('AdvancedMode', 1)
+        self.client.load_clearsign_signer(
+            key_id=3, pubkey=signed_metadata.test_signer_compressed_pubkey(),
+            alias="CI Test")
+        name = b"Uniswap Universal Router"
+        body = (bytes([0x06]) + struct.pack(">I", 1) +
+                bytes.fromhex("66a9893cc07d91d95644aedd05d03f95e1dba8af") +
+                bytes([len(name)]) + name + bytes([1]) + b"\0" * 4 +
+                bytes([3]))
+        # Byte-for-byte the certified body, but for its key id.
+        self.assertEqual(body[:-1], self.UR_V2_NAME[140:140 + len(body) - 1])
+        resp = self.client.ethereum_send_tx_metadata(
+            signed_payload=signed_metadata.sign_metadata(body),
+            metadata_version=1, key_id=3)
+        self.assertEqual((resp.classification, resp.display_summary),
+                         (2, "Invalid"))  # MALFORMED
+        doc = self.UNISWAP_PERMIT2
+        self._assert_reference_signature(doc, self._walk(doc))
+        self.assertTrue(oled_text.shows(
+            self._screens()[5], "Not identified\n"
+                                "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af"))
+        self.assertIsNone(oled_text.find_text(
+            [layout for _, layout in self.frames], "Uniswap Universal Router"))
+
     def test_permit2_name_never_outlives_a_failed_request(self):
         """A record sent ahead of a request that FAILS is gone with it: the
         next Permit2 says "Not identified" (Copilot r1 on #919)."""
@@ -1049,10 +1086,12 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
     # with CAPABILITY_EIP712_CHUNKED_VALUES takes them in 1 KB chunks and
     # shows every byte, numbered over the whole value.
 
-    def _walk_text(self, doc, tamper=None, decline=None, max_steps=600):
+    def _walk_text(self, doc, tamper=None, decline=None, max_steps=600,
+                   capture=None):
         """The walk, recording each confirmation's (title, body) exactly as
         formatted (once per confirmation, however it is paged). `tamper`
-        may rewrite a value answer; `decline` names a body prefix to reject."""
+        may rewrite a value answer; `decline` names a body prefix to reject;
+        `capture` names a title prefix whose screens are captured."""
         msg = eth.EthereumSignTypedData(address_n=PATH,
                                         primary_type=doc['primaryType'],
                                         metamask_v4_compat=True)
@@ -1063,6 +1102,8 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
             if isinstance(resp, proto.ButtonRequest):
                 text = self.client.debug.read_confirm_text()
                 pages.add(resp.code, text)
+                if capture and text[0].startswith(capture):
+                    self.client.capture_oled()
                 if decline and text[1].startswith(decline):
                     self.client.debug.press_no()
                 else:
@@ -1221,6 +1262,49 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         self.assertIn('to spend ALL your USDC', screens[warning][1])
         self.assertEqual(self._parts(screens, 'data', 'bytes')[0],
                          '0x' + data)
+
+    def test_safe_data_approve_uses_the_top_level_threshold(self):
+        """7.17: approve(spender, 2^255) in SafeTx.data is UNLIMITED, as at
+        the top level (7.16 warned only at 2^256 - 1); 2^255 - 1 is not."""
+        self.requires_firmware("7.17.0")
+        spender = '68b3465833fb72a70ecdf485e0e4c7bd8665fc45'
+        for amount, warned in (('80' + '00' * 31, 1), ('7f' + 'ff' * 31, 0)):
+            data = '095ea7b3' + '00' * 12 + spender + amount
+            doc = {
+                "types": {
+                    "EIP712Domain": [{"name": "chainId", "type": "uint256"}],
+                    "SafeTx": [{"name": "to", "type": "address"},
+                               {"name": "data", "type": "bytes"}],
+                },
+                "primaryType": "SafeTx",
+                "domain": {"chainId": 1},
+                "message": {
+                    "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "data": "0x" + data},
+            }
+            resp, screens = self._walk_text(doc)
+            self._assert_signed(doc, resp)
+            titles = [title for title, _ in screens]
+            self.assertEqual(titles.count('UNLIMITED approval'), warned)
+
+    def test_real_safe_multisend_approve_names_weth(self):
+        """A real Safe MultiSend (approve(max) of WETH, then a CoW order):
+        the warning names WETH, as 7.16.0 does. A priority-only token table
+        once showed only WETH's contract address here."""
+        self.requires_firmware("7.16.0")
+        self.requires_release_capability(es.CHUNKED_VALUES)
+        import json, os
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               'eip712_corpus.json')) as f:
+            entry = next(e for e in json.load(f)
+                         if e['id'] == 'safe-SafeTx-multisend-approve-unlimited')
+        resp, screens = self._walk_text(entry['doc'], max_steps=2000,
+                                        capture='UNLIMITED approval')
+        self._assert_signed(entry['doc'], resp)
+        self.assertEqual(
+            [body for title, body in screens if title == 'UNLIMITED approval'],
+            ['Allow 0xC92E8bdf79f0507f65a392b0ab4667716BFE0110 to spend '
+             'ALL your WETH'])
 
 if __name__ == '__main__':
     unittest.main()

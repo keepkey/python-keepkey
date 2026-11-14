@@ -223,6 +223,7 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         response = self.client.call_raw(msg)
         while isinstance(response, messages.ButtonRequest):
             screens.append(self.client.debug.read_confirm_text())
+            self.client.capture_oled()
             self.client.debug.press_yes()
             response = self.client.call_raw(messages.ButtonAck())
         return response, screens
@@ -381,6 +382,121 @@ class TestMsgTronSignTx(common.KeepKeyTest):
             resp_acct0.signature, resp_acct1.signature,
             "Different account paths must produce different signatures"
         )
+
+
+# Real TRON mainnet transactions, raw_data_hex as TronGrid returns it
+# (_source: POST https://api.trongrid.io/wallet/gettransactionbyid
+# {"value": <txID>}; all contractRet SUCCESS, 2026-10-29). The firmware tree
+# keeps the full set in unittests/firmware/tron_vectors.json.
+REAL_TRON_TXS = {
+    # 753e3529...7840: USDT approve(TKwNfJYb..., 2^256-1)
+    "usdt_approve_unlimited": (
+        "41d20b07706310934bec19447644256b693791b966",
+        "0a02da852208235d8b17a756a57940d0dca5ce98345aae01081f12a9010a3174797065"
+        "2e676f6f676c65617069732e636f6d2f70726f746f636f6c2e54726967676572536d61"
+        "7274436f6e747261637412740a1541d20b07706310934bec19447644256b693791b966"
+        "121541a614f803b6fd780986a42c78ec9c7f77e6ded13c2244095ea7b3000000000000"
+        "0000000000006d587d39c016bf456fd95107b6c9204884052042ffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffffffff70fcbe9ece9834900180a3c3"
+        "47"),
+    # 50e8b8d9...bc74: USDT approve(TJ4KeiGT..., 100 USDT), 0x41 address word
+    "usdt_approve_100": (
+        "41b0e06ce319c853971f02f10dc01a7e5930b96032",
+        "0a02dad92208ec7a5c7dba80cb684080e0bfdf98345aae01081f12a9010a3174797065"
+        "2e676f6f676c65617069732e636f6d2f70726f746f636f6c2e54726967676572536d61"
+        "7274436f6e747261637412740a1541b0e06ce319c853971f02f10dc01a7e5930b96032"
+        "121541a614f803b6fd780986a42c78ec9c7f77e6ded13c2244095ea7b3000000000000"
+        "00000000004158b8a2f4c954a0c54c8e392feee612ec2dbe1585000000000000000000"
+        "0000000000000000000000000000000000000005f5e1007080beaace98349001eca5e1"
+        "04"),
+    # 6074566e...b7ec: FreezeBalanceV2 13 TRX for ENERGY
+    "freeze_energy": (
+        "41d2a8b759235a3a1f4c644f1f27f0288fb970c563",
+        "0a02da852208235d8b17a756a5794080e29ece98345a5a083612560a34747970652e67"
+        "6f6f676c65617069732e636f6d2f70726f746f636f6c2e467265657a6542616c616e63"
+        "655632436f6e7472616374121e0a1541d2a8b759235a3a1f4c644f1f27f0288fb970c5"
+        "6310c0ba9906180170a08d9bce9834"),
+    # 9334deff...8fdd: VoteWitness, three votes
+    "vote_3": (
+        "41728118849b1fdf3173e9d2837c0de3b3af4d19a2",
+        "0a02dae32208cd97162a94a4ade74090fdafce98345aa701080412a2010a3074797065"
+        "2e676f6f676c65617069732e636f6d2f70726f746f636f6c2e566f74655769746e6573"
+        "73436f6e7472616374126e0a1541728118849b1fdf3173e9d2837c0de3b3af4d19a212"
+        "1b0a154167e39013be3cdd3814bed152d7439fb5b679140910ea8a05121b0a15418b03"
+        "59acac03bac62cbf89c4b787cb10b3c3f51310e88a05121b0a1541beab998551416b02"
+        "f6721129bb01b51fceceba0810e88a0570b0a8acce9834"),
+}
+
+
+@unittest.skipUnless(_has_tron, "TRON protobuf messages not available in this build")
+class TestMsgTronClearSign717(common.KeepKeyTest):
+    """7.17 decodes TRC-20 approve, Stake 2.0 and votes from raw_data."""
+
+    _walk_sign = TestMsgTronSignTx._walk_sign
+
+    def setUp(self):
+        super().setUp()
+        self.requires_firmware("7.17.0")
+
+    def _sign_real(self, name):
+        """The real transaction with its owner swapped for this device's
+        account (same length, so the protobuf framing is unchanged)."""
+        path = parse_path("m/44'/195'/0'/0/0")
+        owner = self.client.call(tron_messages.TronGetAddress(
+            address_n=path, show_display=False)).address
+        chain_owner, raw_hex = REAL_TRON_TXS[name]
+        raw = binascii.unhexlify(raw_hex)
+        assert raw.count(binascii.unhexlify(chain_owner)) == 1
+        raw = raw.replace(binascii.unhexlify(chain_owner), _tron_raw(owner))
+        response, screens = self._walk_sign(
+            tron_messages.TronSignTx(address_n=path, raw_data=raw))
+        self.assertIsInstance(response, tron_messages.TronSignedTx)
+        digest = hashlib.sha256(raw).digest()
+        signers = set()
+        for key in VerifyingKey.from_public_key_recovery_with_digest(
+                response.signature[:64], digest, SECP256k1,
+                sigdecode=sigdecode_string):
+            signers.add(_tron_address(b"\x41" + keccak256(key.to_string())[-20:]))
+        self.assertIn(owner, signers)
+        return screens
+
+    def test_tron_usdt_unlimited_approve_names_spender(self):
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        self.client.apply_policy("AdvancedMode", 0)
+        self.assertEqual(self._sign_real("usdt_approve_unlimited"), [
+            ("UNLIMITED approval",
+             "Allow TKwNfJYb2iyouByKpNdxQ6tryXK8KhTPT9 to spend ALL your USDT?"),
+            ("TRON", "Energy fee limit 150 TRX\nBandwidth fees are extra"),
+        ])
+
+    def test_tron_usdt_approve_shows_amount(self):
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        self.client.apply_policy("AdvancedMode", 0)
+        self.assertEqual(self._sign_real("usdt_approve_100"), [
+            ("TRC-20 Approve",
+             "Allow TJ4KeiGTvTX4wRUgLARiwr8rGLaurmVkdZ to spend up to 100 USDT?"),
+            ("TRON", "Energy fee limit 9.9827 TRX\nBandwidth fees are extra"),
+        ])
+
+    def test_tron_freeze_v2(self):
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        self.client.apply_policy("AdvancedMode", 0)
+        self.assertEqual(self._sign_real("freeze_energy"),
+                         [("TRON Stake", "Stake 13 TRX for ENERGY?")])
+
+    def test_tron_vote_witness(self):
+        self.requires_fullFeature()
+        self.setup_mnemonic_allallall()
+        self.client.apply_policy("AdvancedMode", 0)
+        self.assertEqual(self._sign_real("vote_3"), [
+            ("TRON Vote", "Vote for 3 SRs? This replaces all your current votes."),
+            ("Vote 1/3", "83306 votes for TKSXDA8HfE9E1y39RczVQ1ZascUEtaSToF"),
+            ("Vote 2/3", "83304 votes for TNeEwWHXLLUgEtfzTnYN8wtVenGxuMzZCE"),
+            ("Vote 3/3", "83304 votes for TTMNxTmRpBZnjtUnohX84j25NLkTqDga7j"),
+        ])
 
 
 if __name__ == '__main__':

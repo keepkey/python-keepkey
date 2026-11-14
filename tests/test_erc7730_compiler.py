@@ -8,11 +8,14 @@ import struct
 import tempfile
 
 import pytest
+import semver
 
 import common
 
 from keepkeylib.erc7730_compiler import (
-    HEADER_SIZE, DeviceCannotExecute, compile_calldata, compile_eip712,
+    DEVICE_CAPABILITIES, HEADER_SIZE, SETTLE_FLAGS, SETTLEMENT,
+    DeviceCannotExecute, compile_calldata,
+    compile_eip712,
     device_refusal, eip712_encode_type, load_descriptor,
     parse_function_signature,
 )
@@ -51,6 +54,14 @@ def _firmware_accepts(program):
         return subprocess.call([validator, compiled.name],
                                stdout=subprocess.DEVNULL,
                                stderr=subprocess.DEVNULL) == 0
+
+
+def _requires_firmware(version):
+    """Skip a firmware-acceptance check on firmware older than `version`,
+    whose validator refuses what this mirror (DEVICE_CAPABILITIES) accepts."""
+    reported = common.device_firmware_version()
+    if reported is not None and reported < semver.VersionInfo.parse(version):
+        pytest.skip("Firmware version %s or higher is required" % version)
 
 
 def _unchecked(compile, *args, **kwargs):
@@ -485,7 +496,11 @@ DEVICE_LIMITS = (
 # Phase E1 adds embedded calldata, shown under a blind-sign warning. The
 # strict formatter rule refuses 29 formerly accepted programs in this phase:
 # 1297 remain signable across the 1450 checked registry formats.
-REGISTRY_SIGNABLE = 1297
+# 7.17 runs embedded calls inside an iteration with one callee for every
+# element: the eight multicall(bytes[]) formats (Aave lpv3, Serenita
+# EthVault, Ekubo Positions, Orders, MEVCaptureRouter, Ve33Periphery,
+# Ve33Positions, VeToken): 1305.
+REGISTRY_SIGNABLE = 1305
 
 
 def test_official_registry_all_calldata_formats_reach_firmware():
@@ -566,6 +581,245 @@ def test_compiles_official_uniswap_eip712_fixture_through_firmware():
     # deployment + name/chain/contract domain facts + token + network
     assert int.from_bytes(binding[:2], "big") == 6
     _firmware_validate(compiled)
+
+
+def test_typed_data_reads_only_its_to_container():
+    _requires_firmware("7.17.0")  # 7.16 reads no typed-data container
+    # @.to in typed data is the domain's verifyingContract; @.from and
+    # @.value have no typed-data meaning the device reads.
+    typed = {
+        "types": {
+            "EIP712Domain": [{"name": "chainId", "type": "uint256"},
+                             {"name": "verifyingContract", "type": "address"}],
+            "Permit": [{"name": "spender", "type": "address"},
+                       {"name": "value", "type": "uint256"}]},
+        "primaryType": "Permit",
+        "domain": {"chainId": 1, "verifyingContract": "0x" + "11" * 20},
+        "message": {"spender": "0x" + "22" * 20, "value": 1}}
+    for container, refusal in (("@.to", None),
+                               ("@.from", "container 1 is not executed")):
+        descriptor = {"display": {"formats": {
+            "Permit(address spender,uint256 value)": {
+                "intent": "Permit", "fields": [
+                    {"path": "value", "label": "Amount",
+                     "format": "tokenAmount",
+                     "params": {"tokenPath": "@.to"}},
+                    {"path": container, "label": "Who",
+                     "format": "addressName"}]}}}}
+        program = _unchecked(compile_eip712, descriptor, typed)
+        _firmware_validate(program, refusal)
+
+
+def test_717_typed_data_iterates_one_array_like_calldata():
+    # Seaport's OrderComponents: each offer item is shown once per element,
+    # its amount with that element's token. The calldata iteration rules hold:
+    # a field reading another array (or a scalar) inside it is refused.
+    _requires_firmware("7.17.0")
+    # Alpha 7.17 builds before typed iteration report the same version.
+    reported = common.device_capabilities()
+    if reported is not None and "erc7730-typed-iteration" not in reported:
+        pytest.skip("Staged release tree does not yet provide capability: "
+                    "erc7730-typed-iteration")
+    typed = {
+        "types": {
+            "EIP712Domain": [{"name": "chainId", "type": "uint256"},
+                             {"name": "verifyingContract", "type": "address"}],
+            "Item": [{"name": "token", "type": "address"},
+                     {"name": "amount", "type": "uint256"}],
+            "Order": [{"name": "offer", "type": "Item[]"},
+                      {"name": "other", "type": "Item[]"},
+                      {"name": "fallback", "type": "address"}]},
+        "primaryType": "Order",
+        "domain": {"chainId": 1, "verifyingContract": "0x" + "11" * 20},
+        "message": {"offer": [{"token": "0x" + "22" * 20, "amount": 1}],
+                    "other": [], "fallback": "0x" + "33" * 20}}
+    for token_path, refusal in (
+            ("token", None),
+            ("#.other.[].token",
+             "a field reads another array than its iteration"),
+            ("#.fallback", "a field reads another array than its iteration")):
+        descriptor = {"display": {"formats": {"Order(": {
+            "intent": "Order", "fields": [{
+                "path": "offer.[]", "label": "Item", "fields": [
+                    {"path": "amount", "label": "Amount",
+                     "format": "tokenAmount",
+                     "params": {"tokenPath": token_path}}]}]}}}}
+        program = _unchecked(compile_eip712, descriptor, typed)
+        sections = _sections(program)
+        display = sections[7]
+        count = int.from_bytes(display[:2], "big")
+        assert [display[2 + i * 8] for i in range(count)] == [
+            1, 7, 5, 4, 6, 8, 10]
+        _firmware_validate(program, refusal)
+    # A device without typed iteration refuses the same program.
+    capabilities = dict(DEVICE_CAPABILITIES)
+    del capabilities["typed_iteration"]
+    descriptor = {"display": {"formats": {"Order(": {
+        "intent": "Order", "fields": [{
+            "path": "offer.[].amount", "label": "Amount", "format": "raw"}]}}}}
+    assert device_refusal(_unchecked(compile_eip712, descriptor, typed),
+                          capabilities) == "iteration is not executed here"
+
+
+def test_trailing_data_flag_is_header_byte_6_for_calldata_only():
+    _requires_firmware("7.17.0")  # 7.16 refuses calldata after the arguments
+    signature = "deposit(uint256 assets)"
+    descriptor = {"display": {"formats": {signature: {
+        "intent": "Deposit", "fields": [
+            {"path": "assets", "label": "Assets", "format": "raw"}]}}}}
+    address = "0x" + "11" * 20
+    plain = compile_calldata(descriptor, signature, 1, address)
+    tagged = compile_calldata(descriptor, signature, 1, address,
+                              trailing_data=True)
+    assert plain[6] == 0 and tagged[6] == 1
+    assert plain[:6] + plain[7:] == tagged[:6] + tagged[7:]
+    _firmware_validate(tagged)
+    typed = {
+        "types": {"EIP712Domain": [{"name": "chainId", "type": "uint256"}],
+                  "Mail": [{"name": "a", "type": "uint256"}]},
+        "primaryType": "Mail", "domain": {"chainId": 1},
+        "message": {"a": 1}}
+    with pytest.raises(ValueError, match="trailing data"):
+        compile_eip712({"display": {"formats": {"Mail(uint256 a)": {
+            "intent": "Mail", "fields": []}}}}, typed, address=address,
+            trailing_data=True)
+
+
+def test_mirror_refuses_the_header_flags_the_device_refuses():
+    # Byte 6 holds TRAILING_DATA alone, and only a calldata program may set
+    # it: the mirror refuses every other value as the device does.
+    _requires_firmware("7.17.0")  # 7.16 accepts byte 6 = 1 on any kind
+    signature = "deposit(uint256 assets)"
+    calldata = compile_calldata({"display": {"formats": {signature: {
+        "intent": "Deposit", "fields": [
+            {"path": "assets", "label": "Assets", "format": "raw"}]}}}},
+        signature, 1, "0x" + "11" * 20)
+    typed = compile_eip712({"display": {"formats": {"Mail(uint256 a)": {
+        "intent": "Mail", "fields": [
+            {"path": "a", "label": "A", "format": "raw"}]}}}}, {
+        "types": {"EIP712Domain": [{"name": "chainId", "type": "uint256"}],
+                  "Mail": [{"name": "a", "type": "uint256"}]},
+        "primaryType": "Mail", "domain": {"chainId": 1},
+        "message": {"a": 1}}, address="0x" + "11" * 20)
+    flagged = lambda program, flags: program[:6] + bytes([flags]) + program[7:]
+    refusal = "program header flags are not executed"
+    for flags in (2, 3, 0x80):
+        _firmware_validate(flagged(calldata, flags), refusal)
+    _firmware_validate(typed)
+    _firmware_validate(flagged(typed, 1), refusal)
+
+
+def _formatter_flags_offset(program, index):
+    """Where formatter `index`'s flags byte sits in `program`."""
+    offset = HEADER_SIZE
+    for _ in range(program[178]):
+        kind = program[offset]
+        length = struct.unpack(">I", program[offset + 1:offset + 5])[0]
+        if kind == 6:
+            at = offset + 5 + 2
+            for _ in range(index):
+                at += 3 + 4 * program[at + 2]
+            return at + 1
+        offset += 5 + length
+    raise AssertionError("no formatter table")
+
+
+def test_717_settlement_roles_are_a_typed_data_opt_in():
+    # Each field may name its role in an order ("settlement": type, id,
+    # amount, to; an item without "to" is given); any role sets header flag
+    # SETTLEMENT, which only typed data may carry, and the device then shows
+    # what the signer receives, net of what it gives.
+    _requires_firmware("7.17.0")
+    reported = common.device_capabilities()
+    if reported is not None and "erc7730-typed-settlement" not in reported:
+        pytest.skip("Staged release tree does not yet provide capability: "
+                    "erc7730-typed-settlement")
+    typed = {
+        "types": {
+            "EIP712Domain": [{"name": "chainId", "type": "uint256"},
+                             {"name": "verifyingContract", "type": "address"}],
+            "Item": [{"name": "kind", "type": "uint8"},
+                     {"name": "token", "type": "address"},
+                     {"name": "id", "type": "uint256"},
+                     {"name": "amount", "type": "uint256"},
+                     {"name": "to", "type": "address"}],
+            "Order": [{"name": "give", "type": "Item[]"},
+                      {"name": "get", "type": "Item[]"}]},
+        "primaryType": "Order",
+        "domain": {"chainId": 1, "verifyingContract": "0x" + "11" * 20},
+        "message": {"give": [], "get": []}}
+
+    def descriptor(roles=True, amount_role="amount", give_kind="raw"):
+        role = lambda name, params=None: dict(
+            params or {}, **({"settlement": name} if roles else {}))
+        amount = {"path": "amount", "label": "Amount",
+                  "format": "tokenAmount",
+                  "params": role(amount_role, {"tokenPath": "token"})}
+        return {"metadata": {"enums": {"kind": {"0": "Coin", "1": "Token"}}},
+                "display": {"formats": {"Order(": {
+                    "intent": "Order", "fields": [
+                        {"path": "give.[]", "label": "Give", "fields": [
+                            {"path": "kind", "label": "Kind",
+                             "format": give_kind,
+                             "params": role("type", {
+                                 "$ref": "$.metadata.enums.kind"}
+                                 if give_kind == "enum" else {})}]},
+                        {"path": "get.[]", "label": "Get", "fields": [
+                            {"path": "kind", "label": "Kind",
+                             "format": "enum", "params": role("type", {
+                                 "$ref": "$.metadata.enums.kind"})},
+                            {"path": "id", "label": "Id", "format": "raw",
+                             "params": role("id")},
+                            amount,
+                            {"path": "to", "label": "To",
+                             "format": "addressName",
+                             "params": role("to", {"recipient": True})}]}]}}}}
+
+    program = compile_eip712(descriptor(), typed)
+    assert program[6] == SETTLEMENT
+    # One formatter per field, in field order; "to" keeps RECIPIENT.
+    flags = [program[_formatter_flags_offset(program, i)] for i in range(5)]
+    assert flags == [SETTLE_FLAGS["type"], SETTLE_FLAGS["type"],
+                     SETTLE_FLAGS["id"], SETTLE_FLAGS["amount"],
+                     SETTLE_FLAGS["to"] | 1]
+    _firmware_validate(program)
+    _firmware_validate(compile_eip712(descriptor(give_kind="enum"), typed))
+    # No role, no flag: the program is the 7.17 one.
+    plain = compile_eip712(descriptor(roles=False), typed)
+    assert plain[6] == 0
+    _firmware_validate(plain)
+    # A role the kind cannot hold, or an unknown role, does not compile.
+    with pytest.raises(ValueError, match="settlement id does not apply"):
+        compile_eip712(descriptor(amount_role="id"), typed)
+    with pytest.raises(ValueError, match="unknown settlement role"):
+        compile_eip712(descriptor(amount_role="price"), typed)
+    # "give" is no role: an item without a recipient is given, and the device
+    # must read it to net it.
+    with pytest.raises(ValueError, match="unknown settlement role"):
+        compile_eip712(descriptor(amount_role="give"), typed)
+    # Calldata never settles.
+    with pytest.raises(ValueError, match="settlement applies to typed data"):
+        compile_calldata({"display": {"formats": {"f(uint256 a)": {
+            "intent": "F", "fields": [{"path": "a", "label": "A",
+                                       "format": "raw",
+                                       "params": {"settlement": "id"}}]}}}},
+            "f(uint256 a)", 1, "0x" + "11" * 20)
+    # The device refuses a role without the header flag, and two roles on one
+    # field; the mirror says why.
+    refusal = "a settlement role needs the header flag, one per field"
+    _firmware_validate(program[:6] + bytes([0]) + program[7:], refusal)
+    two = bytearray(program)
+    two[_formatter_flags_offset(program, 2)] |= SETTLE_FLAGS["type"]
+    _firmware_validate(bytes(two), refusal)
+    # Flag 4 (an earlier draft's "give") is no flag on any kind.
+    four = bytearray(program)
+    four[_formatter_flags_offset(program, 0)] = 4
+    _firmware_validate(bytes(four), "formatter kind 1 flags are not executed")
+    # A device without the settlement review refuses the flag.
+    capabilities = dict(DEVICE_CAPABILITIES)
+    del capabilities["settlement"]
+    assert device_refusal(program, capabilities) == (
+        "settlement is not executed")
 
 
 def test_mirror_applies_the_devices_abi_and_text_limits():
@@ -658,3 +912,78 @@ def test_encode_type_finds_struct_dependency_through_every_array_dimension():
     }
     assert eip712_encode_type("Group", types) == (
         "Group(Person[2][][4] people)Person(string name)")
+
+
+def test_717_embedded_call_in_an_iteration_may_name_one_callee():
+    # multicall(bytes[]): every element calls the contract itself (@.to).
+    # The callee is one value for every element, not a second array.
+    _requires_firmware("7.17.0")
+    signature = "multicall(bytes[] data)"
+    address = "0x" + "11" * 20
+    for callee, refusal in (
+            ("@.to", None),
+            ("calls", "a field reads another array than its iteration")):
+        sig = signature if callee == "@.to" else (
+            "multicall(bytes[] data,address[] calls)")
+        descriptor = {"display": {"formats": {sig: {
+            "intent": "Multicall", "fields": [{
+                "path": "data.[]", "label": "Call", "format": "calldata",
+                "params": {"calleePath": callee if callee == "@.to"
+                           else "calls.[]"}}]}}}}
+        program = _unchecked(compile_calldata, descriptor, sig, 1, address)
+        # A parallel callee array stays refused (D10); only a scalar is new.
+        _firmware_validate(program, refusal)
+    # Another formatter still may not read a scalar inside an iteration.
+    descriptor = {"display": {"formats": {
+        "batch(uint256[] amounts,address token)": {
+            "intent": "Batch", "fields": [{
+                "path": "amounts.[]", "label": "Amount",
+                "format": "tokenAmount", "params": {"tokenPath": "token"}}]}}}}
+    _firmware_validate(_unchecked(
+        compile_calldata, descriptor,
+        "batch(uint256[] amounts,address token)", 1, address),
+        "a field reads another array than its iteration")
+
+
+def test_717_constraint_flags_are_formatter_byte_1():
+    # "recipient" (addressName) and "equalsTxValue" (amount, calldata only)
+    # set formatter flags RECIPIENT (1) and TX_VALUE (2); the device refuses
+    # any other flag on any other formatter, as the mirror does.
+    _requires_firmware("7.17.0")
+    signature = "order(address receiver,uint256 sell)"
+    address = "0x" + "11" * 20
+    descriptor = {"display": {"formats": {signature: {
+        "intent": "Order", "fields": [
+            {"path": "receiver", "label": "Receiver", "format": "addressName",
+             "params": {"recipient": True}},
+            {"path": "sell", "label": "Sell", "format": "amount",
+             "params": {"equalsTxValue": True}}]}}}}
+    program = compile_calldata(descriptor, signature, 1, address)
+    _firmware_validate(program)
+    formatters = _sections(program)[6]
+    assert formatters[2:5] == bytes([10, 1, 1])
+    assert formatters[9:12] == bytes([2, 2, 1])
+    # Swap the flags: RECIPIENT on an amount, TX_VALUE on an addressName.
+    swapped = bytearray(program)
+    at = program.index(formatters)
+    swapped[at + 3], swapped[at + 10] = 2, 1
+    _firmware_validate(bytes(swapped),
+                       "formatter kind 10 flags are not executed")
+    for bad in ({"path": "receiver", "label": "R", "format": "raw",
+                 "params": {"recipient": True}},
+                {"path": "sell", "label": "S", "format": "raw",
+                 "params": {"equalsTxValue": True}}):
+        with pytest.raises(ValueError):
+            compile_calldata({"display": {"formats": {signature: {
+                "intent": "Order", "fields": [bad]}}}}, signature, 1, address)
+    typed = {
+        "types": {"EIP712Domain": [{"name": "chainId", "type": "uint256"}],
+                  "Mail": [{"name": "a", "type": "uint256"}]},
+        "primaryType": "Mail", "domain": {"chainId": 1},
+        "message": {"a": 1}}
+    with pytest.raises(ValueError, match="equalsTxValue"):
+        compile_eip712({"display": {"formats": {"Mail(uint256 a)": {
+            "intent": "Mail", "fields": [
+                {"path": "a", "label": "A", "format": "amount",
+                 "params": {"equalsTxValue": True}}]}}}}, typed,
+            address=address)

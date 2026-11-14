@@ -98,6 +98,33 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             self.client.apply_policy("AdvancedMode", 0)
             common.reset_screenshot_capture(self.client)
 
+    def test_ethereum_unichain_amounts_read_eth(self):
+        """7.17: Unichain (130) pays in ETH. The value and the fee read ETH,
+        not Wei, and the last screen names the chain."""
+        self.requires_firmware("7.17.0")
+        self.requires_fullFeature()
+        self.setup_mnemonic_nopin_nopassphrase()
+        msg = eth_proto.EthereumSignTx(
+            address_n=[0, 0], nonce=b"",
+            gas_price=int_to_big_endian(2 * 10 ** 9),
+            gas_limit=int_to_big_endian(21000),
+            to=binascii.unhexlify("11" * 20),
+            value=int_to_big_endian(15 * 10 ** 17), chain_id=130)
+        screens = []
+        resp = self.client.call_raw(msg)
+        while isinstance(resp, proto.ButtonRequest):
+            screens.append(self.client.debug.read_confirm_text())
+            if screens[-1][0] == "Tx on Unichain":
+                self.client.capture_oled()
+            self.client.debug.press_yes()
+            resp = self.client.call_raw(proto.ButtonAck())
+        self.assertIsInstance(resp, eth_proto.EthereumTxRequest)
+        text = "\n".join(title + "\n" + body for title, body in screens)
+        self.assertIn("1.5 ETH", text)
+        self.assertIn("0.000042 ETH", text)
+        self.assertNotIn("Wei", text)
+        self.assertEqual(screens[-1][0], "Tx on Unichain")
+
     def test_ethereum_erc20_high_chain_id_does_not_alias_mainnet(self):
         """Chain 257 must not borrow chain-1 token labels or decimals."""
         self.requires_firmware("7.14.2")

@@ -890,6 +890,35 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         also match the signed instruction bytes or the symbol is not trusted.
         Runtime identities require AdvancedMode."""
         self.requires_firmware("7.15.0")
+        resp = self.client.call(self._attested_symbol_request())
+        self.assertEqual(len(resp.signature), 64)
+        self.assertFalse(all(b == 0 for b in resp.signature))
+
+    def test_solana_attested_symbol_is_not_verified_by_keepkey(self):
+        """An attested symbol comes from a runtime signer, so its screen says
+        what the Lookup Accounts screen says: NOT verified by KeepKey. 7.16
+        showed the symbol, alias and fingerprint alone. The mint is not in
+        the firmware table (USDC is), or the table's symbol would be shown."""
+        self.requires_firmware("7.17.0")
+        from oled_text import find_text
+        from test_msg_display_disclosure import ScreenRecorder
+        from keepkeylib.signed_metadata import test_signer_compressed_pubkey
+        import hashlib
+        request = self._attested_symbol_request(b'\x55' * 32, "TEST")
+        fp = hashlib.sha256(test_signer_compressed_pubkey()).hexdigest()
+        recorder = ScreenRecorder(self.client, answer=True,
+                                  screenshot_group="attested_symbol")
+        with recorder:
+            resp = self.client.call(request)
+        self.assertEqual(len(resp.signature), 64)
+        self.assertIsNotNone(find_text(
+            recorder.screens, 'Token "TEST"\nby CI Test %s\n'
+            'NOT verified by KeepKey.' % fp[:16].upper()))
+
+    def _attested_symbol_request(self, mint=None, symbol="USDC"):
+        """TransferChecked of `mint` (default USDC) with a token_info for
+        `symbol` signed by the CI signer, loaded into slot 3 with
+        AdvancedMode on."""
         self.requires_fullFeature()
         self.requires_message("LoadClearsignSigner")
         self.setup_mnemonic_allallall()
@@ -919,8 +948,9 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
             0xb1, 0xbb, 0xe4, 0xc2, 0xd2, 0xf6, 0xe0, 0xe4,
             0x7c, 0xa6, 0x02, 0x03, 0x45, 0x2f, 0x5d, 0x61,
         ])
+        if mint is not None:
+            usdc_mint = mint
         decimals = 6
-        symbol = "USDC"
 
         # TransferChecked with decimals matching the attested value.
         instr_data = bytes([12]) + struct.pack('<Q', 1500000) + bytes([decimals])
@@ -947,13 +977,11 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         )
 
         self.client.apply_policy('AdvancedMode', True)
-        resp = self.client.call(messages.SolanaSignTx(
+        return messages.SolanaSignTx(
             address_n=parse_path("m/44'/501'/0'/0'"),
             raw_tx=raw_tx,
             token_info=[token_info],
-        ))
-        self.assertEqual(len(resp.signature), 64)
-        self.assertFalse(all(b == 0 for b in resp.signature))
+        )
 
     # ================================================================
     # Path edge-case tests
