@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x0emessages.proto\x1a\x0btypes.proto\"\x0c\n\nInitialize\"\r\n\x0bGetFeatures\"\xce\x0e\n\x08\x46\x65\x61tures\x12\x0e\n\x06vendor\x18\x01 \x01(\t\x12\x15\n\rmajor_version\x18\x02 \x01(\r\x12\x15\n\rminor_version\x18\x03 \x01(\r\x12\x15\n\rpatch_version\x18\x04 \x01(\r\x12\x17\n\x0f\x62ootloader_mode\x18\x05 \x01(\x08\x12\x11\n\tdevice_id\x18\x06 \x01(\t\x12\x16\n\x0epin_protection\x18\x07 \x01(\x08\x12\x1d\n\x15passphrase_protection\x18\x08 \x01(\x08\x12\x10\n\x08language\x18\t \x01(\t\x12\r\n\x05label\x18\n \x01(\t\x12\x18\n\x05\x63oins\x18\x0b \x03(\x0b\x32\t.CoinType\x12\x13\n\x0binitialized\x18\x0c \x01(\x08\x12\x10\n\x08revision\x18\r \x01(\x0c\x12\x17\n\x0f\x62ootloader_hash\x18\x0e \x01(\x0c\x12\x10\n\x08imported\x18\x0f \x01(\x08\x12\x12\n\npin_cached\x18\x10 \x01(\x08\x12\x19\n\x11passphrase_cached\x18\x11 \x01(\x08\x12\x1d\n\x08policies\x18\x12 \x03(\x0b\x32\x0b.PolicyType\x12\r\n\x05model\x18\x15 \x01(\t\x12\x18\n\x10\x66irmware_variant\x18\x16 \x01(\t\x12\x15\n\rfirmware_hash\x18\x17 \x01(\x0c\x12\x11\n\tno_backup\x18\x18 \x01(\x08\x12\x1c\n\x14wipe_code_protection\x18\x19 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x1a \x01(\r\x12\x18\n\x10supports_taproot\x18\x1b \x01(\x08\x12\x1b\n\x13supports_dice_modes\x18\x1c \x01(\x08\x12\'\n\x1fsupports_solana_lut_attestation\x18\x1d \x01(\x08\x12.\n\x0c\x63\x61pabilities\x18\x1e \x03(\x0e\x32\x14.Features.CapabilityB\x02\x10\x01\"\x91\t\n\nCapability\x12\x1a\n\x16\x43\x41PABILITY_UNSPECIFIED\x10\x00\x12#\n\x1f\x43\x41PABILITY_ENTROPY_AUDIT_BUDGET\x10\x01\x12-\n)CAPABILITY_ERC20_UNLIMITED_APPROVE_REVIEW\x10\x02\x12,\n(CAPABILITY_ERC20_UNLIMITED_PERMIT_REVIEW\x10\x03\x12%\n!CAPABILITY_ERC7730_RUNTIME_REVIEW\x10\x04\x12#\n\x1f\x43\x41PABILITY_EVM_CERTIFIED_INTENT\x10\x05\x12$\n CAPABILITY_EVM_MAX_AMOUNT_REVIEW\x10\x06\x12\x1e\n\x1a\x43\x41PABILITY_EVM_TX_METADATA\x10\x07\x12\'\n#CAPABILITY_EVM_UNKNOWN_TOKEN_REVIEW\x10\x08\x12\"\n\x1e\x43\x41PABILITY_HIVE_RELEASE_REVIEW\x10\t\x12(\n$CAPABILITY_LEGACY_EVM_ROUTER_SIGNING\x10\n\x12\"\n\x1e\x43\x41PABILITY_MAYA_SINGLE_MESSAGE\x10\x0b\x12\"\n\x1e\x43\x41PABILITY_OSMOSIS_WIRE_GUARDS\x10\x0c\x12\x1d\n\x19\x43\x41PABILITY_PERMIT2_REVIEW\x10\r\x12%\n!CAPABILITY_PROMPT_WORKFLOW_UNWIND\x10\x0e\x12&\n\"CAPABILITY_PROTECTED_PING_PRESENCE\x10\x0f\x12!\n\x1d\x43\x41PABILITY_RIPPLE_MEMO_POLICY\x10\x10\x12%\n!CAPABILITY_SESSION_TRUST_LIFETIME\x10\x11\x12&\n\"CAPABILITY_SOLANA_CERTIFIED_REVIEW\x10\x12\x12%\n!CAPABILITY_SOLANA_LUT_ATTESTATION\x10\x13\x12$\n CAPABILITY_SOLANA_RUNTIME_REVIEW\x10\x14\x12\x1e\n\x1a\x43\x41PABILITY_STORAGE_V19_KDF\x10\x15\x12\"\n\x1e\x43\x41PABILITY_TENDERMINT_PROGRESS\x10\x16\x12\"\n\x1e\x43\x41PABILITY_SAFE_RESET_CEREMONY\x10\x17\x12\"\n\x1e\x43\x41PABILITY_THOR_DEPOSIT_REVIEW\x10\x18\x12 \n\x1c\x43\x41PABILITY_TRON_TRC20_REVIEW\x10\x19\x12$\n CAPABILITY_EIP712_CHUNKED_VALUES\x10\x1a\x12!\n\x1d\x43\x41PABILITY_CERTIFIED_CONTACTS\x10\x1b\x12\x1f\n\x1b\x43\x41PABILITY_SAFE_TYPED_CALLS\x10\x1c\x12&\n\"CAPABILITY_ERC7730_TYPED_ITERATION\x10\x1d\x12\'\n#CAPABILITY_ERC7730_TYPED_SETTLEMENT\x10\x1e\"*\n\x0cGetCoinTable\x12\r\n\x05start\x18\x01 \x01(\r\x12\x0b\n\x03\x65nd\x18\x02 \x01(\r\"L\n\tCoinTable\x12\x18\n\x05table\x18\x01 \x03(\x0b\x32\t.CoinType\x12\x11\n\tnum_coins\x18\x02 \x01(\r\x12\x12\n\nchunk_size\x18\x03 \x01(\r\"\x0e\n\x0c\x43learSession\"y\n\rApplySettings\x12\x10\n\x08language\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\t\x12\x16\n\x0euse_passphrase\x18\x03 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x04 \x01(\r\x12\x13\n\x0bu2f_counter\x18\x05 \x01(\r\"\x1b\n\tChangePin\x12\x0e\n\x06remove\x18\x01 \x01(\x08\"\x87\x01\n\x04Ping\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x19\n\x11\x62utton_protection\x18\x02 \x01(\x08\x12\x16\n\x0epin_protection\x18\x03 \x01(\x08\x12\x1d\n\x15passphrase_protection\x18\x04 \x01(\x08\x12\x1c\n\x14wipe_code_protection\x18\x05 \x01(\x08\"\x1a\n\x07Success\x12\x0f\n\x07message\x18\x01 \x01(\t\"6\n\x07\x46\x61ilure\x12\x1a\n\x04\x63ode\x18\x01 \x01(\x0e\x32\x0c.FailureType\x12\x0f\n\x07message\x18\x02 \x01(\t\"?\n\rButtonRequest\x12 \n\x04\x63ode\x18\x01 \x01(\x0e\x32\x12.ButtonRequestType\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"\x0b\n\tButtonAck\"7\n\x10PinMatrixRequest\x12#\n\x04type\x18\x01 \x01(\x0e\x32\x15.PinMatrixRequestType\"\x1b\n\x0cPinMatrixAck\x12\x0b\n\x03pin\x18\x01 \x02(\t\"\x08\n\x06\x43\x61ncel\"\x13\n\x11PassphraseRequest\"#\n\rPassphraseAck\x12\x12\n\npassphrase\x18\x01 \x02(\t\"\x1a\n\nGetEntropy\x12\x0c\n\x04size\x18\x01 \x02(\r\"\x1a\n\x07\x45ntropy\x12\x0f\n\x07\x65ntropy\x18\x01 \x02(\x0c\"\xa2\x01\n\x0cGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x18\n\x10\x65\x63\x64sa_curve_name\x18\x02 \x01(\t\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\x12\x1a\n\tcoin_name\x18\x04 \x01(\t:\x07\x42itcoin\x12\x33\n\x0bscript_type\x18\x05 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\"4\n\tPublicKey\x12\x19\n\x04node\x18\x01 \x02(\x0b\x32\x0b.HDNodeType\x12\x0c\n\x04xpub\x18\x02 \x01(\t\"\xb3\x01\n\nGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\tcoin_name\x18\x02 \x01(\t:\x07\x42itcoin\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\x12+\n\x08multisig\x18\x04 \x01(\x0b\x32\x19.MultisigRedeemScriptType\x12\x33\n\x0bscript_type\x18\x05 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\"\x1a\n\x07\x41\x64\x64ress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\"\x0c\n\nWipeDevice\"\xbb\x01\n\nLoadDevice\x12\x10\n\x08mnemonic\x18\x01 \x01(\t\x12\x19\n\x04node\x18\x02 \x01(\x0b\x32\x0b.HDNodeType\x12\x0b\n\x03pin\x18\x03 \x01(\t\x12\x1d\n\x15passphrase_protection\x18\x04 \x01(\x08\x12\x19\n\x08language\x18\x05 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x06 \x01(\t\x12\x15\n\rskip_checksum\x18\x07 \x01(\x08\x12\x13\n\x0bu2f_counter\x18\x08 \x01(\r\"\x8a\x02\n\x0bResetDevice\x12\x16\n\x0e\x64isplay_random\x18\x01 \x01(\x08\x12\x15\n\x08strength\x18\x02 \x01(\r:\x03\x32\x35\x36\x12\x1d\n\x15passphrase_protection\x18\x03 \x01(\x08\x12\x16\n\x0epin_protection\x18\x04 \x01(\x08\x12\x19\n\x08language\x18\x05 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x06 \x01(\t\x12\x11\n\tno_backup\x18\x07 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x08 \x01(\r\x12\x13\n\x0bu2f_counter\x18\t \x01(\r\x12\x14\n\x0c\x64ice_entropy\x18\n \x01(\x08\x12\x11\n\tdice_only\x18\x0b \x01(\x08\"\x10\n\x0e\x45ntropyRequest\"\x1d\n\nEntropyAck\x12\x0f\n\x07\x65ntropy\x18\x01 \x01(\x0c\"\xff\x01\n\x0eRecoveryDevice\x12\x12\n\nword_count\x18\x01 \x01(\r\x12\x1d\n\x15passphrase_protection\x18\x02 \x01(\x08\x12\x16\n\x0epin_protection\x18\x03 \x01(\x08\x12\x19\n\x08language\x18\x04 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x05 \x01(\t\x12\x18\n\x10\x65nforce_wordlist\x18\x06 \x01(\x08\x12\x1c\n\x14use_character_cipher\x18\x07 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x08 \x01(\r\x12\x13\n\x0bu2f_counter\x18\t \x01(\r\x12\x0f\n\x07\x64ry_run\x18\n \x01(\x08\"\r\n\x0bWordRequest\"\x17\n\x07WordAck\x12\x0c\n\x04word\x18\x01 \x02(\t\";\n\x10\x43haracterRequest\x12\x10\n\x08word_pos\x18\x01 \x02(\r\x12\x15\n\rcharacter_pos\x18\x02 \x02(\r\"?\n\x0c\x43haracterAck\x12\x11\n\tcharacter\x18\x01 \x01(\t\x12\x0e\n\x06\x64\x65lete\x18\x02 \x01(\x08\x12\x0c\n\x04\x64one\x18\x03 \x01(\x08\"\x82\x01\n\x0bSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\x12\x33\n\x0bscript_type\x18\x04 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\"`\n\rVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x1a\n\tcoin_name\x18\x04 \x01(\t:\x07\x42itcoin\"6\n\x10MessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"v\n\x0e\x45ncryptMessage\x12\x0e\n\x06pubkey\x18\x01 \x01(\x0c\x12\x0f\n\x07message\x18\x02 \x01(\x0c\x12\x14\n\x0c\x64isplay_only\x18\x03 \x01(\x08\x12\x11\n\taddress_n\x18\x04 \x03(\r\x12\x1a\n\tcoin_name\x18\x05 \x01(\t:\x07\x42itcoin\"@\n\x10\x45ncryptedMessage\x12\r\n\x05nonce\x18\x01 \x01(\x0c\x12\x0f\n\x07message\x18\x02 \x01(\x0c\x12\x0c\n\x04hmac\x18\x03 \x01(\x0c\"Q\n\x0e\x44\x65\x63ryptMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x0c\n\x04hmac\x18\x04 \x01(\x0c\"4\n\x10\x44\x65\x63ryptedMessage\x12\x0f\n\x07message\x18\x01 \x01(\x0c\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\"\x8c\x01\n\x0e\x43ipherKeyValue\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x0c\x12\x0f\n\x07\x65ncrypt\x18\x04 \x01(\x08\x12\x16\n\x0e\x61sk_on_encrypt\x18\x05 \x01(\x08\x12\x16\n\x0e\x61sk_on_decrypt\x18\x06 \x01(\x08\x12\n\n\x02iv\x18\x07 \x01(\x0c\"!\n\x10\x43ipheredKeyValue\x12\r\n\x05value\x18\x01 \x01(\x0c\"5\n\x10GetBip85Mnemonic\x12\x12\n\nword_count\x18\x01 \x02(\r\x12\r\n\x05index\x18\x02 \x02(\r\"!\n\rBip85Mnemonic\x12\x10\n\x08mnemonic\x18\x01 \x02(\t\"\xce\x01\n\x06SignTx\x12\x15\n\routputs_count\x18\x01 \x02(\r\x12\x14\n\x0cinputs_count\x18\x02 \x02(\r\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\x12\x12\n\x07version\x18\x04 \x01(\r:\x01\x31\x12\x14\n\tlock_time\x18\x05 \x01(\r:\x01\x30\x12\x0e\n\x06\x65xpiry\x18\x06 \x01(\r\x12\x14\n\x0coverwintered\x18\x07 \x01(\x08\x12\x18\n\x10version_group_id\x18\x08 \x01(\r\x12\x11\n\tbranch_id\x18\n \x01(\r\"\x85\x01\n\tTxRequest\x12\"\n\x0crequest_type\x18\x01 \x01(\x0e\x32\x0c.RequestType\x12&\n\x07\x64\x65tails\x18\x02 \x01(\x0b\x32\x15.TxRequestDetailsType\x12,\n\nserialized\x18\x03 \x01(\x0b\x32\x18.TxRequestSerializedType\"%\n\x05TxAck\x12\x1c\n\x02tx\x18\x01 \x01(\x0b\x32\x10.TransactionType\"+\n\x08RawTxAck\x12\x1f\n\x02tx\x18\x01 \x01(\x0b\x32\x13.RawTransactionType\"}\n\x0cSignIdentity\x12\x1f\n\x08identity\x18\x01 \x01(\x0b\x32\r.IdentityType\x12\x18\n\x10\x63hallenge_hidden\x18\x02 \x01(\x0c\x12\x18\n\x10\x63hallenge_visual\x18\x03 \x01(\t\x12\x18\n\x10\x65\x63\x64sa_curve_name\x18\x04 \x01(\t\"H\n\x0eSignedIdentity\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x12\n\npublic_key\x18\x02 \x01(\x0c\x12\x11\n\tsignature\x18\x03 \x01(\x0c\",\n\rApplyPolicies\x12\x1b\n\x06policy\x18\x01 \x03(\x0b\x32\x0b.PolicyType\"?\n\tFlashHash\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\r\x12\x0e\n\x06length\x18\x02 \x01(\r\x12\x11\n\tchallenge\x18\x03 \x01(\x0c\":\n\nFlashWrite\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\r\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\r\n\x05\x65rase\x18\x03 \x01(\x08\"!\n\x11\x46lashHashResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\"5\n\x12\x44\x65\x62ugLinkFlashDump\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\r\x12\x0e\n\x06length\x18\x02 \x01(\r\"*\n\x1a\x44\x65\x62ugLinkFlashDumpResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\"\x0b\n\tSoftReset\"\x0f\n\rFirmwareErase\"7\n\x0e\x46irmwareUpload\x12\x14\n\x0cpayload_hash\x18\x01 \x02(\x0c\x12\x0f\n\x07payload\x18\x02 \x02(\x0c\"2\n\x11\x44\x65\x62ugLinkDecision\x12\x0e\n\x06yes_no\x18\x01 \x02(\x08\x12\r\n\x05input\x18\x02 \x01(\t\"\x13\n\x11\x44\x65\x62ugLinkGetState\"\x99\x03\n\x0e\x44\x65\x62ugLinkState\x12\x0e\n\x06layout\x18\x01 \x01(\x0c\x12\x0b\n\x03pin\x18\x02 \x01(\t\x12\x0e\n\x06matrix\x18\x03 \x01(\t\x12\x10\n\x08mnemonic\x18\x04 \x01(\t\x12\x19\n\x04node\x18\x05 \x01(\x0b\x32\x0b.HDNodeType\x12\x1d\n\x15passphrase_protection\x18\x06 \x01(\x08\x12\x12\n\nreset_word\x18\x07 \x01(\t\x12\x15\n\rreset_entropy\x18\x08 \x01(\x0c\x12\x1a\n\x12recovery_fake_word\x18\t \x01(\t\x12\x19\n\x11recovery_word_pos\x18\n \x01(\r\x12\x17\n\x0frecovery_cipher\x18\x0b \x01(\t\x12$\n\x1crecovery_auto_completed_word\x18\x0c \x01(\t\x12\x15\n\rfirmware_hash\x18\r \x01(\x0c\x12\x14\n\x0cstorage_hash\x18\x0e \x01(\x0c\x12\x13\n\x0b\x64ice_digest\x18\x0f \x01(\x0c\x12\x15\n\rconfirm_title\x18\x10 \x01(\t\x12\x14\n\x0c\x63onfirm_body\x18\x11 \x01(\t\"\x0f\n\rDebugLinkStop\";\n\x0c\x44\x65\x62ugLinkLog\x12\r\n\x05level\x18\x01 \x01(\r\x12\x0e\n\x06\x62ucket\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\"\x15\n\x13\x44\x65\x62ugLinkFillConfig\" \n\x0e\x43hangeWipeCode\x12\x0e\n\x06remove\x18\x01 \x01(\x08\"\x1f\n\x1d\x43learsignAttestorGetPublicKey\"0\n\x1a\x43learsignAttestorPublicKey\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\"(\n\x15\x43learsignAttestorSign\x12\x0f\n\x07payload\x18\x01 \x01(\x0c\"C\n\x1a\x43learsignAttestorSignature\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x12\n\npublic_key\x18\x02 \x01(\x0c*\xc3\x46\n\x0bMessageType\x12 \n\x16MessageType_Initialize\x10\x00\x1a\x04\x90\xb5\x18\x01\x12\x1a\n\x10MessageType_Ping\x10\x01\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Success\x10\x02\x1a\x04\x98\xb5\x18\x01\x12\x1d\n\x13MessageType_Failure\x10\x03\x1a\x04\x98\xb5\x18\x01\x12\x1f\n\x15MessageType_ChangePin\x10\x04\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_WipeDevice\x10\x05\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_FirmwareErase\x10\x06\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_FirmwareUpload\x10\x07\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_GetEntropy\x10\t\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Entropy\x10\n\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_GetPublicKey\x10\x0b\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_PublicKey\x10\x0c\x1a\x04\x98\xb5\x18\x01\x12 \n\x16MessageType_LoadDevice\x10\r\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_ResetDevice\x10\x0e\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_SignTx\x10\x0f\x1a\x04\x90\xb5\x18\x01\x12\x1e\n\x14MessageType_Features\x10\x11\x1a\x04\x98\xb5\x18\x01\x12&\n\x1cMessageType_PinMatrixRequest\x10\x12\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_PinMatrixAck\x10\x13\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_Cancel\x10\x14\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_TxRequest\x10\x15\x1a\x04\x98\xb5\x18\x01\x12\x1b\n\x11MessageType_TxAck\x10\x16\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_CipherKeyValue\x10\x17\x1a\x04\x90\xb5\x18\x01\x12\"\n\x18MessageType_ClearSession\x10\x18\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ApplySettings\x10\x19\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ButtonRequest\x10\x1a\x1a\x04\x98\xb5\x18\x01\x12\x1f\n\x15MessageType_ButtonAck\x10\x1b\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_GetAddress\x10\x1d\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Address\x10\x1e\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EntropyRequest\x10#\x1a\x04\x98\xb5\x18\x01\x12 \n\x16MessageType_EntropyAck\x10$\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_SignMessage\x10&\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_VerifyMessage\x10\'\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_MessageSignature\x10(\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1dMessageType_PassphraseRequest\x10)\x1a\x04\x98\xb5\x18\x01\x12#\n\x19MessageType_PassphraseAck\x10*\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_RecoveryDevice\x10-\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_WordRequest\x10.\x1a\x04\x98\xb5\x18\x01\x12\x1d\n\x13MessageType_WordAck\x10/\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_CipheredKeyValue\x10\x30\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EncryptMessage\x10\x31\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_EncryptedMessage\x10\x32\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_DecryptMessage\x10\x33\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_DecryptedMessage\x10\x34\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_SignIdentity\x10\x35\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_SignedIdentity\x10\x36\x1a\x04\x98\xb5\x18\x01\x12!\n\x17MessageType_GetFeatures\x10\x37\x1a\x04\x90\xb5\x18\x01\x12(\n\x1eMessageType_EthereumGetAddress\x10\x38\x1a\x04\x90\xb5\x18\x01\x12%\n\x1bMessageType_EthereumAddress\x10\x39\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EthereumSignTx\x10:\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1dMessageType_EthereumTxRequest\x10;\x1a\x04\x98\xb5\x18\x01\x12#\n\x19MessageType_EthereumTxAck\x10<\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_CharacterRequest\x10P\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_CharacterAck\x10Q\x1a\x04\x90\xb5\x18\x01\x12\x1e\n\x14MessageType_RawTxAck\x10R\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ApplyPolicies\x10S\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_FlashHash\x10T\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_FlashWrite\x10U\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1dMessageType_FlashHashResponse\x10V\x1a\x04\x98\xb5\x18\x01\x12(\n\x1eMessageType_DebugLinkFlashDump\x10W\x1a\x04\xa0\xb5\x18\x01\x12\x30\n&MessageType_DebugLinkFlashDumpResponse\x10X\x1a\x04\xa8\xb5\x18\x01\x12\x1f\n\x15MessageType_SoftReset\x10Y\x1a\x04\xa0\xb5\x18\x01\x12\'\n\x1dMessageType_DebugLinkDecision\x10\x64\x1a\x04\xa0\xb5\x18\x01\x12\'\n\x1dMessageType_DebugLinkGetState\x10\x65\x1a\x04\xa0\xb5\x18\x01\x12$\n\x1aMessageType_DebugLinkState\x10\x66\x1a\x04\xa8\xb5\x18\x01\x12#\n\x19MessageType_DebugLinkStop\x10g\x1a\x04\xa0\xb5\x18\x01\x12\"\n\x18MessageType_DebugLinkLog\x10h\x1a\x04\xa8\xb5\x18\x01\x12)\n\x1fMessageType_DebugLinkFillConfig\x10i\x1a\x04\xa8\xb5\x18\x01\x12\"\n\x18MessageType_GetCoinTable\x10j\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_CoinTable\x10k\x1a\x04\x98\xb5\x18\x01\x12)\n\x1fMessageType_EthereumSignMessage\x10l\x1a\x04\x90\xb5\x18\x01\x12+\n!MessageType_EthereumVerifyMessage\x10m\x1a\x04\x90\xb5\x18\x01\x12.\n$MessageType_EthereumMessageSignature\x10n\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_ChangeWipeCode\x10o\x1a\x04\x90\xb5\x18\x01\x12+\n!MessageType_EthereumSignTypedHash\x10p\x1a\x04\x90\xb5\x18\x01\x12\x30\n&MessageType_EthereumTypedDataSignature\x10q\x1a\x04\x98\xb5\x18\x01\x12,\n\"MessageType_Ethereum712TypesValues\x10r\x1a\x04\x90\xb5\x18\x01\x12(\n\x1eMessageType_EthereumTxMetadata\x10s\x1a\x04\x90\xb5\x18\x01\x12)\n\x1fMessageType_EthereumMetadataAck\x10t\x1a\x04\x98\xb5\x18\x01\x12)\n\x1fMessageType_LoadClearsignSigner\x10u\x1a\x04\x90\xb5\x18\x01\x12,\n!MessageType_EthereumSignTypedData\x10\xa8\r\x1a\x04\x90\xb5\x18\x01\x12\x35\n*MessageType_EthereumTypedDataStructRequest\x10\xa9\r\x1a\x04\x98\xb5\x18\x01\x12\x31\n&MessageType_EthereumTypedDataStructAck\x10\xaa\r\x1a\x04\x90\xb5\x18\x01\x12\x34\n)MessageType_EthereumTypedDataValueRequest\x10\xab\r\x1a\x04\x98\xb5\x18\x01\x12\x30\n%MessageType_EthereumTypedDataValueAck\x10\xac\r\x1a\x04\x90\xb5\x18\x01\x12\x32\n\'MessageType_EthereumClearSignDefinition\x10\xad\r\x1a\x04\x90\xb5\x18\x01\x12\x35\n*MessageType_EthereumClearSignDefinitionAck\x10\xae\r\x1a\x04\x98\xb5\x18\x01\x12\x39\n.MessageType_EthereumClearSignDefinitionRequest\x10\xaf\r\x1a\x04\x98\xb5\x18\x01\x12\x37\n,MessageType_EthereumClearSignDefinitionChunk\x10\xb0\r\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_GetBip85Mnemonic\x10x\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_Bip85Mnemonic\x10y\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_RippleGetAddress\x10\x90\x03\x1a\x04\x90\xb5\x18\x01\x12$\n\x19MessageType_RippleAddress\x10\x91\x03\x1a\x04\x98\xb5\x18\x01\x12#\n\x18MessageType_RippleSignTx\x10\x92\x03\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_RippleSignedTx\x10\x93\x03\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_ThorchainGetAddress\x10\xf4\x03\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_ThorchainAddress\x10\xf5\x03\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_ThorchainSignTx\x10\xf6\x03\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_ThorchainMsgRequest\x10\xf7\x03\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_ThorchainMsgAck\x10\xf8\x03\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_ThorchainSignedTx\x10\xf9\x03\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_EosGetPublicKey\x10\xd8\x04\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_EosPublicKey\x10\xd9\x04\x1a\x04\x98\xb5\x18\x01\x12 \n\x15MessageType_EosSignTx\x10\xda\x04\x1a\x04\x90\xb5\x18\x01\x12)\n\x1eMessageType_EosTxActionRequest\x10\xdb\x04\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_EosTxActionAck\x10\xdc\x04\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_EosSignedTx\x10\xdd\x04\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_NanoGetAddress\x10\xbc\x05\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_NanoAddress\x10\xbd\x05\x1a\x04\x98\xb5\x18\x01\x12!\n\x16MessageType_NanoSignTx\x10\xbe\x05\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_NanoSignedTx\x10\xbf\x05\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_SolanaGetAddress\x10\xee\x05\x1a\x04\x90\xb5\x18\x01\x12$\n\x19MessageType_SolanaAddress\x10\xef\x05\x1a\x04\x98\xb5\x18\x01\x12#\n\x18MessageType_SolanaSignTx\x10\xf0\x05\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_SolanaSignedTx\x10\xf1\x05\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_SolanaSignMessage\x10\xf2\x05\x1a\x04\x90\xb5\x18\x01\x12-\n\"MessageType_SolanaMessageSignature\x10\xf3\x05\x1a\x04\x98\xb5\x18\x01\x12\x30\n%MessageType_SolanaSignOffchainMessage\x10\xf4\x05\x1a\x04\x90\xb5\x18\x01\x12\x35\n*MessageType_SolanaOffchainMessageSignature\x10\xf5\x05\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_BinanceGetAddress\x10\xa0\x06\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_BinanceAddress\x10\xa1\x06\x1a\x04\x98\xb5\x18\x01\x12*\n\x1fMessageType_BinanceGetPublicKey\x10\xa2\x06\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_BinancePublicKey\x10\xa3\x06\x1a\x04\x98\xb5\x18\x01\x12$\n\x19MessageType_BinanceSignTx\x10\xa4\x06\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_BinanceTxRequest\x10\xa5\x06\x1a\x04\x98\xb5\x18\x01\x12)\n\x1eMessageType_BinanceTransferMsg\x10\xa6\x06\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_BinanceOrderMsg\x10\xa7\x06\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_BinanceCancelMsg\x10\xa8\x06\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_BinanceSignedTx\x10\xa9\x06\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_CosmosGetAddress\x10\x84\x07\x1a\x04\x90\xb5\x18\x01\x12$\n\x19MessageType_CosmosAddress\x10\x85\x07\x1a\x04\x98\xb5\x18\x01\x12#\n\x18MessageType_CosmosSignTx\x10\x86\x07\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_CosmosMsgRequest\x10\x87\x07\x1a\x04\x98\xb5\x18\x01\x12#\n\x18MessageType_CosmosMsgAck\x10\x88\x07\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_CosmosSignedTx\x10\x89\x07\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_CosmosMsgDelegate\x10\x8a\x07\x1a\x04\x98\xb5\x18\x01\x12*\n\x1fMessageType_CosmosMsgUndelegate\x10\x8b\x07\x1a\x04\x98\xb5\x18\x01\x12*\n\x1fMessageType_CosmosMsgRedelegate\x10\x8c\x07\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_CosmosMsgRewards\x10\x8d\x07\x1a\x04\x98\xb5\x18\x01\x12+\n MessageType_CosmosMsgIBCTransfer\x10\x8e\x07\x1a\x04\x98\xb5\x18\x01\x12+\n MessageType_TendermintGetAddress\x10\xe8\x07\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_TendermintAddress\x10\xe9\x07\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_TendermintSignTx\x10\xea\x07\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_TendermintMsgRequest\x10\xeb\x07\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_TendermintMsgAck\x10\xec\x07\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_TendermintMsgSend\x10\xed\x07\x1a\x04\x90\xb5\x18\x01\x12)\n\x1eMessageType_TendermintSignedTx\x10\xee\x07\x1a\x04\x98\xb5\x18\x01\x12,\n!MessageType_TendermintMsgDelegate\x10\xef\x07\x1a\x04\x98\xb5\x18\x01\x12.\n#MessageType_TendermintMsgUndelegate\x10\xf0\x07\x1a\x04\x98\xb5\x18\x01\x12.\n#MessageType_TendermintMsgRedelegate\x10\xf1\x07\x1a\x04\x98\xb5\x18\x01\x12+\n MessageType_TendermintMsgRewards\x10\xf2\x07\x1a\x04\x98\xb5\x18\x01\x12/\n$MessageType_TendermintMsgIBCTransfer\x10\xf3\x07\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_OsmosisGetAddress\x10\xcc\x08\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_OsmosisAddress\x10\xcd\x08\x1a\x04\x98\xb5\x18\x01\x12$\n\x19MessageType_OsmosisSignTx\x10\xce\x08\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_OsmosisMsgRequest\x10\xcf\x08\x1a\x04\x98\xb5\x18\x01\x12$\n\x19MessageType_OsmosisMsgAck\x10\xd0\x08\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_OsmosisMsgSend\x10\xd1\x08\x1a\x04\x90\xb5\x18\x01\x12)\n\x1eMessageType_OsmosisMsgDelegate\x10\xd2\x08\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_OsmosisMsgUndelegate\x10\xd3\x08\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_OsmosisMsgRedelegate\x10\xd4\x08\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_OsmosisMsgRewards\x10\xd5\x08\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_OsmosisMsgLPAdd\x10\xd6\x08\x1a\x04\x90\xb5\x18\x01\x12)\n\x1eMessageType_OsmosisMsgLPRemove\x10\xd7\x08\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_OsmosisMsgLPStake\x10\xd8\x08\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_OsmosisMsgLPUnstake\x10\xd9\x08\x1a\x04\x90\xb5\x18\x01\x12,\n!MessageType_OsmosisMsgIBCTransfer\x10\xda\x08\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_OsmosisMsgSwap\x10\xdb\x08\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_OsmosisSignedTx\x10\xdc\x08\x1a\x04\x98\xb5\x18\x01\x12*\n\x1fMessageType_MayachainGetAddress\x10\xb0\t\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_MayachainAddress\x10\xb1\t\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_MayachainSignTx\x10\xb2\t\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_MayachainMsgRequest\x10\xb3\t\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_MayachainMsgAck\x10\xb4\t\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_MayachainSignedTx\x10\xb5\t\x1a\x04\x98\xb5\x18\x01\x12$\n\x19MessageType_ZcashSignPCZT\x10\x94\n\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_ZcashPCZTAction\x10\x95\n\x1a\x04\x90\xb5\x18\x01\x12)\n\x1eMessageType_ZcashPCZTActionAck\x10\x96\n\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_ZcashSignedPCZT\x10\x97\n\x1a\x04\x98\xb5\x18\x01\x12)\n\x1eMessageType_ZcashGetOrchardFVK\x10\x98\n\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_ZcashOrchardFVK\x10\x99\n\x1a\x04\x98\xb5\x18\x01\x12,\n!MessageType_ZcashTransparentInput\x10\x9a\n\x1a\x04\x90\xb5\x18\x01\x12-\n\"MessageType_ZcashTransparentSigned\x10\x9b\n\x1a\x04\x98\xb5\x18\x01\x12*\n\x1fMessageType_ZcashDisplayAddress\x10\x9c\n\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_ZcashAddress\x10\x9d\n\x1a\x04\x98\xb5\x18\x01\x12-\n\"MessageType_ZcashTransparentOutput\x10\x9e\n\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_ZcashTransparentAck\x10\x9f\n\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_TronGetAddress\x10\xf8\n\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_TronAddress\x10\xf9\n\x1a\x04\x98\xb5\x18\x01\x12!\n\x16MessageType_TronSignTx\x10\xfa\n\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_TronSignedTx\x10\xfb\n\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_TronSignMessage\x10\xfc\n\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_TronMessageSignature\x10\xfd\n\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_TronVerifyMessage\x10\xfe\n\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_TronSignTypedHash\x10\xff\n\x1a\x04\x90\xb5\x18\x01\x12-\n\"MessageType_TronTypedDataSignature\x10\x80\x0b\x1a\x04\x98\xb5\x18\x01\x12$\n\x19MessageType_TonGetAddress\x10\xdc\x0b\x1a\x04\x90\xb5\x18\x01\x12!\n\x16MessageType_TonAddress\x10\xdd\x0b\x1a\x04\x98\xb5\x18\x01\x12 \n\x15MessageType_TonSignTx\x10\xde\x0b\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_TonSignedTx\x10\xdf\x0b\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_TonSignMessage\x10\xe0\x0b\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_TonMessageSignature\x10\xe1\x0b\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_HiveGetPublicKey\x10\xc0\x0c\x1a\x04\x90\xb5\x18\x01\x12$\n\x19MessageType_HivePublicKey\x10\xc1\x0c\x1a\x04\x98\xb5\x18\x01\x12!\n\x16MessageType_HiveSignTx\x10\xc2\x0c\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_HiveSignedTx\x10\xc3\x0c\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_HiveGetPublicKeys\x10\xc4\x0c\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_HivePublicKeys\x10\xc5\x0c\x1a\x04\x98\xb5\x18\x01\x12,\n!MessageType_HiveSignAccountCreate\x10\xc6\x0c\x1a\x04\x90\xb5\x18\x01\x12.\n#MessageType_HiveSignedAccountCreate\x10\xc7\x0c\x1a\x04\x98\xb5\x18\x01\x12,\n!MessageType_HiveSignAccountUpdate\x10\xc8\x0c\x1a\x04\x90\xb5\x18\x01\x12.\n#MessageType_HiveSignedAccountUpdate\x10\xc9\x0c\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_NearGetAddress\x10\xca\x0c\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_NearAddress\x10\xcb\x0c\x1a\x04\x98\xb5\x18\x01\x12!\n\x16MessageType_NearSignTx\x10\xcc\x0c\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_NearSignedTx\x10\xcd\x0c\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_HiveSignMessage\x10\xce\x0c\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_HiveSignedMessage\x10\xcf\x0c\x1a\x04\x98\xb5\x18\x01\x12)\n\x1eMessageType_HiveSignOperations\x10\xd0\x0c\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_HiveSignedOperations\x10\xd1\x0c\x1a\x04\x98\xb5\x18\x01\x12\x34\n)MessageType_ClearsignAttestorGetPublicKey\x10\xa4\r\x1a\x04\x90\xb5\x18\x01\x12\x31\n&MessageType_ClearsignAttestorPublicKey\x10\xa5\r\x1a\x04\x98\xb5\x18\x01\x12,\n!MessageType_ClearsignAttestorSign\x10\xa6\r\x1a\x04\x90\xb5\x18\x01\x12\x31\n&MessageType_ClearsignAttestorSignature\x10\xa7\r\x1a\x04\x98\xb5\x18\x01\x42,\n\x1a\x63om.keepkey.deviceprotocolB\x0eKeepKeyMessage')
+  serialized_pb=_b('\n\x0emessages.proto\x1a\x0btypes.proto\"\x0c\n\nInitialize\"\r\n\x0bGetFeatures\"\xed\x0e\n\x08\x46\x65\x61tures\x12\x0e\n\x06vendor\x18\x01 \x01(\t\x12\x15\n\rmajor_version\x18\x02 \x01(\r\x12\x15\n\rminor_version\x18\x03 \x01(\r\x12\x15\n\rpatch_version\x18\x04 \x01(\r\x12\x17\n\x0f\x62ootloader_mode\x18\x05 \x01(\x08\x12\x11\n\tdevice_id\x18\x06 \x01(\t\x12\x16\n\x0epin_protection\x18\x07 \x01(\x08\x12\x1d\n\x15passphrase_protection\x18\x08 \x01(\x08\x12\x10\n\x08language\x18\t \x01(\t\x12\r\n\x05label\x18\n \x01(\t\x12\x18\n\x05\x63oins\x18\x0b \x03(\x0b\x32\t.CoinType\x12\x13\n\x0binitialized\x18\x0c \x01(\x08\x12\x10\n\x08revision\x18\r \x01(\x0c\x12\x17\n\x0f\x62ootloader_hash\x18\x0e \x01(\x0c\x12\x10\n\x08imported\x18\x0f \x01(\x08\x12\x12\n\npin_cached\x18\x10 \x01(\x08\x12\x19\n\x11passphrase_cached\x18\x11 \x01(\x08\x12\x1d\n\x08policies\x18\x12 \x03(\x0b\x32\x0b.PolicyType\x12\r\n\x05model\x18\x15 \x01(\t\x12\x18\n\x10\x66irmware_variant\x18\x16 \x01(\t\x12\x15\n\rfirmware_hash\x18\x17 \x01(\x0c\x12\x11\n\tno_backup\x18\x18 \x01(\x08\x12\x1c\n\x14wipe_code_protection\x18\x19 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x1a \x01(\r\x12\x18\n\x10supports_taproot\x18\x1b \x01(\x08\x12\x1b\n\x13supports_dice_modes\x18\x1c \x01(\x08\x12\'\n\x1fsupports_solana_lut_attestation\x18\x1d \x01(\x08\x12.\n\x0c\x63\x61pabilities\x18\x1e \x03(\x0e\x32\x14.Features.CapabilityB\x02\x10\x01\"\xb0\t\n\nCapability\x12\x1a\n\x16\x43\x41PABILITY_UNSPECIFIED\x10\x00\x12#\n\x1f\x43\x41PABILITY_ENTROPY_AUDIT_BUDGET\x10\x01\x12-\n)CAPABILITY_ERC20_UNLIMITED_APPROVE_REVIEW\x10\x02\x12,\n(CAPABILITY_ERC20_UNLIMITED_PERMIT_REVIEW\x10\x03\x12%\n!CAPABILITY_ERC7730_RUNTIME_REVIEW\x10\x04\x12#\n\x1f\x43\x41PABILITY_EVM_CERTIFIED_INTENT\x10\x05\x12$\n CAPABILITY_EVM_MAX_AMOUNT_REVIEW\x10\x06\x12\x1e\n\x1a\x43\x41PABILITY_EVM_TX_METADATA\x10\x07\x12\'\n#CAPABILITY_EVM_UNKNOWN_TOKEN_REVIEW\x10\x08\x12\"\n\x1e\x43\x41PABILITY_HIVE_RELEASE_REVIEW\x10\t\x12(\n$CAPABILITY_LEGACY_EVM_ROUTER_SIGNING\x10\n\x12\"\n\x1e\x43\x41PABILITY_MAYA_SINGLE_MESSAGE\x10\x0b\x12\"\n\x1e\x43\x41PABILITY_OSMOSIS_WIRE_GUARDS\x10\x0c\x12\x1d\n\x19\x43\x41PABILITY_PERMIT2_REVIEW\x10\r\x12%\n!CAPABILITY_PROMPT_WORKFLOW_UNWIND\x10\x0e\x12&\n\"CAPABILITY_PROTECTED_PING_PRESENCE\x10\x0f\x12!\n\x1d\x43\x41PABILITY_RIPPLE_MEMO_POLICY\x10\x10\x12%\n!CAPABILITY_SESSION_TRUST_LIFETIME\x10\x11\x12&\n\"CAPABILITY_SOLANA_CERTIFIED_REVIEW\x10\x12\x12%\n!CAPABILITY_SOLANA_LUT_ATTESTATION\x10\x13\x12$\n CAPABILITY_SOLANA_RUNTIME_REVIEW\x10\x14\x12\x1e\n\x1a\x43\x41PABILITY_STORAGE_V19_KDF\x10\x15\x12\"\n\x1e\x43\x41PABILITY_TENDERMINT_PROGRESS\x10\x16\x12\"\n\x1e\x43\x41PABILITY_SAFE_RESET_CEREMONY\x10\x17\x12\"\n\x1e\x43\x41PABILITY_THOR_DEPOSIT_REVIEW\x10\x18\x12 \n\x1c\x43\x41PABILITY_TRON_TRC20_REVIEW\x10\x19\x12$\n CAPABILITY_EIP712_CHUNKED_VALUES\x10\x1a\x12!\n\x1d\x43\x41PABILITY_CERTIFIED_CONTACTS\x10\x1b\x12\x1f\n\x1b\x43\x41PABILITY_SAFE_TYPED_CALLS\x10\x1c\x12&\n\"CAPABILITY_ERC7730_TYPED_ITERATION\x10\x1d\x12\'\n#CAPABILITY_ERC7730_TYPED_SETTLEMENT\x10\x1e\x12\x1d\n\x19\x43\x41PABILITY_MONERO_SIGNING\x10\x1f\"*\n\x0cGetCoinTable\x12\r\n\x05start\x18\x01 \x01(\r\x12\x0b\n\x03\x65nd\x18\x02 \x01(\r\"L\n\tCoinTable\x12\x18\n\x05table\x18\x01 \x03(\x0b\x32\t.CoinType\x12\x11\n\tnum_coins\x18\x02 \x01(\r\x12\x12\n\nchunk_size\x18\x03 \x01(\r\"\x0e\n\x0c\x43learSession\"y\n\rApplySettings\x12\x10\n\x08language\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\t\x12\x16\n\x0euse_passphrase\x18\x03 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x04 \x01(\r\x12\x13\n\x0bu2f_counter\x18\x05 \x01(\r\"\x1b\n\tChangePin\x12\x0e\n\x06remove\x18\x01 \x01(\x08\"\x87\x01\n\x04Ping\x12\x0f\n\x07message\x18\x01 \x01(\t\x12\x19\n\x11\x62utton_protection\x18\x02 \x01(\x08\x12\x16\n\x0epin_protection\x18\x03 \x01(\x08\x12\x1d\n\x15passphrase_protection\x18\x04 \x01(\x08\x12\x1c\n\x14wipe_code_protection\x18\x05 \x01(\x08\"\x1a\n\x07Success\x12\x0f\n\x07message\x18\x01 \x01(\t\"6\n\x07\x46\x61ilure\x12\x1a\n\x04\x63ode\x18\x01 \x01(\x0e\x32\x0c.FailureType\x12\x0f\n\x07message\x18\x02 \x01(\t\"?\n\rButtonRequest\x12 \n\x04\x63ode\x18\x01 \x01(\x0e\x32\x12.ButtonRequestType\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\t\"\x0b\n\tButtonAck\"7\n\x10PinMatrixRequest\x12#\n\x04type\x18\x01 \x01(\x0e\x32\x15.PinMatrixRequestType\"\x1b\n\x0cPinMatrixAck\x12\x0b\n\x03pin\x18\x01 \x02(\t\"\x08\n\x06\x43\x61ncel\"\x13\n\x11PassphraseRequest\"#\n\rPassphraseAck\x12\x12\n\npassphrase\x18\x01 \x02(\t\"\x1a\n\nGetEntropy\x12\x0c\n\x04size\x18\x01 \x02(\r\"\x1a\n\x07\x45ntropy\x12\x0f\n\x07\x65ntropy\x18\x01 \x02(\x0c\"\xa2\x01\n\x0cGetPublicKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x18\n\x10\x65\x63\x64sa_curve_name\x18\x02 \x01(\t\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\x12\x1a\n\tcoin_name\x18\x04 \x01(\t:\x07\x42itcoin\x12\x33\n\x0bscript_type\x18\x05 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\"4\n\tPublicKey\x12\x19\n\x04node\x18\x01 \x02(\x0b\x32\x0b.HDNodeType\x12\x0c\n\x04xpub\x18\x02 \x01(\t\"\xb3\x01\n\nGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x1a\n\tcoin_name\x18\x02 \x01(\t:\x07\x42itcoin\x12\x14\n\x0cshow_display\x18\x03 \x01(\x08\x12+\n\x08multisig\x18\x04 \x01(\x0b\x32\x19.MultisigRedeemScriptType\x12\x33\n\x0bscript_type\x18\x05 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\"\x1a\n\x07\x41\x64\x64ress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\"\x0c\n\nWipeDevice\"\xbb\x01\n\nLoadDevice\x12\x10\n\x08mnemonic\x18\x01 \x01(\t\x12\x19\n\x04node\x18\x02 \x01(\x0b\x32\x0b.HDNodeType\x12\x0b\n\x03pin\x18\x03 \x01(\t\x12\x1d\n\x15passphrase_protection\x18\x04 \x01(\x08\x12\x19\n\x08language\x18\x05 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x06 \x01(\t\x12\x15\n\rskip_checksum\x18\x07 \x01(\x08\x12\x13\n\x0bu2f_counter\x18\x08 \x01(\r\"\x8a\x02\n\x0bResetDevice\x12\x16\n\x0e\x64isplay_random\x18\x01 \x01(\x08\x12\x15\n\x08strength\x18\x02 \x01(\r:\x03\x32\x35\x36\x12\x1d\n\x15passphrase_protection\x18\x03 \x01(\x08\x12\x16\n\x0epin_protection\x18\x04 \x01(\x08\x12\x19\n\x08language\x18\x05 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x06 \x01(\t\x12\x11\n\tno_backup\x18\x07 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x08 \x01(\r\x12\x13\n\x0bu2f_counter\x18\t \x01(\r\x12\x14\n\x0c\x64ice_entropy\x18\n \x01(\x08\x12\x11\n\tdice_only\x18\x0b \x01(\x08\"\x10\n\x0e\x45ntropyRequest\"\x1d\n\nEntropyAck\x12\x0f\n\x07\x65ntropy\x18\x01 \x01(\x0c\"\xff\x01\n\x0eRecoveryDevice\x12\x12\n\nword_count\x18\x01 \x01(\r\x12\x1d\n\x15passphrase_protection\x18\x02 \x01(\x08\x12\x16\n\x0epin_protection\x18\x03 \x01(\x08\x12\x19\n\x08language\x18\x04 \x01(\t:\x07\x65nglish\x12\r\n\x05label\x18\x05 \x01(\t\x12\x18\n\x10\x65nforce_wordlist\x18\x06 \x01(\x08\x12\x1c\n\x14use_character_cipher\x18\x07 \x01(\x08\x12\x1a\n\x12\x61uto_lock_delay_ms\x18\x08 \x01(\r\x12\x13\n\x0bu2f_counter\x18\t \x01(\r\x12\x0f\n\x07\x64ry_run\x18\n \x01(\x08\"\r\n\x0bWordRequest\"\x17\n\x07WordAck\x12\x0c\n\x04word\x18\x01 \x02(\t\";\n\x10\x43haracterRequest\x12\x10\n\x08word_pos\x18\x01 \x02(\r\x12\x15\n\rcharacter_pos\x18\x02 \x02(\r\"?\n\x0c\x43haracterAck\x12\x11\n\tcharacter\x18\x01 \x01(\t\x12\x0e\n\x06\x64\x65lete\x18\x02 \x01(\x08\x12\x0c\n\x04\x64one\x18\x03 \x01(\x08\"\x82\x01\n\x0bSignMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0f\n\x07message\x18\x02 \x02(\x0c\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\x12\x33\n\x0bscript_type\x18\x04 \x01(\x0e\x32\x10.InputScriptType:\x0cSPENDADDRESS\"`\n\rVerifyMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x1a\n\tcoin_name\x18\x04 \x01(\t:\x07\x42itcoin\"6\n\x10MessageSignature\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"v\n\x0e\x45ncryptMessage\x12\x0e\n\x06pubkey\x18\x01 \x01(\x0c\x12\x0f\n\x07message\x18\x02 \x01(\x0c\x12\x14\n\x0c\x64isplay_only\x18\x03 \x01(\x08\x12\x11\n\taddress_n\x18\x04 \x03(\r\x12\x1a\n\tcoin_name\x18\x05 \x01(\t:\x07\x42itcoin\"@\n\x10\x45ncryptedMessage\x12\r\n\x05nonce\x18\x01 \x01(\x0c\x12\x0f\n\x07message\x18\x02 \x01(\x0c\x12\x0c\n\x04hmac\x18\x03 \x01(\x0c\"Q\n\x0e\x44\x65\x63ryptMessage\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x0f\n\x07message\x18\x03 \x01(\x0c\x12\x0c\n\x04hmac\x18\x04 \x01(\x0c\"4\n\x10\x44\x65\x63ryptedMessage\x12\x0f\n\x07message\x18\x01 \x01(\x0c\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\"\x8c\x01\n\x0e\x43ipherKeyValue\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x0b\n\x03key\x18\x02 \x01(\t\x12\r\n\x05value\x18\x03 \x01(\x0c\x12\x0f\n\x07\x65ncrypt\x18\x04 \x01(\x08\x12\x16\n\x0e\x61sk_on_encrypt\x18\x05 \x01(\x08\x12\x16\n\x0e\x61sk_on_decrypt\x18\x06 \x01(\x08\x12\n\n\x02iv\x18\x07 \x01(\x0c\"!\n\x10\x43ipheredKeyValue\x12\r\n\x05value\x18\x01 \x01(\x0c\"5\n\x10GetBip85Mnemonic\x12\x12\n\nword_count\x18\x01 \x02(\r\x12\r\n\x05index\x18\x02 \x02(\r\"!\n\rBip85Mnemonic\x12\x10\n\x08mnemonic\x18\x01 \x02(\t\"\xce\x01\n\x06SignTx\x12\x15\n\routputs_count\x18\x01 \x02(\r\x12\x14\n\x0cinputs_count\x18\x02 \x02(\r\x12\x1a\n\tcoin_name\x18\x03 \x01(\t:\x07\x42itcoin\x12\x12\n\x07version\x18\x04 \x01(\r:\x01\x31\x12\x14\n\tlock_time\x18\x05 \x01(\r:\x01\x30\x12\x0e\n\x06\x65xpiry\x18\x06 \x01(\r\x12\x14\n\x0coverwintered\x18\x07 \x01(\x08\x12\x18\n\x10version_group_id\x18\x08 \x01(\r\x12\x11\n\tbranch_id\x18\n \x01(\r\"\x85\x01\n\tTxRequest\x12\"\n\x0crequest_type\x18\x01 \x01(\x0e\x32\x0c.RequestType\x12&\n\x07\x64\x65tails\x18\x02 \x01(\x0b\x32\x15.TxRequestDetailsType\x12,\n\nserialized\x18\x03 \x01(\x0b\x32\x18.TxRequestSerializedType\"%\n\x05TxAck\x12\x1c\n\x02tx\x18\x01 \x01(\x0b\x32\x10.TransactionType\"+\n\x08RawTxAck\x12\x1f\n\x02tx\x18\x01 \x01(\x0b\x32\x13.RawTransactionType\"}\n\x0cSignIdentity\x12\x1f\n\x08identity\x18\x01 \x01(\x0b\x32\r.IdentityType\x12\x18\n\x10\x63hallenge_hidden\x18\x02 \x01(\x0c\x12\x18\n\x10\x63hallenge_visual\x18\x03 \x01(\t\x12\x18\n\x10\x65\x63\x64sa_curve_name\x18\x04 \x01(\t\"H\n\x0eSignedIdentity\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12\x12\n\npublic_key\x18\x02 \x01(\x0c\x12\x11\n\tsignature\x18\x03 \x01(\x0c\",\n\rApplyPolicies\x12\x1b\n\x06policy\x18\x01 \x03(\x0b\x32\x0b.PolicyType\"?\n\tFlashHash\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\r\x12\x0e\n\x06length\x18\x02 \x01(\r\x12\x11\n\tchallenge\x18\x03 \x01(\x0c\":\n\nFlashWrite\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\r\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\r\n\x05\x65rase\x18\x03 \x01(\x08\"!\n\x11\x46lashHashResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\"5\n\x12\x44\x65\x62ugLinkFlashDump\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\r\x12\x0e\n\x06length\x18\x02 \x01(\r\"*\n\x1a\x44\x65\x62ugLinkFlashDumpResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\"\x0b\n\tSoftReset\"\x0f\n\rFirmwareErase\"7\n\x0e\x46irmwareUpload\x12\x14\n\x0cpayload_hash\x18\x01 \x02(\x0c\x12\x0f\n\x07payload\x18\x02 \x02(\x0c\"2\n\x11\x44\x65\x62ugLinkDecision\x12\x0e\n\x06yes_no\x18\x01 \x02(\x08\x12\r\n\x05input\x18\x02 \x01(\t\"\x13\n\x11\x44\x65\x62ugLinkGetState\"\x99\x03\n\x0e\x44\x65\x62ugLinkState\x12\x0e\n\x06layout\x18\x01 \x01(\x0c\x12\x0b\n\x03pin\x18\x02 \x01(\t\x12\x0e\n\x06matrix\x18\x03 \x01(\t\x12\x10\n\x08mnemonic\x18\x04 \x01(\t\x12\x19\n\x04node\x18\x05 \x01(\x0b\x32\x0b.HDNodeType\x12\x1d\n\x15passphrase_protection\x18\x06 \x01(\x08\x12\x12\n\nreset_word\x18\x07 \x01(\t\x12\x15\n\rreset_entropy\x18\x08 \x01(\x0c\x12\x1a\n\x12recovery_fake_word\x18\t \x01(\t\x12\x19\n\x11recovery_word_pos\x18\n \x01(\r\x12\x17\n\x0frecovery_cipher\x18\x0b \x01(\t\x12$\n\x1crecovery_auto_completed_word\x18\x0c \x01(\t\x12\x15\n\rfirmware_hash\x18\r \x01(\x0c\x12\x14\n\x0cstorage_hash\x18\x0e \x01(\x0c\x12\x13\n\x0b\x64ice_digest\x18\x0f \x01(\x0c\x12\x15\n\rconfirm_title\x18\x10 \x01(\t\x12\x14\n\x0c\x63onfirm_body\x18\x11 \x01(\t\"\x0f\n\rDebugLinkStop\";\n\x0c\x44\x65\x62ugLinkLog\x12\r\n\x05level\x18\x01 \x01(\r\x12\x0e\n\x06\x62ucket\x18\x02 \x01(\t\x12\x0c\n\x04text\x18\x03 \x01(\t\"\x15\n\x13\x44\x65\x62ugLinkFillConfig\" \n\x0e\x43hangeWipeCode\x12\x0e\n\x06remove\x18\x01 \x01(\x08\"\x1f\n\x1d\x43learsignAttestorGetPublicKey\"0\n\x1a\x43learsignAttestorPublicKey\x12\x12\n\npublic_key\x18\x01 \x01(\x0c\"(\n\x15\x43learsignAttestorSign\x12\x0f\n\x07payload\x18\x01 \x01(\x0c\"C\n\x1a\x43learsignAttestorSignature\x12\x11\n\tsignature\x18\x01 \x01(\x0c\x12\x12\n\npublic_key\x18\x02 \x01(\x0c*\x83P\n\x0bMessageType\x12 \n\x16MessageType_Initialize\x10\x00\x1a\x04\x90\xb5\x18\x01\x12\x1a\n\x10MessageType_Ping\x10\x01\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Success\x10\x02\x1a\x04\x98\xb5\x18\x01\x12\x1d\n\x13MessageType_Failure\x10\x03\x1a\x04\x98\xb5\x18\x01\x12\x1f\n\x15MessageType_ChangePin\x10\x04\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_WipeDevice\x10\x05\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_FirmwareErase\x10\x06\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_FirmwareUpload\x10\x07\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_GetEntropy\x10\t\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Entropy\x10\n\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_GetPublicKey\x10\x0b\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_PublicKey\x10\x0c\x1a\x04\x98\xb5\x18\x01\x12 \n\x16MessageType_LoadDevice\x10\r\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_ResetDevice\x10\x0e\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_SignTx\x10\x0f\x1a\x04\x90\xb5\x18\x01\x12\x1e\n\x14MessageType_Features\x10\x11\x1a\x04\x98\xb5\x18\x01\x12&\n\x1cMessageType_PinMatrixRequest\x10\x12\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_PinMatrixAck\x10\x13\x1a\x04\x90\xb5\x18\x01\x12\x1c\n\x12MessageType_Cancel\x10\x14\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_TxRequest\x10\x15\x1a\x04\x98\xb5\x18\x01\x12\x1b\n\x11MessageType_TxAck\x10\x16\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_CipherKeyValue\x10\x17\x1a\x04\x90\xb5\x18\x01\x12\"\n\x18MessageType_ClearSession\x10\x18\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ApplySettings\x10\x19\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ButtonRequest\x10\x1a\x1a\x04\x98\xb5\x18\x01\x12\x1f\n\x15MessageType_ButtonAck\x10\x1b\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_GetAddress\x10\x1d\x1a\x04\x90\xb5\x18\x01\x12\x1d\n\x13MessageType_Address\x10\x1e\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EntropyRequest\x10#\x1a\x04\x98\xb5\x18\x01\x12 \n\x16MessageType_EntropyAck\x10$\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_SignMessage\x10&\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_VerifyMessage\x10\'\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_MessageSignature\x10(\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1dMessageType_PassphraseRequest\x10)\x1a\x04\x98\xb5\x18\x01\x12#\n\x19MessageType_PassphraseAck\x10*\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_RecoveryDevice\x10-\x1a\x04\x90\xb5\x18\x01\x12!\n\x17MessageType_WordRequest\x10.\x1a\x04\x98\xb5\x18\x01\x12\x1d\n\x13MessageType_WordAck\x10/\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_CipheredKeyValue\x10\x30\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EncryptMessage\x10\x31\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_EncryptedMessage\x10\x32\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_DecryptMessage\x10\x33\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_DecryptedMessage\x10\x34\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_SignIdentity\x10\x35\x1a\x04\x90\xb5\x18\x01\x12$\n\x1aMessageType_SignedIdentity\x10\x36\x1a\x04\x98\xb5\x18\x01\x12!\n\x17MessageType_GetFeatures\x10\x37\x1a\x04\x90\xb5\x18\x01\x12(\n\x1eMessageType_EthereumGetAddress\x10\x38\x1a\x04\x90\xb5\x18\x01\x12%\n\x1bMessageType_EthereumAddress\x10\x39\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_EthereumSignTx\x10:\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1dMessageType_EthereumTxRequest\x10;\x1a\x04\x98\xb5\x18\x01\x12#\n\x19MessageType_EthereumTxAck\x10<\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_CharacterRequest\x10P\x1a\x04\x98\xb5\x18\x01\x12\"\n\x18MessageType_CharacterAck\x10Q\x1a\x04\x90\xb5\x18\x01\x12\x1e\n\x14MessageType_RawTxAck\x10R\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_ApplyPolicies\x10S\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_FlashHash\x10T\x1a\x04\x90\xb5\x18\x01\x12 \n\x16MessageType_FlashWrite\x10U\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1dMessageType_FlashHashResponse\x10V\x1a\x04\x98\xb5\x18\x01\x12(\n\x1eMessageType_DebugLinkFlashDump\x10W\x1a\x04\xa0\xb5\x18\x01\x12\x30\n&MessageType_DebugLinkFlashDumpResponse\x10X\x1a\x04\xa8\xb5\x18\x01\x12\x1f\n\x15MessageType_SoftReset\x10Y\x1a\x04\xa0\xb5\x18\x01\x12\'\n\x1dMessageType_DebugLinkDecision\x10\x64\x1a\x04\xa0\xb5\x18\x01\x12\'\n\x1dMessageType_DebugLinkGetState\x10\x65\x1a\x04\xa0\xb5\x18\x01\x12$\n\x1aMessageType_DebugLinkState\x10\x66\x1a\x04\xa8\xb5\x18\x01\x12#\n\x19MessageType_DebugLinkStop\x10g\x1a\x04\xa0\xb5\x18\x01\x12\"\n\x18MessageType_DebugLinkLog\x10h\x1a\x04\xa8\xb5\x18\x01\x12)\n\x1fMessageType_DebugLinkFillConfig\x10i\x1a\x04\xa8\xb5\x18\x01\x12\"\n\x18MessageType_GetCoinTable\x10j\x1a\x04\x90\xb5\x18\x01\x12\x1f\n\x15MessageType_CoinTable\x10k\x1a\x04\x98\xb5\x18\x01\x12)\n\x1fMessageType_EthereumSignMessage\x10l\x1a\x04\x90\xb5\x18\x01\x12+\n!MessageType_EthereumVerifyMessage\x10m\x1a\x04\x90\xb5\x18\x01\x12.\n$MessageType_EthereumMessageSignature\x10n\x1a\x04\x98\xb5\x18\x01\x12$\n\x1aMessageType_ChangeWipeCode\x10o\x1a\x04\x90\xb5\x18\x01\x12+\n!MessageType_EthereumSignTypedHash\x10p\x1a\x04\x90\xb5\x18\x01\x12\x30\n&MessageType_EthereumTypedDataSignature\x10q\x1a\x04\x98\xb5\x18\x01\x12,\n\"MessageType_Ethereum712TypesValues\x10r\x1a\x04\x90\xb5\x18\x01\x12(\n\x1eMessageType_EthereumTxMetadata\x10s\x1a\x04\x90\xb5\x18\x01\x12)\n\x1fMessageType_EthereumMetadataAck\x10t\x1a\x04\x98\xb5\x18\x01\x12)\n\x1fMessageType_LoadClearsignSigner\x10u\x1a\x04\x90\xb5\x18\x01\x12,\n!MessageType_EthereumSignTypedData\x10\xa8\r\x1a\x04\x90\xb5\x18\x01\x12\x35\n*MessageType_EthereumTypedDataStructRequest\x10\xa9\r\x1a\x04\x98\xb5\x18\x01\x12\x31\n&MessageType_EthereumTypedDataStructAck\x10\xaa\r\x1a\x04\x90\xb5\x18\x01\x12\x34\n)MessageType_EthereumTypedDataValueRequest\x10\xab\r\x1a\x04\x98\xb5\x18\x01\x12\x30\n%MessageType_EthereumTypedDataValueAck\x10\xac\r\x1a\x04\x90\xb5\x18\x01\x12\x32\n\'MessageType_EthereumClearSignDefinition\x10\xad\r\x1a\x04\x90\xb5\x18\x01\x12\x35\n*MessageType_EthereumClearSignDefinitionAck\x10\xae\r\x1a\x04\x98\xb5\x18\x01\x12\x39\n.MessageType_EthereumClearSignDefinitionRequest\x10\xaf\r\x1a\x04\x98\xb5\x18\x01\x12\x37\n,MessageType_EthereumClearSignDefinitionChunk\x10\xb0\r\x1a\x04\x90\xb5\x18\x01\x12&\n\x1cMessageType_GetBip85Mnemonic\x10x\x1a\x04\x90\xb5\x18\x01\x12#\n\x19MessageType_Bip85Mnemonic\x10y\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_RippleGetAddress\x10\x90\x03\x1a\x04\x90\xb5\x18\x01\x12$\n\x19MessageType_RippleAddress\x10\x91\x03\x1a\x04\x98\xb5\x18\x01\x12#\n\x18MessageType_RippleSignTx\x10\x92\x03\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_RippleSignedTx\x10\x93\x03\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_ThorchainGetAddress\x10\xf4\x03\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_ThorchainAddress\x10\xf5\x03\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_ThorchainSignTx\x10\xf6\x03\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_ThorchainMsgRequest\x10\xf7\x03\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_ThorchainMsgAck\x10\xf8\x03\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_ThorchainSignedTx\x10\xf9\x03\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_EosGetPublicKey\x10\xd8\x04\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_EosPublicKey\x10\xd9\x04\x1a\x04\x98\xb5\x18\x01\x12 \n\x15MessageType_EosSignTx\x10\xda\x04\x1a\x04\x90\xb5\x18\x01\x12)\n\x1eMessageType_EosTxActionRequest\x10\xdb\x04\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_EosTxActionAck\x10\xdc\x04\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_EosSignedTx\x10\xdd\x04\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_NanoGetAddress\x10\xbc\x05\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_NanoAddress\x10\xbd\x05\x1a\x04\x98\xb5\x18\x01\x12!\n\x16MessageType_NanoSignTx\x10\xbe\x05\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_NanoSignedTx\x10\xbf\x05\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_SolanaGetAddress\x10\xee\x05\x1a\x04\x90\xb5\x18\x01\x12$\n\x19MessageType_SolanaAddress\x10\xef\x05\x1a\x04\x98\xb5\x18\x01\x12#\n\x18MessageType_SolanaSignTx\x10\xf0\x05\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_SolanaSignedTx\x10\xf1\x05\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_SolanaSignMessage\x10\xf2\x05\x1a\x04\x90\xb5\x18\x01\x12-\n\"MessageType_SolanaMessageSignature\x10\xf3\x05\x1a\x04\x98\xb5\x18\x01\x12\x30\n%MessageType_SolanaSignOffchainMessage\x10\xf4\x05\x1a\x04\x90\xb5\x18\x01\x12\x35\n*MessageType_SolanaOffchainMessageSignature\x10\xf5\x05\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_BinanceGetAddress\x10\xa0\x06\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_BinanceAddress\x10\xa1\x06\x1a\x04\x98\xb5\x18\x01\x12*\n\x1fMessageType_BinanceGetPublicKey\x10\xa2\x06\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_BinancePublicKey\x10\xa3\x06\x1a\x04\x98\xb5\x18\x01\x12$\n\x19MessageType_BinanceSignTx\x10\xa4\x06\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_BinanceTxRequest\x10\xa5\x06\x1a\x04\x98\xb5\x18\x01\x12)\n\x1eMessageType_BinanceTransferMsg\x10\xa6\x06\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_BinanceOrderMsg\x10\xa7\x06\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_BinanceCancelMsg\x10\xa8\x06\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_BinanceSignedTx\x10\xa9\x06\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_CosmosGetAddress\x10\x84\x07\x1a\x04\x90\xb5\x18\x01\x12$\n\x19MessageType_CosmosAddress\x10\x85\x07\x1a\x04\x98\xb5\x18\x01\x12#\n\x18MessageType_CosmosSignTx\x10\x86\x07\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_CosmosMsgRequest\x10\x87\x07\x1a\x04\x98\xb5\x18\x01\x12#\n\x18MessageType_CosmosMsgAck\x10\x88\x07\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_CosmosSignedTx\x10\x89\x07\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_CosmosMsgDelegate\x10\x8a\x07\x1a\x04\x98\xb5\x18\x01\x12*\n\x1fMessageType_CosmosMsgUndelegate\x10\x8b\x07\x1a\x04\x98\xb5\x18\x01\x12*\n\x1fMessageType_CosmosMsgRedelegate\x10\x8c\x07\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_CosmosMsgRewards\x10\x8d\x07\x1a\x04\x98\xb5\x18\x01\x12+\n MessageType_CosmosMsgIBCTransfer\x10\x8e\x07\x1a\x04\x98\xb5\x18\x01\x12+\n MessageType_TendermintGetAddress\x10\xe8\x07\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_TendermintAddress\x10\xe9\x07\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_TendermintSignTx\x10\xea\x07\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_TendermintMsgRequest\x10\xeb\x07\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_TendermintMsgAck\x10\xec\x07\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_TendermintMsgSend\x10\xed\x07\x1a\x04\x90\xb5\x18\x01\x12)\n\x1eMessageType_TendermintSignedTx\x10\xee\x07\x1a\x04\x98\xb5\x18\x01\x12,\n!MessageType_TendermintMsgDelegate\x10\xef\x07\x1a\x04\x98\xb5\x18\x01\x12.\n#MessageType_TendermintMsgUndelegate\x10\xf0\x07\x1a\x04\x98\xb5\x18\x01\x12.\n#MessageType_TendermintMsgRedelegate\x10\xf1\x07\x1a\x04\x98\xb5\x18\x01\x12+\n MessageType_TendermintMsgRewards\x10\xf2\x07\x1a\x04\x98\xb5\x18\x01\x12/\n$MessageType_TendermintMsgIBCTransfer\x10\xf3\x07\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_OsmosisGetAddress\x10\xcc\x08\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_OsmosisAddress\x10\xcd\x08\x1a\x04\x98\xb5\x18\x01\x12$\n\x19MessageType_OsmosisSignTx\x10\xce\x08\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_OsmosisMsgRequest\x10\xcf\x08\x1a\x04\x98\xb5\x18\x01\x12$\n\x19MessageType_OsmosisMsgAck\x10\xd0\x08\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_OsmosisMsgSend\x10\xd1\x08\x1a\x04\x90\xb5\x18\x01\x12)\n\x1eMessageType_OsmosisMsgDelegate\x10\xd2\x08\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_OsmosisMsgUndelegate\x10\xd3\x08\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_OsmosisMsgRedelegate\x10\xd4\x08\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_OsmosisMsgRewards\x10\xd5\x08\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_OsmosisMsgLPAdd\x10\xd6\x08\x1a\x04\x90\xb5\x18\x01\x12)\n\x1eMessageType_OsmosisMsgLPRemove\x10\xd7\x08\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_OsmosisMsgLPStake\x10\xd8\x08\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_OsmosisMsgLPUnstake\x10\xd9\x08\x1a\x04\x90\xb5\x18\x01\x12,\n!MessageType_OsmosisMsgIBCTransfer\x10\xda\x08\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_OsmosisMsgSwap\x10\xdb\x08\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_OsmosisSignedTx\x10\xdc\x08\x1a\x04\x98\xb5\x18\x01\x12*\n\x1fMessageType_MayachainGetAddress\x10\xb0\t\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_MayachainAddress\x10\xb1\t\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_MayachainSignTx\x10\xb2\t\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_MayachainMsgRequest\x10\xb3\t\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_MayachainMsgAck\x10\xb4\t\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_MayachainSignedTx\x10\xb5\t\x1a\x04\x98\xb5\x18\x01\x12$\n\x19MessageType_ZcashSignPCZT\x10\x94\n\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_ZcashPCZTAction\x10\x95\n\x1a\x04\x90\xb5\x18\x01\x12)\n\x1eMessageType_ZcashPCZTActionAck\x10\x96\n\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_ZcashSignedPCZT\x10\x97\n\x1a\x04\x98\xb5\x18\x01\x12)\n\x1eMessageType_ZcashGetOrchardFVK\x10\x98\n\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_ZcashOrchardFVK\x10\x99\n\x1a\x04\x98\xb5\x18\x01\x12,\n!MessageType_ZcashTransparentInput\x10\x9a\n\x1a\x04\x90\xb5\x18\x01\x12-\n\"MessageType_ZcashTransparentSigned\x10\x9b\n\x1a\x04\x98\xb5\x18\x01\x12*\n\x1fMessageType_ZcashDisplayAddress\x10\x9c\n\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_ZcashAddress\x10\x9d\n\x1a\x04\x98\xb5\x18\x01\x12-\n\"MessageType_ZcashTransparentOutput\x10\x9e\n\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_ZcashTransparentAck\x10\x9f\n\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_TronGetAddress\x10\xf8\n\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_TronAddress\x10\xf9\n\x1a\x04\x98\xb5\x18\x01\x12!\n\x16MessageType_TronSignTx\x10\xfa\n\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_TronSignedTx\x10\xfb\n\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_TronSignMessage\x10\xfc\n\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_TronMessageSignature\x10\xfd\n\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_TronVerifyMessage\x10\xfe\n\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_TronSignTypedHash\x10\xff\n\x1a\x04\x90\xb5\x18\x01\x12-\n\"MessageType_TronTypedDataSignature\x10\x80\x0b\x1a\x04\x98\xb5\x18\x01\x12$\n\x19MessageType_TonGetAddress\x10\xdc\x0b\x1a\x04\x90\xb5\x18\x01\x12!\n\x16MessageType_TonAddress\x10\xdd\x0b\x1a\x04\x98\xb5\x18\x01\x12 \n\x15MessageType_TonSignTx\x10\xde\x0b\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_TonSignedTx\x10\xdf\x0b\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_TonSignMessage\x10\xe0\x0b\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_TonMessageSignature\x10\xe1\x0b\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_HiveGetPublicKey\x10\xc0\x0c\x1a\x04\x90\xb5\x18\x01\x12$\n\x19MessageType_HivePublicKey\x10\xc1\x0c\x1a\x04\x98\xb5\x18\x01\x12!\n\x16MessageType_HiveSignTx\x10\xc2\x0c\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_HiveSignedTx\x10\xc3\x0c\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_HiveGetPublicKeys\x10\xc4\x0c\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_HivePublicKeys\x10\xc5\x0c\x1a\x04\x98\xb5\x18\x01\x12,\n!MessageType_HiveSignAccountCreate\x10\xc6\x0c\x1a\x04\x90\xb5\x18\x01\x12.\n#MessageType_HiveSignedAccountCreate\x10\xc7\x0c\x1a\x04\x98\xb5\x18\x01\x12,\n!MessageType_HiveSignAccountUpdate\x10\xc8\x0c\x1a\x04\x90\xb5\x18\x01\x12.\n#MessageType_HiveSignedAccountUpdate\x10\xc9\x0c\x1a\x04\x98\xb5\x18\x01\x12%\n\x1aMessageType_NearGetAddress\x10\xca\x0c\x1a\x04\x90\xb5\x18\x01\x12\"\n\x17MessageType_NearAddress\x10\xcb\x0c\x1a\x04\x98\xb5\x18\x01\x12!\n\x16MessageType_NearSignTx\x10\xcc\x0c\x1a\x04\x90\xb5\x18\x01\x12#\n\x18MessageType_NearSignedTx\x10\xcd\x0c\x1a\x04\x98\xb5\x18\x01\x12&\n\x1bMessageType_HiveSignMessage\x10\xce\x0c\x1a\x04\x90\xb5\x18\x01\x12(\n\x1dMessageType_HiveSignedMessage\x10\xcf\x0c\x1a\x04\x98\xb5\x18\x01\x12)\n\x1eMessageType_HiveSignOperations\x10\xd0\x0c\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_HiveSignedOperations\x10\xd1\x0c\x1a\x04\x98\xb5\x18\x01\x12\x34\n)MessageType_ClearsignAttestorGetPublicKey\x10\xa4\r\x1a\x04\x90\xb5\x18\x01\x12\x31\n&MessageType_ClearsignAttestorPublicKey\x10\xa5\r\x1a\x04\x98\xb5\x18\x01\x12,\n!MessageType_ClearsignAttestorSign\x10\xa6\r\x1a\x04\x90\xb5\x18\x01\x12\x31\n&MessageType_ClearsignAttestorSignature\x10\xa7\r\x1a\x04\x98\xb5\x18\x01\x12\'\n\x1cMessageType_MoneroGetAddress\x10\x88\x0e\x1a\x04\x90\xb5\x18\x01\x12$\n\x19MessageType_MoneroAddress\x10\x89\x0e\x1a\x04\x98\xb5\x18\x01\x12(\n\x1dMessageType_MoneroGetWatchKey\x10\x8a\x0e\x1a\x04\x90\xb5\x18\x01\x12%\n\x1aMessageType_MoneroWatchKey\x10\x8b\x0e\x1a\x04\x98\xb5\x18\x01\x12\x36\n+MessageType_MoneroKeyImageExportInitRequest\x10\x8c\x0e\x1a\x04\x90\xb5\x18\x01\x12\x32\n\'MessageType_MoneroKeyImageExportInitAck\x10\x8d\x0e\x1a\x04\x98\xb5\x18\x01\x12\x34\n)MessageType_MoneroKeyImageSyncStepRequest\x10\x8e\x0e\x1a\x04\x90\xb5\x18\x01\x12\x30\n%MessageType_MoneroKeyImageSyncStepAck\x10\x8f\x0e\x1a\x04\x98\xb5\x18\x01\x12\x35\n*MessageType_MoneroKeyImageSyncFinalRequest\x10\x90\x0e\x1a\x04\x90\xb5\x18\x01\x12\x31\n&MessageType_MoneroKeyImageSyncFinalAck\x10\x91\x0e\x1a\x04\x98\xb5\x18\x01\x12*\n\x1fMessageType_MoneroTxInitRequest\x10\x92\x0e\x1a\x04\x90\xb5\x18\x01\x12&\n\x1bMessageType_MoneroTxInitAck\x10\x93\x0e\x1a\x04\x98\xb5\x18\x01\x12.\n#MessageType_MoneroTxSetInputRequest\x10\x94\x0e\x1a\x04\x90\xb5\x18\x01\x12*\n\x1fMessageType_MoneroTxSetInputAck\x10\x95\x0e\x1a\x04\x98\xb5\x18\x01\x12/\n$MessageType_MoneroTxInputViniRequest\x10\x96\x0e\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_MoneroTxInputViniAck\x10\x97\x0e\x1a\x04\x98\xb5\x18\x01\x12\x32\n\'MessageType_MoneroTxAllInputsSetRequest\x10\x98\x0e\x1a\x04\x90\xb5\x18\x01\x12.\n#MessageType_MoneroTxAllInputsSetAck\x10\x99\x0e\x1a\x04\x98\xb5\x18\x01\x12/\n$MessageType_MoneroTxSetOutputRequest\x10\x9a\x0e\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_MoneroTxSetOutputAck\x10\x9b\x0e\x1a\x04\x98\xb5\x18\x01\x12/\n$MessageType_MoneroTxAllOutSetRequest\x10\x9c\x0e\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_MoneroTxAllOutSetAck\x10\x9d\x0e\x1a\x04\x98\xb5\x18\x01\x12/\n$MessageType_MoneroTxSignInputRequest\x10\x9e\x0e\x1a\x04\x90\xb5\x18\x01\x12+\n MessageType_MoneroTxSignInputAck\x10\x9f\x0e\x1a\x04\x98\xb5\x18\x01\x12+\n MessageType_MoneroTxFinalRequest\x10\xa0\x0e\x1a\x04\x90\xb5\x18\x01\x12\'\n\x1cMessageType_MoneroTxFinalAck\x10\xa1\x0e\x1a\x04\x98\xb5\x18\x01\x42,\n\x1a\x63om.keepkey.deviceprotocolB\x0eKeepKeyMessage')
   ,
   dependencies=[types__pb2.DESCRIPTOR,])
 
@@ -923,11 +923,115 @@ _MESSAGETYPE = _descriptor.EnumDescriptor(
       name='MessageType_ClearsignAttestorSignature', index=222, number=1703,
       options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroGetAddress', index=223, number=1800,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroAddress', index=224, number=1801,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroGetWatchKey', index=225, number=1802,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroWatchKey', index=226, number=1803,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroKeyImageExportInitRequest', index=227, number=1804,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroKeyImageExportInitAck', index=228, number=1805,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroKeyImageSyncStepRequest', index=229, number=1806,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroKeyImageSyncStepAck', index=230, number=1807,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroKeyImageSyncFinalRequest', index=231, number=1808,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroKeyImageSyncFinalAck', index=232, number=1809,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxInitRequest', index=233, number=1810,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxInitAck', index=234, number=1811,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxSetInputRequest', index=235, number=1812,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxSetInputAck', index=236, number=1813,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxInputViniRequest', index=237, number=1814,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxInputViniAck', index=238, number=1815,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxAllInputsSetRequest', index=239, number=1816,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxAllInputsSetAck', index=240, number=1817,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxSetOutputRequest', index=241, number=1818,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxSetOutputAck', index=242, number=1819,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxAllOutSetRequest', index=243, number=1820,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxAllOutSetAck', index=244, number=1821,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxSignInputRequest', index=245, number=1822,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxSignInputAck', index=246, number=1823,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxFinalRequest', index=247, number=1824,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001')),
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MessageType_MoneroTxFinalAck', index=248, number=1825,
+      options=_descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001')),
+      type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=6823,
-  serialized_end=15850,
+  serialized_start=6854,
+  serialized_end=17097,
 )
 _sym_db.RegisterEnumDescriptor(_MESSAGETYPE)
 
@@ -1155,6 +1259,32 @@ MessageType_ClearsignAttestorGetPublicKey = 1700
 MessageType_ClearsignAttestorPublicKey = 1701
 MessageType_ClearsignAttestorSign = 1702
 MessageType_ClearsignAttestorSignature = 1703
+MessageType_MoneroGetAddress = 1800
+MessageType_MoneroAddress = 1801
+MessageType_MoneroGetWatchKey = 1802
+MessageType_MoneroWatchKey = 1803
+MessageType_MoneroKeyImageExportInitRequest = 1804
+MessageType_MoneroKeyImageExportInitAck = 1805
+MessageType_MoneroKeyImageSyncStepRequest = 1806
+MessageType_MoneroKeyImageSyncStepAck = 1807
+MessageType_MoneroKeyImageSyncFinalRequest = 1808
+MessageType_MoneroKeyImageSyncFinalAck = 1809
+MessageType_MoneroTxInitRequest = 1810
+MessageType_MoneroTxInitAck = 1811
+MessageType_MoneroTxSetInputRequest = 1812
+MessageType_MoneroTxSetInputAck = 1813
+MessageType_MoneroTxInputViniRequest = 1814
+MessageType_MoneroTxInputViniAck = 1815
+MessageType_MoneroTxAllInputsSetRequest = 1816
+MessageType_MoneroTxAllInputsSetAck = 1817
+MessageType_MoneroTxSetOutputRequest = 1818
+MessageType_MoneroTxSetOutputAck = 1819
+MessageType_MoneroTxAllOutSetRequest = 1820
+MessageType_MoneroTxAllOutSetAck = 1821
+MessageType_MoneroTxSignInputRequest = 1822
+MessageType_MoneroTxSignInputAck = 1823
+MessageType_MoneroTxFinalRequest = 1824
+MessageType_MoneroTxFinalAck = 1825
 
 
 _FEATURES_CAPABILITY = _descriptor.EnumDescriptor(
@@ -1287,11 +1417,15 @@ _FEATURES_CAPABILITY = _descriptor.EnumDescriptor(
       name='CAPABILITY_ERC7730_TYPED_SETTLEMENT', index=30, number=30,
       options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CAPABILITY_MONERO_SIGNING', index=31, number=31,
+      options=None,
+      type=None),
   ],
   containing_type=None,
   options=None,
   serialized_start=762,
-  serialized_end=1931,
+  serialized_end=1962,
 )
 _sym_db.RegisterEnumDescriptor(_FEATURES_CAPABILITY)
 
@@ -1561,7 +1695,7 @@ _FEATURES = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=61,
-  serialized_end=1931,
+  serialized_end=1962,
 )
 
 
@@ -1598,8 +1732,8 @@ _GETCOINTABLE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1933,
-  serialized_end=1975,
+  serialized_start=1964,
+  serialized_end=2006,
 )
 
 
@@ -1643,8 +1777,8 @@ _COINTABLE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1977,
-  serialized_end=2053,
+  serialized_start=2008,
+  serialized_end=2084,
 )
 
 
@@ -1667,8 +1801,8 @@ _CLEARSESSION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2055,
-  serialized_end=2069,
+  serialized_start=2086,
+  serialized_end=2100,
 )
 
 
@@ -1726,8 +1860,8 @@ _APPLYSETTINGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2071,
-  serialized_end=2192,
+  serialized_start=2102,
+  serialized_end=2223,
 )
 
 
@@ -1757,8 +1891,8 @@ _CHANGEPIN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2194,
-  serialized_end=2221,
+  serialized_start=2225,
+  serialized_end=2252,
 )
 
 
@@ -1816,8 +1950,8 @@ _PING = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2224,
-  serialized_end=2359,
+  serialized_start=2255,
+  serialized_end=2390,
 )
 
 
@@ -1847,8 +1981,8 @@ _SUCCESS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2361,
-  serialized_end=2387,
+  serialized_start=2392,
+  serialized_end=2418,
 )
 
 
@@ -1885,8 +2019,8 @@ _FAILURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2389,
-  serialized_end=2443,
+  serialized_start=2420,
+  serialized_end=2474,
 )
 
 
@@ -1923,8 +2057,8 @@ _BUTTONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2445,
-  serialized_end=2508,
+  serialized_start=2476,
+  serialized_end=2539,
 )
 
 
@@ -1947,8 +2081,8 @@ _BUTTONACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2510,
-  serialized_end=2521,
+  serialized_start=2541,
+  serialized_end=2552,
 )
 
 
@@ -1978,8 +2112,8 @@ _PINMATRIXREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2523,
-  serialized_end=2578,
+  serialized_start=2554,
+  serialized_end=2609,
 )
 
 
@@ -2009,8 +2143,8 @@ _PINMATRIXACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2580,
-  serialized_end=2607,
+  serialized_start=2611,
+  serialized_end=2638,
 )
 
 
@@ -2033,8 +2167,8 @@ _CANCEL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2609,
-  serialized_end=2617,
+  serialized_start=2640,
+  serialized_end=2648,
 )
 
 
@@ -2057,8 +2191,8 @@ _PASSPHRASEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2619,
-  serialized_end=2638,
+  serialized_start=2650,
+  serialized_end=2669,
 )
 
 
@@ -2088,8 +2222,8 @@ _PASSPHRASEACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2640,
-  serialized_end=2675,
+  serialized_start=2671,
+  serialized_end=2706,
 )
 
 
@@ -2119,8 +2253,8 @@ _GETENTROPY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2677,
-  serialized_end=2703,
+  serialized_start=2708,
+  serialized_end=2734,
 )
 
 
@@ -2150,8 +2284,8 @@ _ENTROPY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2705,
-  serialized_end=2731,
+  serialized_start=2736,
+  serialized_end=2762,
 )
 
 
@@ -2209,8 +2343,8 @@ _GETPUBLICKEY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2734,
-  serialized_end=2896,
+  serialized_start=2765,
+  serialized_end=2927,
 )
 
 
@@ -2247,8 +2381,8 @@ _PUBLICKEY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2898,
-  serialized_end=2950,
+  serialized_start=2929,
+  serialized_end=2981,
 )
 
 
@@ -2306,8 +2440,8 @@ _GETADDRESS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2953,
-  serialized_end=3132,
+  serialized_start=2984,
+  serialized_end=3163,
 )
 
 
@@ -2337,8 +2471,8 @@ _ADDRESS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3134,
-  serialized_end=3160,
+  serialized_start=3165,
+  serialized_end=3191,
 )
 
 
@@ -2361,8 +2495,8 @@ _WIPEDEVICE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3162,
-  serialized_end=3174,
+  serialized_start=3193,
+  serialized_end=3205,
 )
 
 
@@ -2441,8 +2575,8 @@ _LOADDEVICE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3177,
-  serialized_end=3364,
+  serialized_start=3208,
+  serialized_end=3395,
 )
 
 
@@ -2542,8 +2676,8 @@ _RESETDEVICE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3367,
-  serialized_end=3633,
+  serialized_start=3398,
+  serialized_end=3664,
 )
 
 
@@ -2566,8 +2700,8 @@ _ENTROPYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3635,
-  serialized_end=3651,
+  serialized_start=3666,
+  serialized_end=3682,
 )
 
 
@@ -2597,8 +2731,8 @@ _ENTROPYACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3653,
-  serialized_end=3682,
+  serialized_start=3684,
+  serialized_end=3713,
 )
 
 
@@ -2691,8 +2825,8 @@ _RECOVERYDEVICE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3685,
-  serialized_end=3940,
+  serialized_start=3716,
+  serialized_end=3971,
 )
 
 
@@ -2715,8 +2849,8 @@ _WORDREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3942,
-  serialized_end=3955,
+  serialized_start=3973,
+  serialized_end=3986,
 )
 
 
@@ -2746,8 +2880,8 @@ _WORDACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3957,
-  serialized_end=3980,
+  serialized_start=3988,
+  serialized_end=4011,
 )
 
 
@@ -2784,8 +2918,8 @@ _CHARACTERREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3982,
-  serialized_end=4041,
+  serialized_start=4013,
+  serialized_end=4072,
 )
 
 
@@ -2829,8 +2963,8 @@ _CHARACTERACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4043,
-  serialized_end=4106,
+  serialized_start=4074,
+  serialized_end=4137,
 )
 
 
@@ -2881,8 +3015,8 @@ _SIGNMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4109,
-  serialized_end=4239,
+  serialized_start=4140,
+  serialized_end=4270,
 )
 
 
@@ -2933,8 +3067,8 @@ _VERIFYMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4241,
-  serialized_end=4337,
+  serialized_start=4272,
+  serialized_end=4368,
 )
 
 
@@ -2971,8 +3105,8 @@ _MESSAGESIGNATURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4339,
-  serialized_end=4393,
+  serialized_start=4370,
+  serialized_end=4424,
 )
 
 
@@ -3030,8 +3164,8 @@ _ENCRYPTMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4395,
-  serialized_end=4513,
+  serialized_start=4426,
+  serialized_end=4544,
 )
 
 
@@ -3075,8 +3209,8 @@ _ENCRYPTEDMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4515,
-  serialized_end=4579,
+  serialized_start=4546,
+  serialized_end=4610,
 )
 
 
@@ -3127,8 +3261,8 @@ _DECRYPTMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4581,
-  serialized_end=4662,
+  serialized_start=4612,
+  serialized_end=4693,
 )
 
 
@@ -3165,8 +3299,8 @@ _DECRYPTEDMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4664,
-  serialized_end=4716,
+  serialized_start=4695,
+  serialized_end=4747,
 )
 
 
@@ -3238,8 +3372,8 @@ _CIPHERKEYVALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4719,
-  serialized_end=4859,
+  serialized_start=4750,
+  serialized_end=4890,
 )
 
 
@@ -3269,8 +3403,8 @@ _CIPHEREDKEYVALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4861,
-  serialized_end=4894,
+  serialized_start=4892,
+  serialized_end=4925,
 )
 
 
@@ -3307,8 +3441,8 @@ _GETBIP85MNEMONIC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4896,
-  serialized_end=4949,
+  serialized_start=4927,
+  serialized_end=4980,
 )
 
 
@@ -3338,8 +3472,8 @@ _BIP85MNEMONIC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4951,
-  serialized_end=4984,
+  serialized_start=4982,
+  serialized_end=5015,
 )
 
 
@@ -3425,8 +3559,8 @@ _SIGNTX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4987,
-  serialized_end=5193,
+  serialized_start=5018,
+  serialized_end=5224,
 )
 
 
@@ -3470,8 +3604,8 @@ _TXREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5196,
-  serialized_end=5329,
+  serialized_start=5227,
+  serialized_end=5360,
 )
 
 
@@ -3501,8 +3635,8 @@ _TXACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5331,
-  serialized_end=5368,
+  serialized_start=5362,
+  serialized_end=5399,
 )
 
 
@@ -3532,8 +3666,8 @@ _RAWTXACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5370,
-  serialized_end=5413,
+  serialized_start=5401,
+  serialized_end=5444,
 )
 
 
@@ -3584,8 +3718,8 @@ _SIGNIDENTITY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5415,
-  serialized_end=5540,
+  serialized_start=5446,
+  serialized_end=5571,
 )
 
 
@@ -3629,8 +3763,8 @@ _SIGNEDIDENTITY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5542,
-  serialized_end=5614,
+  serialized_start=5573,
+  serialized_end=5645,
 )
 
 
@@ -3660,8 +3794,8 @@ _APPLYPOLICIES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5616,
-  serialized_end=5660,
+  serialized_start=5647,
+  serialized_end=5691,
 )
 
 
@@ -3705,8 +3839,8 @@ _FLASHHASH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5662,
-  serialized_end=5725,
+  serialized_start=5693,
+  serialized_end=5756,
 )
 
 
@@ -3750,8 +3884,8 @@ _FLASHWRITE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5727,
-  serialized_end=5785,
+  serialized_start=5758,
+  serialized_end=5816,
 )
 
 
@@ -3781,8 +3915,8 @@ _FLASHHASHRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5787,
-  serialized_end=5820,
+  serialized_start=5818,
+  serialized_end=5851,
 )
 
 
@@ -3819,8 +3953,8 @@ _DEBUGLINKFLASHDUMP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5822,
-  serialized_end=5875,
+  serialized_start=5853,
+  serialized_end=5906,
 )
 
 
@@ -3850,8 +3984,8 @@ _DEBUGLINKFLASHDUMPRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5877,
-  serialized_end=5919,
+  serialized_start=5908,
+  serialized_end=5950,
 )
 
 
@@ -3874,8 +4008,8 @@ _SOFTRESET = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5921,
-  serialized_end=5932,
+  serialized_start=5952,
+  serialized_end=5963,
 )
 
 
@@ -3898,8 +4032,8 @@ _FIRMWAREERASE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5934,
-  serialized_end=5949,
+  serialized_start=5965,
+  serialized_end=5980,
 )
 
 
@@ -3936,8 +4070,8 @@ _FIRMWAREUPLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5951,
-  serialized_end=6006,
+  serialized_start=5982,
+  serialized_end=6037,
 )
 
 
@@ -3974,8 +4108,8 @@ _DEBUGLINKDECISION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6008,
-  serialized_end=6058,
+  serialized_start=6039,
+  serialized_end=6089,
 )
 
 
@@ -3998,8 +4132,8 @@ _DEBUGLINKGETSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6060,
-  serialized_end=6079,
+  serialized_start=6091,
+  serialized_end=6110,
 )
 
 
@@ -4141,8 +4275,8 @@ _DEBUGLINKSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6082,
-  serialized_end=6491,
+  serialized_start=6113,
+  serialized_end=6522,
 )
 
 
@@ -4165,8 +4299,8 @@ _DEBUGLINKSTOP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6493,
-  serialized_end=6508,
+  serialized_start=6524,
+  serialized_end=6539,
 )
 
 
@@ -4210,8 +4344,8 @@ _DEBUGLINKLOG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6510,
-  serialized_end=6569,
+  serialized_start=6541,
+  serialized_end=6600,
 )
 
 
@@ -4234,8 +4368,8 @@ _DEBUGLINKFILLCONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6571,
-  serialized_end=6592,
+  serialized_start=6602,
+  serialized_end=6623,
 )
 
 
@@ -4265,8 +4399,8 @@ _CHANGEWIPECODE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6594,
-  serialized_end=6626,
+  serialized_start=6625,
+  serialized_end=6657,
 )
 
 
@@ -4289,8 +4423,8 @@ _CLEARSIGNATTESTORGETPUBLICKEY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6628,
-  serialized_end=6659,
+  serialized_start=6659,
+  serialized_end=6690,
 )
 
 
@@ -4320,8 +4454,8 @@ _CLEARSIGNATTESTORPUBLICKEY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6661,
-  serialized_end=6709,
+  serialized_start=6692,
+  serialized_end=6740,
 )
 
 
@@ -4351,8 +4485,8 @@ _CLEARSIGNATTESTORSIGN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6711,
-  serialized_end=6751,
+  serialized_start=6742,
+  serialized_end=6782,
 )
 
 
@@ -4389,8 +4523,8 @@ _CLEARSIGNATTESTORSIGNATURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=6753,
-  serialized_end=6820,
+  serialized_start=6784,
+  serialized_end=6851,
 )
 
 _FEATURES.fields_by_name['coins'].message_type = types__pb2._COINTYPE
@@ -5435,6 +5569,58 @@ _MESSAGETYPE.values_by_name["MessageType_ClearsignAttestorSign"].has_options = T
 _MESSAGETYPE.values_by_name["MessageType_ClearsignAttestorSign"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
 _MESSAGETYPE.values_by_name["MessageType_ClearsignAttestorSignature"].has_options = True
 _MESSAGETYPE.values_by_name["MessageType_ClearsignAttestorSignature"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroGetAddress"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroGetAddress"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroAddress"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroAddress"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroGetWatchKey"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroGetWatchKey"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroWatchKey"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroWatchKey"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroKeyImageExportInitRequest"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroKeyImageExportInitRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroKeyImageExportInitAck"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroKeyImageExportInitAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroKeyImageSyncStepRequest"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroKeyImageSyncStepRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroKeyImageSyncStepAck"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroKeyImageSyncStepAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroKeyImageSyncFinalRequest"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroKeyImageSyncFinalRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroKeyImageSyncFinalAck"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroKeyImageSyncFinalAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxInitRequest"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxInitRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxInitAck"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxInitAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxSetInputRequest"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxSetInputRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxSetInputAck"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxSetInputAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxInputViniRequest"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxInputViniRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxInputViniAck"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxInputViniAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxAllInputsSetRequest"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxAllInputsSetRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxAllInputsSetAck"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxAllInputsSetAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxSetOutputRequest"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxSetOutputRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxSetOutputAck"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxSetOutputAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxAllOutSetRequest"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxAllOutSetRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxAllOutSetAck"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxAllOutSetAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxSignInputRequest"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxSignInputRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxSignInputAck"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxSignInputAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxFinalRequest"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxFinalRequest"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\220\265\030\001'))
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxFinalAck"].has_options = True
+_MESSAGETYPE.values_by_name["MessageType_MoneroTxFinalAck"]._options = _descriptor._ParseOptions(descriptor_pb2.EnumValueOptions(), _b('\230\265\030\001'))
 _FEATURES.fields_by_name['capabilities'].has_options = True
 _FEATURES.fields_by_name['capabilities']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\020\001'))
 # @@protoc_insertion_point(module_scope)
