@@ -30,6 +30,7 @@ from keepkeylib import tx_api
 
 class TestMsgSigntxGRS(common.KeepKeyTest):
     def test_one_one_fee(self):
+        self.requires_groestlcoin()
         # http://blockbook.groestlcoin.org/tx/f56521b17b828897f72b30dd21b0192fd942342e89acbb06abf1d446282c30f5
         # ptx1: http://blockbook.groestlcoin.org/tx/cb74c8478c5814742c87cffdb4a21231869888f8042fb07a90e015a9db1f9d4a
 

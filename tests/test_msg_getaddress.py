@@ -23,6 +23,7 @@ import binascii
 import common
 import keepkeylib.ckd_public as bip32
 import keepkeylib.types_pb2 as proto_types
+from keepkeylib.client import CallException
 
 class TestMsgGetaddress(common.KeepKeyTest):
 
@@ -44,6 +45,7 @@ class TestMsgGetaddress(common.KeepKeyTest):
         self.assertEqual(self.client.get_address('Litecoin', [0, 9999999]), 'Laf5nGHSCT94C5dK6fw2RxuXPiw2ZuRR9S')
 
     def test_grs(self):
+        self.requires_groestlcoin()
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.assertEqual(self.client.get_address('Groestlcoin', [44 | 0x80000000, 17 | 0x80000000, 0 | 0x80000000, 0, 0]), 'Fj62rBJi8LvbmWu2jzkaUX1NFXLEqDLoZM')
@@ -51,11 +53,27 @@ class TestMsgGetaddress(common.KeepKeyTest):
         self.assertEqual(self.client.get_address('Groestlcoin', [44 | 0x80000000, 17 | 0x80000000, 0 | 0x80000000, 1, 1]), 'Fmhtxeh7YdCBkyQF7AQG4QnY8y3rJg89di')
 
     def test_tgrs(self):
+        self.requires_groestlcoin()
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.assertEqual(self.client.get_address('GRS Testnet', [44 | 0x80000000, 1 | 0x80000000, 0 | 0x80000000, 0, 0]), 'mvbu1Gdy8SUjTenqerxUaZyYjmvedc787y')
         self.assertEqual(self.client.get_address('GRS Testnet', [44 | 0x80000000, 1 | 0x80000000, 0 | 0x80000000, 1, 0]), 'mm6kLYbGEL1tGe4ZA8xacfgRPdW1LMq8cN')
         self.assertEqual(self.client.get_address('GRS Testnet', [44 | 0x80000000, 1 | 0x80000000, 0 | 0x80000000, 1, 1]), 'mjXZwmEi1z1MzveZrKUAo4DBgbdq6ZhGD6')
+
+    def test_grs_removed(self):
+        # 7.17.0 removed Groestlcoin: the coin name is refused, never mapped
+        # to another coin.
+        self.requires_fullFeature()
+        self.requires_firmware("7.16.0")
+        if self.advertises_groestlcoin():
+            self.assertFalse(self.firmware_at_least("7.17.0"),
+                             "7.17 must remove both Groestlcoin networks")
+            self.skipTest("Groestlcoin is supported on this firmware")
+        self.setup_mnemonic_allallall()
+        for name in ('Groestlcoin', 'GRS Testnet'):
+            with self.assertRaises(CallException) as ctx:
+                self.client.get_address(name, [44 | 0x80000000, 17 | 0x80000000, 0 | 0x80000000, 0, 0])
+            self.assertIn('Invalid coin name', str(ctx.exception))
 
     def test_ltc_m_address(self):
         self.requires_fullFeature()

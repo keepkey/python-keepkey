@@ -37,6 +37,7 @@ class TestMsgGetaddressSegwit(common.KeepKeyTest):
         self.assertEqual(self.client.get_address("Testnet", parse_path("44'/1'/0'/0/0"), False, None, script_type=proto.SPENDADDRESS), 'mvbu1Gdy8SUjTenqerxUaZyYjmveZvt33q')
 
     def test_grs(self):
+        self.requires_groestlcoin()
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.client.clear_session()
@@ -48,6 +49,7 @@ class TestMsgGetaddressSegwit(common.KeepKeyTest):
         self.assertEqual(self.client.get_address('Groestlcoin', parse_path("49'/17'/0'/1/1"), False, None, script_type=proto.SPENDP2SHWITNESS), '3D65LEJYJ2Yda6UJr8tYBWspP5MZSeR5wz')
 
     def test_tgrs(self):
+        self.requires_groestlcoin()
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         self.client.clear_session()
