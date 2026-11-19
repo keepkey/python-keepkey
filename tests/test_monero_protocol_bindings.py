@@ -6,8 +6,10 @@ Monero request in bitcoin-only builds and before 7.17.0.
 """
 
 import unittest
+from unittest.mock import Mock
 
 import common
+from keepkeylib.client import CallException, ProtocolMixin
 from keepkeylib import mapping
 from keepkeylib import messages_monero_pb2 as monero_proto
 from keepkeylib import messages_pb2 as proto
@@ -71,6 +73,30 @@ class TestMoneroProtocolBindings(unittest.TestCase):
     def test_capability_value_is_31(self):
         self.assertEqual(
             proto.Features.Capability.Value('CAPABILITY_MONERO_SIGNING'), 31)
+
+    def test_client_gates_monero_requests_on_the_reported_capability(self):
+        client = object.__new__(ProtocolMixin)
+        client.features = proto.Features()
+        client.call = Mock()
+        starts = (
+            (client.monero_get_address, ([],), monero_proto.MoneroAddress()),
+            (client.monero_get_watch_key, ([],), monero_proto.MoneroWatchKey()),
+            (client.monero_key_image_export_init, (),
+             monero_proto.MoneroKeyImageExportInitAck()),
+            (client.monero_tx_init, ([], monero_proto.MoneroTxData()),
+             monero_proto.MoneroTxInitAck()),
+        )
+        for start, args, _ in starts:
+            with self.assertRaises(CallException) as error:
+                start(*args)
+            self.assertEqual(error.exception.args[0], proto_types.Failure_UnexpectedMessage)
+        client.call.assert_not_called()
+
+        client.features.capabilities.append(proto.Features.CAPABILITY_MONERO_SIGNING)
+        for start, args, reply in starts:
+            client.call.return_value = reply
+            start(*args)
+        self.assertEqual(client.call.call_count, len(starts))
 
     def test_no_secret_offload_fields(self):
         # Unlike Trezor's protocol, the host never carries an encrypted spend

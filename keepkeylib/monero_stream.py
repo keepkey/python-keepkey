@@ -4,8 +4,8 @@ The DEVICE builds the transaction: it derives every key, proves the range
 proof and signs every input. The host supplies an unsigned transfer plan,
 stores the public pieces the device hands back (each with a device MAC),
 returns them in the order the protocol asks for, and at the end joins them
-into the transaction blob a Monero daemon accepts. Nothing secret reaches
-the host.
+into the transaction blob a Monero daemon accepts. TxFinal also returns
+the per-transaction secret keys used for payment proofs.
 
     TxInit -> TxSetInput x n -> TxInputVini x n (key images descending)
     -> TxAllInputsSet -> TxSetOutput x 2 (the second one proves; slow)

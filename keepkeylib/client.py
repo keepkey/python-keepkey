@@ -2371,10 +2371,16 @@ class ProtocolMixin(object):
     # indices. network is a MoneroNetworkType value. Fields left as None are
     # not sent, so the firmware's defaults apply.
 
+    def _require_monero_signing(self):
+        if proto.Features.CAPABILITY_MONERO_SIGNING not in self.features.capabilities:
+            raise CallException(types.Failure_UnexpectedMessage,
+                                "Firmware does not advertise Monero signing")
+
     @field('address')
     @expect(monero_proto.MoneroAddress)
     def monero_get_address(self, address_n, network=None, account=None,
                            minor=None, show_display=False, payment_id=None):
+        self._require_monero_signing()
         msg = monero_proto.MoneroGetAddress(address_n=address_n,
                                             show_display=show_display)
         if network is not None:
@@ -2389,6 +2395,7 @@ class ProtocolMixin(object):
 
     @expect(monero_proto.MoneroWatchKey)
     def monero_get_watch_key(self, address_n, network=None, account=None):
+        self._require_monero_signing()
         msg = monero_proto.MoneroGetWatchKey(address_n=address_n)
         if network is not None:
             msg.network_type = network
@@ -2401,6 +2408,7 @@ class ProtocolMixin(object):
     # drives the order (and its violations) itself.
 
     def monero_key_image_export_init(self, **kwargs):
+        self._require_monero_signing()
         return self.call(monero_proto.MoneroKeyImageExportInitRequest(**kwargs))
 
     def monero_key_image_sync_step(self, tdis):
@@ -2410,6 +2418,7 @@ class ProtocolMixin(object):
         return self.call(monero_proto.MoneroKeyImageSyncFinalRequest())
 
     def monero_tx_init(self, address_n, tsx_data, network=None):
+        self._require_monero_signing()
         msg = monero_proto.MoneroTxInitRequest(address_n=address_n,
                                                tsx_data=tsx_data)
         if network is not None:

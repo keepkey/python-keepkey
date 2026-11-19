@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages-monero.proto',
   package='',
   syntax='proto2',
-  serialized_pb=_b('\n\x15messages-monero.proto\"\xb1\x01\n\x10MoneroGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12@\n\x0cnetwork_type\x18\x03 \x01(\x0e\x32\x12.MoneroNetworkType:\x16MONERO_NETWORK_MAINNET\x12\x0f\n\x07\x61\x63\x63ount\x18\x04 \x01(\r\x12\r\n\x05minor\x18\x05 \x01(\r\x12\x12\n\npayment_id\x18\x06 \x01(\x0c\" \n\rMoneroAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\"y\n\x11MoneroGetWatchKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12@\n\x0cnetwork_type\x18\x02 \x01(\x0e\x32\x12.MoneroNetworkType:\x16MONERO_NETWORK_MAINNET\x12\x0f\n\x07\x61\x63\x63ount\x18\x03 \x01(\r\"4\n\x0eMoneroWatchKey\x12\x11\n\twatch_key\x18\x01 \x01(\x0c\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\x0c\"E\n\x1bMoneroSubAddressIndicesList\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\r\x12\x15\n\rminor_indices\x18\x02 \x03(\r\"\xbd\x01\n\x1fMoneroKeyImageExportInitRequest\x12\x0b\n\x03num\x18\x01 \x01(\x04\x12\x0c\n\x04hash\x18\x02 \x01(\x0c\x12\x11\n\taddress_n\x18\x03 \x03(\r\x12@\n\x0cnetwork_type\x18\x04 \x01(\x0e\x32\x12.MoneroNetworkType:\x16MONERO_NETWORK_MAINNET\x12*\n\x04subs\x18\x05 \x03(\x0b\x32\x1c.MoneroSubAddressIndicesList\"\x1d\n\x1bMoneroKeyImageExportInitAck\"\xab\x01\n\x15MoneroTransferDetails\x12\x0f\n\x07out_key\x18\x01 \x01(\x0c\x12\x12\n\ntx_pub_key\x18\x02 \x01(\x0c\x12\x1e\n\x16\x61\x64\x64itional_tx_pub_keys\x18\x03 \x03(\x0c\x12\x1d\n\x15internal_output_index\x18\x04 \x01(\x04\x12\x16\n\x0esub_addr_major\x18\x05 \x01(\r\x12\x16\n\x0esub_addr_minor\x18\x06 \x01(\r\"E\n\x1dMoneroKeyImageSyncStepRequest\x12$\n\x04tdis\x18\x01 \x03(\x0b\x32\x16.MoneroTransferDetails\"2\n\x16MoneroExportedKeyImage\x12\n\n\x02iv\x18\x01 \x01(\x0c\x12\x0c\n\x04\x62lob\x18\x03 \x01(\x0c\"A\n\x19MoneroKeyImageSyncStepAck\x12$\n\x03kis\x18\x01 \x03(\x0b\x32\x17.MoneroExportedKeyImage\" \n\x1eMoneroKeyImageSyncFinalRequest\"-\n\x1aMoneroKeyImageSyncFinalAck\x12\x0f\n\x07\x65nc_key\x18\x01 \x01(\x0c\"\x86\x01\n\x13MoneroTxDestination\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x04\x12\x18\n\x10spend_public_key\x18\x02 \x01(\x0c\x12\x17\n\x0fview_public_key\x18\x03 \x01(\x0c\x12\x15\n\ris_subaddress\x18\x04 \x01(\x08\x12\x15\n\ris_integrated\x18\x05 \x01(\x08\"q\n\x0eMoneroTxChange\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x04\x12\x18\n\x10spend_public_key\x18\x02 \x01(\x0c\x12\x17\n\x0fview_public_key\x18\x03 \x01(\x0c\x12\r\n\x05major\x18\x04 \x01(\r\x12\r\n\x05minor\x18\x05 \x01(\r\"\xef\x01\n\x0cMoneroTxData\x12%\n\x07outputs\x18\x01 \x03(\x0b\x32\x14.MoneroTxDestination\x12#\n\nchange_dts\x18\x02 \x01(\x0b\x32\x0f.MoneroTxChange\x12\x12\n\nnum_inputs\x18\x03 \x01(\r\x12\x11\n\tring_size\x18\x04 \x01(\r\x12\x0b\n\x03\x66\x65\x65\x18\x05 \x01(\x04\x12\x0f\n\x07\x61\x63\x63ount\x18\x06 \x01(\r\x12\x12\n\npayment_id\x18\x07 \x01(\x0c\x12\x13\n\x0bunlock_time\x18\x08 \x01(\x04\x12\x11\n\thard_fork\x18\t \x01(\r\x12\x12\n\nbp_version\x18\n \x01(\r\"\x8b\x01\n\x13MoneroTxInitRequest\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12@\n\x0cnetwork_type\x18\x02 \x01(\x0e\x32\x12.MoneroNetworkType:\x16MONERO_NETWORK_MAINNET\x12\x1f\n\x08tsx_data\x18\x03 \x01(\x0b\x32\r.MoneroTxData\"7\n\x0fMoneroTxInitAck\x12\x11\n\tdst_hmacs\x18\x01 \x03(\x0c\x12\x11\n\trsig_mode\x18\x02 \x01(\r\"L\n\x12MoneroTxRingMember\x12\x14\n\x0cglobal_index\x18\x01 \x01(\x04\x12\x0c\n\x04\x64\x65st\x18\x02 \x01(\x0c\x12\x12\n\ncommitment\x18\x03 \x01(\x0c\"\xeb\x01\n\x13MoneroTxSourceEntry\x12!\n\x04ring\x18\x01 \x03(\x0b\x32\x13.MoneroTxRingMember\x12\x12\n\nreal_index\x18\x02 \x01(\r\x12\x17\n\x0freal_out_tx_key\x18\x03 \x01(\x0c\x12\x1f\n\x17real_out_additional_key\x18\x04 \x01(\x0c\x12\x1f\n\x17real_output_in_tx_index\x18\x05 \x01(\r\x12\x0e\n\x06\x61mount\x18\x06 \x01(\x04\x12\x0c\n\x04mask\x18\x07 \x01(\x0c\x12\x11\n\tsub_major\x18\x08 \x01(\r\x12\x11\n\tsub_minor\x18\t \x01(\r\"<\n\x17MoneroTxSetInputRequest\x12!\n\x03src\x18\x01 \x01(\x0b\x32\x14.MoneroTxSourceEntry\"c\n\x13MoneroTxSetInputAck\x12\x0c\n\x04vini\x18\x01 \x01(\x0c\x12\x11\n\tvini_hmac\x18\x02 \x01(\x0c\x12\x12\n\npseudo_out\x18\x03 \x01(\x0c\x12\x17\n\x0fpseudo_out_hmac\x18\x04 \x01(\x0c\"M\n\x18MoneroTxInputViniRequest\x12\x0c\n\x04vini\x18\x01 \x01(\x0c\x12\x11\n\tvini_hmac\x18\x02 \x01(\x0c\x12\x10\n\x08orig_idx\x18\x03 \x01(\r\"\x16\n\x14MoneroTxInputViniAck\"\x1d\n\x1bMoneroTxAllInputsSetRequest\"\x19\n\x17MoneroTxAllInputsSetAck\"O\n\x18MoneroTxSetOutputRequest\x12!\n\x03\x64st\x18\x01 \x01(\x0b\x32\x14.MoneroTxDestination\x12\x10\n\x08\x64st_hmac\x18\x02 \x01(\x0c\"Z\n\x14MoneroTxSetOutputAck\x12\x0e\n\x06tx_out\x18\x01 \x01(\x0c\x12\x0e\n\x06out_pk\x18\x02 \x01(\x0c\x12\x11\n\tecdh_info\x18\x03 \x01(\x0c\x12\x0f\n\x07\x62p_plus\x18\x04 \x01(\x0c\"\x1a\n\x18MoneroTxAllOutSetRequest\"w\n\x14MoneroTxAllOutSetAck\x12\r\n\x05\x65xtra\x18\x01 \x01(\x0c\x12\x16\n\x0etx_prefix_hash\x18\x02 \x01(\x0c\x12\x0b\n\x03\x66\x65\x65\x18\x03 \x01(\x04\x12\x10\n\x08rct_type\x18\x04 \x01(\r\x12\x19\n\x11\x66ull_message_hash\x18\x05 \x01(\x0c\"\x9d\x01\n\x18MoneroTxSignInputRequest\x12!\n\x03src\x18\x01 \x01(\x0b\x32\x14.MoneroTxSourceEntry\x12\x0c\n\x04vini\x18\x02 \x01(\x0c\x12\x11\n\tvini_hmac\x18\x03 \x01(\x0c\x12\x12\n\npseudo_out\x18\x04 \x01(\x0c\x12\x17\n\x0fpseudo_out_hmac\x18\x05 \x01(\x0c\x12\x10\n\x08orig_idx\x18\x06 \x01(\r\"=\n\x14MoneroTxSignInputAck\x12\x11\n\tclsag_enc\x18\x01 \x01(\x0c\x12\x12\n\npseudo_out\x18\x02 \x01(\x0c\"\x16\n\x14MoneroTxFinalRequest\"S\n\x10MoneroTxFinalAck\x12\x13\n\x0bopening_key\x18\x01 \x01(\x0c\x12\x0e\n\x06tx_key\x18\x02 \x01(\x0c\x12\x1a\n\x12\x61\x64\x64itional_tx_keys\x18\x03 \x03(\x0c*h\n\x11MoneroNetworkType\x12\x1a\n\x16MONERO_NETWORK_MAINNET\x10\x00\x12\x1a\n\x16MONERO_NETWORK_TESTNET\x10\x01\x12\x1b\n\x17MONERO_NETWORK_STAGENET\x10\x02\x42\x32\n\x1a\x63om.keepkey.deviceprotocolB\x14KeepKeyMessageMonero')
+  serialized_pb=_b('\n\x15messages-monero.proto\"\xb1\x01\n\x10MoneroGetAddress\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12\x14\n\x0cshow_display\x18\x02 \x01(\x08\x12@\n\x0cnetwork_type\x18\x03 \x01(\x0e\x32\x12.MoneroNetworkType:\x16MONERO_NETWORK_MAINNET\x12\x0f\n\x07\x61\x63\x63ount\x18\x04 \x01(\r\x12\r\n\x05minor\x18\x05 \x01(\r\x12\x12\n\npayment_id\x18\x06 \x01(\x0c\" \n\rMoneroAddress\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\"y\n\x11MoneroGetWatchKey\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12@\n\x0cnetwork_type\x18\x02 \x01(\x0e\x32\x12.MoneroNetworkType:\x16MONERO_NETWORK_MAINNET\x12\x0f\n\x07\x61\x63\x63ount\x18\x03 \x01(\r\"4\n\x0eMoneroWatchKey\x12\x11\n\twatch_key\x18\x01 \x01(\x0c\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\x0c\"E\n\x1bMoneroSubAddressIndicesList\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\r\x12\x15\n\rminor_indices\x18\x02 \x03(\r\"\xbd\x01\n\x1fMoneroKeyImageExportInitRequest\x12\x0b\n\x03num\x18\x01 \x01(\x04\x12\x0c\n\x04hash\x18\x02 \x01(\x0c\x12\x11\n\taddress_n\x18\x03 \x03(\r\x12@\n\x0cnetwork_type\x18\x04 \x01(\x0e\x32\x12.MoneroNetworkType:\x16MONERO_NETWORK_MAINNET\x12*\n\x04subs\x18\x05 \x03(\x0b\x32\x1c.MoneroSubAddressIndicesList\"\x1d\n\x1bMoneroKeyImageExportInitAck\"\xab\x01\n\x15MoneroTransferDetails\x12\x0f\n\x07out_key\x18\x01 \x01(\x0c\x12\x12\n\ntx_pub_key\x18\x02 \x01(\x0c\x12\x1e\n\x16\x61\x64\x64itional_tx_pub_keys\x18\x03 \x03(\x0c\x12\x1d\n\x15internal_output_index\x18\x04 \x01(\x04\x12\x16\n\x0esub_addr_major\x18\x05 \x01(\r\x12\x16\n\x0esub_addr_minor\x18\x06 \x01(\r\"E\n\x1dMoneroKeyImageSyncStepRequest\x12$\n\x04tdis\x18\x01 \x03(\x0b\x32\x16.MoneroTransferDetails\"2\n\x16MoneroExportedKeyImage\x12\n\n\x02iv\x18\x01 \x01(\x0c\x12\x0c\n\x04\x62lob\x18\x03 \x01(\x0c\"A\n\x19MoneroKeyImageSyncStepAck\x12$\n\x03kis\x18\x01 \x03(\x0b\x32\x17.MoneroExportedKeyImage\" \n\x1eMoneroKeyImageSyncFinalRequest\"-\n\x1aMoneroKeyImageSyncFinalAck\x12\x0f\n\x07\x65nc_key\x18\x01 \x01(\x0c\"\x8a\x01\n\x13MoneroTxDestination\x12\x12\n\x06\x61mount\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x18\n\x10spend_public_key\x18\x02 \x01(\x0c\x12\x17\n\x0fview_public_key\x18\x03 \x01(\x0c\x12\x15\n\ris_subaddress\x18\x04 \x01(\x08\x12\x15\n\ris_integrated\x18\x05 \x01(\x08\"u\n\x0eMoneroTxChange\x12\x12\n\x06\x61mount\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x18\n\x10spend_public_key\x18\x02 \x01(\x0c\x12\x17\n\x0fview_public_key\x18\x03 \x01(\x0c\x12\r\n\x05major\x18\x04 \x01(\r\x12\r\n\x05minor\x18\x05 \x01(\r\"\xf3\x01\n\x0cMoneroTxData\x12%\n\x07outputs\x18\x01 \x03(\x0b\x32\x14.MoneroTxDestination\x12#\n\nchange_dts\x18\x02 \x01(\x0b\x32\x0f.MoneroTxChange\x12\x12\n\nnum_inputs\x18\x03 \x01(\r\x12\x11\n\tring_size\x18\x04 \x01(\r\x12\x0f\n\x03\x66\x65\x65\x18\x05 \x01(\x04\x42\x02\x30\x01\x12\x0f\n\x07\x61\x63\x63ount\x18\x06 \x01(\r\x12\x12\n\npayment_id\x18\x07 \x01(\x0c\x12\x13\n\x0bunlock_time\x18\x08 \x01(\x04\x12\x11\n\thard_fork\x18\t \x01(\r\x12\x12\n\nbp_version\x18\n \x01(\r\"\x8b\x01\n\x13MoneroTxInitRequest\x12\x11\n\taddress_n\x18\x01 \x03(\r\x12@\n\x0cnetwork_type\x18\x02 \x01(\x0e\x32\x12.MoneroNetworkType:\x16MONERO_NETWORK_MAINNET\x12\x1f\n\x08tsx_data\x18\x03 \x01(\x0b\x32\r.MoneroTxData\"7\n\x0fMoneroTxInitAck\x12\x11\n\tdst_hmacs\x18\x01 \x03(\x0c\x12\x11\n\trsig_mode\x18\x02 \x01(\r\"P\n\x12MoneroTxRingMember\x12\x18\n\x0cglobal_index\x18\x01 \x01(\x04\x42\x02\x30\x01\x12\x0c\n\x04\x64\x65st\x18\x02 \x01(\x0c\x12\x12\n\ncommitment\x18\x03 \x01(\x0c\"\xef\x01\n\x13MoneroTxSourceEntry\x12!\n\x04ring\x18\x01 \x03(\x0b\x32\x13.MoneroTxRingMember\x12\x12\n\nreal_index\x18\x02 \x01(\r\x12\x17\n\x0freal_out_tx_key\x18\x03 \x01(\x0c\x12\x1f\n\x17real_out_additional_key\x18\x04 \x01(\x0c\x12\x1f\n\x17real_output_in_tx_index\x18\x05 \x01(\r\x12\x12\n\x06\x61mount\x18\x06 \x01(\x04\x42\x02\x30\x01\x12\x0c\n\x04mask\x18\x07 \x01(\x0c\x12\x11\n\tsub_major\x18\x08 \x01(\r\x12\x11\n\tsub_minor\x18\t \x01(\r\"<\n\x17MoneroTxSetInputRequest\x12!\n\x03src\x18\x01 \x01(\x0b\x32\x14.MoneroTxSourceEntry\"c\n\x13MoneroTxSetInputAck\x12\x0c\n\x04vini\x18\x01 \x01(\x0c\x12\x11\n\tvini_hmac\x18\x02 \x01(\x0c\x12\x12\n\npseudo_out\x18\x03 \x01(\x0c\x12\x17\n\x0fpseudo_out_hmac\x18\x04 \x01(\x0c\"M\n\x18MoneroTxInputViniRequest\x12\x0c\n\x04vini\x18\x01 \x01(\x0c\x12\x11\n\tvini_hmac\x18\x02 \x01(\x0c\x12\x10\n\x08orig_idx\x18\x03 \x01(\r\"\x16\n\x14MoneroTxInputViniAck\"\x1d\n\x1bMoneroTxAllInputsSetRequest\"\x19\n\x17MoneroTxAllInputsSetAck\"O\n\x18MoneroTxSetOutputRequest\x12!\n\x03\x64st\x18\x01 \x01(\x0b\x32\x14.MoneroTxDestination\x12\x10\n\x08\x64st_hmac\x18\x02 \x01(\x0c\"Z\n\x14MoneroTxSetOutputAck\x12\x0e\n\x06tx_out\x18\x01 \x01(\x0c\x12\x0e\n\x06out_pk\x18\x02 \x01(\x0c\x12\x11\n\tecdh_info\x18\x03 \x01(\x0c\x12\x0f\n\x07\x62p_plus\x18\x04 \x01(\x0c\"\x1a\n\x18MoneroTxAllOutSetRequest\"{\n\x14MoneroTxAllOutSetAck\x12\r\n\x05\x65xtra\x18\x01 \x01(\x0c\x12\x16\n\x0etx_prefix_hash\x18\x02 \x01(\x0c\x12\x0f\n\x03\x66\x65\x65\x18\x03 \x01(\x04\x42\x02\x30\x01\x12\x10\n\x08rct_type\x18\x04 \x01(\r\x12\x19\n\x11\x66ull_message_hash\x18\x05 \x01(\x0c\"\x9d\x01\n\x18MoneroTxSignInputRequest\x12!\n\x03src\x18\x01 \x01(\x0b\x32\x14.MoneroTxSourceEntry\x12\x0c\n\x04vini\x18\x02 \x01(\x0c\x12\x11\n\tvini_hmac\x18\x03 \x01(\x0c\x12\x12\n\npseudo_out\x18\x04 \x01(\x0c\x12\x17\n\x0fpseudo_out_hmac\x18\x05 \x01(\x0c\x12\x10\n\x08orig_idx\x18\x06 \x01(\r\"=\n\x14MoneroTxSignInputAck\x12\x11\n\tclsag_enc\x18\x01 \x01(\x0c\x12\x12\n\npseudo_out\x18\x02 \x01(\x0c\"\x16\n\x14MoneroTxFinalRequest\"S\n\x10MoneroTxFinalAck\x12\x13\n\x0bopening_key\x18\x01 \x01(\x0c\x12\x0e\n\x06tx_key\x18\x02 \x01(\x0c\x12\x1a\n\x12\x61\x64\x64itional_tx_keys\x18\x03 \x03(\x0c*h\n\x11MoneroNetworkType\x12\x1a\n\x16MONERO_NETWORK_MAINNET\x10\x00\x12\x1a\n\x16MONERO_NETWORK_TESTNET\x10\x01\x12\x1b\n\x17MONERO_NETWORK_STAGENET\x10\x02\x42\x32\n\x1a\x63om.keepkey.deviceprotocolB\x14KeepKeyMessageMonero')
 )
 
 _MONERONETWORKTYPE = _descriptor.EnumDescriptor(
@@ -44,8 +44,8 @@ _MONERONETWORKTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3142,
-  serialized_end=3246,
+  serialized_start=3166,
+  serialized_end=3270,
 )
 _sym_db.RegisterEnumDescriptor(_MONERONETWORKTYPE)
 
@@ -591,7 +591,7 @@ _MONEROTXDESTINATION = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='spend_public_key', full_name='MoneroTxDestination.spend_public_key', index=1,
       number=2, type=12, cpp_type=9, label=1,
@@ -633,7 +633,7 @@ _MONEROTXDESTINATION = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=1156,
-  serialized_end=1290,
+  serialized_end=1294,
 )
 
 
@@ -650,7 +650,7 @@ _MONEROTXCHANGE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='spend_public_key', full_name='MoneroTxChange.spend_public_key', index=1,
       number=2, type=12, cpp_type=9, label=1,
@@ -691,8 +691,8 @@ _MONEROTXCHANGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1292,
-  serialized_end=1405,
+  serialized_start=1296,
+  serialized_end=1413,
 )
 
 
@@ -737,7 +737,7 @@ _MONEROTXDATA = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='account', full_name='MoneroTxData.account', index=5,
       number=6, type=13, cpp_type=3, label=1,
@@ -785,8 +785,8 @@ _MONEROTXDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1408,
-  serialized_end=1647,
+  serialized_start=1416,
+  serialized_end=1659,
 )
 
 
@@ -830,8 +830,8 @@ _MONEROTXINITREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1650,
-  serialized_end=1789,
+  serialized_start=1662,
+  serialized_end=1801,
 )
 
 
@@ -868,8 +868,8 @@ _MONEROTXINITACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1791,
-  serialized_end=1846,
+  serialized_start=1803,
+  serialized_end=1858,
 )
 
 
@@ -886,7 +886,7 @@ _MONEROTXRINGMEMBER = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='dest', full_name='MoneroTxRingMember.dest', index=1,
       number=2, type=12, cpp_type=9, label=1,
@@ -913,8 +913,8 @@ _MONEROTXRINGMEMBER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1848,
-  serialized_end=1924,
+  serialized_start=1860,
+  serialized_end=1940,
 )
 
 
@@ -966,7 +966,7 @@ _MONEROTXSOURCEENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='mask', full_name='MoneroTxSourceEntry.mask', index=6,
       number=7, type=12, cpp_type=9, label=1,
@@ -1000,8 +1000,8 @@ _MONEROTXSOURCEENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1927,
-  serialized_end=2162,
+  serialized_start=1943,
+  serialized_end=2182,
 )
 
 
@@ -1031,8 +1031,8 @@ _MONEROTXSETINPUTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2164,
-  serialized_end=2224,
+  serialized_start=2184,
+  serialized_end=2244,
 )
 
 
@@ -1083,8 +1083,8 @@ _MONEROTXSETINPUTACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2226,
-  serialized_end=2325,
+  serialized_start=2246,
+  serialized_end=2345,
 )
 
 
@@ -1128,8 +1128,8 @@ _MONEROTXINPUTVINIREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2327,
-  serialized_end=2404,
+  serialized_start=2347,
+  serialized_end=2424,
 )
 
 
@@ -1152,8 +1152,8 @@ _MONEROTXINPUTVINIACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2406,
-  serialized_end=2428,
+  serialized_start=2426,
+  serialized_end=2448,
 )
 
 
@@ -1176,8 +1176,8 @@ _MONEROTXALLINPUTSSETREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2430,
-  serialized_end=2459,
+  serialized_start=2450,
+  serialized_end=2479,
 )
 
 
@@ -1200,8 +1200,8 @@ _MONEROTXALLINPUTSSETACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2461,
-  serialized_end=2486,
+  serialized_start=2481,
+  serialized_end=2506,
 )
 
 
@@ -1238,8 +1238,8 @@ _MONEROTXSETOUTPUTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2488,
-  serialized_end=2567,
+  serialized_start=2508,
+  serialized_end=2587,
 )
 
 
@@ -1290,8 +1290,8 @@ _MONEROTXSETOUTPUTACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2569,
-  serialized_end=2659,
+  serialized_start=2589,
+  serialized_end=2679,
 )
 
 
@@ -1314,8 +1314,8 @@ _MONEROTXALLOUTSETREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2661,
-  serialized_end=2687,
+  serialized_start=2681,
+  serialized_end=2707,
 )
 
 
@@ -1346,7 +1346,7 @@ _MONEROTXALLOUTSETACK = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='rct_type', full_name='MoneroTxAllOutSetAck.rct_type', index=3,
       number=4, type=13, cpp_type=3, label=1,
@@ -1373,8 +1373,8 @@ _MONEROTXALLOUTSETACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2689,
-  serialized_end=2808,
+  serialized_start=2709,
+  serialized_end=2832,
 )
 
 
@@ -1439,8 +1439,8 @@ _MONEROTXSIGNINPUTREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2811,
-  serialized_end=2968,
+  serialized_start=2835,
+  serialized_end=2992,
 )
 
 
@@ -1477,8 +1477,8 @@ _MONEROTXSIGNINPUTACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2970,
-  serialized_end=3031,
+  serialized_start=2994,
+  serialized_end=3055,
 )
 
 
@@ -1501,8 +1501,8 @@ _MONEROTXFINALREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3033,
-  serialized_end=3055,
+  serialized_start=3057,
+  serialized_end=3079,
 )
 
 
@@ -1546,8 +1546,8 @@ _MONEROTXFINALACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3057,
-  serialized_end=3140,
+  serialized_start=3081,
+  serialized_end=3164,
 )
 
 _MONEROGETADDRESS.fields_by_name['network_type'].enum_type = _MONERONETWORKTYPE
@@ -1842,4 +1842,16 @@ _sym_db.RegisterMessage(MoneroTxFinalAck)
 
 DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\n\032com.keepkey.deviceprotocolB\024KeepKeyMessageMonero'))
+_MONEROTXDESTINATION.fields_by_name['amount'].has_options = True
+_MONEROTXDESTINATION.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_MONEROTXCHANGE.fields_by_name['amount'].has_options = True
+_MONEROTXCHANGE.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_MONEROTXDATA.fields_by_name['fee'].has_options = True
+_MONEROTXDATA.fields_by_name['fee']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_MONEROTXRINGMEMBER.fields_by_name['global_index'].has_options = True
+_MONEROTXRINGMEMBER.fields_by_name['global_index']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_MONEROTXSOURCEENTRY.fields_by_name['amount'].has_options = True
+_MONEROTXSOURCEENTRY.fields_by_name['amount']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
+_MONEROTXALLOUTSETACK.fields_by_name['fee'].has_options = True
+_MONEROTXALLOUTSETACK.fields_by_name['fee']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('0\001'))
 # @@protoc_insertion_point(module_scope)
