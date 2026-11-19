@@ -12,6 +12,16 @@ from keepkeylib import monero_stream as stream
 
 
 class TestMoneroStreamUnit(unittest.TestCase):
+    def test_sweep_omits_change_and_preserves_both_outputs(self):
+        plan = json.loads(Path(__file__).with_name(
+            'monero_plans.json').read_text())[0]['plan']
+        self.assertTrue(stream.tx_data(plan, plan['outputs']).HasField('change_dts'))
+        plan['change']['amount'] = 0
+        plan['outputs'][1]['amount'] = 0
+        data = stream.tx_data(plan, plan['outputs'])
+        self.assertFalse(data.HasField('change_dts'))
+        self.assertEqual(list(data.outputs), [stream.destination(o) for o in plan['outputs']])
+
     def test_sign_returns_final_payment_proof_keys(self):
         for additional in ([], [(7).to_bytes(32, 'little'),
                                 (11).to_bytes(32, 'little')]):

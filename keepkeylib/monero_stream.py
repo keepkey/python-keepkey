@@ -25,9 +25,9 @@ an unsigned transfer:
                   "is_subaddress", "is_integrated"}],   # change included
      "change": {"amount", "spend_public_key", "view_public_key"}}
 
-Firmware 7.17 signs exactly two outputs, one of them the change to the
-wallet's own (account, 0) address, with rings of 16. It refuses anything
-else at TxInit, before any screen.
+The signer reviews two outputs and rings of 16. With change, the device
+verifies the wallet's own (account, 0) address. A sweep declares no change
+and the device reviews both outputs, including a zero-amount dummy.
 
 A Failure from the device raises (CallException) and ends the session on
 the device; start again from sign().
@@ -88,12 +88,14 @@ def tx_data(plan, outputs):
     will have in the transaction."""
     data = proto.MoneroTxData(
         outputs=[destination(o) for o in outputs],
-        change_dts=proto.MoneroTxChange(
-            amount=plan['change']['amount'], major=plan['account'], minor=0,
-            **_keys(plan['change'])),
         num_inputs=len(plan['inputs']), ring_size=RING_SIZE, fee=plan['fee'],
         account=plan['account'], unlock_time=plan.get('unlock_time', 0),
         hard_fork=HARD_FORK, bp_version=BP_PLUS)
+    change = plan['change']
+    if change['amount']:
+        data.change_dts.CopyFrom(proto.MoneroTxChange(
+            amount=change['amount'], major=plan['account'], minor=0,
+            **_keys(change)))
     if plan.get('payment_id'):
         data.payment_id = bytes.fromhex(plan['payment_id'])
     return data
