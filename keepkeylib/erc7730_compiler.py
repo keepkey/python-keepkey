@@ -1087,9 +1087,9 @@ DEVICE_CAPABILITIES = {
     # SETTLEMENT) and mark each field's role in the order; widens
     # formatter_flags by _settle_kinds()
     "settlement": True,
-    # 7.17: an embedded call in an iteration may name one callee, value or
-    # authority (a scalar) for every element
-    "embedded_scalar_arguments": True,
+    # The staged release requires arguments to follow the iterated array.
+    # Callers targeting the extended interpreter may opt into scalar arguments.
+    "embedded_scalar_arguments": False,
     # 7.17: typed data iterates one array at a time too (Seaport's offer[]
     # and consideration[]), counted from the length the stream sends
     "typed_iteration": True,
@@ -1438,22 +1438,23 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     return None
 
 
-def _executable(program, executable_only):
+def _executable(program, executable_only, capabilities):
     if executable_only:
-        reason = device_refusal(program)
+        reason = device_refusal(program, capabilities)
         if reason:
             raise DeviceCannotExecute("device cannot execute: " + reason)
     return program
 
 
 def compile_calldata(descriptor, signature, chain_id, address,
-                     executable_only=True, **kwargs):
+                     executable_only=True, capabilities=DEVICE_CAPABILITIES, **kwargs):
     """Compile one calldata format. By default only a program the device
     executes is returned; pass executable_only=False to obtain the program
-    anyway, for example to prove that the device refuses it."""
+    anyway, for example to prove that the device refuses it. Pass capabilities
+    to select a target interpreter explicitly."""
     return _executable(CalldataCompiler(descriptor, signature, chain_id,
                                         address, **kwargs).compile(),
-                       executable_only)
+                       executable_only, capabilities)
 
 
 def _typed_base(type_name, types, active):
@@ -1501,7 +1502,7 @@ def eip712_encode_type(primary_type, types):
 
 
 def compile_eip712(descriptor, typed_data, chain_id=None, address=None,
-                   executable_only=True, **kwargs):
+                   executable_only=True, capabilities=DEVICE_CAPABILITIES, **kwargs):
     """Compile one EIP-712 descriptor against its exact typed-data schema."""
     types = typed_data["types"]
     primary = typed_data["primaryType"]
@@ -1547,4 +1548,4 @@ def compile_eip712(descriptor, typed_data, chain_id=None, address=None,
     return _executable(CalldataCompiler(
         synthetic, signature, chain_id, address, definition_kind=2,
         primary_type_hash=type_hash, domain_constraints=constraints,
-        **kwargs).compile(), executable_only)
+        **kwargs).compile(), executable_only, capabilities)

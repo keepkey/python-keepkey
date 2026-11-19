@@ -68,11 +68,11 @@ def _unchecked(compile, *args, **kwargs):
     return compile(*args, executable_only=False, **kwargs)
 
 
-def _firmware_validate(program, refusal=None):
+def _firmware_validate(program, refusal=None, capabilities=DEVICE_CAPABILITIES):
     """The device verifier accepts `program` exactly when the compiler's
     capability mirror does, and `refusal` names the expected reason (None
     for a program the device executes)."""
-    assert device_refusal(program) == refusal
+    assert device_refusal(program, capabilities) == refusal
     assert _firmware_accepts(program) == (refusal is None)
 
 
@@ -500,13 +500,22 @@ DEVICE_LIMITS = (
 # element: the eight multicall(bytes[]) formats (Aave lpv3, Serenita
 # EthVault, Ekubo Positions, Orders, MEVCaptureRouter, Ve33Periphery,
 # Ve33Positions, VeToken): 1305.
-REGISTRY_SIGNABLE = 1305
+# Select the expected target independently of the validator being tested.
+# Alpha's extended interpreter can be qualified against the same pinned corpus.
+def _registry_target():
+    profile = os.environ.get("KK_ERC7730_REGISTRY_TARGET", "release")
+    if profile == "release":
+        return DEVICE_CAPABILITIES, 1297
+    if profile == "embedded-scalar":
+        return dict(DEVICE_CAPABILITIES, embedded_scalar_arguments=True), 1305
+    raise ValueError("unknown ERC-7730 registry target: " + profile)
 
 
 def test_official_registry_all_calldata_formats_reach_firmware():
     registry = _evidence_input("ERC7730_REGISTRY")
     _evidence_input("ERC7730_FIRMWARE_VALIDATOR")
     import glob
+    capabilities, expected_signable = _registry_target()
     failures = []
     unsupported = []
     signable = 0
@@ -536,11 +545,12 @@ def test_official_registry_all_calldata_formats_reach_firmware():
                     raise
                 # The device verifier and the compiler's capability mirror
                 # must agree on every format, in both directions.
-                executable = device_refusal(program) is None
+                reason = device_refusal(program, capabilities)
+                executable = reason is None
                 if _firmware_accepts(program) != executable:
                     raise AssertionError(
                         "device and compiler disagree: %r" %
-                        device_refusal(program))
+                        reason)
                 signable += executable
             except Exception as exc:
                 failures.append("%s :: %s :: %s" % (
@@ -552,7 +562,7 @@ def test_official_registry_all_calldata_formats_reach_firmware():
     assert len(unsupported) == 10
     # Passing the parser is not signability: only these pass the device's
     # preload capability checks.
-    assert signable == REGISTRY_SIGNABLE
+    assert signable == expected_signable
 
 
 def test_compiles_official_uniswap_eip712_fixture_through_firmware():
@@ -917,11 +927,12 @@ def test_encode_type_finds_struct_dependency_through_every_array_dimension():
 def test_717_embedded_call_in_an_iteration_may_name_one_callee():
     # multicall(bytes[]): every element calls the contract itself (@.to).
     # The callee is one value for every element, not a second array.
-    _requires_firmware("7.17.0")
+    capabilities, _ = _registry_target()
     signature = "multicall(bytes[] data)"
     address = "0x" + "11" * 20
     for callee, refusal in (
-            ("@.to", None),
+            ("@.to", None if capabilities["embedded_scalar_arguments"] else
+             "a field reads another array than its iteration"),
             ("calls", "a field reads another array than its iteration")):
         sig = signature if callee == "@.to" else (
             "multicall(bytes[] data,address[] calls)")
@@ -932,7 +943,13 @@ def test_717_embedded_call_in_an_iteration_may_name_one_callee():
                            else "calls.[]"}}]}}}}
         program = _unchecked(compile_calldata, descriptor, sig, 1, address)
         # A parallel callee array stays refused (D10); only a scalar is new.
-        _firmware_validate(program, refusal)
+        _firmware_validate(program, refusal, capabilities)
+        if refusal is None:
+            assert compile_calldata(descriptor, sig, 1, address,
+                                    capabilities=capabilities) == program
+        else:
+            with pytest.raises(DeviceCannotExecute):
+                compile_calldata(descriptor, sig, 1, address, capabilities=capabilities)
     # Another formatter still may not read a scalar inside an iteration.
     descriptor = {"display": {"formats": {
         "batch(uint256[] amounts,address token)": {
