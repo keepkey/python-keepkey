@@ -92,8 +92,8 @@ class TestMsgEthereumErc7730Safe(Erc7730Harness, common.KeepKeyTest):
         super().setUp()
         self.requires_fullFeature()
         self.requires_structured_eip712()
-        if proto.Features.CAPABILITY_SAFE_TYPED_CALLS not in self.client.features.capabilities:
-            raise unittest.SkipTest("requires authenticated Safe typed calls")
+        self.requires_firmware(common.CAPABILITIES_SINCE)
+        self.requires_release_capability("safe-typed-calls")
         self.setup_mnemonic_abandon()
         self.client.apply_policy("AdvancedMode", 1)
 

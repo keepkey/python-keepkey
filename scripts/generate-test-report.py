@@ -2867,6 +2867,19 @@ SECTIONS = [
           'list is the assertion.',
           []),
      ]),
+    ('SAFE', 'Authenticated Safe typed calls', '7.17.0',
+     'Full firmware with authenticated Safe typed calls reviews the transfer inside a Safe owner approval.',
+     ['The signed EIP-712 digest covers the original Safe transaction.'],
+     [
+         ('SAFE1', 'test_msg_ethereum_erc7730_safe',
+          'test_transfer_uses_signed_inner_metadata_and_signs_the_same_digest',
+          'Inner transfer amount and recipient', 'Checks the displayed transfer and compares its signature to the ordinary Safe review.',
+          ['Inner action', 'Recipient and amount']),
+         ('SAFE2', 'test_msg_ethereum_erc7730_safe', 'test_missing_inner_metadata_refuses_before_signing',
+          'Missing inner definition', 'The device refuses the unresolved inner call before signing.', []),
+         ('SAFE3', 'test_msg_ethereum_erc7730_safe', 'test_delegatecall_cannot_claim_the_callees_normal_action',
+          'Delegatecall refusal', 'The device refuses to describe a delegatecall as a normal transfer.', []),
+     ]),
     ('XMR', 'Monero wallet', '7.15.0',
      'Full firmware with the Monero signing capability derives addresses, exports a '
      'view key with consent, synchronizes key images and signs RingCT transactions.',
@@ -2906,9 +2919,8 @@ SECTIONS = [
          '  signature equal the run with no record.',
          '- A malformed record refuses the request, as every malformed record does.',
          '',
-         'The record names the Uniswap Universal Router on Ethereum and chains to the alpha root,',
-         'like every certified fixture here; the production ceremony records are checked by the',
-         'firmware unit tests under the compiled-in root. The approve is the calldata swaps.pro',
+         'The tests select the Ethereum Universal Router record for the compiled-in production root',
+         'or the emulator alpha root. Both signed records name the same spender. The approve is the calldata swaps.pro',
          'sent through Desktop on 2026-10-29. Each case signs the same request with and without',
          'the record and requires the same signature.',
      ],
@@ -2918,7 +2930,7 @@ SECTIONS = [
           'A certified name follows the approve screen, which stays whole',
           'The same 25000 USDC approve to the Universal Router is signed without and with its '
           'name record. The named review is the unnamed one plus one screen, '
-          '"Spender: Uniswap Universal Router, named by KeepKey Alpha 716 A9531B9D, certified '
+          '"Spender: Uniswap Universal Router" with the verified signer and "certified '
           'by KeepKey", right after the approve screen, which still shows the whole address on '
           'one page. The signatures are equal, and the next approve with no new record is the '
           'unnamed review again.',
@@ -3935,6 +3947,7 @@ _TEST_CAPABILITY = {
 
 # Modules whose every row is gated in setUp on one staged capability.
 _MODULE_CAPABILITY = {
+    'test_msg_ethereum_erc7730_safe': 'safe-typed-calls',
     'test_msg_monero_getaddress': 'monero-signing',
     'test_msg_monero_getwatchkey': 'monero-signing',
     'test_msg_monero_key_image': 'monero-signing',
@@ -4254,6 +4267,7 @@ def screenshot_test_list(fw_version):
 # version-blind set would fail every older-firmware run for a module that
 # legitimately cannot exist yet.
 MUST_RUN_MODULES = {
+    'test_msg_ethereum_erc7730_safe': '7.17.0',
     'test_msg_monero_getaddress': '7.15.0',
     'test_msg_monero_getwatchkey': '7.15.0',
     'test_msg_monero_key_image': '7.15.0',
@@ -4287,6 +4301,8 @@ MUST_RUN_MODULES = {
 # remains mandatory in both products, and the expected build variant comes from
 # CI rather than the firmware identity being tested.
 FULL_FEATURE_ONLY_MUST_RUN_MODULES = {
+    'test_msg_tron_signtx',
+    'test_msg_ethereum_erc7730_safe',
     'test_msg_monero_getaddress',
     'test_msg_monero_getwatchkey',
     'test_msg_monero_key_image',
@@ -4360,6 +4376,15 @@ RETIRED_FROM[('test_msg_ethereum_erc20_uniswap_liquidity',
               'test_sign_uni_approve_liquidity_ETH_refused')] = '7.16.0'
 
 
+# These four rows share a module with older TRON tests that have their own gates.
+MUST_RUN_TESTS = {
+    ('test_msg_tron_signtx', 'test_tron_usdt_unlimited_approve_names_spender'): '7.17.0',
+    ('test_msg_tron_signtx', 'test_tron_usdt_approve_shows_amount'): '7.17.0',
+    ('test_msg_tron_signtx', 'test_tron_freeze_v2'): '7.17.0',
+    ('test_msg_tron_signtx', 'test_tron_vote_witness'): '7.17.0',
+}
+
+
 def validate_junit(fw_version, results, variant='full',
                    missing_capabilities=None):
     """Check SECTIONS tests against JUnit results. Returns (passed, failed_list).
@@ -4391,8 +4416,9 @@ def validate_junit(fw_version, results, variant='full',
                 variant == 'bitcoin-only' and
                 mod in FULL_FEATURE_ONLY_MUST_RUN_MODULES
             )
-            if (status == 'skip' and must_run and
-                    ver_ge(fw_version, MUST_RUN_MODULES.get(mod, '99.0.0'))):
+            required_from = MUST_RUN_TESTS.get((mod, meth),
+                                               MUST_RUN_MODULES.get(mod, '99.0.0'))
+            if status == 'skip' and must_run and ver_ge(fw_version, required_from):
                 failures.append((tid, mod, meth, 'skipped-but-required'))
             elif not status:
                 failures.append((tid, mod, meth, 'missing'))

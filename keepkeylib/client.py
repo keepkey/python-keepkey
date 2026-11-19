@@ -51,6 +51,7 @@ from . import messages_ton_pb2 as ton_proto
 from . import messages_zcash_pb2 as zcash_proto
 from . import messages_hive_pb2 as hive_proto
 from . import messages_monero_pb2 as monero_proto
+from .transport_udp import UDPTransport
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -2436,8 +2437,14 @@ class ProtocolMixin(object):
         return self.call(monero_proto.MoneroTxAllInputsSetRequest())
 
     def monero_tx_set_output(self, dst, dst_hmac):
-        return self.call(monero_proto.MoneroTxSetOutputRequest(
-            dst=dst, dst_hmac=dst_hmac))
+        request = monero_proto.MoneroTxSetOutputRequest(dst=dst, dst_hmac=dst_hmac)
+        # The final output generates a Bulletproof+ on the device. The
+        # one-step API receives no output index, so allow for it on either.
+        if isinstance(self.transport, UDPTransport):
+            # Leave margin above the protocol minimum of 120 seconds.
+            with self.transport.minimum_read_timeout(180):
+                return self.call(request)
+        return self.call(request)
 
     def monero_tx_all_out_set(self):
         return self.call(monero_proto.MoneroTxAllOutSetRequest())

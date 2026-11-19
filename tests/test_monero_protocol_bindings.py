@@ -5,11 +5,13 @@ refuses what it does not implement: signing without monero-signing, every
 Monero request in bitcoin-only builds and before 7.17.0.
 """
 
+import socket
 import unittest
 from unittest.mock import Mock
 
 import common
 from keepkeylib.client import CallException, ProtocolMixin
+from keepkeylib.transport_udp import UDPTransport
 from keepkeylib import mapping
 from keepkeylib import messages_monero_pb2 as monero_proto
 from keepkeylib import messages_pb2 as proto
@@ -97,6 +99,28 @@ class TestMoneroProtocolBindings(unittest.TestCase):
             client.call.return_value = reply
             start(*args)
         self.assertEqual(client.call.call_count, len(starts))
+
+    def test_proof_timeout_is_scoped_to_the_output_request(self):
+        client = object.__new__(ProtocolMixin)
+        client.transport = object.__new__(UDPTransport)
+        with socket.socket() as sock:
+            client.transport.socket = sock
+            for original, expected in ((45, 180), (130, 180), (240, 240), (None, None)):
+                for fails in (False, True):
+                    with self.subTest(timeout=original, fails=fails):
+                        sock.settimeout(original)
+                        def output(request):
+                            self.assertEqual(sock.gettimeout(), expected)
+                            if fails:
+                                raise RuntimeError("device disconnected")
+                            return monero_proto.MoneroTxSetOutputAck()
+                        client.call = output
+                        if fails:
+                            with self.assertRaises(RuntimeError):
+                                client.monero_tx_set_output(monero_proto.MoneroTxDestination(), b'')
+                        else:
+                            client.monero_tx_set_output(monero_proto.MoneroTxDestination(), b'')
+                        self.assertEqual(sock.gettimeout(), original)
 
     def test_no_secret_offload_fields(self):
         # Unlike Trezor's protocol, the host never carries an encrypted spend

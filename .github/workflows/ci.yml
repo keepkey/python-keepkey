@@ -268,10 +268,9 @@ jobs:
           python tx_fixture_manifest.py --check
           EMULATOR_IP=$(docker inspect -f \
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' kkemu)
-          KK_EMULATOR_BIN="$GITHUB_WORKSPACE/keepkey-firmware/bin/kkemu"
-          mkdir -p "$(dirname "$KK_EMULATOR_BIN")"
-          docker cp kkemu:/kkemu/bin/kkemu "$KK_EMULATOR_BIN"
-          test -x "$KK_EMULATOR_BIN"
+          emulator_dir="$GITHUB_WORKSPACE/keepkey-firmware/bin"
+          ../scripts/export-ci-emulator.sh kkemu "$emulator_dir"
+          KK_EMULATOR_BIN="$emulator_dir/kkemu"
           test -n "$EMULATOR_IP"
           # Only the test UID loses external network access. The runner must
           # remain able to renew its job lease and reconnect to GitHub.
@@ -523,10 +522,9 @@ jobs:
           python tx_fixture_manifest.py --check
           EMULATOR_IP=$(docker inspect -f \
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' kkemu-7143)
-          KK_EMULATOR_BIN="$GITHUB_WORKSPACE/keepkey-firmware/bin/kkemu"
-          mkdir -p "$(dirname "$KK_EMULATOR_BIN")"
-          docker cp kkemu-7143:/kkemu/bin/kkemu "$KK_EMULATOR_BIN"
-          test -x "$KK_EMULATOR_BIN"
+          emulator_dir="$GITHUB_WORKSPACE/keepkey-firmware/bin"
+          ../scripts/export-ci-emulator.sh kkemu-7143 "$emulator_dir"
+          KK_EMULATOR_BIN="$emulator_dir/kkemu"
           test -n "$EMULATOR_IP"
           # Only the test UID loses external network access. The runner must
           # remain able to renew its job lease and reconnect to GitHub.
@@ -848,6 +846,7 @@ jobs:
               "$PYTHON_BIN" -m pytest "$@"
           }
           run_offline_pytest -v --junitxml=junit-btc.xml test_msg_bitcoin_only_variant.py \
+            test_monero_protocol_bindings.py::TestMoneroWithoutSigner::test_bitcoin_only_refuses_every_monero_request \
             2>&1 | tee pytest-btc-output.txt
           echo "${PIPESTATUS[0]}" > status-btc
 

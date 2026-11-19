@@ -134,6 +134,14 @@ class TestProtectCall(common.KeepKeyTest):
         self.client.close()
         self.client = emu.client(self._testMethodName, screenshot_dir=shots)
 
+        self._check_exponential_backoff(emu, shots)
+
+    def test_exponential_backoff_on_hardware(self):
+        if self.client.features.firmware_variant.startswith("Emulator"):
+            self.skipTest("hardware PIN delay is checked separately from emulator reboot")
+        self._check_exponential_backoff()
+
+    def _check_exponential_backoff(self, emu=None, shots=None):
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()
 
@@ -144,14 +152,14 @@ class TestProtectCall(common.KeepKeyTest):
                 expected = 0
             else:
                 expected = (2 ** attempts) - 1
-            got = time.time() - start
+            got = time.monotonic() - start
 
             msg = "Pin delay expected to be at least %s seconds, got %s" % (expected, got)
             print(msg)
             self.assertLessEqual(expected, got, msg)
 
         for attempt in range(0, 5):
-            if attempt == 4:
+            if attempt == 4 and emu is not None:
                 # Power cycle: same flash image, fresh RAM and session.
                 self.client.close()
                 emu.halt()
@@ -159,7 +167,7 @@ class TestProtectCall(common.KeepKeyTest):
                 self.client = emu.client(self._testMethodName,
                                          screenshot_dir=shots)
                 self.client.setup_debuglink(button=True, pin_correct=False)
-            start = time.time()
+            start = time.monotonic()
             self.assertRaises(PinException, self._some_protected_call, False, True, False)
             test_backoff(attempt, start)
 

@@ -70,9 +70,10 @@ class TestMsgMoneroKeyImage(common.KeepKeyTest):
         # Batches of three and one; half the outputs name their subaddress,
         # the device finds the others among the init's subaddresses.
         exported = []
-        for batch in (outputs[:3], outputs[3:]):
+        for start in range(0, len(outputs), 3):
+            batch = outputs[start:start + 3]
             step = self.client.monero_key_image_sync_step(
-                [details(o, explicit=i % 2 == 0) for i, o in enumerate(batch)])
+                [details(o, explicit=i % 2 == 0) for i, o in enumerate(batch, start)])
             self.assertIsInstance(step, monero_proto.MoneroKeyImageSyncStepAck)
             exported += step.kis
         final = self.client.monero_key_image_sync_final()
