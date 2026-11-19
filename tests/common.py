@@ -248,6 +248,27 @@ class KeepKeyTest(unittest.TestCase):
         if version < semver.VersionInfo.parse(ver_required):
             self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
 
+    def advertises_groestlcoin(self):
+        """Read both networks from the full coin table during 7.17 staging."""
+        table = self.client.call(messages_pb2.GetCoinTable())
+        self.assertGreater(table.chunk_size, 0)
+        networks = {"Groestlcoin", "GRS Testnet"}
+        found = set()
+        for start in range(0, table.num_coins, table.chunk_size):
+            end = min(start + table.chunk_size, table.num_coins)
+            chunk = self.client.call(messages_pb2.GetCoinTable(start=start, end=end))
+            found.update(coin.coin_name for coin in chunk.table if coin.coin_name in networks)
+            if found == networks:
+                return True
+        self.assertFalse(found, "Groestlcoin mainnet and testnet must retire together")
+        return False
+
+    def requires_groestlcoin(self):
+        self.requires_fullFeature()
+        self.requires_firmware_below("7.17.0")
+        if self.firmware_at_least("7.16.0") and not self.advertises_groestlcoin():
+            self.skipTest("Groestlcoin retired on this staging build")
+
     def requires_firmware_below(self, ver_limit):
         """Skip on firmware at or above ver_limit: for behaviour a later
         release deliberately removes, so the test pins the release it is
