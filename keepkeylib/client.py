@@ -50,6 +50,7 @@ from . import messages_tron_pb2 as tron_proto
 from . import messages_ton_pb2 as ton_proto
 from . import messages_zcash_pb2 as zcash_proto
 from . import messages_hive_pb2 as hive_proto
+from . import messages_monero_pb2 as monero_proto
 from . import types_pb2 as types
 from . import eos
 from . import nano
@@ -2364,6 +2365,82 @@ class ProtocolMixin(object):
             new_posting_key=new_posting_key,
             new_memo_key=new_memo_key,
         ))
+
+    # ── Monero ──────────────────────────────────────────────────
+    # address_n is m/44'/128'/account'; account and minor are subaddress
+    # indices. network is a MoneroNetworkType value. Fields left as None are
+    # not sent, so the firmware's defaults apply.
+
+    @field('address')
+    @expect(monero_proto.MoneroAddress)
+    def monero_get_address(self, address_n, network=None, account=None,
+                           minor=None, show_display=False, payment_id=None):
+        msg = monero_proto.MoneroGetAddress(address_n=address_n,
+                                            show_display=show_display)
+        if network is not None:
+            msg.network_type = network
+        if account is not None:
+            msg.account = account
+        if minor is not None:
+            msg.minor = minor
+        if payment_id is not None:
+            msg.payment_id = payment_id
+        return self.call(msg)
+
+    @expect(monero_proto.MoneroWatchKey)
+    def monero_get_watch_key(self, address_n, network=None, account=None):
+        msg = monero_proto.MoneroGetWatchKey(address_n=address_n)
+        if network is not None:
+            msg.network_type = network
+        if account is not None:
+            msg.account = account
+        return self.call(msg)
+
+    # Key-image sync and transaction signing are multi-step flows; these
+    # send one step each and return the device's reply unchecked, so a test
+    # drives the order (and its violations) itself.
+
+    def monero_key_image_export_init(self, **kwargs):
+        return self.call(monero_proto.MoneroKeyImageExportInitRequest(**kwargs))
+
+    def monero_key_image_sync_step(self, tdis):
+        return self.call(monero_proto.MoneroKeyImageSyncStepRequest(tdis=tdis))
+
+    def monero_key_image_sync_final(self):
+        return self.call(monero_proto.MoneroKeyImageSyncFinalRequest())
+
+    def monero_tx_init(self, address_n, tsx_data, network=None):
+        msg = monero_proto.MoneroTxInitRequest(address_n=address_n,
+                                               tsx_data=tsx_data)
+        if network is not None:
+            msg.network_type = network
+        return self.call(msg)
+
+    def monero_tx_set_input(self, src):
+        return self.call(monero_proto.MoneroTxSetInputRequest(src=src))
+
+    def monero_tx_input_vini(self, vini, vini_hmac, orig_idx):
+        return self.call(monero_proto.MoneroTxInputViniRequest(
+            vini=vini, vini_hmac=vini_hmac, orig_idx=orig_idx))
+
+    def monero_tx_all_inputs_set(self):
+        return self.call(monero_proto.MoneroTxAllInputsSetRequest())
+
+    def monero_tx_set_output(self, dst, dst_hmac):
+        return self.call(monero_proto.MoneroTxSetOutputRequest(
+            dst=dst, dst_hmac=dst_hmac))
+
+    def monero_tx_all_out_set(self):
+        return self.call(monero_proto.MoneroTxAllOutSetRequest())
+
+    def monero_tx_sign_input(self, src, vini, vini_hmac, pseudo_out,
+                             pseudo_out_hmac, orig_idx):
+        return self.call(monero_proto.MoneroTxSignInputRequest(
+            src=src, vini=vini, vini_hmac=vini_hmac, pseudo_out=pseudo_out,
+            pseudo_out_hmac=pseudo_out_hmac, orig_idx=orig_idx))
+
+    def monero_tx_final(self):
+        return self.call(monero_proto.MoneroTxFinalRequest())
 
 class KeepKeyClient(ProtocolMixin, TextUIMixin, BaseClient):
     pass
