@@ -26,6 +26,7 @@ import copy
 import hashlib
 
 import common
+from keepkeylib.erc7730_compiler import EXTENDED_CAPABILITIES
 from keepkeylib import eip712_stream, erc7730_compiler
 from keepkeylib import messages_ethereum_pb2 as eth
 from keepkeylib import messages_pb2 as proto
@@ -223,7 +224,8 @@ class TestMsgEthereumErc7730TypedIteration(Erc7730Harness,
         baseline, streamed, _, _ = self._walk(self._start(doc), doc=doc)
         self.assertIsInstance(baseline, eth.EthereumTypedDataSignature)
         envelope = self._preload(
-            erc7730_compiler.compile_eip712(descriptor, doc))
+            erc7730_compiler.compile_eip712(
+                descriptor, doc, capabilities=EXTENDED_CAPABILITIES))
         result, certified, _, walks = self._walk(
             self._start(doc), envelope, doc)
         self.assertIsInstance(result, eth.EthereumTypedDataSignature)
@@ -322,7 +324,8 @@ class TestMsgEthereumErc7730TypedIteration(Erc7730Harness,
 
     def test_declining_a_payment_aborts(self):
         envelope = self._preload(
-            erc7730_compiler.compile_eip712(SEAPORT_DESCRIPTOR, LISTING))
+            erc7730_compiler.compile_eip712(
+                SEAPORT_DESCRIPTOR, LISTING, capabilities=EXTENDED_CAPABILITIES))
         result, _, _, _ = self._walk(
             self._start(LISTING), envelope, LISTING,
             cancel_title="Signer field 2 of 2")
@@ -335,7 +338,7 @@ class TestMsgEthereumErc7730TypedIteration(Erc7730Harness,
         """Sign LISTING with its definition, answering walk `at_walk` from
         `tampered`. Returns (response, screens shown, walks)."""
         envelope = self._preload(erc7730_compiler.compile_eip712(
-            SEAPORT_DESCRIPTOR, LISTING))
+            SEAPORT_DESCRIPTOR, LISTING, capabilities=EXTENDED_CAPABILITIES))
         definition_id = hashlib.sha256(envelope).digest()
         shown = []
         walks = 0

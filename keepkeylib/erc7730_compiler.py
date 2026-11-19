@@ -1079,22 +1079,23 @@ DEVICE_CAPABILITIES = {
     # signer text shown inside a value's screen, and unit decimals
     "signer_text_max": 64,
     "unit_decimals_max": 77,
-    # formatter kind -> the flags it may carry (7.17): addressName RECIPIENT,
-    # amount TX_VALUE (calldata only)
-    "formatter_flags": {10: FORMATTER_FLAG_RECIPIENT,
-                        2: FORMATTER_FLAG_TX_VALUE},
-    # 7.17: typed data may opt in to the settlement review (header flag
-    # SETTLEMENT) and mark each field's role in the order; widens
-    # formatter_flags by _settle_kinds()
-    "settlement": True,
-    # The staged release requires arguments to follow the iterated array.
-    # Callers targeting the extended interpreter may opt into scalar arguments.
+    # The release verifier accepts unflagged formatters, calldata iteration
+    # and embedded calldata inside calldata definitions.
+    "formatter_flags": {},
+    "settlement": False,
     "embedded_scalar_arguments": False,
-    "safe_typed_calls": True,
-    # 7.17: typed data iterates one array at a time too (Seaport's offer[]
-    # and consideration[]), counted from the length the stream sends
-    "typed_iteration": True,
+    "safe_typed_calls": False,
+    "typed_iteration": False,
 }
+
+# Later interpreters also review canonical SafeTx calls, typed array elements
+# and settlement roles. Select this target explicitly for those devices.
+EXTENDED_CAPABILITIES = dict(
+    DEVICE_CAPABILITIES,
+    formatter_flags={10: FORMATTER_FLAG_RECIPIENT, 2: FORMATTER_FLAG_TX_VALUE},
+    settlement=True, embedded_scalar_arguments=True, safe_typed_calls=True,
+    typed_iteration=True,
+)
 # The verifier's table limits (erc7730_catalog.c).
 TABLE_LIMITS = {1: 96, 2: 64, 3: 64, 4: 64, 5: 32, 6: 64, 7: 64, 8: 64}
 # Value classes: 1-7 are ABI leaf kinds; literals map to what they hold.
@@ -1454,7 +1455,7 @@ def compile_calldata(descriptor, signature, chain_id, address,
     """Compile one calldata format. By default only a program the device
     executes is returned; pass executable_only=False to obtain the program
     anyway, for example to prove that the device refuses it. Pass capabilities
-    to select a target interpreter explicitly."""
+    to select another interpreter, such as EXTENDED_CAPABILITIES."""
     return _executable(CalldataCompiler(descriptor, signature, chain_id,
                                         address, **kwargs).compile(),
                        executable_only, capabilities)
@@ -1506,7 +1507,10 @@ def eip712_encode_type(primary_type, types):
 
 def compile_eip712(descriptor, typed_data, chain_id=None, address=None,
                    executable_only=True, capabilities=DEVICE_CAPABILITIES, **kwargs):
-    """Compile one EIP-712 descriptor against its exact typed-data schema."""
+    """Compile the typed-data schema for the release interpreter by default.
+
+    Pass EXTENDED_CAPABILITIES for a target supporting its typed-data features.
+    """
     types = typed_data["types"]
     primary = typed_data["primaryType"]
     root = _typed_base(primary, types, set())

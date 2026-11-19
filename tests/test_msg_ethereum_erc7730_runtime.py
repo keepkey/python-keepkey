@@ -18,6 +18,7 @@ import semver
 
 import common
 from confirmation_pages import ConfirmationPages
+from keepkeylib.erc7730_compiler import EXTENDED_CAPABILITIES
 from keepkeylib import erc7730, erc7730_compiler, eip712_stream
 from keepkeylib import messages_ethereum_pb2 as eth
 from keepkeylib import messages_pb2 as proto
@@ -2196,7 +2197,7 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         return erc7730_compiler.compile_calldata(
             {"display": {"formats": {signature: {
                 "intent": intent, "fields": fields}}}},
-            signature, 1, address)
+            signature, 1, address, capabilities=EXTENDED_CAPABILITIES)
 
     def _router02(self, address):
         """The multicall and its two steps, all at `address`."""

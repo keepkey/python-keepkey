@@ -13,7 +13,7 @@ import semver
 import common
 
 from keepkeylib.erc7730_compiler import (
-    DEVICE_CAPABILITIES, HEADER_SIZE, SETTLE_FLAGS, SETTLEMENT,
+    DEVICE_CAPABILITIES, EXTENDED_CAPABILITIES, HEADER_SIZE, SETTLE_FLAGS, SETTLEMENT,
     DeviceCannotExecute, compile_calldata,
     compile_eip712,
     device_refusal, eip712_encode_type, load_descriptor,
@@ -507,16 +507,26 @@ def _registry_target():
     if profile == "release":
         return DEVICE_CAPABILITIES, 1297
     if profile == "embedded-scalar":
-        return dict(DEVICE_CAPABILITIES, embedded_scalar_arguments=True), 1305
+        return EXTENDED_CAPABILITIES, 1305
     raise ValueError("unknown ERC-7730 registry target: " + profile)
 
 
 def test_safe_typed_calls_require_the_target_capability():
     from test_msg_ethereum_erc7730_safe import SAFE_DESCRIPTOR, safe_doc
-    legacy = dict(DEVICE_CAPABILITIES)
-    del legacy["safe_typed_calls"]
-    program = compile_eip712(SAFE_DESCRIPTOR, safe_doc())
-    assert device_refusal(program, legacy) == "authenticated Safe typed calls are not executed"
+    doc = safe_doc()
+    ordinary = {"display": {"formats": {"SafeTx(": {
+        "intent": "Transaction", "fields": [{"path": "to", "label": "To",
+                                             "format": "addressName"}]}}}}
+    assert device_refusal(compile_eip712(ordinary, doc)) is None
+    refusal = "authenticated Safe typed calls are not executed"
+    with pytest.raises(DeviceCannotExecute, match=refusal):
+        compile_eip712(SAFE_DESCRIPTOR, doc)
+    program = compile_eip712(SAFE_DESCRIPTOR, doc, capabilities=EXTENDED_CAPABILITIES)
+    assert device_refusal(program) == refusal
+    assert device_refusal(program, EXTENDED_CAPABILITIES) is None
+    if os.environ.get("ERC7730_FIRMWARE_VALIDATOR"):
+        capabilities, _ = _registry_target()
+        assert _firmware_accepts(program) == capabilities["safe_typed_calls"]
 
 
 def test_official_registry_all_calldata_formats_reach_firmware():
@@ -634,10 +644,7 @@ def test_717_typed_data_iterates_one_array_like_calldata():
     # a field reading another array (or a scalar) inside it is refused.
     _requires_firmware("7.17.0")
     # Alpha 7.17 builds before typed iteration report the same version.
-    reported = common.device_capabilities()
-    if reported is not None and "erc7730-typed-iteration" not in reported:
-        pytest.skip("Staged release tree does not yet provide capability: "
-                    "erc7730-typed-iteration")
+    capabilities, _ = _registry_target()
     typed = {
         "types": {
             "EIP712Domain": [{"name": "chainId", "type": "uint256"},
@@ -668,15 +675,15 @@ def test_717_typed_data_iterates_one_array_like_calldata():
         count = int.from_bytes(display[:2], "big")
         assert [display[2 + i * 8] for i in range(count)] == [
             1, 7, 5, 4, 6, 8, 10]
-        _firmware_validate(program, refusal)
-    # A device without typed iteration refuses the same program.
-    capabilities = dict(DEVICE_CAPABILITIES)
-    del capabilities["typed_iteration"]
+        if not capabilities["typed_iteration"]:
+            refusal = "iteration is not executed here"
+        _firmware_validate(program, refusal, capabilities)
+    # The release interpreter refuses every typed iteration.
     descriptor = {"display": {"formats": {"Order(": {
         "intent": "Order", "fields": [{
             "path": "offer.[].amount", "label": "Amount", "format": "raw"}]}}}}
-    assert device_refusal(_unchecked(compile_eip712, descriptor, typed),
-                          capabilities) == "iteration is not executed here"
+    assert device_refusal(_unchecked(compile_eip712, descriptor, typed)) == (
+        "iteration is not executed here")
 
 
 def test_trailing_data_flag_is_header_byte_6_for_calldata_only():
@@ -748,10 +755,7 @@ def test_717_settlement_roles_are_a_typed_data_opt_in():
     # SETTLEMENT, which only typed data may carry, and the device then shows
     # what the signer receives, net of what it gives.
     _requires_firmware("7.17.0")
-    reported = common.device_capabilities()
-    if reported is not None and "erc7730-typed-settlement" not in reported:
-        pytest.skip("Staged release tree does not yet provide capability: "
-                    "erc7730-typed-settlement")
+    capabilities, _ = _registry_target()
     typed = {
         "types": {
             "EIP712Domain": [{"name": "chainId", "type": "uint256"},
@@ -793,19 +797,13 @@ def test_717_settlement_roles_are_a_typed_data_opt_in():
                              "format": "addressName",
                              "params": role("to", {"recipient": True})}]}]}}}}
 
-    program = compile_eip712(descriptor(), typed)
+    program = compile_eip712(descriptor(), typed, capabilities=EXTENDED_CAPABILITIES)
     assert program[6] == SETTLEMENT
     # One formatter per field, in field order; "to" keeps RECIPIENT.
     flags = [program[_formatter_flags_offset(program, i)] for i in range(5)]
     assert flags == [SETTLE_FLAGS["type"], SETTLE_FLAGS["type"],
                      SETTLE_FLAGS["id"], SETTLE_FLAGS["amount"],
                      SETTLE_FLAGS["to"] | 1]
-    _firmware_validate(program)
-    _firmware_validate(compile_eip712(descriptor(give_kind="enum"), typed))
-    # No role, no flag: the program is the 7.17 one.
-    plain = compile_eip712(descriptor(roles=False), typed)
-    assert plain[6] == 0
-    _firmware_validate(plain)
     # A role the kind cannot hold, or an unknown role, does not compile.
     with pytest.raises(ValueError, match="settlement id does not apply"):
         compile_eip712(descriptor(amount_role="id"), typed)
@@ -822,22 +820,30 @@ def test_717_settlement_roles_are_a_typed_data_opt_in():
                                        "format": "raw",
                                        "params": {"settlement": "id"}}]}}}},
             "f(uint256 a)", 1, "0x" + "11" * 20)
+    with pytest.raises(DeviceCannotExecute, match="settlement is not executed"):
+        compile_eip712(descriptor(), typed)
+    if not capabilities["settlement"]:
+        _firmware_validate(program, "settlement is not executed", capabilities)
+        return
+    _firmware_validate(program, capabilities=capabilities)
+    enum_program = compile_eip712(descriptor(give_kind="enum"), typed,
+                                  capabilities=capabilities)
+    _firmware_validate(enum_program, capabilities=capabilities)
+    # No role, no flag: the program is the 7.17 one.
+    plain = compile_eip712(descriptor(roles=False), typed, capabilities=capabilities)
+    assert plain[6] == 0
+    _firmware_validate(plain, capabilities=capabilities)
     # The device refuses a role without the header flag, and two roles on one
     # field; the mirror says why.
     refusal = "a settlement role needs the header flag, one per field"
-    _firmware_validate(program[:6] + bytes([0]) + program[7:], refusal)
+    _firmware_validate(program[:6] + bytes([0]) + program[7:], refusal, capabilities)
     two = bytearray(program)
     two[_formatter_flags_offset(program, 2)] |= SETTLE_FLAGS["type"]
-    _firmware_validate(bytes(two), refusal)
+    _firmware_validate(bytes(two), refusal, capabilities)
     # Flag 4 (an earlier draft's "give") is no flag on any kind.
     four = bytearray(program)
     four[_formatter_flags_offset(program, 0)] = 4
-    _firmware_validate(bytes(four), "formatter kind 1 flags are not executed")
-    # A device without the settlement review refuses the flag.
-    capabilities = dict(DEVICE_CAPABILITIES)
-    del capabilities["settlement"]
-    assert device_refusal(program, capabilities) == (
-        "settlement is not executed")
+    _firmware_validate(bytes(four), "formatter kind 1 flags are not executed", capabilities)
 
 
 def test_mirror_applies_the_devices_abi_and_text_limits():
@@ -983,8 +989,12 @@ def test_717_constraint_flags_are_formatter_byte_1():
              "params": {"recipient": True}},
             {"path": "sell", "label": "Sell", "format": "amount",
              "params": {"equalsTxValue": True}}]}}}}
-    program = compile_calldata(descriptor, signature, 1, address)
-    _firmware_validate(program)
+    capabilities, _ = _registry_target()
+    program = compile_calldata(descriptor, signature, 1, address,
+                               capabilities=EXTENDED_CAPABILITIES)
+    refusal = None if capabilities["formatter_flags"] else (
+        "formatter kind 10 flags are not executed")
+    _firmware_validate(program, refusal, capabilities)
     formatters = _sections(program)[6]
     assert formatters[2:5] == bytes([10, 1, 1])
     assert formatters[9:12] == bytes([2, 2, 1])
@@ -993,7 +1003,7 @@ def test_717_constraint_flags_are_formatter_byte_1():
     at = program.index(formatters)
     swapped[at + 3], swapped[at + 10] = 2, 1
     _firmware_validate(bytes(swapped),
-                       "formatter kind 10 flags are not executed")
+                       "formatter kind 10 flags are not executed", capabilities)
     for bad in ({"path": "receiver", "label": "R", "format": "raw",
                  "params": {"recipient": True}},
                 {"path": "sell", "label": "S", "format": "raw",

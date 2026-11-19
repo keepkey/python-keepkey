@@ -10,6 +10,7 @@ import hashlib
 import unittest
 
 import common
+from keepkeylib.erc7730_compiler import EXTENDED_CAPABILITIES
 from keepkeylib import erc7730, erc7730_compiler
 from keepkeylib import messages_ethereum_pb2 as eth
 from keepkeylib import messages_pb2 as proto
@@ -121,7 +122,8 @@ class TestMsgEthereumErc7730Safe(Erc7730Harness, common.KeepKeyTest):
                                       chain, program[18:38],
                                       program[38:42] if program[7] == 1 else program[38:70])
 
-        outer = definition(erc7730_compiler.compile_eip712(SAFE_DESCRIPTOR, doc))
+        outer = definition(erc7730_compiler.compile_eip712(
+            SAFE_DESCRIPTOR, doc, capabilities=EXTENDED_CAPABILITIES))
         self._load_signer()
         erc7730.preload(self.client, outer)
         self._drop_setup_screenshots()
@@ -283,7 +285,8 @@ class TestBaseSafeIncident(Erc7730Harness, common.KeepKeyTest):
         descriptor = copy.deepcopy(TRANSFER_DESCRIPTOR)
         descriptor["display"]["formats"][TRANSFER_FORMAT]["fields"][1].update(
             format="unit", params={"decimals": 6, "base": "USDC"})
-        programs = [erc7730_compiler.compile_eip712(SAFE_DESCRIPTOR, doc)]
+        programs = [erc7730_compiler.compile_eip712(
+            SAFE_DESCRIPTOR, doc, capabilities=EXTENDED_CAPABILITIES)]
         if not missing:
             programs.append(erc7730_compiler.compile_calldata(
                 descriptor, TRANSFER_FORMAT, 8453, bytes.fromhex(doc["message"]["to"][2:])))

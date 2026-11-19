@@ -61,6 +61,7 @@ import re
 from decimal import Decimal
 
 import common
+from keepkeylib.erc7730_compiler import EXTENDED_CAPABILITIES
 from keepkeylib import erc7730, erc7730_compiler
 from keepkeylib import messages_ethereum_pb2 as eth
 from keepkeylib import types_pb2 as types
@@ -451,7 +452,7 @@ class TestMsgEthereumErc7730Settlement(Erc7730Harness, common.KeepKeyTest):
         self.assertIsInstance(baseline, eth.EthereumTypedDataSignature)
         chain = doc["domain"]["chainId"]
         program = erc7730_compiler.compile_eip712(
-            descriptor or seaport_descriptor(), doc)
+            descriptor or seaport_descriptor(), doc, capabilities=EXTENDED_CAPABILITIES)
         self._load_signer()
         envelope = self._envelope(program, chain=chain)
         erc7730.preload(self.client, self._definition(program, envelope))
