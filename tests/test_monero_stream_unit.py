@@ -12,6 +12,15 @@ from keepkeylib import monero_stream as stream
 
 
 class TestMoneroStreamUnit(unittest.TestCase):
+    def test_proof_hash_requires_both_vectors_in_full(self):
+        vector = bytes([7]) + bytes(7 * 32)
+        proof = bytes(192) + vector + vector
+        for malformed in (b'', proof[:-1], proof + b'X',
+                          proof[:192] + bytes([6]) + proof[193:],
+                          proof[:417] + bytes([6]) + proof[418:]):
+            with self.subTest(length=len(malformed)), self.assertRaises(ValueError):
+                stream.clsag_message(bytes(32), b'', malformed)
+
     def test_sweep_omits_change_and_preserves_both_outputs(self):
         plan = json.loads(Path(__file__).with_name(
             'monero_plans.json').read_text())[0]['plan']

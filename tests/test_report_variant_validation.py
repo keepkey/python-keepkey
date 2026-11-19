@@ -84,6 +84,21 @@ class TestReportVariantValidation(unittest.TestCase):
         self.assertEqual({'skipped-but-required'},
                          {status for _, _, _, status in failures})
 
+    def test_monero_rows_are_required_only_with_the_advertised_signer(self):
+        results = catalog_results_with_solana_lut_skipped('7.17.0')
+        controls = [key for key in results if key.startswith('test_msg_monero_')]
+        self.assertEqual(5, len(controls))
+        for key in controls:
+            results[key] = 'skip'
+        missing = {'solana-lut-attestation'}
+        _, failures = REPORT.validate_junit('7.17.0', results, 'full', missing)
+        self.assertEqual({module + '::' + method for _, module, method, _ in failures},
+                         set(controls))
+        self.assertEqual((True, []), REPORT.validate_junit(
+            '7.17.0', results, 'full', missing | {'monero-signing'}))
+        self.assertEqual((True, []), REPORT.validate_junit(
+            '7.17.0', results, 'bitcoin-only', missing))
+
     def test_complete_release_still_requires_staged_controls(self):
         results = catalog_results_with_solana_lut_skipped('7.15.0')
         for method in (

@@ -200,7 +200,9 @@ class Screens(object):
 
     def __enter__(self):
         def callback(msg):
-            self.layouts.append(self.client._read_oled_after_settle())
+            layout = self.client._read_oled_after_settle()
+            self.layouts.append(layout)
+            self.client._capture_oled(layout)
             self.pages.add(msg.code, self.client.debug.read_confirm_text())
             answer = self.answers[min(len(self.layouts), len(self.answers)) - 1]
             if answer:

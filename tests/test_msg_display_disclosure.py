@@ -72,9 +72,10 @@ class ScreenRecorder(object):
     displayed; reading it afterwards would only ever see the home screen.
     """
 
-    def __init__(self, client, answer=True, screenshot_group=None):
+    def __init__(self, client, answer=True, screenshot_group=None, save_frames=True):
         self.client = client
         self.answer = answer
+        self.save_frames = save_frames
         self.screenshot_group = screenshot_group
         self.screens = []
         self._original = None
@@ -111,7 +112,7 @@ class ScreenRecorder(object):
             # Use the same framebuffer for the assertion and PNG. A second
             # DebugLink read can race the button transition and make the PDF
             # evidence disagree with the bytes the test actually compared.
-            if getattr(client, 'screenshot_dir', None):
+            if recorder.save_frames and getattr(client, 'screenshot_dir', None):
                 client._capture_oled(layout=layout)
             if recorder.answer:
                 client.debug.press_yes()

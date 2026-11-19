@@ -2867,6 +2867,27 @@ SECTIONS = [
           'list is the assertion.',
           []),
      ]),
+    ('XMR', 'Monero wallet', '7.15.0',
+     'Full firmware with the Monero signing capability derives addresses, exports a '
+     'view key with consent, synchronizes key images and signs RingCT transactions.',
+     ['The fixture checks use public test wallets. The stream tests scan both outputs.'],
+     [
+         ('XMR1', 'test_msg_monero_getaddress', 'test_shows_the_full_address',
+          'Monero receive addresses', 'The device displays the full primary and subaddresses.',
+          ['Derivation and address']),
+         ('XMR2', 'test_msg_monero_getwatchkey', 'test_consent_shows_warning_and_full_address',
+          'View-key export consent', 'The review describes incoming-payment visibility and shows the selected address.',
+          ['Export warning', 'Selected address']),
+         ('XMR3', 'test_msg_monero_key_image', 'test_key_images_match_monero_core',
+          'Key-image sync', 'The user approves four outputs. The exported key images and signatures are verified.',
+          ['Key-image consent']),
+         ('XMR4', 'test_msg_monero_sign_stream', 'test_standard_address',
+          'Standard transfer', 'The host assembles the signed transaction and scans both outputs.',
+          ['Recipient', 'Change', 'Fee and total']),
+         ('XMR5', 'test_msg_monero_sign_stream', 'test_sweep_signs_the_balance_and_zero_amount_output',
+          'Send the full balance', 'The zero-amount output is reviewed explicitly and both outputs are scanned.',
+          ['Recipient', 'Zero-amount output', 'Fee and total']),
+     ]),
     ('AN', 'Certified Names - Who An Approval Or Send Goes To', '7.17.0',
      'An approval hands a contract the right to move the user\'s tokens, and the device can only '
      'show that contract as forty hex characters. From 7.17 a name record certified by KeepKey '
@@ -3914,6 +3935,10 @@ _TEST_CAPABILITY = {
 
 # Modules whose every row is gated in setUp on one staged capability.
 _MODULE_CAPABILITY = {
+    'test_msg_monero_getaddress': 'monero-signing',
+    'test_msg_monero_getwatchkey': 'monero-signing',
+    'test_msg_monero_key_image': 'monero-signing',
+    'test_msg_monero_sign_stream': 'monero-signing',
     'test_msg_ethereum_erc7730_runtime': 'erc7730-runtime-review',
     'test_msg_ethereum_certified_contacts': 'certified-contacts',
 }
@@ -4229,6 +4254,10 @@ def screenshot_test_list(fw_version):
 # version-blind set would fail every older-firmware run for a module that
 # legitimately cannot exist yet.
 MUST_RUN_MODULES = {
+    'test_msg_monero_getaddress': '7.15.0',
+    'test_msg_monero_getwatchkey': '7.15.0',
+    'test_msg_monero_key_image': '7.15.0',
+    'test_msg_monero_sign_stream': '7.15.0',
     'test_msg_authenticator_boundaries': '7.15.0',
     # Taproot did not exist at 7.0.0. That floor only ever held because this
     # table was applied to products that happen to carry taproot: 7.14.2
@@ -4258,6 +4287,10 @@ MUST_RUN_MODULES = {
 # remains mandatory in both products, and the expected build variant comes from
 # CI rather than the firmware identity being tested.
 FULL_FEATURE_ONLY_MUST_RUN_MODULES = {
+    'test_msg_monero_getaddress',
+    'test_msg_monero_getwatchkey',
+    'test_msg_monero_key_image',
+    'test_msg_monero_sign_stream',
     'test_msg_ethereum_erc20_uniswap_liquidity',
     'test_msg_solana_lut_attestation',
     'test_msg_ethereum_erc7730_runtime',

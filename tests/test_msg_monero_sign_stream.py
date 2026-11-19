@@ -16,7 +16,8 @@ its recipient with only its view key, the payment ID decrypts, and the
 RingCT amounts balance. Set KK_MONERO_TX_CORE_VERIFY to the
 monero_tx_core_verify binary (keepkey-firmware
 unittests/firmware/monero_tx_vectors_gen.sh) and each transaction is also
-verified by Monero Core.
+verified by Monero Core. Set KK_REQUIRE_MONERO_CORE=1 in a qualification run
+to require this verifier for the dedicated fresh-proof test.
 """
 
 import json
@@ -54,7 +55,7 @@ def xmr_amount(atomic):
 
 class ChangeFirst(object):
     def shuffle(self, outputs):
-        outputs.sort(key=lambda o: not o['is_change'])
+        outputs.sort(key=lambda o: not o['is_wallet_output'])
 
 
 class Reader(object):
@@ -122,14 +123,24 @@ class TestMsgMoneroSignStream(common.KeepKeyTest):
         self.requires_release_capability('monero-signing')
         self.setup_mnemonic_abandon()
 
-    def sign(self, name, rng=None):
+    def sign(self, name, rng=None, sweep=False):
         case = CASES[name]
         plan = json.loads(json.dumps(case['plan']))
         change = plan['change']
         for output in plan['outputs']:
-            output['is_change'] = all(
+            # Ownership selects the independent scanning key, including for a sweep's dummy.
+            output['is_wallet_output'] = all(
                 output[k] == change[k] for k in
                 ('amount', 'spend_public_key', 'view_public_key'))
+        if sweep:
+            # The zero-amount output uses the fixture wallet's keys so both
+            # outputs of the final transaction can be independently scanned.
+            for output in plan['outputs']:
+                if output['is_wallet_output']:
+                    output['amount'] = 0
+                else:
+                    output['amount'] += change['amount']
+            change['amount'] = 0
         with xmr.Screens(self.client) as screens:
             signed = monero_stream.sign(self.client, xmr.path(0), plan,
                                         rng=rng)
@@ -167,7 +178,7 @@ class TestMsgMoneroSignStream(common.KeepKeyTest):
         self.assertEqual(len(signed.tx_key), 32)
         # R = r*G, or r*D when the one recipient is a subaddress with
         # spend key D (Core's construct_tx_with_tx_key).
-        paid = [o for o in signed.outputs if not o['is_change']]
+        paid = [o for o in signed.outputs if not o['is_wallet_output']]
         base = xmr._decode(bytes.fromhex(paid[0]['spend_public_key'])) \
             if len(paid) == 1 and paid[0]['is_subaddress'] else xmr.G
         self.assertEqual(xmr._encode(xmr._mul(
@@ -176,11 +187,11 @@ class TestMsgMoneroSignStream(common.KeepKeyTest):
 
         # Every output scans for its recipient with only its view key.
         self.assertEqual(len(tx['outputs']), 2)
-        self.assertEqual(sorted(o['is_change'] for o in signed.outputs),
+        self.assertEqual(sorted(o['is_wallet_output'] for o in signed.outputs),
                          [False, True])
         commitments = []
         for j, (dst, out) in enumerate(zip(signed.outputs, tx['outputs'])):
-            view = OWN_VIEW if dst['is_change'] else PAYEE_VIEW
+            view = OWN_VIEW if dst['is_wallet_output'] else PAYEE_VIEW
             derivation = xmr._encode(
                 xmr._mul(R, 8 * int.from_bytes(view, 'little')))
             shared = hs(derivation + xmr.varint(j))
@@ -218,7 +229,7 @@ class TestMsgMoneroSignStream(common.KeepKeyTest):
         verifier = os.environ.get('KK_MONERO_TX_CORE_VERIFY')
         if not verifier:
             return
-        name = ('stream-' + case['name']).encode()
+        name = ('stream-' + (case['name'] if plan['change']['amount'] else 'sweep')).encode()
         prefix_hash = xmr.keccak256(tx['prefix'])
         record = b'T\x01' + bytes([len(name)]) + name
         record += struct.pack('<I', len(signed.blob)) + signed.blob
@@ -233,7 +244,7 @@ class TestMsgMoneroSignStream(common.KeepKeyTest):
             record += bytes.fromhex(case['input_secrets'][i])
         for dst in signed.outputs:
             record += struct.pack('<Q', dst['amount'])
-            record += OWN_VIEW if dst['is_change'] else PAYEE_VIEW
+            record += OWN_VIEW if dst['is_wallet_output'] else PAYEE_VIEW
             record += bytes.fromhex(dst['spend_public_key'])
         record += payment_id + PAYEE_VIEW
         with tempfile.TemporaryDirectory() as tmp:
@@ -245,7 +256,7 @@ class TestMsgMoneroSignStream(common.KeepKeyTest):
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if done.returncode != 0 or b'core=accept' not in done.stdout:
             self.fail('Monero Core: ' + done.stdout.decode())
-        print(done.stdout.decode().strip())
+        print("tx_hash=%s %s" % (signed.tx_hash.hex(), done.stdout.decode().strip()))
 
     def review(self, case, plan, shown, kind):
         """The complete addresses, exact amounts, the fee and the total."""
@@ -277,6 +288,23 @@ class TestMsgMoneroSignStream(common.KeepKeyTest):
         self.assertEqual(len(plan['inputs']), 1)
         self.review(case, plan, shown, 'standardaddress')
 
+    def test_sweep_signs_the_balance_and_zero_amount_output(self):
+        _, plan, signed, shown = self.sign('standard', sweep=True)
+        total = sum(src['amount'] for src in plan['inputs']) - plan['fee']
+        self.assertEqual(sorted(o['amount'] for o in signed.outputs), [0, total])
+        self.assertIn('Monero zero-amount output', [title for title, _ in shown])
+        self.assertNotIn('Monero change', [title for title, _ in shown])
+
+    def test_core_verifies_fresh_streamed_transactions(self):
+        if not os.environ.get('KK_MONERO_TX_CORE_VERIFY'):
+            if os.environ.get('KK_REQUIRE_MONERO_CORE') == '1':
+                self.fail('KK_REQUIRE_MONERO_CORE requires KK_MONERO_TX_CORE_VERIFY')
+            self.skipTest('set KK_MONERO_TX_CORE_VERIFY to verify fresh CLSAG and Bulletproof+')
+        for name in CASES:
+            with self.subTest(plan=name):
+                self.sign(name)
+        self.sign('standard', sweep=True)
+
     def test_subaddress_spending_change(self):
         # Three inputs: the change of the transaction above, an output on
         # the primary address and one on subaddress (0, 2) that was paid
@@ -284,7 +312,7 @@ class TestMsgMoneroSignStream(common.KeepKeyTest):
         # too. Change first.
         case, plan, signed, shown = self.sign('subaddress', ChangeFirst())
         self.assertEqual(len(plan['inputs']), 3)
-        self.assertTrue(signed.outputs[0]['is_change'])
+        self.assertTrue(signed.outputs[0]['is_wallet_output'])
         self.review(case, plan, shown, 'subaddress')
 
     def test_integrated_address(self):

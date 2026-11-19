@@ -154,9 +154,14 @@ def assemble(unlock_time, vinis, outs, all_out, clsags, pseudo_outs):
 def clsag_message(prefix_hash, base, bp_plus):
     """What every CLSAG signs (Core's get_pre_mlsag_hash): the range proof
     is hashed as its keys alone, without the two length bytes."""
-    rounds = bp_plus[192]
-    left = bp_plus[193:193 + 32 * rounds]
-    right = bp_plus[194 + 32 * rounds:]
+    # This signing protocol aggregates exactly two 64-bit outputs (7 rounds).
+    rounds = 7
+    right_count = 193 + 32 * rounds
+    if (len(bp_plus) != right_count + 1 + 32 * rounds or
+            bp_plus[192] != rounds or bp_plus[right_count] != rounds):
+        raise ValueError("Malformed two-output Bulletproof+")
+    left = bp_plus[193:right_count]
+    right = bp_plus[right_count + 1:]
     return keccak256(prefix_hash + keccak256(base) +
                      keccak256(bp_plus[:192] + left + right))
 

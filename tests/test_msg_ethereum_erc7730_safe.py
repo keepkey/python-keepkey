@@ -114,21 +114,33 @@ class TestMsgEthereumErc7730Safe(Erc7730Harness, common.KeepKeyTest):
             erc7730.preload(self.client, entries[0])
             self._drop_setup_screenshots()
             return erc7730.Catalog(entries)
-        outer = erc7730_compiler.compile_eip712(SAFE_DESCRIPTOR, doc)
-        envelope = self._preload(outer)
-        entries = [self._definition(outer, envelope)]
+        chain = int(doc["domain"]["chainId"])
+
+        def definition(program):
+            return erc7730.Definition(self._envelope(program, chain=chain), program[7],
+                                      chain, program[18:38],
+                                      program[38:42] if program[7] == 1 else program[38:70])
+
+        outer = definition(erc7730_compiler.compile_eip712(SAFE_DESCRIPTOR, doc))
+        self._load_signer()
+        erc7730.preload(self.client, outer)
+        self._drop_setup_screenshots()
+        entries = [outer]
         if not missing:
+            transfer = TRANSFER_DESCRIPTOR
+            if chain == 8453:
+                transfer = copy.deepcopy(transfer)
+                transfer["display"]["formats"][TRANSFER_FORMAT]["fields"][1].update(
+                    format="unit", params={"decimals": 6, "base": "USDC"})
             inner = erc7730_compiler.compile_calldata(
-                TRANSFER_DESCRIPTOR, TRANSFER_FORMAT, 1, USDC)
-            entries.append(erc7730.Definition(self._envelope(inner), 1, 1,
-                                               USDC, inner[38:42]))
+                transfer, TRANSFER_FORMAT, chain, USDC)
+            entries.append(definition(inner))
             owner_program = erc7730_compiler.compile_calldata(
-                OWNER_DESCRIPTOR, OWNER_FORMAT, 1, ADDRESS)
-            entries.append(self._definition(owner_program, self._envelope(owner_program)))
+                OWNER_DESCRIPTOR, OWNER_FORMAT, chain, ADDRESS)
+            entries.append(definition(owner_program))
             forward = erc7730_compiler.compile_calldata(
-                FORWARD_DESCRIPTOR, FORWARD_FORMAT, 1, FORWARDER)
-            entries.append(erc7730.Definition(self._envelope(forward), 1, 1,
-                                               FORWARDER, forward[38:42]))
+                FORWARD_DESCRIPTOR, FORWARD_FORMAT, chain, FORWARDER)
+            entries.append(definition(forward))
         return erc7730.Catalog(entries)
 
     def test_transfer_uses_signed_inner_metadata_and_signs_the_same_digest(self):
@@ -238,6 +250,7 @@ class TestBaseSafeIncident(Erc7730Harness, common.KeepKeyTest):
         super().setUp()
         self.requires_fullFeature()
         self.requires_structured_eip712()
+        self.requires_release_capability("safe-typed-calls")
         if os.getenv("KK_CLEARSIGN_TEST_ROOT") != (
                 "0288bbff17897c34aa5c0e92c2068f3396e3786fb0356f589417111db59016d147"):
             raise unittest.SkipTest("requires emulator-only test root")

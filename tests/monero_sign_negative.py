@@ -265,6 +265,10 @@ class SignFlow(common.KeepKeyTest):
         self.client.transport._write(frame, None)
         return self.client.transport.read_blocking()
 
+    def require_udp_socket(self):
+        if not hasattr(self.client.transport, 'socket'):
+            self.skipTest("wire interruption checks require a UDP socket")
+
     def pending(self, quiet=0.1):
         """Whatever the device sends without being asked, until it has been
         silent for `quiet` seconds. (An answer later than that would be read

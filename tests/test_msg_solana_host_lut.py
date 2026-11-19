@@ -15,6 +15,7 @@ refused.
 import unittest
 
 import common
+from oled_text import shows
 import keepkeylib.messages_solana_pb2 as messages
 from keepkeylib.client import CallException
 from keepkeylib.tools import parse_path
@@ -138,13 +139,16 @@ class TestSolanaHostLookupAccounts(common.KeepKeyTest):
         raw[offset:offset + 32] = self._pubkey()
         return bytes(raw)
 
-    def _sign(self, **kw):
+    def _sign(self, pages=None, **kw):
         """Sign, returning (button_request_codes, response)."""
         codes = []
         orig = self.client.callback_ButtonRequest
 
         def spy(msg):
             codes.append(msg.code)
+            if pages is not None:
+                layout = self.client._read_oled_after_settle()
+                pages.append((layout, self.client.debug.read_confirm_text()))
             return orig(msg)
 
         self.client.callback_ButtonRequest = spy
@@ -162,12 +166,24 @@ class TestSolanaHostLookupAccounts(common.KeepKeyTest):
         self.assertEqual(len(base.signature), 64)
         self.assertEqual(len(base_codes), 2)  # blind sign, final
 
-        codes, resp = self._sign(raw_tx=raw, lut_account=JUPITER_LOADED)
+        pages = []
+        codes, resp = self._sign(pages=pages, raw_tx=raw, lut_account=JUPITER_LOADED)
         self.assertEqual(len(resp.signature), 64)
         # Heading, 15 instruction screens (one mint pages its mark), fee
         # payer, max fee, then the unchanged blind-sign flow.
         self.assertEqual(len(codes), 20)
         self.assertEqual(codes[-2:], base_codes)
+        reviews = [text for _, text in pages]
+        # A mint and its witness mark can span two physical pages.
+        review_text = ''.join(''.join(body.split()) for _, body in reviews)
+        mark = '[fromlookuptable,notverifiedbyKeepKey]'
+        for mint in ('So11111111111111111111111111111111111111112',
+                     'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'):
+            self.assertIn(mark + mint, review_text)
+        warning = ('Sign unverified Solana transaction? '
+                   'The device cannot fully verify the contents.')
+        self.assertEqual(reviews[-2], ('Blind Sign', warning))
+        self.assertTrue(shows(pages[-2][0], warning))
         # Ed25519 is deterministic: the same message, the same signature.
         self.assertEqual(resp.signature, base.signature)
 

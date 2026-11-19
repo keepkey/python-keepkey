@@ -47,4 +47,13 @@ def boot_owned_emulator(test):
     emu = Emulator(workdir)
     emu.boot()
     test.addCleanup(emu.halt)
+    probe = emu.client(test._testMethodName)
+    try:
+        keys = ("major_version", "minor_version", "patch_version", "firmware_variant")
+        expected = tuple(getattr(test.client.features, key) for key in keys)
+        actual = tuple(getattr(probe.features, key) for key in keys)
+        test.assertEqual(actual, expected)
+        test.assertEqual(set(probe.features.capabilities), set(test.client.features.capabilities))
+    finally:
+        probe.close()
     return emu

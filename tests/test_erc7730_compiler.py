@@ -511,6 +511,14 @@ def _registry_target():
     raise ValueError("unknown ERC-7730 registry target: " + profile)
 
 
+def test_safe_typed_calls_require_the_target_capability():
+    from test_msg_ethereum_erc7730_safe import SAFE_DESCRIPTOR, safe_doc
+    legacy = dict(DEVICE_CAPABILITIES)
+    del legacy["safe_typed_calls"]
+    program = compile_eip712(SAFE_DESCRIPTOR, safe_doc())
+    assert device_refusal(program, legacy) == "authenticated Safe typed calls are not executed"
+
+
 def test_official_registry_all_calldata_formats_reach_firmware():
     registry = _evidence_input("ERC7730_REGISTRY")
     _evidence_input("ERC7730_FIRMWARE_VALIDATOR")

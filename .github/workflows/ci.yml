@@ -268,6 +268,10 @@ jobs:
           python tx_fixture_manifest.py --check
           EMULATOR_IP=$(docker inspect -f \
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' kkemu)
+          KK_EMULATOR_BIN="$GITHUB_WORKSPACE/keepkey-firmware/bin/kkemu"
+          mkdir -p "$(dirname "$KK_EMULATOR_BIN")"
+          docker cp kkemu:/kkemu/bin/kkemu "$KK_EMULATOR_BIN"
+          test -x "$KK_EMULATOR_BIN"
           test -n "$EMULATOR_IP"
           # Only the test UID loses external network access. The runner must
           # remain able to renew its job lease and reconnect to GitHub.
@@ -310,6 +314,7 @@ jobs:
               PYTHONPATH="$PYTHONPATH" PYTHONUNBUFFERED=1 \
               KK_TRANSPORT_MAIN="$KK_TRANSPORT_MAIN" \
               KK_TRANSPORT_DEBUG="$KK_TRANSPORT_DEBUG" \
+              KK_EMULATOR_BIN="$KK_EMULATOR_BIN" \
               KK_UDP_TIMEOUT="$KK_UDP_TIMEOUT" \
               "$PYTHON_BIN" -m pytest "$@"
           }
@@ -518,6 +523,10 @@ jobs:
           python tx_fixture_manifest.py --check
           EMULATOR_IP=$(docker inspect -f \
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' kkemu-7143)
+          KK_EMULATOR_BIN="$GITHUB_WORKSPACE/keepkey-firmware/bin/kkemu"
+          mkdir -p "$(dirname "$KK_EMULATOR_BIN")"
+          docker cp kkemu-7143:/kkemu/bin/kkemu "$KK_EMULATOR_BIN"
+          test -x "$KK_EMULATOR_BIN"
           test -n "$EMULATOR_IP"
           # Only the test UID loses external network access. The runner must
           # remain able to renew its job lease and reconnect to GitHub.
@@ -560,6 +569,7 @@ jobs:
               PYTHONPATH="$PYTHONPATH" PYTHONUNBUFFERED=1 \
               KK_TRANSPORT_MAIN="$KK_TRANSPORT_MAIN" \
               KK_TRANSPORT_DEBUG="$KK_TRANSPORT_DEBUG" \
+              KK_EMULATOR_BIN="$KK_EMULATOR_BIN" \
               KK_UDP_TIMEOUT="$KK_UDP_TIMEOUT" \
               "$PYTHON_BIN" -m pytest "$@"
           }

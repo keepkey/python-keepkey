@@ -125,14 +125,14 @@ class TestProtectCall(common.KeepKeyTest):
         the fourth failure; the fifth attempt must still wait 2^4 - 1 s.
         """
         from emulator_endpoints import boot_owned_emulator
-        emu = None
-        if self.client.features.firmware_variant[0:8] == "Emulator":
-            emu = boot_owned_emulator(self)
-            if emu is None:
-                self.skipTest("no kkemu binary to power-cycle; set KK_EMULATOR_BIN")
-            shots = getattr(self.client, 'screenshot_dir', None)
-            self.client.close()
-            self.client = emu.client(self._testMethodName, screenshot_dir=shots)
+        if not self.client.features.firmware_variant.startswith("Emulator"):
+            self.skipTest("requires a power cycle under test control")
+        emu = boot_owned_emulator(self)
+        if emu is None:
+            self.skipTest("no kkemu binary to power-cycle; set KK_EMULATOR_BIN")
+        shots = getattr(self.client, 'screenshot_dir', None)
+        self.client.close()
+        self.client = emu.client(self._testMethodName, screenshot_dir=shots)
 
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()
@@ -151,7 +151,7 @@ class TestProtectCall(common.KeepKeyTest):
             self.assertLessEqual(expected, got, msg)
 
         for attempt in range(0, 5):
-            if attempt == 4 and emu is not None:
+            if attempt == 4:
                 # Power cycle: same flash image, fresh RAM and session.
                 self.client.close()
                 emu.halt()

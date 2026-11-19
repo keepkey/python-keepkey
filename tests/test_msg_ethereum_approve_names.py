@@ -64,20 +64,18 @@ class TestEthereumApproveNames(common.KeepKeyTest):
         self.requires_message("EthereumTxMetadata")
         self.setup_mnemonic_allallall()
 
-    def _approve(self, data, record=None):
-        return self._sign(USDC, 0, data, record)
+    def _approve(self, data, record=None, save_frames=True):
+        return self._sign(USDC, 0, data, record, save_frames=save_frames)
 
-    def _send(self, to, record=None, chain_id=1):
-        return self._sign(to, 10**18, b"", record, chain_id)
+    def _send(self, to, record=None, chain_id=1, save_frames=True):
+        return self._sign(to, 10**18, b"", record, chain_id, save_frames)
 
-    def _sign(self, to, value, data, record, chain_id=1):
+    def _sign(self, to, value, data, record, chain_id=1, save_frames=True):
         if record is not None:
             resp = self.client.ethereum_send_tx_metadata(
                 signed_payload=record, metadata_version=3, key_id=0x80)
             self.assertEqual(resp.classification, 1)  # VERIFIED
-        # No screenshot group: every run's frames go to this test's own
-        # directory in order, which is what the report audits.
-        recorder = ScreenRecorder(self.client, answer=True)
+        recorder = ScreenRecorder(self.client, answer=True, save_frames=save_frames)
         with recorder:
             sig = self.client.ethereum_sign_tx(
                 n=parse_path("m/44'/60'/0'/0/0"), nonce=7, gas_limit=60000,
@@ -100,7 +98,7 @@ class TestEthereumApproveNames(common.KeepKeyTest):
         self.assertEqual(self._titled(plain, "KEEPKEY CLEARSIGN"), [])
 
     def test_vouched_spender_is_named_after_its_address(self):
-        plain_sig, plain = self._approve(UR_APPROVE)
+        plain_sig, plain = self._approve(UR_APPROVE, save_frames=False)
         sig, screens = self._approve(UR_APPROVE, UR_NAME)
         self.assertEqual(sig, plain_sig)  # nothing signed changes
         # The 7.16 approve screen, whole address on one page, then the name.
@@ -110,11 +108,11 @@ class TestEthereumApproveNames(common.KeepKeyTest):
         self._assert_named_after(screens, plain, 0,
                                  "Spender: Uniswap Universal Router\n" + BY)
         # One request per record: the next approve is not named.
-        _, again = self._approve(UR_APPROVE)
+        _, again = self._approve(UR_APPROVE, save_frames=False)
         self.assertEqual(again, plain)
 
     def test_vouched_send_recipient_is_named_after_its_address(self):
-        plain_sig, plain = self._send(UR)
+        plain_sig, plain = self._send(UR, save_frames=False)
         sig, screens = self._send(UR, UR_NAME)
         self.assertEqual(sig, plain_sig)
         self.assertTrue(shows(
@@ -123,8 +121,8 @@ class TestEthereumApproveNames(common.KeepKeyTest):
         self._assert_named_after(screens, plain, 0,
                                  "Recipient: Uniswap Universal Router\n" + BY)
         # Control: the same record on a send to another address names nothing.
-        other_sig, other_plain = self._send(COW_RELAYER)
-        sig, screens = self._send(COW_RELAYER, UR_NAME)
+        other_sig, other_plain = self._send(COW_RELAYER, save_frames=False)
+        sig, screens = self._send(COW_RELAYER, UR_NAME, save_frames=False)
         self.assertEqual(sig, other_sig)
         self.assertEqual(screens, other_plain)
 

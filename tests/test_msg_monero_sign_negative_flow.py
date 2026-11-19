@@ -48,6 +48,7 @@ class TestMsgMoneroSignNegativeFlow(neg.SignFlow):
     # ---- the review ----
 
     def test_cancel_on_every_review_page(self):
+        self.require_udp_socket()
         p = long_plan()
         ack, pages = self.review(p['data'], watch=True)
         self.assertIsInstance(ack, monero_proto.MoneroTxInitAck)
@@ -73,6 +74,7 @@ class TestMsgMoneroSignNegativeFlow(neg.SignFlow):
         self.signs()
 
     def test_other_messages_on_every_review_page(self):
+        self.require_udp_socket()
         p = long_plan()
         old = self.reach(neg.plan(2), 'inputs')
         ack, pages = self.review(p['data'])
@@ -113,6 +115,7 @@ class TestMsgMoneroSignNegativeFlow(neg.SignFlow):
     # ---- during a proof ----
 
     def test_cancel_during_proving(self):
+        self.require_udp_socket()
         p = neg.plan(2)
         for stage in ('out0', 'all_out', 'sign1'):
             f, request = self.proving(p, stage)
@@ -129,6 +132,7 @@ class TestMsgMoneroSignNegativeFlow(neg.SignFlow):
         self.signs(p)
 
     def test_unrelated_message_during_proving(self):
+        self.require_udp_socket()
         p = neg.plan(2)
         for stage in ('out0', 'all_out', 'sign1'):
             # Whole requests, the session's own next steps among them, and
@@ -184,6 +188,7 @@ class TestMsgMoneroSignNegativeFlow(neg.SignFlow):
     # ---- between steps ----
 
     def test_other_requests_end_the_session(self):
+        self.require_udp_socket()
         p = neg.plan(2)
         set_input = neg.message_id(monero_proto.MoneroTxSetInputRequest())
 
@@ -383,6 +388,7 @@ class TestMsgMoneroSignNegativePin(neg.SignFlow):
             address_n=xmr.path(0), tsx_data=p['data']))
 
     def test_pin_prompt_before_the_review(self):
+        self.require_udp_socket()
         p = neg.plan()
         # Locked: TxInit asks for the PIN before it shows anything.
         self.assertIsInstance(self.init(p), proto.PinMatrixRequest)

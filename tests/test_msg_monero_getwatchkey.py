@@ -9,8 +9,8 @@ from keepkeylib import messages_monero_pb2 as monero_proto
 from keepkeylib import types_pb2 as proto_types
 from keepkeylib.client import CallException
 
-WARNING = ("This computer will see all incoming payments and balances of "
-           "this wallet. It cannot spend.")
+WARNING = ("This computer can see incoming payments for all subaddresses on "
+           "all networks at this path. It cannot spend.")
 
 
 class TestMsgMoneroGetWatchKey(common.KeepKeyTest):
@@ -47,7 +47,25 @@ class TestMsgMoneroGetWatchKey(common.KeepKeyTest):
         self.assertTrue(screens.shown(expected))
         self.assertTrue(screens.drawn(expected))
         titles = [title for title, _ in screens.confirmations()]
-        self.assertEqual(titles, ['Export view key', 'View key for'])
+        self.assertEqual(titles, ['Export view key', 'Selected address'])
+
+    def test_testnet_subaddress_exports_the_same_path_view_key(self):
+        self.setup_mnemonic_nopin_nopassphrase()
+        path = xmr.path(0)
+        main = self.client.monero_get_watch_key(path)
+        testnet = monero_proto.MONERO_NETWORK_TESTNET
+        selected = self.client.monero_get_address(path, network=testnet, account=1)
+        with xmr.Screens(self.client) as screens:
+            other = self.client.monero_get_watch_key(path, network=testnet, account=1)
+        self.assertEqual(other.watch_key, main.watch_key)
+        self.assertEqual(other.address, selected)
+        self.assertNotEqual(other.address, main.address)
+        first, second = screens.confirmations()
+        self.assertEqual(first[0], "Export view key")
+        self.assertIn("Testnet", first[1])
+        self.assertIn("44'/128'/0'", first[1])
+        self.assertIn(WARNING, first[1])
+        self.assertEqual(second, ("Selected address", selected.decode()))
 
     def test_every_request_asks_again(self):
         self.setup_mnemonic_nopin_nopassphrase()

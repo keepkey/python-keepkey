@@ -1090,6 +1090,7 @@ DEVICE_CAPABILITIES = {
     # The staged release requires arguments to follow the iterated array.
     # Callers targeting the extended interpreter may opt into scalar arguments.
     "embedded_scalar_arguments": False,
+    "safe_typed_calls": True,
     # 7.17: typed data iterates one array at a time too (Seaport's offer[]
     # and consideration[]), counted from the length the stream sends
     "typed_iteration": True,
@@ -1391,6 +1392,8 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
             seen.add(role)
         if not required <= seen:
             return "formatter kind %d lacks a required argument" % kind
+        if kind == 13 and not calldata and not capabilities.get("safe_typed_calls"):
+            return "authenticated Safe typed calls are not executed"
         if kind == 13 and not calldata and program[38:70] != bytes.fromhex(
                 "bb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d8"):
             return "typed embedded calldata requires canonical SafeTx"
