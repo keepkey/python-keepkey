@@ -116,10 +116,34 @@ class TestProtectCall(common.KeepKeyTest):
         self.assertRaises(PinException, self._some_protected_call, False, True, False)
 
     def test_exponential_backoff_with_reboot(self):
-        if self.client.features.firmware_variant[0:8] == "Emulator":
-            self.skipTest("Due to a known defect in the emulator, pin timeouts don't work.")
-            return
+        """The PIN-failure delay must survive a power cycle.
 
+        pin_protect() commits the failure count to flash before checking the
+        PIN, so pulling the cable to dodge the wait must not reset it. The
+        emulator runs these delays on wall time (its clock ticks inside
+        delays), so this runs on an emulator the test owns and reboots after
+        the fourth failure; the fifth attempt must still wait 2^4 - 1 s.
+        """
+        from emulator_endpoints import boot_owned_emulator
+        if not self.client.features.firmware_variant.startswith("Emulator"):
+            self.skipTest("requires a power cycle under test control")
+        if not self.firmware_at_least("7.15.0"):
+            self.skipTest("standalone emulator PIN delays require the 7.15 wall clock")
+        emu = boot_owned_emulator(self)
+        if emu is None:
+            self.skipTest("no kkemu binary to power-cycle; set KK_EMULATOR_BIN")
+        shots = getattr(self.client, 'screenshot_dir', None)
+        self.client.close()
+        self.client = emu.client(self._testMethodName, screenshot_dir=shots)
+
+        self._check_exponential_backoff(emu, shots)
+
+    def test_exponential_backoff_on_hardware(self):
+        if self.client.features.firmware_variant.startswith("Emulator"):
+            self.skipTest("hardware PIN delay is checked separately from emulator reboot")
+        self._check_exponential_backoff()
+
+    def _check_exponential_backoff(self, emu=None, shots=None):
         self.setup_mnemonic_pin_passphrase()
         self.client.clear_session()
 
@@ -130,14 +154,22 @@ class TestProtectCall(common.KeepKeyTest):
                 expected = 0
             else:
                 expected = (2 ** attempts) - 1
-            got = time.time() - start
+            got = time.monotonic() - start
 
             msg = "Pin delay expected to be at least %s seconds, got %s" % (expected, got)
             print(msg)
             self.assertLessEqual(expected, got, msg)
 
         for attempt in range(0, 5):
-            start = time.time()
+            if attempt == 4 and emu is not None:
+                # Power cycle: same flash image, fresh RAM and session.
+                self.client.close()
+                emu.halt()
+                emu.boot()
+                self.client = emu.client(self._testMethodName,
+                                         screenshot_dir=shots)
+                self.client.setup_debuglink(button=True, pin_correct=False)
+            start = time.monotonic()
             self.assertRaises(PinException, self._some_protected_call, False, True, False)
             test_backoff(attempt, start)
 

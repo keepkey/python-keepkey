@@ -367,7 +367,8 @@ class CalldataCompiler(object):
     def __init__(self, descriptor, signature, chain_id, address,
                  provider_id=1, issuance_epoch=0, revocation_epoch=0,
                  token_records=(), network_records=(), definition_kind=1,
-                 primary_type_hash=None, domain_constraints=()):
+                 primary_type_hash=None, domain_constraints=(),
+                 trailing_data=False):
         self.descriptor = descriptor
         self.signature = signature
         self.chain_id = int(chain_id)
@@ -382,6 +383,11 @@ class CalldataCompiler(object):
         self.definition_kind = definition_kind
         self.primary_type_hash = primary_type_hash
         self.domain_constraints = list(domain_constraints)
+        # The signer allows bytes after the ABI-encoded arguments (a referral
+        # or integrator tag); the device says they exist. Calldata only.
+        self.trailing_data = bool(trailing_data)
+        if self.trailing_data and definition_kind != 1:
+            raise ValueError("trailing data applies to calldata definitions")
         if definition_kind not in (1, 2):
             raise ValueError("compiler supports calldata or EIP-712 programs")
         if definition_kind == 2 and (primary_type_hash is None or
@@ -785,8 +791,36 @@ class CalldataCompiler(object):
                     if params.get(key):
                         arguments.append((role, 1, intern_path(
                             _resolve_path(root, params[key]))))
+            # KeepKey 7.17 constraints, checked on the device against the
+            # signed bytes (ERC-7730 has no such parameter): "recipient" on
+            # an addressName says when the address is not the signer;
+            # "equalsTxValue" on an amount refuses a call whose native value
+            # differs from it.
+            flags = 0
+            if params.get("recipient"):
+                if kind != 10:
+                    raise ValueError("recipient applies to addressName")
+                flags |= FORMATTER_FLAG_RECIPIENT
+            if params.get("equalsTxValue"):
+                if kind != 2 or self.definition_kind != 1:
+                    raise ValueError(
+                        "equalsTxValue applies to a calldata amount")
+                flags |= FORMATTER_FLAG_TX_VALUE
+            # KeepKey 7.17 "settlement": the field's role in an order, so
+            # the device can say what the signer receives (typed data only;
+            # erc7730_settle.h).
+            role = params.get("settlement")
+            if role is not None:
+                if self.definition_kind != 2:
+                    raise ValueError("settlement applies to typed data")
+                if role not in SETTLE_FLAGS:
+                    raise ValueError("unknown settlement role %r" % (role,))
+                if not SETTLE_FLAGS[role] & _settle_kinds(kind):
+                    raise ValueError("settlement %s does not apply to %s" % (
+                        role, field.get("format")))
+                flags |= SETTLE_FLAGS[role]
             formatter_index = len(formatters)
-            formatters.append((kind, arguments))
+            formatters.append((kind, arguments, flags))
             condition = ABSENT
             visibility = field.get("visible")
             if visibility == "optional":
@@ -916,8 +950,8 @@ class CalldataCompiler(object):
                 for opcode, path, literal_set in conditions)
             sections.append((5, payload))
         payload = _u16(len(formatters))
-        for kind, arguments in formatters:
-            payload += bytes([kind, 0, len(arguments)])
+        for kind, arguments, flags in formatters:
+            payload += bytes([kind, flags, len(arguments)])
             for role, source, index in sorted(arguments):
                 payload += bytes([role, source]) + _u16(index)
         sections.append((6, payload))
@@ -958,7 +992,7 @@ class CalldataCompiler(object):
                            64 if any(step[0] == 2 for path in paths
                                      for step in path) else 0,
                            display_max_depth,
-                           1 if any(kind == 13 for kind, _ in formatters) else 0]),
+                           1 if any(f[0] == 13 for f in formatters) else 0]),
                     _u16(max([len(s) for s in strings] or [0]))]
         sections.append((9, b"".join(resource)))
 
@@ -968,7 +1002,11 @@ class CalldataCompiler(object):
                                              if _ != 1)).digest()
         selector = (keccak256(canonical_signature.encode("ascii"))[:4] + bytes(28)
                     if self.definition_kind == 1 else self.primary_type_hash)
-        header = (b"C773" + bytes([1, 2, 0, self.definition_kind]) + _u16(0) +
+        program_flags = (TRAILING_DATA if self.trailing_data else 0) | (
+            SETTLEMENT if any(f[2] & FORMATTER_FLAGS_SETTLE
+                              for f in formatters) else 0)
+        header = (b"C773" + bytes([1, 2, program_flags,
+                                   self.definition_kind]) + _u16(0) +
                   _u64(self.chain_id) + self.address + selector +
                   hashlib.sha256(source).digest() + COMPILER_ID + token_hash +
                   _u32(self.provider_id) + _u32(self.issuance_epoch) +
@@ -979,6 +1017,25 @@ class CalldataCompiler(object):
                                  for kind, value in sections)
 
 
+# Program header byte 6 (ERC7730_PROGRAM_FLAG_*): TRAILING_DATA for calldata,
+# SETTLEMENT (7.17) for typed data whose fields carry a settlement role.
+TRAILING_DATA = 1
+SETTLEMENT = 2
+# Formatter entry byte 1 (ERC7730_FORMATTER_FLAG_*, firmware 7.17).
+FORMATTER_FLAG_RECIPIENT = 1
+FORMATTER_FLAG_TX_VALUE = 2
+# "settlement" roles, one per field: the type, identifier, amount or
+# recipient of an item of the order. An item without a recipient is given
+# away, and is read like a payment (the device nets one against the other).
+SETTLE_FLAGS = {"type": 8, "id": 16, "amount": 32, "to": 64}
+FORMATTER_FLAGS_SETTLE = 0x78
+
+
+def _settle_kinds(kind):
+    """The settlement flags formatter `kind` may carry."""
+    return {1: 8 | 16, 3: 32, 8: 8, 10: 64}.get(kind, 0)
+
+
 # What the device executes: a mirror of keepkey-firmware's
 # include/keepkey/firmware/erc7730_capabilities.h. The device refuses every
 # program outside it at preload, before the first screen. Widen this only
@@ -986,7 +1043,8 @@ class CalldataCompiler(object):
 _PATH, _LITERAL, _STRING = frozenset((1,)), frozenset((2,)), frozenset((3,))
 DEVICE_CAPABILITIES = {
     # 2 and 3 (interpolated intent) only as one run directly after the intent;
-    # 5/6 groups; 7/8 one iteration at a time, calldata only
+    # 5/6 groups; 7/8 one iteration at a time (typed data too: see
+    # "typed_iteration")
     "display_opcodes": frozenset((1, 2, 3, 4, 5, 6, 7, 8, 10)),
     # formatter kind -> (argument role -> permitted sources, required roles)
     "formatters": {
@@ -1005,8 +1063,10 @@ DEVICE_CAPABILITIES = {
              frozenset((1, 15))),
     },
     "path_sources": frozenset((1, 2, 3)),
-    # @.from, @.to and @.value, calldata definitions only
+    # @.from, @.to and @.value for calldata definitions
     "containers": frozenset((1, 2, 3)),
+    # @.to for typed data: the domain's verifyingContract
+    "typed_containers": frozenset((2,)),
     # 2: every element, bound to the iteration's current element
     "path_step_opcodes": frozenset((1, 2)),
     # only "optional" (3), which is always shown
@@ -1014,10 +1074,28 @@ DEVICE_CAPABILITIES = {
     "conditions": True,
     "alias_set_max": 4,
     "enum_max": 16,
+    # header flag TRAILING_DATA: bytes may follow a call's arguments
+    "trailing_data": True,
     # signer text shown inside a value's screen, and unit decimals
     "signer_text_max": 64,
     "unit_decimals_max": 77,
+    # The release verifier accepts unflagged formatters, calldata iteration
+    # and embedded calldata inside calldata definitions.
+    "formatter_flags": {},
+    "settlement": False,
+    "embedded_scalar_arguments": False,
+    "safe_typed_calls": False,
+    "typed_iteration": False,
 }
+
+# Later interpreters also review canonical SafeTx calls, typed array elements
+# and settlement roles. Select this target explicitly for those devices.
+EXTENDED_CAPABILITIES = dict(
+    DEVICE_CAPABILITIES,
+    formatter_flags={10: FORMATTER_FLAG_RECIPIENT, 2: FORMATTER_FLAG_TX_VALUE},
+    settlement=True, embedded_scalar_arguments=True, safe_typed_calls=True,
+    typed_iteration=True,
+)
 # The verifier's table limits (erc7730_catalog.c).
 TABLE_LIMITS = {1: 96, 2: 64, 3: 64, 4: 64, 5: 32, 6: 64, 7: 64, 8: 64}
 # Value classes: 1-7 are ABI leaf kinds; literals map to what they hold.
@@ -1117,6 +1195,16 @@ def _abi_walk(nodes, steps):
 
 def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     """Why the device would refuse `program` at preload, or None."""
+    # Header byte 6 holds flags: TRAILING_DATA for calldata, SETTLEMENT for
+    # typed data.
+    allowed = {1: TRAILING_DATA, 2: SETTLEMENT}.get(program[7], 0)
+    if program[6] & ~allowed:
+        return "program header flags are not executed"
+    if program[6] & TRAILING_DATA and not capabilities.get("trailing_data"):
+        return "trailing data is not executed"
+    settlement = bool(program[6] & SETTLEMENT)
+    if settlement and not capabilities.get("settlement"):
+        return "settlement is not executed"
     sections = _program_sections(program)
     u16 = lambda data, at: struct.unpack(">H", data[at:at + 2])[0]
 
@@ -1195,8 +1283,8 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
         at += 4
         if source not in capabilities["path_sources"]:
             return "path source %d is not executed" % source
-        if source == 2 and (index not in capabilities["containers"] or
-                            not calldata):
+        if source == 2 and index not in capabilities.get(
+                "containers" if calldata else "typed_containers", ()):
             return "container %d is not executed" % index
         if source == 3 and index >= 64:
             return "path names a literal beyond the table"
@@ -1243,10 +1331,21 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     for _ in range(u16(formatters, 0)):
         value_array, any_array, mixed_arrays, value_literal = (
             None, False, False, False)
-        kind, argc = formatters[at], formatters[at + 2]
+        kind, flags, argc = (formatters[at], formatters[at + 1],
+                             formatters[at + 2])
         at += 3
         if kind not in capabilities["formatters"]:
             return "formatter kind %d is not executed" % kind
+        allowed_flags = capabilities.get("formatter_flags", {}).get(kind, 0)
+        if capabilities.get("settlement"):
+            allowed_flags |= _settle_kinds(kind)
+        if flags & ~allowed_flags:
+            return "formatter kind %d flags are not executed" % kind
+        settle = flags & FORMATTER_FLAGS_SETTLE
+        if settle and (not settlement or settle & (settle - 1)):
+            return "a settlement role needs the header flag, one per field"
+        if flags & FORMATTER_FLAG_TX_VALUE and not calldata:
+            return "a value check applies to calldata"
         roles, required = capabilities["formatters"][kind]
         seen = set()
         for _ in range(argc):
@@ -1287,13 +1386,18 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
                     any_array = True
                 if role == 1:
                     value_array = argument_array
-                elif argument_array != value_array:
+                elif argument_array != value_array and not (
+                        kind == 13 and argument_array is None and
+                        capabilities.get("embedded_scalar_arguments")):
                     mixed_arrays = True
             seen.add(role)
         if not required <= seen:
             return "formatter kind %d lacks a required argument" % kind
-        if kind == 13 and not calldata:
-            return "embedded calldata is executed for calldata only"
+        if kind == 13 and not calldata and not capabilities.get("safe_typed_calls"):
+            return "authenticated Safe typed calls are not executed"
+        if kind == 13 and not calldata and program[38:70] != bytes.fromhex(
+                "bb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d8"):
+            return "typed embedded calldata requires canonical SafeTx"
         formatter_arrays.append((value_array, any_array, mixed_arrays,
                                  kind == 13, value_literal))
 
@@ -1315,7 +1419,8 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
         if opcode == 4 and c != ABSENT and not capabilities["conditions"]:
             return "display conditions are not executed"
         if opcode == 7:
-            if a not in iterable or iteration is not None or not calldata:
+            if a not in iterable or iteration is not None or not (
+                    calldata or capabilities.get("typed_iteration")):
                 return "iteration is not executed here"
             iteration = path_arrays[a]
         elif opcode == 8:
@@ -1337,22 +1442,23 @@ def device_refusal(program, capabilities=DEVICE_CAPABILITIES):
     return None
 
 
-def _executable(program, executable_only):
+def _executable(program, executable_only, capabilities):
     if executable_only:
-        reason = device_refusal(program)
+        reason = device_refusal(program, capabilities)
         if reason:
             raise DeviceCannotExecute("device cannot execute: " + reason)
     return program
 
 
 def compile_calldata(descriptor, signature, chain_id, address,
-                     executable_only=True, **kwargs):
+                     executable_only=True, capabilities=DEVICE_CAPABILITIES, **kwargs):
     """Compile one calldata format. By default only a program the device
     executes is returned; pass executable_only=False to obtain the program
-    anyway, for example to prove that the device refuses it."""
+    anyway, for example to prove that the device refuses it. Pass capabilities
+    to select another interpreter, such as EXTENDED_CAPABILITIES."""
     return _executable(CalldataCompiler(descriptor, signature, chain_id,
                                         address, **kwargs).compile(),
-                       executable_only)
+                       executable_only, capabilities)
 
 
 def _typed_base(type_name, types, active):
@@ -1400,8 +1506,11 @@ def eip712_encode_type(primary_type, types):
 
 
 def compile_eip712(descriptor, typed_data, chain_id=None, address=None,
-                   executable_only=True, **kwargs):
-    """Compile one EIP-712 descriptor against its exact typed-data schema."""
+                   executable_only=True, capabilities=DEVICE_CAPABILITIES, **kwargs):
+    """Compile the typed-data schema for the release interpreter by default.
+
+    Pass EXTENDED_CAPABILITIES for a target supporting its typed-data features.
+    """
     types = typed_data["types"]
     primary = typed_data["primaryType"]
     root = _typed_base(primary, types, set())
@@ -1446,4 +1555,4 @@ def compile_eip712(descriptor, typed_data, chain_id=None, address=None,
     return _executable(CalldataCompiler(
         synthetic, signature, chain_id, address, definition_kind=2,
         primary_type_hash=type_hash, domain_constraints=constraints,
-        **kwargs).compile(), executable_only)
+        **kwargs).compile(), executable_only, capabilities)

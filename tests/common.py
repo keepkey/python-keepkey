@@ -81,25 +81,41 @@ def capability_names(features):
 _DEVICE_CAPABILITIES = []
 
 
-def device_capabilities():
-    """For host-side tests: the connected firmware's capabilities, read once,
-    or None when the firmware predates the list or no device is attached."""
+def _device_features():
+    """(capabilities, version) of the connected firmware, read once; either
+    is None when unknown."""
     if not _DEVICE_CAPABILITIES:
-        names = None
+        names = version = None
         try:
             client = KeepKeyClient(config.TRANSPORT(
                 *config.TRANSPORT_ARGS, **config.TRANSPORT_KWARGS))
             try:
                 client.init_device()
-                names = capability_names(client.features)
+                features = client.features
+                names = capability_names(features)
+                version = semver.VersionInfo.parse("%s.%s.%s" % (
+                    features.major_version, features.minor_version,
+                    features.patch_version))
             finally:
                 client.close()
         except EmulatorNotResponding:
             raise  # a crashed emulator is an error, not "no device"
         except Exception:
-            names = None  # no device: nothing to gate on
-        _DEVICE_CAPABILITIES.append(names)
+            names = version = None  # no device: nothing to gate on
+        _DEVICE_CAPABILITIES.append((names, version))
     return _DEVICE_CAPABILITIES[0]
+
+
+def device_capabilities():
+    """For host-side tests: the connected firmware's capabilities, read once,
+    or None when the firmware predates the list or no device is attached."""
+    return _device_features()[0]
+
+
+def device_firmware_version():
+    """For host-side tests: the connected firmware's version, or None when no
+    device is attached."""
+    return _device_features()[1]
 
 
 class KeepKeyTest(unittest.TestCase):
@@ -247,6 +263,27 @@ class KeepKeyTest(unittest.TestCase):
         version = self.firmware_version()
         if version < semver.VersionInfo.parse(ver_required):
             self.skipTest("Firmware version " + ver_required + " or higher is required to run this test")
+
+    def advertises_groestlcoin(self):
+        """Read both networks from the full coin table during 7.17 staging."""
+        table = self.client.call(messages_pb2.GetCoinTable())
+        self.assertGreater(table.chunk_size, 0)
+        networks = {"Groestlcoin", "GRS Testnet"}
+        found = set()
+        for start in range(0, table.num_coins, table.chunk_size):
+            end = min(start + table.chunk_size, table.num_coins)
+            chunk = self.client.call(messages_pb2.GetCoinTable(start=start, end=end))
+            found.update(coin.coin_name for coin in chunk.table if coin.coin_name in networks)
+            if found == networks:
+                return True
+        self.assertFalse(found, "Groestlcoin mainnet and testnet must retire together")
+        return False
+
+    def requires_groestlcoin(self):
+        self.requires_fullFeature()
+        self.requires_firmware_below("7.17.0")
+        if self.firmware_at_least("7.16.0") and not self.advertises_groestlcoin():
+            self.skipTest("Groestlcoin retired on this staging build")
 
     def requires_firmware_below(self, ver_limit):
         """Skip on firmware at or above ver_limit: for behaviour a later

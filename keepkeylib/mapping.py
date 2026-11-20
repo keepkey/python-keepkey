@@ -14,6 +14,7 @@ from . import messages_tron_pb2 as tron_proto
 from . import messages_ton_pb2 as ton_proto
 from . import messages_zcash_pb2 as zcash_proto
 from . import messages_hive_pb2 as hive_proto
+from . import messages_monero_pb2 as monero_proto
 
 map_type_to_class = {}
 map_class_to_type = {}
@@ -51,6 +52,8 @@ def build_map():
             msg_class = getattr(tron_proto, msg_name)
         elif msg_type.startswith('MessageType_Ton'):
             msg_class = getattr(ton_proto, msg_name)
+        elif msg_type.startswith('MessageType_Monero'):
+            msg_class = getattr(monero_proto, msg_name)
         elif msg_type.startswith('MessageType_Zcash'):
             msg_class = getattr(zcash_proto, msg_name, None)
             if msg_class is None:

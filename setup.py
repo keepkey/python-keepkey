@@ -14,6 +14,7 @@ setup(
     install_requires=[
         'ecdsa>=0.9',
         'protobuf>=3.17,<4',
+        'pycryptodome>=3.7',
         'mnemonic>=0.8',
         'hidapi>=0.7.99.post15',
         'libusb1>=1.6'

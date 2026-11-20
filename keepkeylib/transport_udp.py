@@ -5,6 +5,7 @@ from __future__ import print_function
 import os
 import socket
 from select import select
+from contextlib import contextmanager
 from .transport import Transport
 
 # A dead emulator must surface as an ERROR, not as an infinite wait.
@@ -59,6 +60,19 @@ class UDPTransport(Transport):
         if DEFAULT_TIMEOUT > 0:
             self.socket.settimeout(DEFAULT_TIMEOUT)
 
+    @contextmanager
+    def minimum_read_timeout(self, seconds):
+        sock = self.socket
+        previous = sock.gettimeout()
+        if previous is None or previous >= seconds:
+            yield
+            return
+        sock.settimeout(seconds)
+        try:
+            yield
+        finally:
+            sock.settimeout(previous)
+
     def _close(self):
         self.socket.close()
         self.socket = None
@@ -105,7 +119,7 @@ class UDPTransport(Transport):
                     'not running, has crashed, or is wedged on a confirm screen '
                     'nothing acknowledged. Set KK_UDP_TIMEOUT to change or 0 to '
                     'disable.' % (self.device[0], self.device[1],
-                                  DEFAULT_TIMEOUT))
+                                  self.socket.gettimeout()))
             if not data:
                 raise EmulatorNotResponding('Emulator closed the connection')
             self.buffer += data[1:]

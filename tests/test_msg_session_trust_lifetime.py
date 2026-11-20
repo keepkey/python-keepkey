@@ -52,6 +52,7 @@ from keepkeylib import messages_pb2 as proto
 from keepkeylib import types_pb2 as proto_types
 from keepkeylib.client import CallException, KeepKeyDebuglinkClient
 from keepkeylib.transport_udp import UDPTransport
+from emulator_endpoints import boot_owned_emulator
 from keepkeylib.signed_metadata import (
     ARG_FORMAT_STRING,
     CLASSIFICATION_MALFORMED,
@@ -298,6 +299,23 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
         for _ in range(4):
             self._apply_policy_raw("Experimental", True)
 
+    def _own_emulator(self):
+        """Move this test onto an emulator it owns, so _power_cycle() can
+        restart it -- in CI the shared one is a container nobody here can
+        signal, which is why these tests used to skip there. Call it first,
+        before anything is set up on the device. Hardware runs are left alone:
+        _power_cycle() fails them as the operator step they are."""
+        self._emu = None
+        if config.TRANSPORT is not UDPTransport:
+            return
+        self._emu = boot_owned_emulator(self)
+        if self._emu is not None:
+            shared = self.client
+            shared.close()
+            self.client = self._emu.client(
+                self._testMethodName,
+                screenshot_dir=getattr(shared, 'screenshot_dir', None))
+
     def _power_cycle(self):
         """Kill and relaunch the firmware, KEEPING its flash image.
 
@@ -313,6 +331,19 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
             self.fail("power cycle requires the local UDP emulator; on real "
                       "hardware this is an operator step (unplug/replug) and "
                       "must be recorded as manual evidence, not skipped")
+
+        if getattr(self, '_emu', None) is not None:
+            self.client.close()
+            self._emu.halt()
+            self._emu.boot()
+            client = _RebootClient(
+                UDPTransport("127.0.0.1:%d" % self._emu.port))
+            client.set_debuglink(
+                UDPTransport("127.0.0.1:%d" % (self._emu.port + 1)))
+            client.screenshot_dir = getattr(self.client, 'screenshot_dir', None)
+            client.screenshot_id = getattr(self.client, 'screenshot_id', 0)
+            self.client = client
+            return
 
         port = int(str(config.TRANSPORT_ARGS[0]).split(':')[1])
         found = _emulator_process(port)
@@ -385,6 +416,7 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
         reboot would be indistinguishable from a factory wipe, which turns every
         policy off for the wrong reason.
         """
+        self._own_emulator()
         self.setup_mnemonic_nopin_nopassphrase()
         self._apply_policy_raw("AdvancedMode", True)
         self._persist_marker_across_all_sectors()
@@ -491,6 +523,7 @@ class TestSessionTrustLifetime(common.KeepKeyTest):
         one that was written while the signer was live — if a build ever did
         persist signers, this is the record it would have persisted them into.
         """
+        self._own_emulator()
         self._arm_session()
         self._persist_marker_across_all_sectors()
 

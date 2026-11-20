@@ -110,6 +110,8 @@ jobs:
     needs: [lint]
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    env:
+      KK_CLEARSIGN_TEST_ROOT: "02de9231b2094433235532fb1932e324a2c7304195e12e610c675cccbbd606dae7"
 
     # NO published emulator image. This job BUILDS one from current firmware.
     #
@@ -172,7 +174,7 @@ jobs:
           # Certified fixtures are signed by the alpha root; 7.16+ emulators
           # read it from here at startup (older ones ignore it).
           docker run -d --name kkemu \
-            -e KK_CLEARSIGN_TEST_ROOT=02de9231b2094433235532fb1932e324a2c7304195e12e610c675cccbbd606dae7 \
+            -e KK_CLEARSIGN_TEST_ROOT \
             -p 11044:11044/udp -p 11045:11045/udp -p 5000:5000 kkemu-ci
           sleep 3
           docker logs kkemu | head -5
@@ -268,6 +270,9 @@ jobs:
           python tx_fixture_manifest.py --check
           EMULATOR_IP=$(docker inspect -f \
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' kkemu)
+          emulator_dir="$GITHUB_WORKSPACE/keepkey-firmware/bin"
+          ../scripts/export-ci-emulator.sh kkemu "$emulator_dir"
+          KK_EMULATOR_BIN="$emulator_dir/kkemu"
           test -n "$EMULATOR_IP"
           # Only the test UID loses external network access. The runner must
           # remain able to renew its job lease and reconnect to GitHub.
@@ -310,6 +315,8 @@ jobs:
               PYTHONPATH="$PYTHONPATH" PYTHONUNBUFFERED=1 \
               KK_TRANSPORT_MAIN="$KK_TRANSPORT_MAIN" \
               KK_TRANSPORT_DEBUG="$KK_TRANSPORT_DEBUG" \
+              KK_EMULATOR_BIN="$KK_EMULATOR_BIN" \
+              KK_CLEARSIGN_TEST_ROOT="$KK_CLEARSIGN_TEST_ROOT" \
               KK_UDP_TIMEOUT="$KK_UDP_TIMEOUT" \
               "$PYTHON_BIN" -m pytest "$@"
           }
@@ -518,6 +525,9 @@ jobs:
           python tx_fixture_manifest.py --check
           EMULATOR_IP=$(docker inspect -f \
             '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' kkemu-7143)
+          emulator_dir="$GITHUB_WORKSPACE/keepkey-firmware/bin"
+          ../scripts/export-ci-emulator.sh kkemu-7143 "$emulator_dir"
+          KK_EMULATOR_BIN="$emulator_dir/kkemu"
           test -n "$EMULATOR_IP"
           # Only the test UID loses external network access. The runner must
           # remain able to renew its job lease and reconnect to GitHub.
@@ -560,6 +570,7 @@ jobs:
               PYTHONPATH="$PYTHONPATH" PYTHONUNBUFFERED=1 \
               KK_TRANSPORT_MAIN="$KK_TRANSPORT_MAIN" \
               KK_TRANSPORT_DEBUG="$KK_TRANSPORT_DEBUG" \
+              KK_EMULATOR_BIN="$KK_EMULATOR_BIN" \
               KK_UDP_TIMEOUT="$KK_UDP_TIMEOUT" \
               "$PYTHON_BIN" -m pytest "$@"
           }
@@ -838,6 +849,7 @@ jobs:
               "$PYTHON_BIN" -m pytest "$@"
           }
           run_offline_pytest -v --junitxml=junit-btc.xml test_msg_bitcoin_only_variant.py \
+            test_monero_protocol_bindings.py::TestMoneroWithoutSigner::test_bitcoin_only_refuses_every_monero_request \
             2>&1 | tee pytest-btc-output.txt
           echo "${PIPESTATUS[0]}" > status-btc
 

@@ -540,6 +540,11 @@ FULL_SEQUENCE_TESTS = {
      'test_certifying_shows_every_contact_and_signs_only_the_commitment'),
     ('test_msg_ethereum_certified_contacts',
      'test_a_send_to_a_contact_names_it_and_still_shows_the_address'),
+    # The claim is the order: the 7.16 address screen, then the name.
+    ('test_msg_ethereum_approve_names',
+     'test_vouched_spender_is_named_after_its_address'),
+    ('test_msg_ethereum_approve_names',
+     'test_vouched_send_recipient_is_named_after_its_address'),
     ('test_msg_ethereum_clear_signing', 'test_binding_happy_path_signs_and_recovers'),
     ('test_msg_ethereum_clear_signing', 'test_clearsign_uniswap_v2_eth_to_token'),
     # ERC-7730 runtime: the order of the screens is the claim.
@@ -1293,6 +1298,12 @@ SECTIONS = [
           'Sign ETH transfer',
           'Simple value transfer with no contract data. Device shows recipient + amount + gas.',
           ['ETH send confirmation']),
+         ('E2b', 'test_msg_ethereum_signtx', 'test_ethereum_unichain_amounts_read_eth',
+          'Unichain amounts in ETH (7.18)',
+          'A 1.5 ETH send on Unichain (chain 130). The value and the fee read ETH, as on '
+          'Optimism, Base and Arbitrum, instead of a fee in Wei, and the last screen is titled '
+          '"Tx on Unichain".',
+          ['Unichain fee in ETH']),
          ('E3', 'test_msg_ethereum_signtx', 'test_ethereum_signtx_data',
           'Sign ETH tx with contract data',
           'Transaction with data field (contract call). Device shows data as hex since it cannot '
@@ -1324,6 +1335,12 @@ SECTIONS = [
           ['Sign message screen']),
          ('E8', 'test_msg_ethereum_message', 'test_ethereum_sign_bytes',
           'Sign raw bytes', 'Signs arbitrary bytes (displayed as hex on OLED).', []),
+         ('E8b', 'test_msg_ethereum_message', 'test_ethereum_sign_safe_tx_hash_shows_hex',
+          'Safe safeTxHash shown as 0x hex (7.18)',
+          'A real Safe safeTxHash signed with eth_sign. Bytes that are not text are shown as 0x hex '
+          'under "Sign Binary Message", as Safe{Wallet} prints the hash, instead of C-escaped '
+          'bytes. The signature equals 7.16.0\'s.',
+          ['Sign Binary Message: 0x hex']),
          ('E9', 'test_msg_ethereum_message', 'test_ethereum_verify_message',
           'Verify ETH signed message', 'Device-side verification of EIP-191 signed messages.', []),
          ('E10', 'test_msg_signtx_ethereum_erc20', 'test_approve_some',
@@ -2343,6 +2360,25 @@ SECTIONS = [
           'Sign TRX blind (raw_data)', 'Raw protobuf data triggers blind sign path. Shows amount + address if provided.', ['TRON blind sign']),
          ('T5', 'test_msg_tron_signtx', 'test_tron_sign_missing_fields_rejected',
           'Missing fields rejected', 'Incomplete transaction data is refused.', []),
+         ('T6', 'test_msg_tron_signtx', 'test_tron_usdt_unlimited_approve_names_spender',
+          'USDT unlimited approve (7.18)',
+          'Real mainnet approve(spender, 2^256-1) on USDT. AdvancedMode off: the device names the '
+          'full spender and says UNLIMITED, then the energy fee limit.',
+          ['UNLIMITED approval', 'Energy fee limit']),
+         ('T7', 'test_msg_tron_signtx', 'test_tron_usdt_approve_shows_amount',
+          'USDT approve with an amount (7.18)',
+          'Real mainnet approve of 100 USDT whose address word carries the 0x41 prefix. Spender and '
+          'amount are shown in USDT units.',
+          ['TRC-20 Approve', 'Energy fee limit']),
+         ('T8', 'test_msg_tron_signtx', 'test_tron_freeze_v2',
+          'Stake 2.0 freeze (7.18)',
+          'Real mainnet FreezeBalanceV2: amount in TRX and the resource (ENERGY).',
+          ['TRON Stake']),
+         ('T9', 'test_msg_tron_signtx', 'test_tron_vote_witness',
+          'Vote for SRs (7.18)',
+          'Real mainnet VoteWitness with three votes: a summary that it replaces current votes, '
+          'then one screen per SR with its full address and vote count.',
+          ['TRON Vote', 'Vote 1/3', 'Vote 2/3', 'Vote 3/3']),
      ]),
 
     ('N', 'TON', '7.14.0',
@@ -2830,6 +2866,107 @@ SECTIONS = [
           '"Invalid address book" and no confirmation is ever requested, so the empty screenshot '
           'list is the assertion.',
           []),
+     ]),
+    ('SAFE', 'Authenticated Safe typed calls', '7.18.0',
+     'Full firmware with authenticated Safe typed calls reviews the transfer inside a Safe owner approval.',
+     ['The signed EIP-712 digest covers the original Safe transaction.'],
+     [
+         ('SAFE1', 'test_msg_ethereum_erc7730_safe',
+          'test_transfer_uses_signed_inner_metadata_and_signs_the_same_digest',
+          'Inner transfer amount and recipient', 'Checks the displayed transfer and compares its signature to the ordinary Safe review.',
+          ['Inner action', 'Recipient and amount']),
+         ('SAFE2', 'test_msg_ethereum_erc7730_safe', 'test_missing_inner_metadata_refuses_before_signing',
+          'Missing inner definition', 'The device refuses the unresolved inner call before signing.', []),
+         ('SAFE3', 'test_msg_ethereum_erc7730_safe', 'test_delegatecall_cannot_claim_the_callees_normal_action',
+          'Delegatecall refusal', 'The device refuses to describe a delegatecall as a normal transfer.', []),
+     ]),
+    ('XMR', 'Monero wallet', '7.15.0',
+     'Full firmware with the Monero signing capability derives addresses, exports a '
+     'view key with consent, synchronizes key images and signs RingCT transactions.',
+     ['The fixture checks use public test wallets. The stream tests scan both outputs.'],
+     [
+         ('XMR1', 'test_msg_monero_getaddress', 'test_shows_the_full_address',
+          'Monero receive addresses', 'The device displays the full primary and subaddresses.',
+          ['Derivation and address']),
+         ('XMR2', 'test_msg_monero_getwatchkey', 'test_consent_shows_warning_and_full_address',
+          'View-key export consent', 'The review describes incoming-payment visibility and shows the selected address.',
+          ['Export warning', 'Selected address']),
+         ('XMR3', 'test_msg_monero_key_image', 'test_key_images_match_monero_core',
+          'Key-image sync', 'The user approves four outputs. The exported key images and signatures are verified.',
+          ['Key-image consent']),
+         ('XMR4', 'test_msg_monero_sign_stream', 'test_standard_address',
+          'Standard transfer', 'The host assembles the signed transaction and scans both outputs.',
+          ['Recipient', 'Change', 'Fee and total']),
+         ('XMR5', 'test_msg_monero_sign_stream', 'test_sweep_signs_the_balance_and_zero_amount_output',
+          'Send the full balance', 'The zero-amount output is reviewed explicitly and both outputs are scanned.',
+          ['Recipient', 'Zero-amount output', 'Fee and total']),
+     ]),
+    ('AN', 'Certified Names - Who An Approval Or Send Goes To', '7.18.0',
+     'An approval hands a contract the right to move the user\'s tokens, and the device can only '
+     'show that contract as forty hex characters. From 7.18 a name record certified by KeepKey '
+     '(a 0x06 record from a ClearSign ceremony, signed under the root every 7.18 build embeds) '
+     'can name that address. The device checks the record, and only when it names exactly the '
+     'spender of a native approve, or the recipient of a token transfer or plain send, on this '
+     'chain does it add one screen with the name and who vouched for it. The address screens '
+     'stay exactly as in 7.16, so the name never pushes part of the address onto another page.',
+     [
+         'RULE: a name is added, never substituted. The 7.16 screens are all still shown, unchanged,',
+         'and one "KeepKey ClearSign" screen follows the first one that shows the full address.',
+         '',
+         '- Shown for: a native approve (and the UNLIMITED warning of approve or increaseAllowance),',
+         '  an ERC-20 transfer of a known token, and a plain send.',
+         '- A record for another address or another chain changes nothing: the screens and the',
+         '  signature equal the run with no record.',
+         '- A malformed record refuses the request, as every malformed record does.',
+         '',
+         'The tests select the Ethereum Universal Router record for the compiled-in production root',
+         'or the emulator alpha root. Both signed records name the same spender. The approve is the calldata swaps.pro',
+         'sent through Desktop on 2026-10-29. Each case signs the same request with and without',
+         'the record and requires the same signature.',
+     ],
+     [
+         ('AN1', 'test_msg_ethereum_approve_names',
+          'test_vouched_spender_is_named_after_its_address',
+          'A certified name follows the approve screen, which stays whole',
+          'The same 25000 USDC approve to the Universal Router is signed without and with its '
+          'name record. The named review is the unnamed one plus one screen, '
+          '"Spender: Uniswap Universal Router" with the verified signer and "certified '
+          'by KeepKey", right after the approve screen, which still shows the whole address on '
+          'one page. The signatures are equal, and the next approve with no new record is the '
+          'unnamed review again.',
+          ['Approve screen, unchanged from 7.16, with the whole spender address',
+           'KeepKey ClearSign: Spender: Uniswap Universal Router',
+           'Fee screen']),
+         ('AN2', 'test_msg_ethereum_approve_names',
+          'test_vouched_send_recipient_is_named_after_its_address',
+          'A plain send names its recipient the same way',
+          'A 1 ETH send to the Universal Router, with and without its record: the send screen is '
+          'unchanged and one "Recipient: Uniswap Universal Router" screen follows it. Control: '
+          'the same record on a send to another address leaves every screen and the signature '
+          'as they were.',
+          ['Send 1 ETH to the whole address, unchanged from 7.16',
+           'KeepKey ClearSign: Recipient: Uniswap Universal Router',
+           'Fee screen']),
+         ('AN3', 'test_msg_ethereum_approve_names',
+          'test_name_for_another_spender_is_ignored',
+          'A name for another address names nothing',
+          'The Universal Router record is loaded before the CoW approve. The review and the '
+          'signature equal the run with no record.',
+          ['Approve screen identical to the unnamed run']),
+         ('AN4', 'test_msg_ethereum_approve_names',
+          'test_name_for_another_chain_is_ignored',
+          'A name for another chain names nothing',
+          'The Ethereum record for the Universal Router is loaded before a BNB Chain send to the '
+          'same address. The review and the signature equal the run with no record. Control: '
+          'on Ethereum the same send is named.',
+          ['Send screen identical to the unnamed run']),
+         ('AN5', 'test_msg_ethereum_approve_names',
+          'test_malformed_name_record_refuses_the_approve',
+          'A malformed record refuses, and does not linger',
+          'One bit of the delegate\'s signature is flipped. The record is classified MALFORMED and '
+          'the approve after it is refused before any screen. The next approve, with no record, '
+          'is the ordinary unnamed review.',
+          ['Approve screen of the next, unnamed request']),
      ]),
     ('I', 'Session and Trust Lifetime', '7.15.0',
      'Clear-signing works by trusting somebody else. A provider key loaded with LoadClearsignSigner '
@@ -3489,6 +3626,11 @@ SECTIONS = [
           'Native-currency aliases disclose the signer mapping and token address',
           "An address in the signer's alias set is marked as a signer native alias and shown in full before the native-unit amount; any other address stays an unknown token. The firmware token table wins over an alias.",
           ['Signer alias, token address and native-unit amount']),
+         ('EX8b', 'test_msg_ethereum_erc7730_runtime',
+          'test_native_placeholder_alias_reads_as_the_native_coin',
+          'The zero address aliased native reads as the coin (7.18)',
+          "When the signer's alias set names the zero address native (a Safe's gas token), the amount reads '10 ETH' with no signer-mapping note. Not aliased, the zero address stays an unknown token.",
+          ['Zero-address alias shown as 10 ETH']),
          ('EX9', 'test_msg_ethereum_erc7730_runtime',
           'test_address_name_marks_only_the_signing_account',
           '"(this wallet)" marks only the signing account',
@@ -3738,7 +3880,13 @@ SECTIONS = [
        'Disables AdvancedMode, walks the canonical Mail document, and requires a typed-data '
        'signature with the independently published domain and message hashes. This exercises '
        'device-driven review; it does not enable the separate blind typed-hash endpoint.',
-       [])]),
+       []),
+      ('TD5', 'test_msg_eip712_streaming', 'test_real_safe_multisend_approve_names_weth',
+       'A real Safe MultiSend\'s unlimited WETH approve names WETH',
+       'The real Safe batch (approve(max) of WETH, then a CoW order) signs with the reference '
+       'hashes, and its warning reads "spend ALL your WETH", as on 7.16.0. A 7.17 alpha token '
+       'table had dropped WETH and showed only its contract address.',
+       ['UNLIMITED approval: spend ALL your WETH'])]),
 
 ]
 
@@ -3757,6 +3905,18 @@ _TEST_MIN_VERSION = {
      'test_certified_soltoshi_join_untrusted_definition_shows_base_units'): '7.16.0',
     ('test_msg_solana_schema_v2',
      'test_certified_soltoshi_join_ignores_blind_sign_policy'): '7.16.0',
+    ('test_msg_tron_signtx',
+     'test_tron_usdt_unlimited_approve_names_spender'): '7.18.0',
+    ('test_msg_tron_signtx', 'test_tron_usdt_approve_shows_amount'): '7.18.0',
+    ('test_msg_tron_signtx', 'test_tron_freeze_v2'): '7.18.0',
+    ('test_msg_tron_signtx', 'test_tron_vote_witness'): '7.18.0',
+    ('test_msg_ethereum_message',
+     'test_ethereum_sign_safe_tx_hash_shows_hex'): '7.18.0',
+    ('test_msg_ethereum_signtx', 'test_ethereum_unichain_amounts_read_eth'): '7.18.0',
+    ('test_msg_ethereum_erc7730_runtime',
+     'test_native_placeholder_alias_reads_as_the_native_coin'): '7.18.0',
+    ('test_msg_eip712_streaming',
+     'test_real_safe_multisend_approve_names_weth'): '7.16.0',
 }
 
 # Intermediate release-stack trees deliberately omit controls that land in a
@@ -3787,6 +3947,11 @@ _TEST_CAPABILITY = {
 
 # Modules whose every row is gated in setUp on one staged capability.
 _MODULE_CAPABILITY = {
+    'test_msg_ethereum_erc7730_safe': 'safe-typed-calls',
+    'test_msg_monero_getaddress': 'monero-signing',
+    'test_msg_monero_getwatchkey': 'monero-signing',
+    'test_msg_monero_key_image': 'monero-signing',
+    'test_msg_monero_sign_stream': 'monero-signing',
     'test_msg_ethereum_erc7730_runtime': 'erc7730-runtime-review',
     'test_msg_ethereum_certified_contacts': 'certified-contacts',
 }
@@ -4102,6 +4267,11 @@ def screenshot_test_list(fw_version):
 # version-blind set would fail every older-firmware run for a module that
 # legitimately cannot exist yet.
 MUST_RUN_MODULES = {
+    'test_msg_ethereum_erc7730_safe': '7.18.0',
+    'test_msg_monero_getaddress': '7.15.0',
+    'test_msg_monero_getwatchkey': '7.15.0',
+    'test_msg_monero_key_image': '7.15.0',
+    'test_msg_monero_sign_stream': '7.15.0',
     'test_msg_authenticator_boundaries': '7.15.0',
     # Taproot did not exist at 7.0.0. That floor only ever held because this
     # table was applied to products that happen to carry taproot: 7.14.2
@@ -4122,6 +4292,8 @@ MUST_RUN_MODULES = {
     'test_msg_ethereum_erc7730_runtime': '7.15.0',
     # Certified contacts: every row in section AB.
     'test_msg_ethereum_certified_contacts': '7.15.0',
+    # Certified names: every row in section AN.
+    'test_msg_ethereum_approve_names': '7.18.0',
 }
 
 # A module can be mandatory for the regular product while being intentionally
@@ -4129,10 +4301,17 @@ MUST_RUN_MODULES = {
 # remains mandatory in both products, and the expected build variant comes from
 # CI rather than the firmware identity being tested.
 FULL_FEATURE_ONLY_MUST_RUN_MODULES = {
+    'test_msg_tron_signtx',
+    'test_msg_ethereum_erc7730_safe',
+    'test_msg_monero_getaddress',
+    'test_msg_monero_getwatchkey',
+    'test_msg_monero_key_image',
+    'test_msg_monero_sign_stream',
     'test_msg_ethereum_erc20_uniswap_liquidity',
     'test_msg_solana_lut_attestation',
     'test_msg_ethereum_erc7730_runtime',
     'test_msg_ethereum_certified_contacts',
+    'test_msg_ethereum_approve_names',
 }
 
 
@@ -4191,9 +4370,19 @@ RETIRED_FROM = {
         'test_a_refused_inner_call_does_not_blind_the_next_one',
     )
 }
-# Unlimited approvals sign behind a warning from 7.16 (owner rule 2026-10-07).
+# From 7.15 an unlimited LP approval signs after a warning; the refusal test
+# stops at 7.16 while its module becomes must-run there.
 RETIRED_FROM[('test_msg_ethereum_erc20_uniswap_liquidity',
               'test_sign_uni_approve_liquidity_ETH_refused')] = '7.16.0'
+
+
+# These four rows share a module with older TRON tests that have their own gates.
+MUST_RUN_TESTS = {
+    ('test_msg_tron_signtx', 'test_tron_usdt_unlimited_approve_names_spender'): '7.18.0',
+    ('test_msg_tron_signtx', 'test_tron_usdt_approve_shows_amount'): '7.18.0',
+    ('test_msg_tron_signtx', 'test_tron_freeze_v2'): '7.18.0',
+    ('test_msg_tron_signtx', 'test_tron_vote_witness'): '7.18.0',
+}
 
 
 def validate_junit(fw_version, results, variant='full',
@@ -4227,8 +4416,9 @@ def validate_junit(fw_version, results, variant='full',
                 variant == 'bitcoin-only' and
                 mod in FULL_FEATURE_ONLY_MUST_RUN_MODULES
             )
-            if (status == 'skip' and must_run and
-                    ver_ge(fw_version, MUST_RUN_MODULES.get(mod, '99.0.0'))):
+            required_from = MUST_RUN_TESTS.get((mod, meth),
+                                               MUST_RUN_MODULES.get(mod, '99.0.0'))
+            if status == 'skip' and must_run and ver_ge(fw_version, required_from):
                 failures.append((tid, mod, meth, 'skipped-but-required'))
             elif not status:
                 failures.append((tid, mod, meth, 'missing'))
