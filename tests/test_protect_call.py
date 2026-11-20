@@ -127,6 +127,8 @@ class TestProtectCall(common.KeepKeyTest):
         from emulator_endpoints import boot_owned_emulator
         if not self.client.features.firmware_variant.startswith("Emulator"):
             self.skipTest("requires a power cycle under test control")
+        if not self.firmware_at_least("7.15.0"):
+            self.skipTest("standalone emulator PIN delays require the 7.15 wall clock")
         emu = boot_owned_emulator(self)
         if emu is None:
             self.skipTest("no kkemu binary to power-cycle; set KK_EMULATOR_BIN")

@@ -110,6 +110,8 @@ jobs:
     needs: [lint]
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    env:
+      KK_CLEARSIGN_TEST_ROOT: "02de9231b2094433235532fb1932e324a2c7304195e12e610c675cccbbd606dae7"
 
     # NO published emulator image. This job BUILDS one from current firmware.
     #
@@ -172,7 +174,7 @@ jobs:
           # Certified fixtures are signed by the alpha root; 7.16+ emulators
           # read it from here at startup (older ones ignore it).
           docker run -d --name kkemu \
-            -e KK_CLEARSIGN_TEST_ROOT=02de9231b2094433235532fb1932e324a2c7304195e12e610c675cccbbd606dae7 \
+            -e KK_CLEARSIGN_TEST_ROOT \
             -p 11044:11044/udp -p 11045:11045/udp -p 5000:5000 kkemu-ci
           sleep 3
           docker logs kkemu | head -5
@@ -314,6 +316,7 @@ jobs:
               KK_TRANSPORT_MAIN="$KK_TRANSPORT_MAIN" \
               KK_TRANSPORT_DEBUG="$KK_TRANSPORT_DEBUG" \
               KK_EMULATOR_BIN="$KK_EMULATOR_BIN" \
+              KK_CLEARSIGN_TEST_ROOT="$KK_CLEARSIGN_TEST_ROOT" \
               KK_UDP_TIMEOUT="$KK_UDP_TIMEOUT" \
               "$PYTHON_BIN" -m pytest "$@"
           }
