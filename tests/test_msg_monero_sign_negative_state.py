@@ -197,12 +197,11 @@ class TestMsgMoneroSignNegativeState(neg.SignFlow):
         def short_ring(s):
             del s.ring[15]
         attempt(src(short_ring), SYNTAX, neg.RING)
-        # A decoy that is no point: nothing can be signed over it.
+        # The stored source binding rejects changed decoys before proving.
         attempt(src(lambda s: setattr(s.ring[(s.real_index + 1) % 16], 'dest',
-                                      neg.OFF_CURVE)), OTHER, neg.PROOF)
+                                      neg.OFF_CURVE)))
         attempt(src(lambda s: setattr(s.ring[(s.real_index + 1) % 16],
-                                      'commitment', neg.OFF_CURVE)), OTHER,
-                neg.PROOF)
+                                      'commitment', neg.OFF_CURVE)))
         attempt(lambda r, o: r.ClearField('src'), SYNTAX, neg.REQUEST)
         for name in ('vini', 'vini_hmac', 'pseudo_out', 'pseudo_out_hmac',
                      'orig_idx'):

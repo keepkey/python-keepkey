@@ -367,9 +367,9 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
              "\n1.5 ETH"])
 
     def test_native_placeholder_alias_reads_as_the_native_coin(self):
-        """7.17: the zero address a signer calls native (a Safe's gas token)
+        """7.18: the zero address a signer calls native (a Safe's gas token)
         reads as the coin itself, not as a signer mapping."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         zero = bytes(20)
         params = {"nativeCurrencyAddress": ["0x" + zero.hex()]}
         self.assertEqual(self._token_screen(zero, 10 * 10 ** 18, params),
@@ -760,11 +760,18 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
 
     def test_inner_finite_approve_shows_no_unlimited_warning(self):
         # 2^255 - 1: finite under every firmware's threshold.
+        device_review = self.firmware_version() >= semver.VersionInfo.parse("7.17.0")
         arguments, catalog = self._exec_approve((1 << 255) - 1)
         self._exec_certified(arguments, catalog)
         titles = [s[0] for s in self.screens]
         self.assertNotIn("UNLIMITED approval", titles)
         self.assertIn("Inner action", titles)
+        if device_review:
+            self.assertIn(("Token approval",
+                           "Contract 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48\n"
+                           "Spender 0x%s\nAmount in base units: %d" %
+                           (OTHER_ADDRESS.hex(), (1 << 255) - 1)),
+                          self._first_pages())
 
     def test_inner_approve_uses_the_top_level_threshold(self):
         # 7.17: an embedded approve of 2^255 or more is UNLIMITED, as a
@@ -850,6 +857,10 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
     def test_certified_finite_approve_signs_after_its_review(self):
         program, arguments = self._allowance(self.APPROVE, 42)
         shown = self._allowance_signed(program, arguments)
+        self.assertEqual(shown[0], ("Token approval",
+                         "Contract 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48\n"
+                         "Spender 0x%s\nAmount in base units: 42" %
+                         OTHER_ADDRESS.hex()))
         self.assertNotIn("UNLIMITED approval", [s[0] for s in shown])
         fields = [s for s in shown
                   if s[0] in ("Contract action", "Signer field")]
@@ -1393,24 +1404,20 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
 
     @staticmethod
     def _extra_data(tag):
-        """The device's screen for a suffix: shown in hex up to 128 bytes,
-        stated by its length beyond."""
+        """Firmware discloses every byte of an accepted suffix."""
         if len(tag) == 1:
             text = ("1 more byte follows the arguments. The description "
                     "above does not cover it")
         else:
             text = ("%d more bytes follow the arguments. The description "
                     "above does not cover them" % len(tag))
-        return ("Extra data", text + (":\n0x" + tag.hex() if len(tag) <= 128
-                                      else ". They are too long to show "
-                                      "here."))
+        return ("Extra data", text + ":\n0x" + tag.hex())
 
     def test_allowed_trailing_bytes_are_shown(self):
         self.requires_firmware("7.17.0")
         arguments = self._word(42) + self._word(OTHER_ADDRESS)
         for tag in (b"\x01", bytes.fromhex("0bad1dea"), bytes(range(24)),
-                    bytes(32), bytes(range(40)), bytes(range(128)),
-                    bytes(range(129)), bytes(range(256)) * 2):
+                    bytes(32), bytes(range(40)), bytes(range(128))):
             self._certified(self._deposit(True), arguments + tag)
             shown = [s for s in self._first_pages()
                      if s[0] in ("Signer field", "Extra data")]
@@ -1421,6 +1428,19 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         # Without a tag there is nothing to say.
         self._certified(self._deposit(True), arguments)
         self.assertNotIn("Extra data", [s[0] for s in self.screens])
+
+    def test_overlong_suffix_is_refused_before_review(self):
+        self.requires_firmware("7.17.0")
+        program = self._deposit(True)
+        for size in (129, 512):
+            arguments = self._word(42) + self._word(OTHER_ADDRESS) + bytes(size)
+            envelope = self._preload(program)
+            result, buttons, _, _ = self._walk(
+                self._audit_start(program, 4 + len(arguments)), envelope,
+                arguments=arguments)
+            assert_failure(self, result, types.Failure_SyntaxError,
+                           "ERC-7730 calldata does not match definition")
+            self.assertEqual(buttons, 0)
 
     def test_a_suffix_altered_in_any_pass_is_refused(self):
         # The suffix is bound by the reviewed digest like the arguments.
@@ -2090,7 +2110,7 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
                 ["Recipient:\n0x" + OTHER_ADDRESS.hex(),
                  "Amount:\n" + str(amount), "Fee:\n" + str(fee)])
 
-    # 7.17 (D-020): embedded calls nested two levels below the transaction
+    # 7.18 (D-020): embedded calls nested two levels below the transaction
     # and inside iterations, an embedded call with no data, and the RECIPIENT
     # and TX_VALUE constraints, over real calldata. Each signs the same
     # transaction on the ordinary path first and requires the same signature.
@@ -2246,8 +2266,17 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
             "Contract action", "Inner action") or s[0].startswith(
                 ("Signer field", "Inner field"))]
 
-    def test_717_every_multicall_step_is_clear_signed(self):
+    def test_717_refuses_extended_multicall_definition(self):
         self.requires_firmware("7.17.0")
+        self.requires_firmware_below("7.18.0")
+        outer, _ = self._router02(ADDRESS)
+        self._load_signer()
+        result = self._raw_preload(self._envelope(outer))
+        assert_failure(self, result, types.Failure_SyntaxError,
+                       "Invalid certified ERC-7730 definition")
+
+    def test_718_every_multicall_step_is_clear_signed(self):
+        self.requires_firmware("7.18.0")
         outer, steps = self._router02(ADDRESS)
         result, baseline = self._signed_with(outer, steps,
                                              self.ROUTER02_MULTICALL_ARGS)
@@ -2281,11 +2310,11 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         return (self._word(to) + self._word(0) + self._word(128) +
                 self._word(operation) + self._word(len(data)) + padded)
 
-    def test_717_calls_nest_two_levels_and_no_deeper(self):
+    def test_718_calls_nest_two_levels_and_no_deeper(self):
         # A Safe executing the real multicall, whose steps are level 2. A
         # Safe executing a second Safe executing it is refused at level 3,
         # which is never asked for.
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         from keepkeylib.signed_metadata import keccak256
         selector = keccak256(b"execTransaction(address,uint256,bytes,uint8)")[:4]
         multicall = keccak256(b"multicall(uint256,bytes[])")[:4]
@@ -2319,7 +2348,7 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
         self.assertEqual(self.depths, [1, 2])
         self.assertNotIn(types.ButtonRequest_SignTx, self.button_codes)
 
-    def test_717_safe_creation_shows_owners_and_no_module(self):
+    def test_718_safe_creation_shows_owners_and_no_module(self):
         # The registry's createProxyWithNonce and setup() formats over the
         # real creation: setup() embeds (to, data) = (0, empty), which calls
         # nothing; the device says so instead of refusing the creation.
@@ -2336,6 +2365,11 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
              "params": {"calleePath": "to"}}], self.SAFE_L2)
         result, baseline = self._signed_with(factory, [setup],
                                              self.SAFE_CREATE_ARGS)
+        if not self.firmware_at_least("7.18.0"):
+            assert_failure(self, result, types.Failure_Other,
+                           "Inner call cannot be clear-signed")
+            self.assertNotIn(types.ButtonRequest_SignTx, self.button_codes)
+            return
         self.assertEqual(result.signature_r, baseline.signature_r)
         inner = [s for s in self._shown() if s[0].startswith("Inner field")]
         self.assertEqual(inner, [
@@ -2347,12 +2381,12 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
             ("Inner field",
              "Module:\nTo 0x0000000000000000000000000000000000000000\nNo data")])
 
-    def test_717_safe_creation_with_safe_to_l2_setup_signs(self):
+    def test_718_safe_creation_with_safe_to_l2_setup_signs(self):
         # Safe{Wallet}'s own creation: setup() DELEGATECALLs SafeToL2Setup
         # .setupToL2(SafeL2 1.4.1), Safe's deployments pinned on chain 1. The
         # device says what that does, calmly, and signs; it never asks for
         # (or shows) a definition of the callee.
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         factory = self._program(self.CREATE_PROXY, "Create Safe", [
             {"path": "initializer", "label": "Account setup",
              "format": "calldata", "params": {"calleePath": "_singleton"}}])
@@ -2390,10 +2424,10 @@ class TestMsgEthereumErc7730Runtime(Erc7730Harness, common.KeepKeyTest):
             self.assertIn(self.DELEGATECALL, self._first_pages())
             self.assertNotIn(types.ButtonRequest_SignTx, self.button_codes)
 
-    def test_717_cow_order_sells_exactly_the_transaction_value(self):
+    def test_718_cow_order_sells_exactly_the_transaction_value(self):
         # TX_VALUE: the order's sell amount must be the transaction's value.
         # On the runtime tier the ordinary Send screen stays.
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         order = self._program(self.CREATE_ORDER, "Sell ETH", [
             {"path": "order.sellAmount", "label": "Sell", "format": "amount",
              "params": {"equalsTxValue": True}},

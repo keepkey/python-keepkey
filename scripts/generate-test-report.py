@@ -1299,7 +1299,7 @@ SECTIONS = [
           'Simple value transfer with no contract data. Device shows recipient + amount + gas.',
           ['ETH send confirmation']),
          ('E2b', 'test_msg_ethereum_signtx', 'test_ethereum_unichain_amounts_read_eth',
-          'Unichain amounts in ETH (7.17)',
+          'Unichain amounts in ETH (7.18)',
           'A 1.5 ETH send on Unichain (chain 130). The value and the fee read ETH, as on '
           'Optimism, Base and Arbitrum, instead of a fee in Wei, and the last screen is titled '
           '"Tx on Unichain".',
@@ -1336,7 +1336,7 @@ SECTIONS = [
          ('E8', 'test_msg_ethereum_message', 'test_ethereum_sign_bytes',
           'Sign raw bytes', 'Signs arbitrary bytes (displayed as hex on OLED).', []),
          ('E8b', 'test_msg_ethereum_message', 'test_ethereum_sign_safe_tx_hash_shows_hex',
-          'Safe safeTxHash shown as 0x hex (7.17)',
+          'Safe safeTxHash shown as 0x hex (7.18)',
           'A real Safe safeTxHash signed with eth_sign. Bytes that are not text are shown as 0x hex '
           'under "Sign Binary Message", as Safe{Wallet} prints the hash, instead of C-escaped '
           'bytes. The signature equals 7.16.0\'s.',
@@ -2361,21 +2361,21 @@ SECTIONS = [
          ('T5', 'test_msg_tron_signtx', 'test_tron_sign_missing_fields_rejected',
           'Missing fields rejected', 'Incomplete transaction data is refused.', []),
          ('T6', 'test_msg_tron_signtx', 'test_tron_usdt_unlimited_approve_names_spender',
-          'USDT unlimited approve (7.17)',
+          'USDT unlimited approve (7.18)',
           'Real mainnet approve(spender, 2^256-1) on USDT. AdvancedMode off: the device names the '
           'full spender and says UNLIMITED, then the energy fee limit.',
           ['UNLIMITED approval', 'Energy fee limit']),
          ('T7', 'test_msg_tron_signtx', 'test_tron_usdt_approve_shows_amount',
-          'USDT approve with an amount (7.17)',
+          'USDT approve with an amount (7.18)',
           'Real mainnet approve of 100 USDT whose address word carries the 0x41 prefix. Spender and '
           'amount are shown in USDT units.',
           ['TRC-20 Approve', 'Energy fee limit']),
          ('T8', 'test_msg_tron_signtx', 'test_tron_freeze_v2',
-          'Stake 2.0 freeze (7.17)',
+          'Stake 2.0 freeze (7.18)',
           'Real mainnet FreezeBalanceV2: amount in TRX and the resource (ENERGY).',
           ['TRON Stake']),
          ('T9', 'test_msg_tron_signtx', 'test_tron_vote_witness',
-          'Vote for SRs (7.17)',
+          'Vote for SRs (7.18)',
           'Real mainnet VoteWitness with three votes: a summary that it replaces current votes, '
           'then one screen per SR with its full address and vote count.',
           ['TRON Vote', 'Vote 1/3', 'Vote 2/3', 'Vote 3/3']),
@@ -2867,7 +2867,7 @@ SECTIONS = [
           'list is the assertion.',
           []),
      ]),
-    ('SAFE', 'Authenticated Safe typed calls', '7.17.0',
+    ('SAFE', 'Authenticated Safe typed calls', '7.18.0',
      'Full firmware with authenticated Safe typed calls reviews the transfer inside a Safe owner approval.',
      ['The signed EIP-712 digest covers the original Safe transaction.'],
      [
@@ -2901,10 +2901,10 @@ SECTIONS = [
           'Send the full balance', 'The zero-amount output is reviewed explicitly and both outputs are scanned.',
           ['Recipient', 'Zero-amount output', 'Fee and total']),
      ]),
-    ('AN', 'Certified Names - Who An Approval Or Send Goes To', '7.17.0',
+    ('AN', 'Certified Names - Who An Approval Or Send Goes To', '7.18.0',
      'An approval hands a contract the right to move the user\'s tokens, and the device can only '
-     'show that contract as forty hex characters. From 7.17 a name record certified by KeepKey '
-     '(a 0x06 record from a ClearSign ceremony, signed under the root every 7.17 build embeds) '
+     'show that contract as forty hex characters. From 7.18 a name record certified by KeepKey '
+     '(a 0x06 record from a ClearSign ceremony, signed under the root every 7.18 build embeds) '
      'can name that address. The device checks the record, and only when it names exactly the '
      'spender of a native approve, or the recipient of a token transfer or plain send, on this '
      'chain does it add one screen with the name and who vouched for it. The address screens '
@@ -3628,7 +3628,7 @@ SECTIONS = [
           ['Signer alias, token address and native-unit amount']),
          ('EX8b', 'test_msg_ethereum_erc7730_runtime',
           'test_native_placeholder_alias_reads_as_the_native_coin',
-          'The zero address aliased native reads as the coin (7.17)',
+          'The zero address aliased native reads as the coin (7.18)',
           "When the signer's alias set names the zero address native (a Safe's gas token), the amount reads '10 ETH' with no signer-mapping note. Not aliased, the zero address stays an unknown token.",
           ['Zero-address alias shown as 10 ETH']),
          ('EX9', 'test_msg_ethereum_erc7730_runtime',
@@ -3906,15 +3906,15 @@ _TEST_MIN_VERSION = {
     ('test_msg_solana_schema_v2',
      'test_certified_soltoshi_join_ignores_blind_sign_policy'): '7.16.0',
     ('test_msg_tron_signtx',
-     'test_tron_usdt_unlimited_approve_names_spender'): '7.17.0',
-    ('test_msg_tron_signtx', 'test_tron_usdt_approve_shows_amount'): '7.17.0',
-    ('test_msg_tron_signtx', 'test_tron_freeze_v2'): '7.17.0',
-    ('test_msg_tron_signtx', 'test_tron_vote_witness'): '7.17.0',
+     'test_tron_usdt_unlimited_approve_names_spender'): '7.18.0',
+    ('test_msg_tron_signtx', 'test_tron_usdt_approve_shows_amount'): '7.18.0',
+    ('test_msg_tron_signtx', 'test_tron_freeze_v2'): '7.18.0',
+    ('test_msg_tron_signtx', 'test_tron_vote_witness'): '7.18.0',
     ('test_msg_ethereum_message',
-     'test_ethereum_sign_safe_tx_hash_shows_hex'): '7.17.0',
-    ('test_msg_ethereum_signtx', 'test_ethereum_unichain_amounts_read_eth'): '7.17.0',
+     'test_ethereum_sign_safe_tx_hash_shows_hex'): '7.18.0',
+    ('test_msg_ethereum_signtx', 'test_ethereum_unichain_amounts_read_eth'): '7.18.0',
     ('test_msg_ethereum_erc7730_runtime',
-     'test_native_placeholder_alias_reads_as_the_native_coin'): '7.17.0',
+     'test_native_placeholder_alias_reads_as_the_native_coin'): '7.18.0',
     ('test_msg_eip712_streaming',
      'test_real_safe_multisend_approve_names_weth'): '7.16.0',
 }
@@ -4267,7 +4267,7 @@ def screenshot_test_list(fw_version):
 # version-blind set would fail every older-firmware run for a module that
 # legitimately cannot exist yet.
 MUST_RUN_MODULES = {
-    'test_msg_ethereum_erc7730_safe': '7.17.0',
+    'test_msg_ethereum_erc7730_safe': '7.18.0',
     'test_msg_monero_getaddress': '7.15.0',
     'test_msg_monero_getwatchkey': '7.15.0',
     'test_msg_monero_key_image': '7.15.0',
@@ -4293,7 +4293,7 @@ MUST_RUN_MODULES = {
     # Certified contacts: every row in section AB.
     'test_msg_ethereum_certified_contacts': '7.15.0',
     # Certified names: every row in section AN.
-    'test_msg_ethereum_approve_names': '7.17.0',
+    'test_msg_ethereum_approve_names': '7.18.0',
 }
 
 # A module can be mandatory for the regular product while being intentionally
@@ -4378,10 +4378,10 @@ RETIRED_FROM[('test_msg_ethereum_erc20_uniswap_liquidity',
 
 # These four rows share a module with older TRON tests that have their own gates.
 MUST_RUN_TESTS = {
-    ('test_msg_tron_signtx', 'test_tron_usdt_unlimited_approve_names_spender'): '7.17.0',
-    ('test_msg_tron_signtx', 'test_tron_usdt_approve_shows_amount'): '7.17.0',
-    ('test_msg_tron_signtx', 'test_tron_freeze_v2'): '7.17.0',
-    ('test_msg_tron_signtx', 'test_tron_vote_witness'): '7.17.0',
+    ('test_msg_tron_signtx', 'test_tron_usdt_unlimited_approve_names_spender'): '7.18.0',
+    ('test_msg_tron_signtx', 'test_tron_usdt_approve_shows_amount'): '7.18.0',
+    ('test_msg_tron_signtx', 'test_tron_freeze_v2'): '7.18.0',
+    ('test_msg_tron_signtx', 'test_tron_vote_witness'): '7.18.0',
 }
 
 

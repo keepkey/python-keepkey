@@ -130,7 +130,7 @@ class TestSolanaInstructionDisclosure(common.KeepKeyTest):
                 self.client.call(self._request(raw_tx))
 
     def test_token_2022_fee_transfer_with_extra_accounts_is_opaque(self):
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         data = (bytes([26, 1]) + struct.pack("<Q", 1000000) + bytes([6]) +
                 struct.pack("<Q", 100))
         keys = [self.signer, b"\x21" * 32, b"\x32" * 32, b"\x43" * 32,
@@ -159,7 +159,7 @@ class TestSolanaInstructionDisclosure(common.KeepKeyTest):
         """Exactly [source, mint, destination, authority] clear-signs with
         AdvancedMode off: the program is named on the source screen, then the
         mint, then the amount scaled by the signed decimals."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         source, mint, destination = b"\x25" * 32, b"\x36" * 32, b"\x47" * 32
         data = bytes([12]) + struct.pack("<Q", 1500000) + bytes([6])
         screens = self._sign_and_record(
@@ -181,7 +181,7 @@ class TestSolanaInstructionDisclosure(common.KeepKeyTest):
     def test_token_2022_transfer_checked_with_fee_shows_fee(self):
         """TransferCheckedWithFee (26, 1) clear-signs and shows the signed fee,
         scaled by the signed decimals, before the amount."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         source, mint, destination = b"\x25" * 32, b"\x36" * 32, b"\x47" * 32
         data = (bytes([26, 1]) + struct.pack("<Q", 1500000) + bytes([6]) +
                 struct.pack("<Q", 2500))
@@ -204,7 +204,7 @@ class TestSolanaInstructionDisclosure(common.KeepKeyTest):
         any other fee, so a signed fee above the amount would be a false
         screen: refused with AdvancedMode off. A fee equal to the amount is the
         real upper bound and clear-signs."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         source, mint, destination = b"\x25" * 32, b"\x36" * 32, b"\x47" * 32
         with_fee = lambda fee: (bytes([26, 1]) + struct.pack("<Q", 1) +
                                 bytes([6]) + struct.pack("<Q", fee))
@@ -222,7 +222,7 @@ class TestSolanaInstructionDisclosure(common.KeepKeyTest):
         mint as it does an SPL one: the signer screen, then the fee and the
         amount in that symbol. Runtime signers require AdvancedMode; the
         review is still clear, never the Blind Sign screen."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         self.requires_message("LoadClearsignSigner")
         self.client.apply_policy("AdvancedMode", True)
         self.client.load_clearsign_signer(
@@ -269,7 +269,7 @@ class TestSolanaInstructionDisclosure(common.KeepKeyTest):
     def test_token_2022_transfer_fields_change_oled_review(self):
         """Each signed field of the Token-2022 transfer, and the program
         itself, changes the screens."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         key = lambda value: bytes([value]) * 32
         checked = lambda amount, decimals: (
             bytes([12]) + struct.pack("<Q", amount) + bytes([decimals]))
@@ -588,7 +588,7 @@ class TestSolanaInstructionDisclosure(common.KeepKeyTest):
             self._assert_pair(label, raw_a, raw_b)
 
     def test_token_2022_associated_account_is_opaque(self):
-        self.requires_firmware_below("7.17.0")
+        self.requires_firmware_below("7.18.0")
         accounts = [self.signer, b"\x41" * 32, b"\x42" * 32,
                     b"\x43" * 32, SYSTEM_PROGRAM, TOKEN_2022_PROGRAM,
                     ATA_PROGRAM]
@@ -599,10 +599,10 @@ class TestSolanaInstructionDisclosure(common.KeepKeyTest):
             self.client.call(self._request(raw_tx))
 
     def test_token_2022_associated_account_is_reviewed(self):
-        """7.17: wallets create a PYUSD recipient's account under Token-2022
+        """7.18: wallets create a PYUSD recipient's account under Token-2022
         before the transfer; it is reviewed like SPL Token's (account, owner,
         mint), so a different mint must change the screens."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         raws = []
         for mint in (b"\x43" * 32, b"\x44" * 32):
             accounts = [self.signer, b"\x41" * 32, b"\x42" * 32, mint,

@@ -1,9 +1,9 @@
-"""Seaport phishing protection: what the signer receives (7.17).
+"""Seaport phishing protection: what the signer receives (7.18).
 
 A drainer site asks the victim to sign a Seaport order that gives away the
 victim's NFT and pays the victim nothing (one wei to a stranger, or the real
 payments with the seller's own payment redirected), or a payment that only
-looks like one: one wei, or a token the attacker made. Through 7.17's first
+looks like one: one wei, or a token the attacker made. Through 7.18's first
 Seaport definition every such order signed under "Verified by KeepKey" with
 the same calm screens as a real listing.
 
@@ -429,7 +429,7 @@ class TestMsgEthereumErc7730Settlement(Erc7730Harness, common.KeepKeyTest):
     def setUp(self):
         super().setUp()
         self.requires_fullFeature()
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         self.requires_release_capability("erc7730-runtime-review")
         self.requires_release_capability("erc7730-typed-iteration")
         self.requires_release_capability("erc7730-typed-settlement")
@@ -883,7 +883,7 @@ class TestMsgEthereumErc7730Settlement(Erc7730Harness, common.KeepKeyTest):
 
     def test_without_the_opt_in_nothing_is_added(self):
         # Control: the same phishing order under the definition without
-        # roles signs with no settlement screen, as 7.17 did before. This is
+        # roles signs with no settlement screen, as 7.18 did before. This is
         # the runtime tier; a certified Seaport definition without roles is
         # refused (firmware unit test).
         self.assertEqual(self._settlement(

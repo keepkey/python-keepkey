@@ -6,7 +6,7 @@
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-"""7.17: a KeepKey-certified 0x06 name record names the spender of a native
+"""7.18: a KeepKey-certified 0x06 name record names the spender of a native
 ERC-20 approve, or the recipient of a plain send, on one screen of its own
 right after the screen with the full address. That screen stays exactly the
 7.16 one, and nothing signed changes.
@@ -106,6 +106,10 @@ class TestEthereumApproveNames(common.KeepKeyTest):
     def _assert_named_after(self, screens, plain, after, text):
         """`screens` is `plain` plus one KeepKey ClearSign screen showing
         `text`, right after plain[after]."""
+        if not self.firmware_at_least("7.18.0"):
+            self.assertEqual(screens, plain)
+            self.assertEqual(self._titled(screens, "KEEPKEY CLEARSIGN"), [])
+            return
         vouched = self._titled(screens, "KEEPKEY CLEARSIGN")
         self.assertEqual(len(vouched), 1)
         self.assertIs(vouched[0], screens[after + 1])
@@ -143,12 +147,14 @@ class TestEthereumApproveNames(common.KeepKeyTest):
         self.assertEqual(screens, other_plain)
 
     def test_name_for_another_spender_is_ignored(self):
+        self.requires_firmware("7.18.0")
         plain_sig, plain = self._approve(COW_APPROVE)
         sig, screens = self._approve(COW_APPROVE, self.name_record)
         self.assertEqual(sig, plain_sig)
         self.assertEqual(screens, plain)
 
     def test_name_for_another_chain_is_ignored(self):
+        self.requires_firmware("7.18.0")
         # The Ethereum record, on a BNB Chain send to the same address.
         plain_sig, plain = self._send(UR, chain_id=56)
         sig, screens = self._send(UR, self.name_record, chain_id=56)
@@ -159,6 +165,7 @@ class TestEthereumApproveNames(common.KeepKeyTest):
         self.assertEqual(len(self._titled(named, "KEEPKEY CLEARSIGN")), 1)
 
     def test_malformed_name_record_refuses_the_approve(self):
+        self.requires_firmware("7.18.0")
         bad = bytearray(self.name_record)
         bad[-10] ^= 1  # inside the delegate's signature
         resp = self.client.ethereum_send_tx_metadata(

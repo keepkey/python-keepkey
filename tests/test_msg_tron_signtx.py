@@ -86,6 +86,20 @@ class TestMsgTronSignTx(common.KeepKeyTest):
         self.requires_firmware("7.14.0")
         self.requires_message("TronGetAddress")
 
+    def test_717_refuses_extended_tron_contracts_without_advanced_mode(self):
+        self.requires_fullFeature()
+        self.requires_firmware("7.17.0")
+        self.requires_firmware_below("7.18.0")
+        self.setup_mnemonic_allallall()
+        self.client.apply_policy("AdvancedMode", 0)
+        for name in REAL_TRON_TXS:
+            with self.subTest(contract=name):
+                _, request = _request_for_fixture(self.client, name)
+                response, screens = self._walk_sign(request)
+                self.assertIsInstance(response, messages.Failure)
+                self.assertEqual(response.message, "Enable AdvancedMode to blind-sign")
+                self.assertEqual(screens, [])
+
     def test_tron_get_address(self):
         """Test TRON address derivation from device."""
         self.requires_fullFeature()
@@ -428,30 +442,34 @@ REAL_TRON_TXS = {
 }
 
 
+def _request_for_fixture(client, name):
+    """The real transaction with its owner swapped for this device's
+    account (same length, so the protobuf framing is unchanged)."""
+    path = parse_path("m/44'/195'/0'/0/0")
+    owner = client.call(tron_messages.TronGetAddress(
+        address_n=path, show_display=False)).address
+    chain_owner, raw_hex = REAL_TRON_TXS[name]
+    raw = binascii.unhexlify(raw_hex)
+    assert raw.count(binascii.unhexlify(chain_owner)) == 1
+    raw = raw.replace(binascii.unhexlify(chain_owner), _tron_raw(owner))
+    return owner, tron_messages.TronSignTx(address_n=path, raw_data=raw)
+
+
 @unittest.skipUnless(_has_tron, "TRON protobuf messages not available in this build")
-class TestMsgTronClearSign717(common.KeepKeyTest):
-    """7.17 decodes TRC-20 approve, Stake 2.0 and votes from raw_data."""
+class TestMsgTronClearSign718(common.KeepKeyTest):
+    """7.18 decodes TRC-20 approve, Stake 2.0 and votes from raw_data."""
 
     _walk_sign = TestMsgTronSignTx._walk_sign
 
     def setUp(self):
         super().setUp()
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
 
     def _sign_real(self, name):
-        """The real transaction with its owner swapped for this device's
-        account (same length, so the protobuf framing is unchanged)."""
-        path = parse_path("m/44'/195'/0'/0/0")
-        owner = self.client.call(tron_messages.TronGetAddress(
-            address_n=path, show_display=False)).address
-        chain_owner, raw_hex = REAL_TRON_TXS[name]
-        raw = binascii.unhexlify(raw_hex)
-        assert raw.count(binascii.unhexlify(chain_owner)) == 1
-        raw = raw.replace(binascii.unhexlify(chain_owner), _tron_raw(owner))
-        response, screens = self._walk_sign(
-            tron_messages.TronSignTx(address_n=path, raw_data=raw))
+        owner, request = _request_for_fixture(self.client, name)
+        response, screens = self._walk_sign(request)
         self.assertIsInstance(response, tron_messages.TronSignedTx)
-        digest = hashlib.sha256(raw).digest()
+        digest = hashlib.sha256(request.raw_data).digest()
         signers = set()
         for key in VerifyingKey.from_public_key_recovery_with_digest(
                 response.signature[:64], digest, SECP256k1,

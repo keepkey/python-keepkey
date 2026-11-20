@@ -548,7 +548,7 @@ class TestSolanaSchemaCertified(SchemaReview):
         request.schema_signature = SOLTOSHI_SCHEMA_SIG[:63]
         self.assertRefused(request, SCHEMA_MISMATCH)
 
-    # Lookup tables without a lookup proof (7.17): the join as a v0 message
+    # Lookup tables without a lookup proof (7.18): the join as a v0 message
     # whose lookup table supplies one account. The join is instruction 2,
     # its SDICE mint is account slot 3, and instruction 1 is the Transfer to
     # the session key.
@@ -558,7 +558,7 @@ class TestSolanaSchemaCertified(SchemaReview):
         """The lookup key fills an account the review never shows: the same
         certified review as the static join, AdvancedMode off, and the
         device signs the v0 message."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         self.requires_release_capability("solana-certified-review")
         raw = with_lookup(soltoshi_join(self.signer),
                           [(self.JOIN_IX, self.JOIN_HIDDEN_SLOT)])
@@ -570,7 +570,7 @@ class TestSolanaSchemaCertified(SchemaReview):
     def test_certified_lookup_supplying_a_shown_account_refused(self):
         """The SDICE mint every amount is shown in, taken from the lookup
         table: refused before any screen, never blind-signed."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         raw = with_lookup(soltoshi_join(self.signer),
                           [(self.JOIN_IX, self.JOIN_MINT_SLOT)])
         self.assertRefused(self._join_request(raw, [sdice_definition()]),
@@ -579,7 +579,7 @@ class TestSolanaSchemaCertified(SchemaReview):
     def test_certified_lookup_mixed_with_lookup_companion_refused(self):
         """A hidden lookup key in the join is fine, but the Transfer the
         review shows may not send to a lookup key."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         raw = with_lookup(soltoshi_join(self.signer),
                           [(self.JOIN_IX, self.JOIN_HIDDEN_SLOT),
                            (self.TRANSFER_IX, 1)])
@@ -590,7 +590,7 @@ class TestSolanaSchemaCertified(SchemaReview):
         """A lookup proof is optional, but one that is sent must verify: a
         bad one is refused, not ignored in favour of the proof-less rule,
         with or without a lookup table in the message."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         for raw in (with_lookup(soltoshi_join(self.signer),
                                 [(self.JOIN_IX, self.JOIN_HIDDEN_SLOT)]),
                     soltoshi_join(self.signer)):
@@ -713,7 +713,7 @@ class TestSolanaSchemaRuntime(SchemaReview):
         """The provider's schema opens with the EVM runtime Identity screen,
         word for word: the alias quoted, the key's fingerprint, and NOT
         verified by KeepKey. 7.16 showed the alias and fingerprint alone."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         self._load_signers()
         fp = hashlib.sha256(
             signed_metadata.test_signer_compressed_pubkey()).hexdigest()

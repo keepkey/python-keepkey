@@ -260,9 +260,9 @@ class TestEthereumCertifiedUniswap(common.KeepKeyTest):
 
     def swapThenFee(self, review):
         """A swap past the first chunk is reviewed once every byte is in. From
-        7.17 the fee screen follows it as the final confirm; 7.16.0 asked the
+        7.18 the fee screen follows it as the final confirm; 7.16.0 asked the
         fee first."""
-        if self.firmware_at_least("7.17.0"):
+        if self.firmware_at_least("7.18.0"):
             return review + [(FEE_TITLE, None)]
         return [(FEE_TITLE, None)] + review
 

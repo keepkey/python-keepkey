@@ -724,8 +724,11 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         resp = self.client.ethereum_send_tx_metadata(
             signed_payload=signed_metadata.sign_metadata(body),
             metadata_version=1, key_id=3)
-        self.assertEqual((resp.classification, resp.display_summary),
-                         (2, "Invalid"))  # MALFORMED
+        if self.firmware_at_least("7.18.0"):
+            self.assertEqual((resp.classification, resp.display_summary),
+                             (2, "Invalid"))
+        # On 7.17 the acknowledgement is not a display authorization.
+        # In either release the device must show the unidentified spender.
         doc = self.UNISWAP_PERMIT2
         self._assert_reference_signature(doc, self._walk(doc))
         self.assertTrue(oled_text.shows(

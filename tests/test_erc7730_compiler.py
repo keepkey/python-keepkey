@@ -638,12 +638,12 @@ def test_typed_data_reads_only_its_to_container():
         _firmware_validate(program, refusal)
 
 
-def test_717_typed_data_iterates_one_array_like_calldata():
+def test_718_typed_data_iterates_one_array_like_calldata():
     # Seaport's OrderComponents: each offer item is shown once per element,
     # its amount with that element's token. The calldata iteration rules hold:
     # a field reading another array (or a scalar) inside it is refused.
-    _requires_firmware("7.17.0")
-    # Alpha 7.17 builds before typed iteration report the same version.
+    _requires_firmware("7.18.0")
+    # Alpha 7.18 builds before typed iteration report the same version.
     capabilities, _ = _registry_target()
     typed = {
         "types": {
@@ -749,12 +749,12 @@ def _formatter_flags_offset(program, index):
     raise AssertionError("no formatter table")
 
 
-def test_717_settlement_roles_are_a_typed_data_opt_in():
+def test_718_settlement_roles_are_a_typed_data_opt_in():
     # Each field may name its role in an order ("settlement": type, id,
     # amount, to; an item without "to" is given); any role sets header flag
     # SETTLEMENT, which only typed data may carry, and the device then shows
     # what the signer receives, net of what it gives.
-    _requires_firmware("7.17.0")
+    _requires_firmware("7.18.0")
     capabilities, _ = _registry_target()
     typed = {
         "types": {
@@ -829,7 +829,7 @@ def test_717_settlement_roles_are_a_typed_data_opt_in():
     enum_program = compile_eip712(descriptor(give_kind="enum"), typed,
                                   capabilities=capabilities)
     _firmware_validate(enum_program, capabilities=capabilities)
-    # No role, no flag: the program is the 7.17 one.
+    # No role, no flag: the program is the 7.18 one.
     plain = compile_eip712(descriptor(roles=False), typed, capabilities=capabilities)
     assert plain[6] == 0
     _firmware_validate(plain, capabilities=capabilities)
@@ -938,7 +938,7 @@ def test_encode_type_finds_struct_dependency_through_every_array_dimension():
         "Group(Person[2][][4] people)Person(string name)")
 
 
-def test_717_embedded_call_in_an_iteration_may_name_one_callee():
+def test_718_embedded_call_in_an_iteration_may_name_one_callee():
     # multicall(bytes[]): every element calls the contract itself (@.to).
     # The callee is one value for every element, not a second array.
     capabilities, _ = _registry_target()
@@ -976,11 +976,11 @@ def test_717_embedded_call_in_an_iteration_may_name_one_callee():
         "a field reads another array than its iteration")
 
 
-def test_717_constraint_flags_are_formatter_byte_1():
+def test_718_constraint_flags_are_formatter_byte_1():
     # "recipient" (addressName) and "equalsTxValue" (amount, calldata only)
     # set formatter flags RECIPIENT (1) and TX_VALUE (2); the device refuses
     # any other flag on any other formatter, as the mirror does.
-    _requires_firmware("7.17.0")
+    _requires_firmware("7.18.0")
     signature = "order(address receiver,uint256 sell)"
     address = "0x" + "11" * 20
     descriptor = {"display": {"formats": {signature: {

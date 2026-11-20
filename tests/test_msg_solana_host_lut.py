@@ -1,4 +1,4 @@
-"""7.17: Solana v0 lookup tables resolved by the host, and Token-2022 PYUSD.
+"""7.18: Solana v0 lookup tables resolved by the host, and Token-2022 PYUSD.
 
 Real mainnet messages (fetched 2026-10-29 with getTransaction, signatures
 stripped), the same bytes as the firmware unit tests
@@ -6,7 +6,7 @@ stripped), the same bytes as the firmware unit tests
 this seed's key so the device is a signer.
 
 A v0 message names lookup-table accounts by index; the keys are not in the
-signed bytes. With no proof (D-018: no online signer), firmware 7.17 takes the
+signed bytes. With no proof (D-018: no online signer), firmware 7.18 takes the
 host's resolution only to DECODE the review: every host-resolved key is shown
 marked "from lookup table, not verified by KeepKey", the message stays a blind
 sign under AdvancedMode, and a list that does not match the signed indexes is
@@ -160,6 +160,7 @@ class TestSolanaHostLookupAccounts(common.KeepKeyTest):
         return codes, resp
 
     def test_jupiter_swap_decodes_host_lookup_accounts_then_blind_signs(self):
+        self.requires_firmware("7.18.0")
         self.client.apply_policy('AdvancedMode', True)
         raw = self._with_payer(JUPITER, JUPITER_PAYER_OFFSET)
         base_codes, base = self._sign(raw_tx=raw)
@@ -192,9 +193,13 @@ class TestSolanaHostLookupAccounts(common.KeepKeyTest):
         raw = self._with_payer(JUPITER, JUPITER_PAYER_OFFSET)
         with self.assertRaises(CallException) as e:
             self._sign(raw_tx=raw, lut_account=JUPITER_LOADED)
-        self.assertIn('Enable AdvancedMode', e.exception.args[1])
+        if self.firmware_at_least('7.18.0'):
+            self.assertIn('Enable AdvancedMode', e.exception.args[1])
+        else:
+            self.assertIn('Could not parse protocol buffer message', e.exception.args[1])
 
     def test_mismatched_host_lookup_accounts_are_refused(self):
+        self.requires_firmware("7.18.0")
         self.client.apply_policy('AdvancedMode', True)
         raw = self._with_payer(JUPITER, JUPITER_PAYER_OFFSET)
         for keys in (JUPITER_LOADED[:-1],
@@ -205,6 +210,7 @@ class TestSolanaHostLookupAccounts(common.KeepKeyTest):
                           e.exception.args[1])
 
     def test_pyusd_token2022_transfer_clear_signs(self):
+        self.requires_firmware("7.18.0")
         self.client.apply_policy('AdvancedMode', False)
         raw = self._with_payer(PYUSD, PYUSD_PAYER_OFFSET)
         codes, resp = self._sign(raw_tx=raw)

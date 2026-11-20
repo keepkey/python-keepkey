@@ -899,7 +899,7 @@ class TestMsgSolanaSignTx(common.KeepKeyTest):
         what the Lookup Accounts screen says: NOT verified by KeepKey. 7.16
         showed the symbol, alias and fingerprint alone. The mint is not in
         the firmware table (USDC is), or the table's symbol would be shown."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         from oled_text import find_text
         from test_msg_display_disclosure import ScreenRecorder
         from keepkeylib.signed_metadata import test_signer_compressed_pubkey

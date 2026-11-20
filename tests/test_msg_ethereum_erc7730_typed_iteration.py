@@ -1,6 +1,6 @@
-"""Typed-data ERC-7730 iteration: Seaport's offer[] and consideration[] (7.17).
+"""Typed-data ERC-7730 iteration: Seaport's offer[] and consideration[] (7.18).
 
-Through 7.17's first cut a typed-data definition could not walk an array, so
+Through 7.18's first cut a typed-data definition could not walk an array, so
 no Seaport definition could show what an OpenSea listing sells and what it is
 paid: every item was shown raw. A typed-data definition may now iterate one
 array at a time, as calldata definitions do. The device counts the array from
@@ -204,9 +204,9 @@ class TestMsgEthereumErc7730TypedIteration(Erc7730Harness,
     def setUp(self):
         super().setUp()
         self.requires_fullFeature()
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         self.requires_release_capability("erc7730-runtime-review")
-        # Alpha builds of 7.17 before typed iteration report the same version
+        # Alpha builds of 7.18 before typed iteration report the same version
         # and runtime capability; only this one tells them apart.
         self.requires_release_capability("erc7730-typed-iteration")
         self.requires_structured_eip712()

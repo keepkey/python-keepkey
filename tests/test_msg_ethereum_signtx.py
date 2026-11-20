@@ -99,9 +99,9 @@ class TestMsgEthereumSigntx(common.KeepKeyTest):
             common.reset_screenshot_capture(self.client)
 
     def test_ethereum_unichain_amounts_read_eth(self):
-        """7.17: Unichain (130) pays in ETH. The value and the fee read ETH,
+        """7.18: Unichain (130) pays in ETH. The value and the fee read ETH,
         not Wei, and the last screen names the chain."""
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         self.requires_fullFeature()
         self.setup_mnemonic_nopin_nopassphrase()
         msg = eth_proto.EthereumSignTx(

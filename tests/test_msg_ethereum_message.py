@@ -128,9 +128,9 @@ class TestMsgEthereumMessage(common.KeepKeyTest):
 
     def test_ethereum_sign_safe_tx_hash_shows_hex(self):
         # 7.16 drew these bytes C-escaped ("\\xA1]g\\x0D..."), which an owner
-        # cannot compare with the hash Safe{Wallet} prints. 7.17 shows bytes
+        # cannot compare with the hash Safe{Wallet} prints. 7.18 shows bytes
         # that are not text as 0x hex under their own title.
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         retval, screens = self._sign_recorded(SAFE_TX_HASH)
@@ -147,7 +147,7 @@ class TestMsgEthereumMessage(common.KeepKeyTest):
             '777a252a246ebcf1fa27e618b6c9c8492046964506521bc612b705b6515f89851c')
 
     def test_ethereum_sign_text_keeps_message_title(self):
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         self.requires_fullFeature()
         self.setup_mnemonic_allallall()
         _, screens = self._sign_recorded(b"0x" + SAFE_TX_HASH.hex().encode())

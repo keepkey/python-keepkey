@@ -1,8 +1,8 @@
-"""Typed-data ERC-7730 shows each field once (7.17).
+"""Typed-data ERC-7730 shows each field once (7.18).
 
 A certified typed-data definition walks the message once per field value it
 needs. Through 7.16 every one of those walks showed every leaf again, so the
-CoW order below took several times the screens of plain streaming. From 7.17
+CoW order below took several times the screens of plain streaming. From 7.18
 every message value is shown once: a value a definition field shows, in that
 field's format; the device's own warnings and any value too long for a field
 to hold, in the first walk; every other value, raw, in one last walk after
@@ -174,7 +174,7 @@ class TestMsgEthereumErc7730TypedShowOnce(Erc7730Harness, common.KeepKeyTest):
     def setUp(self):
         super().setUp()
         self.requires_fullFeature()
-        self.requires_firmware("7.17.0")
+        self.requires_firmware("7.18.0")
         self.requires_release_capability("erc7730-runtime-review")
         self.requires_structured_eip712()
         self.setup_mnemonic_abandon()
