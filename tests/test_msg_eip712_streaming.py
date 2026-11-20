@@ -708,6 +708,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         self.requires_firmware("7.17.0")
         self.requires_message("LoadClearsignSigner")
         self.requires_release_capability("permit2-review")
+        validates_name_records = self.firmware_at_least("7.18.0")
         signed_metadata.assert_test_key_matches_slot3()
         # apply_policy re-Initializes, which drops RAM-only signers: first.
         self.client.apply_policy('AdvancedMode', 1)
@@ -724,7 +725,7 @@ class TestMsgEip712Streaming(common.KeepKeyTest):
         resp = self.client.ethereum_send_tx_metadata(
             signed_payload=signed_metadata.sign_metadata(body),
             metadata_version=1, key_id=3)
-        if self.firmware_at_least("7.18.0"):
+        if validates_name_records:
             self.assertEqual((resp.classification, resp.display_summary),
                              (2, "Invalid"))
         # On 7.17 the acknowledgement is not a display authorization.

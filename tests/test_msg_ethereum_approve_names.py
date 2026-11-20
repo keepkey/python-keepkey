@@ -73,6 +73,7 @@ class TestEthereumApproveNames(common.KeepKeyTest):
         super(TestEthereumApproveNames, self).setUp()
         self.requires_firmware("7.17.0")
         self.requires_message("EthereumTxMetadata")
+        self.supports_display_names = self.firmware_at_least("7.18.0")
         alpha = (self.client.features.firmware_variant.startswith("Emulator") and
                  os.environ.get("KK_CLEARSIGN_TEST_ROOT") == ALPHA_ROOT)
         self.name_record = ALPHA_UR_NAME if alpha else PRODUCTION_UR_NAME
@@ -106,7 +107,7 @@ class TestEthereumApproveNames(common.KeepKeyTest):
     def _assert_named_after(self, screens, plain, after, text):
         """`screens` is `plain` plus one KeepKey ClearSign screen showing
         `text`, right after plain[after]."""
-        if not self.firmware_at_least("7.18.0"):
+        if not self.supports_display_names:
             self.assertEqual(screens, plain)
             self.assertEqual(self._titled(screens, "KEEPKEY CLEARSIGN"), [])
             return
